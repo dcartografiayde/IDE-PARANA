@@ -48,7 +48,7 @@
 
 <script>
 const BASE_URL = "https://bruno-otalora.github.io/Cartograf-a/";
-const BASE_GITHUB = "https://raw.githubusercontent.com/dcartografiayde/IDE-PARANA/main/";
+const BASE_GITHUB = "https://raw.githubusercontent.com/dcartografiayde/IDE-PARANA/main/index/";
 
 function getColor(d) {
     var colors = ['#e6194b','#3cb44b','#ffe119','#4363d8','#f58231','#911eb4','#46f0f0','#f032e6','#fabebe','#008080'];
@@ -151,7 +151,6 @@ fetch(BASE_GITHUB+"iapv.geojson").then(r=>r.json()).then(data=>{
 var grupoDistritos = L.layerGroup().addTo(map);
 var grupoCalles = L.layerGroup().addTo(map);
 
-// 👉 AGREGAMOS capas existentes a sus grupos (FIX del control)
 setTimeout(()=>{
     if (lyDistritos) grupoDistritos.addLayer(lyDistritos);
     if (lyCalles) grupoCalles.addLayer(lyCalles);
@@ -170,7 +169,7 @@ L.control.layers({
     "Loteos IAPV": grupoIAPV
 }).addTo(map);
 
-/* ================= RESTO IGUAL ================= */
+/* ================= RESTO ================= */
 
 function actualizarEtiquetasCalles() {
     var zoom = map.getZoom();
