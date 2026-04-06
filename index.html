@@ -36,157 +36,202 @@
 </head>
 <body>
 
-    <div class="panel-superior">
-        <input type="text" id="input-pm" placeholder="Partida Municipal" style="width:140px; padding:6px;">
-        <button onclick="buscarPM()" style="padding:6px 12px; background:#2c3e50; color:white; border:none; border-radius:4px; cursor:pointer;">Buscar</button>
-        <select id="filtro-distrito" onchange="filtrarDistritos()" style="padding:6px;">
-            <option value="todos">-- Todos los Distritos --</option>
-        </select>
-    </div>
+<div class="panel-superior">
+    <input type="text" id="input-pm" placeholder="Partida Municipal" style="width:140px; padding:6px;">
+    <button onclick="buscarPM()" style="padding:6px 12px; background:#2c3e50; color:white; border:none; border-radius:4px; cursor:pointer;">Buscar</button>
+    <select id="filtro-distrito" onchange="filtrarDistritos()" style="padding:6px;">
+        <option value="todos">-- Todos los Distritos --</option>
+    </select>
+</div>
 
-    <div id="map"></div>
+<div id="map"></div>
 
-    <script>
-        const BASE_URL = "https://bruno-otalora.github.io/Cartograf-a/";
+<script>
+const BASE_URL = "https://bruno-otalora.github.io/Cartograf-a/";
+const BASE_GITHUB = "https://raw.githubusercontent.com/dcartografiayde/IDE-PARANA/main/";
 
-        function getColor(d) {
-            var colors = ['#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#46f0f0', '#f032e6', '#fabebe', '#008080'];
-            var hash = 0; if (!d) return '#ccc';
-            for (var i = 0; i < d.length; i++) { hash = d.charCodeAt(i) + ((hash << 5) - hash); }
-            return colors[Math.abs(hash) % colors.length];
+function getColor(d) {
+    var colors = ['#e6194b','#3cb44b','#ffe119','#4363d8','#f58231','#911eb4','#46f0f0','#f032e6','#fabebe','#008080'];
+    var hash = 0; if (!d) return '#ccc';
+    for (var i = 0; i < d.length; i++) { hash = d.charCodeAt(i) + ((hash << 5) - hash); }
+    return colors[Math.abs(hash) % colors.length];
+}
+
+var map = L.map('map', {
+    center: [-31.738, -60.525],
+    zoom: 14,
+    preferCanvas: true 
+});
+
+var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
+var satelitalBase = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}');
+var etiquetasEsri = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}');
+var satelitalHibrido = L.layerGroup([satelitalBase, etiquetasEsri]).addTo(map);
+
+/* ================= EXISTENTE ================= */
+
+var lyDistritos;
+fetch(BASE_URL+"distritos.geojson").then(r=>r.json()).then(data=>{
+    lyDistritos = L.geoJSON(data, {
+        style: f => ({ fillColor: getColor(f.properties.distrito), weight: 2.5, color: 'white', fillOpacity: 0.4 }),
+        onEachFeature: function(f, l) {
+            if (f.properties.distrito) {
+                l.bindTooltip(f.properties.distrito, { permanent: true, direction: "center", className: 'etiqueta-distrito', opacity: 0.9 });
+                var sel = document.getElementById('filtro-distrito');
+                if (!Array.from(sel.options).some(o => o.value === f.properties.distrito)) {
+                    var opt = document.createElement('option'); opt.value = f.properties.distrito; opt.text = f.properties.distrito; sel.add(opt);
+                }
+            }
         }
+    });
+});
 
-        var map = L.map('map', {
-            center: [-31.738, -60.525],
-            zoom: 14,
-            preferCanvas: true 
+fetch(BASE_URL+"manzana.geojson").then(r=>r.json()).then(data=>{
+    L.geoJSON(data, {style: { color: "#555", weight: 0.2, fillOpacity: 0.01 }}).addTo(map);
+});
+
+var lyCalles;
+fetch(BASE_URL+"calles.geojson").then(r=>r.json()).then(data=>{
+    lyCalles = L.geoJSON(data, {
+        style: { color: "#333", weight: 2, opacity: 0.6 },
+        onEachFeature: function (f, l) {
+            if (f.properties.nombre) {
+                l.bindPopup("<b>Calle:</b> " + f.properties.nombre);
+                l.bindTooltip(f.properties.nombre, { sticky: true });
+            }
+        }
+    });
+});
+
+/* ================= PARCELAS ================= */
+
+var parcelasLayers = [];
+var grupoParcelas = L.layerGroup();
+
+["parcela1_5.geojson","parcela6_9.geojson","parcela10_15.geojson"].forEach(nombre=>{
+    fetch(BASE_URL+nombre).then(r=>r.json()).then(data=>{
+        var layer = L.geoJSON(data, {
+            style: { color: "#2980b9", weight: 0.6, fillOpacity: 0.1 },
+            onEachFeature: function(f, l) { if (f.properties.nropasd) l.bindPopup("<b>Partida:</b> " + f.properties.nropasd); }
         });
+        parcelasLayers.push(layer);
+        grupoParcelas.addLayer(layer);
+    });
+});
 
-        var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
-        var satelitalBase = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}');
-        var etiquetasEsri = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}');
-        
-        var satelitalHibrido = L.layerGroup([satelitalBase, etiquetasEsri]).addTo(map);
+/* ================= NUEVAS CAPAS ================= */
 
-        var lyDistritos;
-        fetch(BASE_URL+"distritos.geojson").then(r=>r.json()).then(data=>{
-            lyDistritos = L.geoJSON(data, {
-                style: function(f) { return { fillColor: getColor(f.properties.distrito), weight: 2.5, color: 'white', fillOpacity: 0.4 }; },
-                onEachFeature: function(f, l) {
-                    if (f.properties.distrito) {
-                        l.bindTooltip(f.properties.distrito, { permanent: true, direction: "center", className: 'etiqueta-distrito', opacity: 0.9 });
-                        var sel = document.getElementById('filtro-distrito');
-                        if (!Array.from(sel.options).some(o => o.value === f.properties.distrito)) {
-                            var opt = document.createElement('option'); opt.value = f.properties.distrito; opt.text = f.properties.distrito; sel.add(opt);
-                        }
-                    }
-                }
-            }).addTo(map);
-        });
+var grupoUrbanizaciones = L.layerGroup();
+var grupoIAPV = L.layerGroup();
 
-        fetch(BASE_URL+"manzana.geojson").then(r=>r.json()).then(data=>{
-            L.geoJSON(data, {style: { color: "#555", weight: 0.2, fillOpacity: 0.01 }}).addTo(map);
-        });
+fetch(BASE_GITHUB+"loteos.geojson").then(r=>r.json()).then(data=>{
+    L.geoJSON(data,{
+        style:{
+            color:"#d35400",
+            weight:2,
+            fillColor:"#e67e22",
+            fillOpacity:0.5
+        }
+    }).addTo(grupoUrbanizaciones);
+});
 
-        var lyCalles;
-        fetch(BASE_URL+"calles.geojson").then(r=>r.json()).then(data=>{
-            lyCalles = L.geoJSON(data, {
-                style: { color: "#333", weight: 2, opacity: 0.6 },
-                onEachFeature: function (f, l) {
-                    if (f.properties.nombre) {
-                        l.bindPopup("<b>Calle:</b> " + f.properties.nombre);
-                        l.bindTooltip(f.properties.nombre, { sticky: true });
-                    }
-                }
-            }).addTo(map);
-        });
+fetch(BASE_GITHUB+"iapv.geojson").then(r=>r.json()).then(data=>{
+    L.geoJSON(data,{
+        style:{
+            color:"#1e8449",
+            weight:2,
+            fillColor:"#2ecc71",
+            fillOpacity:0.5
+        }
+    }).addTo(grupoIAPV);
+});
 
-        function actualizarEtiquetasCalles() {
-            var zoom = map.getZoom();
-            var mostrarTexto = map.hasLayer(osm);
-            if (!lyCalles) return;
+/* ================= GRUPOS CONTROL ================= */
 
-            lyCalles.eachLayer(function(layer) {
-                layer.setText(null); 
-                if (mostrarTexto && zoom >= 16 && layer.feature.properties.nombre) {
-                    layer.setText(layer.feature.properties.nombre, {
-                        repeat: true,
-                        offset: -10,
-                        attributes: { fill: '#222', 'font-size': '13px', 'font-weight': 'bold' }
-                    });
-                }
+var grupoDistritos = L.layerGroup().addTo(map);
+var grupoCalles = L.layerGroup().addTo(map);
+
+// 👉 AGREGAMOS capas existentes a sus grupos (FIX del control)
+setTimeout(()=>{
+    if (lyDistritos) grupoDistritos.addLayer(lyDistritos);
+    if (lyCalles) grupoCalles.addLayer(lyCalles);
+},500);
+
+/* ================= CONTROL ================= */
+
+L.control.layers({ 
+    "Híbrido (Satélite + Nombres)": satelitalHibrido, 
+    "Calles (Plano OSM)": osm 
+}, { 
+    "Distritos": grupoDistritos, 
+    "Calles (Ejes)": grupoCalles,
+    "Parcelas": grupoParcelas,
+    "Urbanizaciones": grupoUrbanizaciones,
+    "Loteos IAPV": grupoIAPV
+}).addTo(map);
+
+/* ================= RESTO IGUAL ================= */
+
+function actualizarEtiquetasCalles() {
+    var zoom = map.getZoom();
+    var mostrarTexto = map.hasLayer(osm);
+    if (!lyCalles) return;
+
+    lyCalles.eachLayer(function(layer) {
+        layer.setText(null); 
+        if (mostrarTexto && zoom >= 16 && layer.feature.properties.nombre) {
+            layer.setText(layer.feature.properties.nombre, {
+                repeat: true,
+                offset: -10,
+                attributes: { fill: '#222', 'font-size': '13px', 'font-weight': 'bold' }
             });
         }
+    });
+}
 
-        var parcelasLayers = [];
-        var grupoParcelas = L.layerGroup();
+map.on('zoomend baselayerchange', function() {
+    actualizarEtiquetasCalles();
+    
+    if (map.getZoom() >= 17) {
+        parcelasLayers.forEach(l=>{ if (!map.hasLayer(l)) map.addLayer(l); });
+    } else {
+        parcelasLayers.forEach(l=>{ if (map.hasLayer(l)) map.removeLayer(l); });
+    }
+});
 
-        ["parcela1_5.geojson","parcela6_9.geojson","parcela10_15.geojson"].forEach(nombre=>{
-            fetch(BASE_URL+nombre).then(r=>r.json()).then(data=>{
-                var layer = L.geoJSON(data, {
-                    style: { color: "#2980b9", weight: 0.6, fillOpacity: 0.1 },
-                    onEachFeature: function(f, l) { if (f.properties.nropasd) l.bindPopup("<b>Partida:</b> " + f.properties.nropasd); }
-                });
-                parcelasLayers.push(layer);
-                grupoParcelas.addLayer(layer);
-            });
-        });
+L.Control.geocoder({ position: 'topright', placeholder: "Buscar dirección..." }).addTo(map);
 
-        map.on('zoomend baselayerchange', function() {
-            actualizarEtiquetasCalles();
-            
-            if (map.getZoom() >= 17) {
-                parcelasLayers.forEach(l=>{ if (!map.hasLayer(l)) map.addLayer(l); });
-            } else {
-                parcelasLayers.forEach(l=>{ if (map.hasLayer(l)) map.removeLayer(l); });
+function buscarPM() {
+    var val = document.getElementById('input-pm').value.trim();
+    var encontrada = false;
+
+    parcelasLayers.forEach(layer=>{
+        layer.eachLayer(function(l) {
+            if (l.feature.properties.nropasd == val) {
+                map.fitBounds(l.getBounds());
+                if (!map.hasLayer(layer)) map.addLayer(layer);
+                l.openPopup();
+                encontrada = true;
             }
         });
+    });
 
-        L.Control.geocoder({ position: 'topright', placeholder: "Buscar dirección..." }).addTo(map);
+    if (!encontrada) alert("Partida no encontrada");
+}
 
-        function buscarPM() {
-            var val = document.getElementById('input-pm').value.trim();
-            var encontrada = false;
+function filtrarDistritos() {
+    var val = document.getElementById('filtro-distrito').value;
+    if (!lyDistritos) return;
 
-            parcelasLayers.forEach(layer=>{
-                layer.eachLayer(function(l) {
-                    if (l.feature.properties.nropasd == val) {
-                        map.fitBounds(l.getBounds());
-                        if (!map.hasLayer(layer)) map.addLayer(layer);
-                        l.openPopup();
-                        encontrada = true;
-                    }
-                });
-            });
+    lyDistritos.eachLayer(function(l) {
+        var visible = (val === "todos" || l.feature.properties.distrito === val);
+        l.setStyle({ opacity: visible ? 1 : 0, fillOpacity: visible ? 0.4 : 0 });
+        if (l.getTooltip()) l.getTooltip().setOpacity(visible ? 0.9 : 0);
+    });
+}
 
-            if (!encontrada) alert("Partida no encontrada");
-        }
+setTimeout(actualizarEtiquetasCalles, 500);
 
-        function filtrarDistritos() {
-            var val = document.getElementById('filtro-distrito').value;
-            if (!lyDistritos) return;
-
-            lyDistritos.eachLayer(function(l) {
-                var visible = (val === "todos" || l.feature.properties.distrito === val);
-                l.setStyle({ opacity: visible ? 1 : 0, fillOpacity: visible ? 0.4 : 0 });
-                if (l.getTooltip()) l.getTooltip().setOpacity(visible ? 0.9 : 0);
-            });
-        }
-
-        var grupoDistritos = L.layerGroup().addTo(map);
-        var grupoCalles = L.layerGroup().addTo(map);
-
-        L.control.layers({ 
-            "Híbrido (Satélite + Nombres)": satelitalHibrido, 
-            "Calles (Plano OSM)": osm 
-        }, { 
-            "Distritos": grupoDistritos, 
-            "Calles (Ejes)": grupoCalles,
-            "Parcelas": grupoParcelas
-        }).addTo(map);
-
-        setTimeout(actualizarEtiquetasCalles, 500);
-
-    </script>
+</script>
 </body>
 </html>
