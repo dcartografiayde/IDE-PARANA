@@ -132,6 +132,10 @@ var grupoParcelas=L.layerGroup();
                 );
             }
         });
+
+        /* 🔽 ÚNICO CAMBIO: enviar parcelas al fondo */
+        layer.eachLayer(l => l.bringToBack());
+
         parcelasLayers.push(layer);
         grupoParcelas.addLayer(layer);
     });
@@ -143,7 +147,7 @@ var grupoIAPV=L.layerGroup();
 var grupoPresTotal=L.layerGroup();
 var grupoPresFachadas=L.layerGroup();
 
-/* ===== Urbanizaciones (CORREGIDO) ===== */
+/* (resto SIN cambios) */
 fetch(BASE_URL+"loteos.geojson").then(r=>r.json()).then(data=>{
     L.geoJSON(data,{
         style:{color:"#d35400",weight:2,fillColor:"#e67e22",fillOpacity:0.5},
@@ -159,7 +163,6 @@ fetch(BASE_URL+"loteos.geojson").then(r=>r.json()).then(data=>{
     }).addTo(grupoUrbanizaciones);
 });
 
-/* ===== IAPV (CORREGIDO) ===== */
 fetch(BASE_URL+"iapv.geojson").then(r=>r.json()).then(data=>{
     L.geoJSON(data,{
         style:{color:"#1e8449",weight:2,fillColor:"#2ecc71",fillOpacity:0.5},
@@ -172,7 +175,6 @@ fetch(BASE_URL+"iapv.geojson").then(r=>r.json()).then(data=>{
     }).addTo(grupoIAPV);
 });
 
-/* ================= PRESERVACIÓN ================= */
 fetch(BASE_URL+"preservacion_total.geojson").then(r=>r.json()).then(data=>{
     L.geoJSON(data,{
         style:{color:"#8e44ad",weight:2,fillColor:"#9b59b6",fillOpacity:0.5},
