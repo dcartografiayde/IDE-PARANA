@@ -62,7 +62,7 @@ var sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Worl
 var ref = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}');
 var hibrido = L.layerGroup([sat,ref]).addTo(map);
 
-/* ================= FUNCION COLOR ================= */
+/* ================= COLOR ================= */
 function getColor(d){
     var colors=['#e6194b','#3cb44b','#ffe119','#4363d8','#f58231','#911eb4','#46f0f0','#f032e6','#fabebe','#008080'];
     var hash=0;
@@ -73,6 +73,8 @@ function getColor(d){
 
 /* ================= DISTRITOS ================= */
 var lyDistritos;
+var grupoDistritos=L.layerGroup().addTo(map);
+
 fetch(BASE_URL+"distritos.geojson").then(r=>r.json()).then(data=>{
     lyDistritos=L.geoJSON(data,{
         style:f=>({fillColor:getColor(f.properties.distrito),weight:2.5,color:'white',fillOpacity:0.4}),
@@ -98,7 +100,9 @@ fetch(BASE_URL+"manzana.geojson").then(r=>r.json()).then(data=>{
 });
 
 /* ================= CALLES ================= */
+var grupoCalles=L.layerGroup().addTo(map);
 var lyCalles;
+
 fetch(BASE_URL+"calles.geojson").then(r=>r.json()).then(data=>{
     lyCalles=L.geoJSON(data,{
         style:{color:"#333",weight:2,opacity:0.6},
@@ -123,8 +127,8 @@ var grupoParcelas=L.layerGroup();
             onEachFeature:(f,l)=>{
                 l.bindPopup(
                     "<b>Parcelas</b><br>"+
-                    "<b>N° Partida:</b> "+(f.properties.nropasd||"-")+"<br>"+
-                    "<b>Ubicación:</b> "+(f.properties.ubipar1||"-")
+                    "<b>N° Partida:</b> "+(f.properties.nropasd || "-")+"<br>"+
+                    "<b>Ubicación:</b> "+(f.properties.ubipar1 || "-")
                 );
             }
         });
@@ -133,7 +137,7 @@ var grupoParcelas=L.layerGroup();
     });
 });
 
-/* ================= CAPAS NUEVAS ================= */
+/* ================= CAPAS ================= */
 var grupoUrbanizaciones=L.layerGroup();
 var grupoIAPV=L.layerGroup();
 var grupoPresTotal=L.layerGroup();
@@ -141,25 +145,13 @@ var grupoPresFachadas=L.layerGroup();
 
 fetch(BASE_URL+"loteos.geojson").then(r=>r.json()).then(data=>{
     L.geoJSON(data,{
-        style:{color:"#d35400",weight:2,fillColor:"#e67e22",fillOpacity:0.5},
-        onEachFeature:(f,l)=>l.bindPopup(
-            "<b>Urbanizaciones</b><br>"+
-            "<b>Propietario:</b> "+(f.properties.propietario||"-")+"<br>"+
-            "<b>Expediente:</b> "+(f.properties.expte||"-")+"<br>"+
-            "<b>Año:</b> "+(f.properties.anio||"-")+"<br>"+
-            "<b>Cant. Lotes:</b> "+(f.properties.cant_lotes||"-")
-        )
+        style:{color:"#d35400",weight:2,fillColor:"#e67e22",fillOpacity:0.5}
     }).addTo(grupoUrbanizaciones);
 });
 
 fetch(BASE_URL+"iapv.geojson").then(r=>r.json()).then(data=>{
     L.geoJSON(data,{
-        style:{color:"#1e8449",weight:2,fillColor:"#2ecc71",fillOpacity:0.5},
-        onEachFeature:(f,l)=>l.bindPopup(
-            "<b>Loteos IAPV</b><br>"+
-            "<b>Barrio:</b> "+(f.properties.barrio||"-")+"<br>"+
-            "<b>Cant. Viviendas:</b> "+(f.properties.cant_viv||"-")
-        )
+        style:{color:"#1e8449",weight:2,fillColor:"#2ecc71",fillOpacity:0.5}
     }).addTo(grupoIAPV);
 });
 
@@ -168,10 +160,9 @@ fetch(BASE_URL+"preservacion_total.geojson").then(r=>r.json()).then(data=>{
         style:{color:"#8e44ad",weight:2,fillColor:"#9b59b6",fillOpacity:0.5},
         onEachFeature:(f,l)=>l.bindPopup(
             "<b>Preservación Total</b><br>"+
-            "<b>N° Partida:</b> "+(f.properties.nroparsd||"-")+"<br>"+
-            "<b>Edificio:</b> "+(f.properties.edificio||"-")+"<br>"+
-            "<b>Ubicación:</b> "+(f.properties.ubipar1||"-")+"<br>"+
-            "<b>StreetView:</b> <a href='"+(f.properties.link||"#")+"' target='_blank'>Ver</a>"
+            "<b>N° Partida:</b> "+(f.properties.nroparsd || "-")+"<br>"+
+            "<b>Edificio:</b> "+(f.properties.edificio || "-")+"<br>"+
+            "<b>Ubicación:</b> "+(f.properties.ubipar1 || "-")
         )
     }).addTo(grupoPresTotal);
 });
@@ -181,16 +172,11 @@ fetch(BASE_URL+"preservacion_fachadas.geojson").then(r=>r.json()).then(data=>{
         style:{color:"#c0392b",weight:2,fillColor:"#e74c3c",fillOpacity:0.5},
         onEachFeature:(f,l)=>l.bindPopup(
             "<b>Preservación Fachadas</b><br>"+
-            "<b>N° Partida:</b> "+(f.properties.nroparsd||"-")+"<br>"+
-            "<b>Ubicación:</b> "+(f.properties.ubipar1||"-")+"<br>"+
-            "<b>StreetView:</b> <a href='"+(f.properties.link||"#")+"' target='_blank'>Ver</a>"
+            "<b>N° Partida:</b> "+(f.properties.nroparsd || "-")+"<br>"+
+            "<b>Ubicación:</b> "+(f.properties.ubipar1 || "-")
         )
     }).addTo(grupoPresFachadas);
 });
-
-/* ================= GRUPOS ================= */
-var grupoDistritos=L.layerGroup().addTo(map);
-var grupoCalles=L.layerGroup().addTo(map);
 
 /* ================= CONTROL ================= */
 L.control.layers(
@@ -209,16 +195,17 @@ L.control.layers(
 /* ================= GEOCODER ================= */
 L.Control.geocoder({position:'topright'}).addTo(map);
 
-/* ================= BUSCAR PM ================= */
+/* ================= BUSCADOR ================= */
 function buscarPM(){
     var val=document.getElementById('input-pm').value.trim();
     var encontrada=false;
 
+    grupoParcelas.addTo(map); // asegurar que esté visible
+
     parcelasLayers.forEach(layer=>{
         layer.eachLayer(l=>{
-            if(l.feature.properties.nropar==val){
+            if(l.feature.properties.nropasd == val){
                 map.fitBounds(l.getBounds());
-                if(!map.hasLayer(layer)) map.addLayer(layer);
                 l.openPopup();
                 encontrada=true;
             }
@@ -228,7 +215,7 @@ function buscarPM(){
     if(!encontrada) alert("Partida no encontrada");
 }
 
-/* ================= FILTRO DISTRITOS ================= */
+/* ================= FILTRO ================= */
 function filtrarDistritos(){
     var val=document.getElementById('filtro-distrito').value;
     if(!lyDistritos) return;
