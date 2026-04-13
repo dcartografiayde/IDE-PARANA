@@ -145,6 +145,9 @@ var grupoUrbanizaciones=L.layerGroup();
 var grupoIAPV=L.layerGroup();
 var grupoPresTotal=L.layerGroup();
 var grupoPresFachadas=L.layerGroup();
+var grupoCocherasCorredores = L.layerGroup();
+
+var grupoCocherasZonificacion = L.layerGroup();
 
 /* Urbanizaciones (sin cambios) */
 fetch(BASE_URL+"loteos.geojson").then(r=>r.json()).then(data=>{
@@ -205,6 +208,50 @@ fetch(BASE_URL+"preservacion_fachadas.geojson").then(r=>r.json()).then(data=>{
     }).addTo(grupoPresFachadas);
 });
 
+fetch(BASE_URL+"cocheras_corredores.geojson").then(r=>r.json()).then(data=>{
+    L.geoJSON(data,{
+        style:{
+    color:"#16a085",
+    weight:4,
+    opacity:1,
+    dashArray:"6,4"
+},
+        onEachFeature:(f,l)=>l.bindPopup(
+            "<b>Cocheras: Corredores</b><br>"+
+            "<b>Calle:</b> "+(f.properties.nombre_calle || "-")+"<br>"+
+            "<b>Ancho de calle [m]:</b> "+(f.properties.calle || "-")+"<br>"+
+            "<b>Ancho de acera [m]:</b> "+(f.properties.acera || "-")+"<br>"+
+            "<b>Ancho de calzada [m]:</b> "+(f.properties.calzada || "-")+"<br>"+
+            "<b>Cantero:</b> "+(f.properties.cantero_c || "-")
+        )
+    }).addTo(grupoCocherasCorredores);
+});
+
+fetch(BASE_URL+"cocheras_zonificacion.geojson").then(r=>r.json()).then(data=>{
+    L.geoJSON(data,{
+        style:function(f){
+            var p = parseFloat(f.properties.porcentaje) || 0;
+            var op = 0.2 + (p/100)*0.5; // más % = más opaco
+            return {
+                color:"#8e44ad",
+                weight:2,
+                fillColor:"#9b59b6",
+                fillOpacity:op
+            };
+        },
+        onEachFeature:(f,l)=>{
+            l.bindPopup("<b>Cocheras Zonificación</b>");
+            if(f.properties.porcentaje){
+                l.bindTooltip(f.properties.porcentaje+"%",{
+                    permanent:true,
+                    direction:'center',
+                    className:'etiqueta-distrito'
+                });
+            }
+        }
+    }).addTo(grupoCocherasZonificacion);
+});
+
 /* ================= CONTROL ================= */
 L.control.layers(
 {"Híbrido":hibrido,"OSM":osm},
@@ -215,7 +262,10 @@ L.control.layers(
 "Urbanizaciones":grupoUrbanizaciones,
 "Loteos IAPV":grupoIAPV,
 "Preservación Total":grupoPresTotal,
-"Preservación Fachadas":grupoPresFachadas
+"Preservación Fachadas":grupoPresFachadas,
+"Cocheras: Corredores":grupoCocherasCorredores,
+
+"Cocheras Zonificación":grupoCocherasZonificacion
 }
 ).addTo(map);
 
