@@ -233,7 +233,7 @@ fetch(BASE_URL+"cocheras_porcentaje_zona.geojson")
 .then(data=>{
 
     function getColor(p){
-        return p >= 20 ? "#4a148c" :   // más oscuro
+        return p >= 20 ? "#4a148c" :   // oscuro
                p >= 15 ? "#7b1fa2" :   // medio
                          "#ce93d8";    // claro
     }
@@ -244,52 +244,34 @@ fetch(BASE_URL+"cocheras_porcentaje_zona.geojson")
                          0.25;
     }
 
-    function style(feature){
-        var p = parseFloat(feature.properties.porcentaje) || 0;
-        return {
-            color: "#000000",       // borde negro
-            weight: 3.5,            // bien grueso
-            opacity: 1,
-            fillColor: getColor(p),
-            fillOpacity: getOpacity(p)
-        };
-    }
+    L.geoJSON(data,{
+        style:function(feature){
+            var p = parseFloat(feature.properties.porcentaje) || 0;
+            return {
+                color: "#000000",   // borde negro
+                weight: 2,          // menos grueso
+                opacity: 1,
+                fillColor: getColor(p),
+                fillOpacity: getOpacity(p)
+            };
+        },
+        onEachFeature:(feature, layer)=>{
+            
+            var p = feature.properties.porcentaje || "Sin dato";
 
-    function highlightFeature(e){
-        var layer = e.target;
-        layer.setStyle({
-            weight: 5,
-            color: "#000000",
-            fillOpacity: 1
-        });
+            layer.bindPopup(
+                "<b>Cocheras Zonificación</b><br>" +
+                "Porcentaje de cocheras: " + p + "%"
+            );
 
-        layer.bringToFront();
-    }
-
-    function resetHighlight(e){
-        geojson.resetStyle(e.target);
-    }
-
-    function onEachFeature(feature, layer){
-        layer.on({
-            mouseover: highlightFeature,
-            mouseout: resetHighlight
-        });
-
-        layer.bindPopup("<b>Cocheras Zonificación</b>");
-
-        if(feature.properties.porcentaje){
-            layer.bindTooltip(feature.properties.porcentaje+"%",{
-                permanent:true,
-                direction:'center',
-                className:'etiqueta-distrito'
-            });
+            if(feature.properties.porcentaje){
+                layer.bindTooltip(feature.properties.porcentaje+"%",{
+                    permanent:true,
+                    direction:'center',
+                    className:'etiqueta-distrito'
+                });
+            }
         }
-    }
-
-    var geojson = L.geoJSON(data,{
-        style: style,
-        onEachFeature: onEachFeature
     }).addTo(grupoCocherasZonificacion);
 
 });
