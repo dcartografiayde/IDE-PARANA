@@ -228,16 +228,28 @@ fetch(BASE_URL+"cocheras_corredores.geojson").then(r=>r.json()).then(data=>{
     }).addTo(grupoCocherasCorredores);
 });
 
-fetch(BASE_URL+"cocheras_porcentaje_zona.geojson").then(r=>r.json()).then(data=>{
+fetch(BASE_URL+"cocheras_porcentaje_zona.geojson")
+.then(r=>r.json())
+.then(data=>{
+
+    function getColor(p){
+        return p > 80 ? "#4a148c" :
+               p > 60 ? "#6a1b9a" :
+               p > 40 ? "#8e24aa" :
+               p > 20 ? "#ab47bc" :
+               p > 10 ? "#ce93d8" :
+                        "#e1bee7";
+    }
+
     L.geoJSON(data,{
         style:function(f){
             var p = parseFloat(f.properties.porcentaje) || 0;
-            var op = 0.2 + (p/100)*0.5; // más % = más opaco
             return {
-                color:"#8e44ad",
-                weight:2,
-                fillColor:"#9b59b6",
-                fillOpacity:op
+                color: "#2c003e",      
+                weight: 2.5,
+                opacity: 1,
+                fillColor: getColor(p),
+                fillOpacity: 0.75      
             };
         },
         onEachFeature:(f,l)=>{
