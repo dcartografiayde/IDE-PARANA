@@ -222,12 +222,13 @@ fetch(BASE_URL+"cocheras_corredores.geojson").then(r=>r.json()).then(data=>{
             "<b>Ancho de calle [m]:</b> "+(f.properties.calle || "-")+"<br>"+
             "<b>Ancho de acera [m]:</b> "+(f.properties.acera || "-")+"<br>"+
             "<b>Ancho de calzada [m]:</b> "+(f.properties.calzada || "-")+"<br>"+
+            "<b>Porcentaje de cocheras:</b> "+(f.properties.porcentaje || "-")+"<br>"+
             "<b>Cantero:</b> "+(f.properties.cantero_c || "-")
         )
     }).addTo(grupoCocherasCorredores);
 });
 
-fetch(BASE_URL+"cocheras_zonificacion.geojson").then(r=>r.json()).then(data=>{
+fetch(BASE_URL+"cocheras_porcentaje_zona.geojson").then(r=>r.json()).then(data=>{
     L.geoJSON(data,{
         style:function(f){
             var p = parseFloat(f.properties.porcentaje) || 0;
