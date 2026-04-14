@@ -233,38 +233,66 @@ fetch(BASE_URL+"cocheras_porcentaje_zona.geojson")
 .then(data=>{
 
     function getColor(p){
-        return p > 80 ? "#4a148c" :
-               p > 60 ? "#6a1b9a" :
-               p > 40 ? "#8e24aa" :
-               p > 20 ? "#ab47bc" :
-               p > 10 ? "#ce93d8" :
-                        "#e1bee7";
+        return p >= 20 ? "#4a148c" :   // más oscuro
+               p >= 15 ? "#7b1fa2" :   // medio
+                         "#ce93d8";    // claro
     }
 
-    L.geoJSON(data,{
-        style:function(f){
-            var p = parseFloat(f.properties.porcentaje) || 0;
-            return {
-                color: "#2c003e",      
-                weight: 2.5,
-                opacity: 1,
-                fillColor: getColor(p),
-                fillOpacity: 0.75      
-            };
-        },
-        onEachFeature:(f,l)=>{
-            l.bindPopup("<b>Cocheras Zonificación</b>");
-            if(f.properties.porcentaje){
-                l.bindTooltip(f.properties.porcentaje+"%",{
-                    permanent:true,
-                    direction:'center',
-                    className:'etiqueta-distrito'
-                });
-            }
-        }
-    }).addTo(grupoCocherasZonificacion);
-});
+    function getOpacity(p){
+        return p >= 20 ? 0.85 :
+               p >= 15 ? 0.55 :
+                         0.25;
+    }
 
+    function style(feature){
+        var p = parseFloat(feature.properties.porcentaje) || 0;
+        return {
+            color: "#000000",       // borde negro
+            weight: 3.5,            // bien grueso
+            opacity: 1,
+            fillColor: getColor(p),
+            fillOpacity: getOpacity(p)
+        };
+    }
+
+    function highlightFeature(e){
+        var layer = e.target;
+        layer.setStyle({
+            weight: 5,
+            color: "#000000",
+            fillOpacity: 1
+        });
+
+        layer.bringToFront();
+    }
+
+    function resetHighlight(e){
+        geojson.resetStyle(e.target);
+    }
+
+    function onEachFeature(feature, layer){
+        layer.on({
+            mouseover: highlightFeature,
+            mouseout: resetHighlight
+        });
+
+        layer.bindPopup("<b>Cocheras Zonificación</b>");
+
+        if(feature.properties.porcentaje){
+            layer.bindTooltip(feature.properties.porcentaje+"%",{
+                permanent:true,
+                direction:'center',
+                className:'etiqueta-distrito'
+            });
+        }
+    }
+
+    var geojson = L.geoJSON(data,{
+        style: style,
+        onEachFeature: onEachFeature
+    }).addTo(grupoCocherasZonificacion);
+
+});
 /* ================= CONTROL ================= */
 L.control.layers(
 {"Híbrido":hibrido,"OSM":osm},
