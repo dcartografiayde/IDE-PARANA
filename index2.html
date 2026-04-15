@@ -1,48 +1,51 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="utf-8" />
-<title>Visor Urbano Paraná</title>
+    <meta charset="utf-8" />
+    <title>Visor Urbano Paraná</title>
 
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
 
-<script src="https://cdn.jsdelivr.net/npm/leaflet-textpath@1.2.3/leaflet.textpath.min.js"></script>
+    <style>
+        body { margin:0; padding:0; font-family: 'Segoe UI', sans-serif; }
+        #map { height: 100vh; width: 100%; background:#fff; }
 
-<link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
-<script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+        .panel-superior {
+            position:absolute; top:15px; left:60px; z-index:2000;
+            background:white; padding:12px; border-radius:8px;
+            box-shadow:0 4px 15px rgba(0,0,0,0.3);
+            display:flex; gap:10px;
+        }
 
-<style>
-body { margin:0; padding:0; font-family: 'Segoe UI', sans-serif; }
-#map { height: 100vh; width: 100%; background:#fff; }
+        .etiqueta-distrito {
+            background: rgba(255, 255, 255, 0.9)!important;
+            border: 1.5px solid #d35400!important;
+            border-radius: 4px!important;
+            padding: 1px 4px!important;
+            font-size: 10px!important;
+            font-weight: bold!important;
+            color: #d35400!important;
+            white-space: nowrap;
+            pointer-events: none;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
 
-.panel-superior {
-    position:absolute; top:15px; left:60px; z-index:2000;
-    background:white; padding:12px; border-radius:8px;
-    box-shadow:0 4px 15px rgba(0,0,0,0.3);
-    display:flex; gap:10px;
-}
-
-.etiqueta-distrito {
-    background:rgba(255,255,255,0.8)!important;
-    border:1.5px solid #d35400!important;
-    border-radius:4px!important;
-    padding:2px 5px!important;
-    font-size:11px!important;
-    font-weight:bold!important;
-    color:#d35400!important;
-}
-</style>
+        .popup-cocheras table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        .popup-cocheras table td { padding: 4px 0; border-bottom: 1px solid #eee; }
+    </style>
 </head>
 
 <body>
 
 <div class="panel-superior">
-<input type="text" id="input-pm" placeholder="Partida Municipal" style="width:140px; padding:6px;">
-<button onclick="buscarPM()" style="padding:6px 12px;">Buscar</button>
-<select id="filtro-distrito" onchange="filtrarDistritos()" style="padding:6px;">
-<option value="todos">-- Todos los Distritos --</option>
-</select>
+    <input type="text" id="input-pm" placeholder="Partida Municipal" style="width:140px; padding:6px;">
+    <button onclick="buscarPM()" style="padding:6px 12px;">Buscar</button>
+    <select id="filtro-distrito" onchange="filtrarDistritos()" style="padding:6px;">
+        <option value="todos">-- Todos los Distritos --</option>
+    </select>
 </div>
 
 <div id="map"></div>
@@ -50,43 +53,57 @@ body { margin:0; padding:0; font-family: 'Segoe UI', sans-serif; }
 <script>
 const BASE_URL = "https://raw.githubusercontent.com/dcartografiayde/IDE-PARANA/main/";
 
-/* ================= MAPA ================= */
-var map = L.map('map',{
-    center:[-31.738,-60.525],
-    zoom:14,
-    preferCanvas:true
-});
+var map = L.map('map',{ center:[-31.738,-60.525], zoom:14, preferCanvas:true });
 
-var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
 var sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}');
 var ref = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}');
 var hibrido = L.layerGroup([sat,ref]).addTo(map);
 
-/* ================= COLOR ================= */
 function getColor(d){
     var colors=['#e6194b','#3cb44b','#ffe119','#4363d8','#f58231','#911eb4','#46f0f0','#f032e6','#fabebe','#008080'];
-    var hash=0;
-    if(!d) return '#ccc';
+    var hash=0; if(!d) return '#ccc';
     for(var i=0;i<d.length;i++){ hash=d.charCodeAt(i)+((hash<<5)-hash); }
     return colors[Math.abs(hash)%colors.length];
 }
 
-/* ================= DISTRITOS ================= */
+/* ================= DISTRITOS (FIX DE POSICIÓN) ================= */
 var lyDistritos;
-var grupoDistritos=L.layerGroup().addTo(map);
+var grupoDistritos = L.layerGroup().addTo(map);
 
 fetch(BASE_URL+"distritos.geojson").then(r=>r.json()).then(data=>{
-    lyDistritos=L.geoJSON(data,{
-        style:f=>({fillColor:getColor(f.properties.distrito),weight:2.5,color:'white',fillOpacity:0.4}),
-        onEachFeature:(f,l)=>{
+    lyDistritos = L.geoJSON(data,{
+        style: f => ({ fillColor: getColor(f.properties.distrito), weight: 2, color: 'white', fillOpacity: 0.4 }),
+        onEachFeature: (f, l) => {
             if(f.properties.distrito){
-                l.bindTooltip(f.properties.distrito,{permanent:true,className:'etiqueta-distrito'});
-                var sel=document.getElementById('filtro-distrito');
+                // SOLUCIÓN: Intentar usar el primer punto del polígono si el centro falla visualmente
+                // o usar getBounds().getCenter() pero con una validación manual si fuera necesario.
+                // Para formas complejas, el "centroide" de los puntos suele ser mejor que el centro del recuadro.
+                
+                var centro;
+                if (l.getLatLngs) {
+                    var coordinates = l.getLatLngs()[0];
+                    // Si es un array de arrays (multipolígono)
+                    if (L.Util.isArray(coordinates[0])) coordinates = coordinates[0];
+                    
+                    // Calculamos un promedio simple de lat/lng para acercarnos al centro real de la masa
+                    var lat = 0, lng = 0, n = coordinates.length;
+                    coordinates.forEach(c => { lat += c.lat; lng += c.lng; });
+                    centro = L.latLng(lat/n, lng/n);
+                } else {
+                    centro = l.getBounds().getCenter();
+                }
+
+                l.bindTooltip(f.properties.distrito, {
+                    permanent: true, 
+                    direction: 'center', 
+                    className: 'etiqueta-distrito',
+                    sticky: false
+                });
+
+                var sel = document.getElementById('filtro-distrito');
                 if(!Array.from(sel.options).some(o=>o.value===f.properties.distrito)){
                     var opt=document.createElement('option');
-                    opt.value=f.properties.distrito;
-                    opt.text=f.properties.distrito;
-                    sel.add(opt);
+                    opt.value=f.properties.distrito; opt.text=f.properties.distrito; sel.add(opt);
                 }
             }
         }
@@ -94,239 +111,71 @@ fetch(BASE_URL+"distritos.geojson").then(r=>r.json()).then(data=>{
     grupoDistritos.addLayer(lyDistritos);
 });
 
-/* ================= MANZANAS ================= */
-fetch(BASE_URL+"manzana.geojson").then(r=>r.json()).then(data=>{
-    L.geoJSON(data,{style:{color:"#555",weight:0.2,fillOpacity:0.01}}).addTo(map);
-});
-
 /* ================= CALLES ================= */
-var grupoCalles=L.layerGroup().addTo(map);
-var lyCalles;
-
+var grupoCalles = L.layerGroup().addTo(map);
 fetch(BASE_URL+"calles.geojson").then(r=>r.json()).then(data=>{
-    lyCalles=L.geoJSON(data,{
-        style:{color:"#333",weight:2,opacity:0.6},
-        onEachFeature:(f,l)=>{
-            if(f.properties.nombre){
-                l.bindPopup("<b>Calle:</b> "+f.properties.nombre);
-                l.bindTooltip(f.properties.nombre,{sticky:true});
-            }
+    L.geoJSON(data,{
+        style: {color:"#333", weight:2, opacity:0.6},
+        onEachFeature: (f,l) => {
+            if(f.properties.nombre) l.bindTooltip(f.properties.nombre, {sticky:true});
         }
-    });
-    grupoCalles.addLayer(lyCalles);
+    }).addTo(grupoCalles);
 });
 
-/* ================= PARCELAS ================= */
-var parcelasLayers=[];
-var grupoParcelas=L.layerGroup();
-
-["parcela1_4.geojson","parcela5_7.geojson","parcela8_15.geojson"].forEach(nombre=>{
-    fetch(BASE_URL+nombre).then(r=>r.json()).then(data=>{
-        var layer=L.geoJSON(data,{
-            style:{color:"#2980b9",weight:0.6,fillOpacity:0.1},
-            onEachFeature:(f,l)=>{
-                l.bindPopup(
-                    "<b>Parcelas</b><br>"+
-                    "<b>N° Partida:</b> "+(f.properties.nropasd || "-")+"<br>"+
-                    "<b>Ubicación:</b> "+(f.properties.ubipar1 || "-")
-                );
-            }
-        });
-
-        layer.eachLayer(l => l.bringToBack());
-
-        parcelasLayers.push(layer);
-        grupoParcelas.addLayer(layer);
-    });
-});
-
-/* ================= CAPAS ================= */
-var grupoUrbanizaciones=L.layerGroup();
-var grupoIAPV=L.layerGroup();
-var grupoPresTotal=L.layerGroup();
-var grupoPresFachadas=L.layerGroup();
+/* ================= COCHERAS CORREDORES ================= */
 var grupoCocherasCorredores = L.layerGroup();
-
-var grupoCocherasZonificacion = L.layerGroup();
-
-/* Urbanizaciones (sin cambios) */
-fetch(BASE_URL+"loteos.geojson").then(r=>r.json()).then(data=>{
-    L.geoJSON(data,{
-        style:function(f){
-            if(!f.properties.ordenanza){
-                return {color:"#c0392b",weight:2,fillColor:"#e74c3c",fillOpacity:0.5};
-            } else {
-                return {color:"#1e8449",weight:2,fillColor:"#2ecc71",fillOpacity:0.5};
-            }
-        },
-        onEachFeature:(f,l)=>l.bindPopup(
-            "<b>Urbanizaciones</b><br>"+
-            "<b>Propietario:</b> "+(f.properties.propietario || "-")+"<br>"+
-            "<b>Ordenanza:</b> "+(f.properties.ordenanza || "-")+"<br>"+
-            "<b>Expediente:</b> "+(f.properties.expte || "-")+"<br>"+
-            "<b>Año:</b> "+(f.properties.anio || "-")+"<br>"+
-            "<b>Datos adicionales:</b> "+(f.properties.datos_adic || "-")+"<br>"+
-            "<b>Cant. Lotes:</b> "+(f.properties.cant_lotes || "-")
-        )
-    }).addTo(grupoUrbanizaciones);
-});
-
-/* 🔶 IAPV en naranja (ÚNICO CAMBIO) */
-fetch(BASE_URL+"iapv.geojson").then(r=>r.json()).then(data=>{
-    L.geoJSON(data,{
-        style:{color:"#d35400",weight:2,fillColor:"#f39c12",fillOpacity:0.5},
-        onEachFeature:(f,l)=>l.bindPopup(
-            "<b>Loteos IAPV</b><br>"+
-            "<b>Barrio:</b> "+(f.properties.barrio || "-")+"<br>"+
-            "<b>Viviendas:</b> "+(f.properties.cant_viv || "-")+"<br>"+
-            "<b>Año:</b> "+(f.properties.anio_cons || "-")
-        )
-    }).addTo(grupoIAPV);
-});
-
-/* resto sin cambios */
-fetch(BASE_URL+"preservacion_total.geojson").then(r=>r.json()).then(data=>{
-    L.geoJSON(data,{
-        style:{color:"#8e44ad",weight:2,fillColor:"#9b59b6",fillOpacity:0.5},
-        onEachFeature:(f,l)=>l.bindPopup(
-            "<b>Preservación Total</b><br>"+
-            "<b>N° Partida:</b> "+(f.properties.nroparsd || "-")+"<br>"+
-            "<b>Edificio:</b> "+(f.properties.edificio || "-")+"<br>"+
-            "<b>Ubicación:</b> "+(f.properties.ubipar1 || "-")
-        )
-    }).addTo(grupoPresTotal);
-});
-
-fetch(BASE_URL+"preservacion_fachadas.geojson").then(r=>r.json()).then(data=>{
-    L.geoJSON(data,{
-        style:{color:"#f39c12",weight:2,fillColor:"#f1c40f",fillOpacity:0.5},
-        onEachFeature:(f,l)=>l.bindPopup(
-            "<b>Preservación Fachadas</b><br>"+
-            "<b>N° Partida:</b> "+(f.properties.nroparsd || "-")+"<br>"+
-            "<b>Ubicación:</b> "+(f.properties.ubipar1 || "-")
-        )
-    }).addTo(grupoPresFachadas);
-});
-
 fetch(BASE_URL+"cocheras_corredores.geojson").then(r=>r.json()).then(data=>{
     L.geoJSON(data,{
-        style:{
-    color:"#16a085",
-    weight:4,
-    opacity:1,
-    dashArray:"6,4"
-},
-        onEachFeature:(f,l)=>l.bindPopup(
-            "<b>Cocheras: Corredores</b><br>"+
-            "<b>Calle:</b> "+(f.properties.nombre_calle || "-")+"<br>"+
-            "<b>Ancho de calle [m]:</b> "+(f.properties.calle || "-")+"<br>"+
-            "<b>Ancho de acera [m]:</b> "+(f.properties.acera || "-")+"<br>"+
-            "<b>Ancho de calzada [m]:</b> "+(f.properties.calzada || "-")+"<br>"+
-            "<b>Porcentaje de cocheras:</b> "+(f.properties.porcentaje || "-")+"<br>"+
-            "<b>Cantero:</b> "+(f.properties.cantero_c || "-")
-        )
+        style: { color:"#16a085", weight:5, opacity:0.9, dashArray:"6,4" },
+        onEachFeature: (f,l) => {
+            const html = `<div class="popup-cocheras"><b>Cocheras: Corredor</b><br>
+                <table><tr><td>Calle:</td><td>${f.properties.nombre_calle || "-"}</td></tr>
+                <tr><td>%:</td><td>${f.properties.porcentaje || "-"}%</td></tr></table></div>`;
+            l.bindPopup(html);
+        }
     }).addTo(grupoCocherasCorredores);
 });
 
-fetch(BASE_URL+"cocheras_porcentaje_zona.geojson")
-.then(r=>r.json())
-.then(data=>{
-
-    function getColor(p){
-        return p >= 20 ? "#4a148c" :   // oscuro
-               p >= 15 ? "#7b1fa2" :   // medio
-                         "#ce93d8";    // claro
-    }
-
-    function getOpacity(p){
-        return p >= 20 ? 0.85 :
-               p >= 15 ? 0.55 :
-                         0.25;
-    }
-
-    L.geoJSON(data,{
-        style:function(feature){
-            var p = parseFloat(feature.properties.porcentaje) || 0;
-            return {
-                color: "#000000",   // borde negro
-                weight: 2,          // menos grueso
-                opacity: 1,
-                fillColor: getColor(p),
-                fillOpacity: getOpacity(p)
-            };
-        },
-        onEachFeature:(feature, layer)=>{
-            
-            var p = feature.properties.porcentaje || "Sin dato";
-
-            layer.bindPopup(
-                "<b>Cocheras: Zonificación</b><br>" +
-                "Porcentaje de cocheras: " + p + "%"
-            );
-
-            if(feature.properties.porcentaje){
-                layer.bindTooltip(feature.properties.porcentaje+"%",{
-                    permanent:true,
-                    direction:'center',
-                    className:'etiqueta-distrito'
-                });
-            }
-        }
-    }).addTo(grupoCocherasZonificacion);
-
+/* ================= PARCELAS Y BUSCADOR ================= */
+var grupoParcelas = L.layerGroup();
+var parcelasLayers = [];
+["parcela1_4.geojson","parcela5_7.geojson","parcela8_15.geojson"].forEach(n=>{
+    fetch(BASE_URL+n).then(r=>r.json()).then(data=>{
+        var ly = L.geoJSON(data,{style:{color:"#2980b9",weight:0.5,fillOpacity:0.1},
+        onEachFeature:(f,l)=>l.bindPopup("Partida: "+(f.properties.nropasd||"-"))});
+        parcelasLayers.push(ly); grupoParcelas.addLayer(ly);
+    });
 });
-/* ================= CONTROL ================= */
-L.control.layers(
-{"Híbrido":hibrido,"OSM":osm},
-{
-"Distritos":grupoDistritos,
-"Calles":grupoCalles,
-"Parcelas":grupoParcelas,
-"Urbanizaciones":grupoUrbanizaciones,
-"Loteos IAPV":grupoIAPV,
-"Preservación Total":grupoPresTotal,
-"Preservación Fachadas":grupoPresFachadas,
-"Cocheras: Corredores":grupoCocherasCorredores,
 
-"Cocheras Zonificación":grupoCocherasZonificacion
-}
-).addTo(map);
+L.control.layers({"Satélite":hibrido}, {
+    "Distritos": grupoDistritos,
+    "Calles": grupoCalles,
+    "Parcelas": grupoParcelas,
+    "Cocheras": grupoCocherasCorredores
+}).addTo(map);
 
-/* ================= GEOCODER ================= */
-L.Control.geocoder({position:'topright'}).addTo(map);
-
-/* ================= BUSCADOR ================= */
 function buscarPM(){
     var val=document.getElementById('input-pm').value.trim();
     var encontrada=false;
-
     grupoParcelas.addTo(map);
-
     parcelasLayers.forEach(layer=>{
         layer.eachLayer(l=>{
             if(l.feature.properties.nropasd == val){
-                map.fitBounds(l.getBounds());
-                l.openPopup();
-                encontrada=true;
+                map.fitBounds(l.getBounds()); l.openPopup(); encontrada=true;
             }
         });
     });
-
     if(!encontrada) alert("Partida no encontrada");
 }
 
-/* ================= FILTRO ================= */
 function filtrarDistritos(){
     var val=document.getElementById('filtro-distrito').value;
-    if(!lyDistritos) return;
-
     lyDistritos.eachLayer(l=>{
-        var visible=(val==="todos"||l.feature.properties.distrito===val);
-        l.setStyle({opacity:visible?1:0,fillOpacity:visible?0.4:0});
-        if(l.getTooltip()) l.getTooltip().setOpacity(visible?0.9:0);
+        var vis=(val==="todos"||l.feature.properties.distrito===val);
+        l.setStyle({opacity:vis?1:0, fillOpacity:vis?0.4:0});
+        if(l.getTooltip()) l.getTooltip().setOpacity(vis?0.9:0);
     });
 }
-
 </script>
 </body>
 </html>
