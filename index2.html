@@ -1,46 +1,49 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="utf-8" />
-    <title>Visor Urbano Paraná</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
-    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+<meta charset="utf-8" />
+<title>Visor Urbano Paraná</title>
 
-    <style>
-        body { margin:0; padding:0; font-family: 'Segoe UI', sans-serif; }
-        #map { height: 100vh; width: 100%; background:#fff; }
-        .panel-superior {
-            position:absolute; top:15px; left:60px; z-index:2000;
-            background:white; padding:12px; border-radius:8px;
-            box-shadow:0 4px 15px rgba(0,0,0,0.3);
-            display:flex; gap:10px;
-        }
-        .etiqueta-distrito {
-            background: rgba(255, 255, 255, 0.9)!important;
-            border: 1.5px solid #d35400!important;
-            border-radius: 4px!important;
-            padding: 1px 4px!important;
-            font-size: 10px!important;
-            font-weight: bold!important;
-            color: #d35400!important;
-            white-space: nowrap;
-            pointer-events: none;
-        }
-        .popup-personalizado table { width: 100%; border-collapse: collapse; font-size: 12px; }
-        .popup-personalizado table td { padding: 4px 0; border-bottom: 1px solid #eee; }
-        .popup-personalizado h4 { margin: 0 0 5px 0; color: #16a085; border-bottom: 2px solid #16a085; }
-    </style>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/leaflet-textpath@1.2.3/leaflet.textpath.min.js"></script>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+<script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+
+<style>
+body { margin:0; padding:0; font-family: 'Segoe UI', sans-serif; }
+#map { height: 100vh; width: 100%; background:#fff; }
+
+.panel-superior {
+    position:absolute; top:15px; left:60px; z-index:2000;
+    background:white; padding:12px; border-radius:8px;
+    box-shadow:0 4px 15px rgba(0,0,0,0.3);
+    display:flex; gap:10px;
+}
+
+.etiqueta-distrito {
+    background:rgba(255,255,255,0.8)!important;
+    border:1.5px solid #d35400!important;
+    border-radius:4px!important;
+    padding:2px 5px!important;
+    font-size:11px!important;
+    font-weight:bold!important;
+    color:#d35400!important;
+    pointer-events: none; /* Evita que la etiqueta interfiera con los clics */
+}
+</style>
 </head>
+
 <body>
 
 <div class="panel-superior">
-    <input type="text" id="input-pm" placeholder="Partida Municipal" style="width:140px; padding:6px;">
-    <button onclick="buscarPM()">Buscar</button>
-    <select id="filtro-distrito" onchange="filtrarDistritos()">
-        <option value="todos">-- Todos los Distritos --</option>
-    </select>
+<input type="text" id="input-pm" placeholder="Partida Municipal" style="width:140px; padding:6px;">
+<button onclick="buscarPM()" style="padding:6px 12px;">Buscar</button>
+<select id="filtro-distrito" onchange="filtrarDistritos()" style="padding:6px;">
+<option value="todos">-- Todos los Distritos --</option>
+</select>
 </div>
 
 <div id="map"></div>
@@ -48,138 +51,69 @@
 <script>
 const BASE_URL = "https://raw.githubusercontent.com/dcartografiayde/IDE-PARANA/main/";
 
-var map = L.map('map',{ center:[-31.738,-60.525], zoom:14, preferCanvas:true });
+/* ================= MAPA ================= */
+var map = L.map('map',{
+    center:[-31.738,-60.525],
+    zoom:14,
+    preferCanvas:true
+});
 
 var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
 var sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}');
 var ref = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}');
 var hibrido = L.layerGroup([sat,ref]).addTo(map);
 
+/* ================= COLOR ================= */
 function getColor(d){
     var colors=['#e6194b','#3cb44b','#ffe119','#4363d8','#f58231','#911eb4','#46f0f0','#f032e6','#fabebe','#008080'];
-    var hash=0; if(!d) return '#ccc';
+    var hash=0;
+    if(!d) return '#ccc';
     for(var i=0;i<d.length;i++){ hash=d.charCodeAt(i)+((hash<<5)-hash); }
     return colors[Math.abs(hash)%colors.length];
 }
 
-/* 1. DISTRITOS CON FIX DE ETIQUETA */
+/* ================= DISTRITOS (CON FIX DE POSICIÓN) ================= */
 var lyDistritos;
-var grupoDistritos = L.layerGroup().addTo(map);
-fetch(BASE_URL+"distritos.geojson").then(r=>r.json()).then(data=>{
-    lyDistritos = L.geoJSON(data,{
-        style: f => ({ fillColor: getColor(f.properties.distrito), weight: 2, color: 'white', fillOpacity: 0.4 }),
-        onEachFeature: (f, l) => {
-            if(f.properties.distrito){
-                // Forzamos el centroide manual para que UR3 y otros queden dentro
-                var centro;
-                if (l.getLatLngs) {
-                    var coords = l.getLatLngs()[0];
-                    if (L.Util.isArray(coords[0])) coords = coords[0];
-                    var lat = 0, lng = 0, n = coords.length;
-                    coords.forEach(c => { lat += c.lat; lng += c.lng; });
-                    centro = L.latLng(lat/n, lng/n);
-                } else { centro = l.getBounds().getCenter(); }
+var grupoDistritos=L.layerGroup().addTo(map);
 
-                l.bindTooltip(f.properties.distrito, { permanent: true, direction: 'center', className: 'etiqueta-distrito' });
+fetch(BASE_URL+"distritos.geojson").then(r=>r.json()).then(data=>{
+    lyDistritos=L.geoJSON(data,{
+        style:f=>({fillColor:getColor(f.properties.distrito),weight:2.5,color:'white',fillOpacity:0.4}),
+        onEachFeature:(f,l)=>{
+            if(f.properties.distrito){
                 
-                var sel = document.getElementById('filtro-distrito');
+                // --- LÓGICA DE CENTROIDE PARA FORZAR ETIQUETA ADENTRO ---
+                var centro;
+                try {
+                    var coords = l.getLatLngs()[0];
+                    // Si es multipolígono, bajamos un nivel más
+                    if (L.Util.isArray(coords[0])) coords = coords[0];
+                    
+                    var latSum = 0, lngSum = 0, n = coords.length;
+                    coords.forEach(c => { latSum += c.lat; lngSum += c.lng; });
+                    centro = L.latLng(latSum/n, lngSum/n);
+                } catch(e) {
+                    centro = l.getBounds().getCenter();
+                }
+
+                l.bindTooltip(f.properties.distrito, {
+                    permanent: true, 
+                    direction: 'center', 
+                    className: 'etiqueta-distrito'
+                }).openTooltip(centro); // Forzamos la posición en el centroide calculado
+
+                var sel=document.getElementById('filtro-distrito');
                 if(!Array.from(sel.options).some(o=>o.value===f.properties.distrito)){
                     var opt=document.createElement('option');
-                    opt.value=f.properties.distrito; opt.text=f.properties.distrito; sel.add(opt);
+                    opt.value=f.properties.distrito;
+                    opt.text=f.properties.distrito;
+                    sel.add(opt);
                 }
             }
         }
-    }).addTo(grupoDistritos);
-});
-
-/* 2. CALLES */
-var grupoCalles = L.layerGroup().addTo(map);
-fetch(BASE_URL+"calles.geojson").then(r=>r.json()).then(data=>{
-    L.geoJSON(data,{
-        style: {color:"#333", weight:2, opacity:0.6},
-        onEachFeature: (f,l) => { if(f.properties.nombre) l.bindPopup("Calle: "+f.properties.nombre); }
-    }).addTo(grupoCalles);
-});
-
-/* 3. PARCELAS */
-var grupoParcelas = L.layerGroup();
-var parcelasLayers = [];
-["parcela1_4.geojson","parcela5_7.geojson","parcela8_15.geojson"].forEach(n=>{
-    fetch(BASE_URL+n).then(r=>r.json()).then(data=>{
-        var ly = L.geoJSON(data,{ style:{color:"#2980b9",weight:0.5,fillOpacity:0.1},
-        onEachFeature:(f,l)=>l.bindPopup("Partida: "+(f.properties.nropasd||"-")) });
-        parcelasLayers.push(ly); grupoParcelas.addLayer(ly);
     });
+    grupoDistritos.addLayer(lyDistritos);
 });
 
-/* 4. COCHERAS CORREDORES (CON TABLA Y CLIC) */
-var grupoCocherasCorredores = L.layerGroup();
-fetch(BASE_URL+"cocheras_corredores.geojson").then(r=>r.json()).then(data=>{
-    L.geoJSON(data,{
-        style: { color:"#16a085", weight:5, opacity:0.9, dashArray:"6,4" },
-        onEachFeature: (f,l) => {
-            l.bindPopup(`<div class="popup-personalizado"><h4>Cocheras Corredor</h4><table>
-                <tr><td>Calle:</td><td>${f.properties.nombre_calle || "-"}</td></tr>
-                <tr><td>Calzada:</td><td>${f.properties.calzada || "-"}m</td></tr>
-                <tr><td>%:</td><td>${f.properties.porcentaje || "-"}%</td></tr>
-                </table></div>`);
-        }
-    }).addTo(grupoCocherasCorredores);
-});
-
-/* 5. CAPAS ADICIONALES RESTAURADAS */
-var grupoUrbanizaciones = L.layerGroup();
-fetch(BASE_URL+"loteos.geojson").then(r=>r.json()).then(data=>{
-    L.geoJSON(data,{ style:{color:"#1e8449",weight:2,fillOpacity:0.4},
-    onEachFeature:(f,l)=>l.bindPopup("Urbanización: "+(f.properties.propietario||"-")) }).addTo(grupoUrbanizaciones);
-});
-
-var grupoIAPV = L.layerGroup();
-fetch(BASE_URL+"iapv.geojson").then(r=>r.json()).then(data=>{
-    L.geoJSON(data,{ style:{color:"#d35400",weight:2,fillColor:"#f39c12",fillOpacity:0.5},
-    onEachFeature:(f,l)=>l.bindPopup("IAPV: "+(f.properties.barrio||"-")) }).addTo(grupoIAPV);
-});
-
-var grupoPresTotal = L.layerGroup();
-fetch(BASE_URL+"preservacion_total.geojson").then(r=>r.json()).then(data=>{
-    L.geoJSON(data,{ style:{color:"#8e44ad",weight:2,fillOpacity:0.5} }).addTo(grupoPresTotal);
-});
-
-/* CONTROLES */
-L.control.layers({"Híbrido":hibrido, "OSM":osm}, {
-    "Distritos": grupoDistritos,
-    "Calles": grupoCalles,
-    "Parcelas": grupoParcelas,
-    "Cocheras": grupoCocherasCorredores,
-    "Urbanizaciones": grupoUrbanizaciones,
-    "IAPV": grupoIAPV,
-    "Preservación": grupoPresTotal
-}).addTo(map);
-
-L.Control.geocoder({position:'topright'}).addTo(map);
-
-function buscarPM(){
-    var val=document.getElementById('input-pm').value.trim();
-    var encontrada=false;
-    grupoParcelas.addTo(map);
-    parcelasLayers.forEach(layer=>{
-        layer.eachLayer(l=>{
-            if(l.feature.properties.nropasd == val){
-                map.fitBounds(l.getBounds()); l.openPopup(); encontrada=true;
-            }
-        });
-    });
-    if(!encontrada) alert("Partida no encontrada");
-}
-
-function filtrarDistritos(){
-    var val=document.getElementById('filtro-distrito').value;
-    lyDistritos.eachLayer(l=>{
-        var vis=(val==="todos"||l.feature.properties.distrito===val);
-        l.setStyle({opacity:vis?1:0, fillOpacity:vis?0.4:0});
-        if(l.getTooltip()) l.getTooltip().setOpacity(vis?0.9:0);
-    });
-}
-</script>
-</body>
-</html>
+/* ================= MANZANAS ================= */
+fetch(BASE_URL+"manzana.geojson").then(r=>r.json()).then(
