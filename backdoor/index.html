@@ -401,7 +401,7 @@ function buscarPM(){
 
     parcelasLayers.forEach(layer=>{
         layer.eachLayer(l=>{
-            if(l.feature.properties.nropasd == val){
+            if(l.feature.properties.partidas.includes(val)){
                 map.fitBounds(l.getBounds());
                 l.openPopup();
                 encontrada=true;
