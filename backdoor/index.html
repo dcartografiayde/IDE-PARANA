@@ -146,8 +146,10 @@ var grupoIAPV=L.layerGroup();
 var grupoPresTotal=L.layerGroup();
 var grupoPresFachadas=L.layerGroup();
 var grupoCocherasCorredores = L.layerGroup();
-
 var grupoCocherasZonificacion = L.layerGroup();
+var grupoLoteosPrivadosHabilitados = L.layerGroup();
+var grupoLoteosPrivadosAprobados = L.layerGroup();
+var grupoLoteosSinOrdenanza = L.layerGroup();
 
 /* Urbanizaciones (sin cambios) */
 fetch(BASE_URL+"loteos.geojson").then(r=>r.json()).then(data=>{
@@ -274,6 +276,58 @@ fetch(BASE_URL+"cocheras_porcentaje_zona.geojson")
         }
     }).addTo(grupoCocherasZonificacion);
 
+    fetch(BASE_URL+"loteos_privados_habilitados.geojson").then(r=>r.json()).then(data=>{
+    L.geoJSON(data,{
+        style:{
+    color:"#91522d",
+    weight:4,
+    opacity:1,
+    dashArray:"6,4"
+},
+        onEachFeature:(f,l)=>l.bindPopup(
+            "<b>Loteos Privados Habilitados</b><br>"+
+            "<b>Propietario:</b> "+(f.properties.propietario || "-")+"<br>"+
+            "<b>Nro° de expediente:</b> "+(f.properties.expte || "-")+"<br>"+
+            "<b>Año:</b> "+(f.properties.anio || "-")+"<br>"+
+            "<b>Ordenanza:</b> "+(f.properties.ordenanza || "-")
+        )
+    }).addTo(grupoLoteosPrivadosHabilitados);
+
+    fetch(BASE_URL+"loteos_privados_aprobados.geojson").then(r=>r.json()).then(data=>{
+    L.geoJSON(data,{
+        style:{
+    color:"#e5b636",
+    weight:4,
+    opacity:1,
+    dashArray:"6,4"
+},
+        onEachFeature:(f,l)=>l.bindPopup(
+            "<b>Loteos Privados Aprobados</b><br>"+
+            "<b>Propietario:</b> "+(f.properties.propietario || "-")+"<br>"+
+            "<b>Nro° de expediente:</b> "+(f.properties.expte || "-")+"<br>"+
+            "<b>Año:</b> "+(f.properties.anio || "-")+"<br>"+
+            "<b>Ordenanza:</b> "+(f.properties.ordenanza || "-")
+        )
+    }).addTo(grupoLoteosPrivadosAprobados);
+
+    fetch(BASE_URL+"loteos_sin_ordenanza.geojson").then(r=>r.json()).then(data=>{
+    L.geoJSON(data,{
+        style:{
+    color:"#c43c39",
+    weight:4,
+    opacity:1,
+    dashArray:"6,4"
+},
+        onEachFeature:(f,l)=>l.bindPopup(
+            "<b>Loteos Privados Aprobados</b><br>"+
+            "<b>Propietario:</b> "+(f.properties.propietario || "-")+"<br>"+
+            "<b>Nro° de expediente:</b> "+(f.properties.expte || "-")+"<br>"+
+            "<b>Año:</b> "+(f.properties.anio || "-")
+        )
+    }).addTo(grupoLoteosSinOrdenanza);
+});
+
+
 });
 /* ================= CONTROL ================= */
 L.control.layers(
@@ -287,8 +341,10 @@ L.control.layers(
 "Preservación Total":grupoPresTotal,
 "Preservación Fachadas":grupoPresFachadas,
 "Cocheras: Corredores":grupoCocherasCorredores,
-
-"Cocheras Zonificación":grupoCocherasZonificacion
+"Cocheras Zonificación":grupoCocherasZonificacion,
+"Loteos Habilitados":grupoLoteosPrivadosHabilitados,
+"Loteos Aprobados":grupoLoteosPrivadosAprobados,
+"Loteos sin Ordenanza":grupoLoteosSinOrdenanza
 }
 ).addTo(map);
 
