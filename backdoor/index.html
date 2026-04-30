@@ -325,6 +325,8 @@ fetch(BASE_URL+"backdoor/loteos_privados_habilitados.geojson").then(r=>r.json())
         onEachFeature:(f,l)=>l.bindPopup(
             "<b>Loteos Privados Habilitados</b><br>"+
             "<b>Propietario:</b> "+(f.properties.propietario || "-")+"<br>"+
+            "<b>Cantidad de lotes:</b> "+(f.properties.cant_lotes || "-")+"<br>"+
+            "<b>Superficie urbanizada:</b> "+(f.properties.sup_urbanizada || "-")+"<br>"+
             "<b>Nro° de expediente:</b> "+(f.properties.expte || "-")+"<br>"+
             "<b>Año:</b> "+(f.properties.anio || "-")+"<br>"+
             "<b>Ordenanza:</b> "+(f.properties.ordenanza || "-")
@@ -342,6 +344,8 @@ fetch(BASE_URL+"backdoor/loteos_privados_aprobados.geojson").then(r=>r.json()).t
         onEachFeature:(f,l)=>l.bindPopup(
             "<b>Loteos Privados Aprobados</b><br>"+
             "<b>Propietario:</b> "+(f.properties.propietario || "-")+"<br>"+
+            "<b>Cantidad de lotes:</b> "+(f.properties.cant_lotes || "-")+"<br>"+
+            "<b>Superficie urbanizada:</b> "+(f.properties.sup_urbanizada || "-")+"<br>"+
             "<b>Nro° de expediente:</b> "+(f.properties.expte || "-")+"<br>"+
             "<b>Año:</b> "+(f.properties.anio || "-")+"<br>"+
             "<b>Ordenanza:</b> "+(f.properties.ordenanza || "-")
@@ -359,6 +363,8 @@ fetch(BASE_URL+"backdoor/loteos_sin_ordenanza.geojson").then(r=>r.json()).then(d
         onEachFeature:(f,l)=>l.bindPopup(
             "<b>Loteos Privados Aprobados</b><br>"+
             "<b>Propietario:</b> "+(f.properties.propietario || "-")+"<br>"+
+            "<b>Cantidad de lotes:</b> "+(f.properties.cant_lotes || "-")+"<br>"+
+            "<b>Superficie urbanizada:</b> "+(f.properties.sup_urbanizada || "-")+"<br>"+
             "<b>Nro° de expediente:</b> "+(f.properties.expte || "-")+"<br>"+
             "<b>Año:</b> "+(f.properties.anio || "-")
         )
