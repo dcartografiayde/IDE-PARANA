@@ -275,6 +275,7 @@ fetch(BASE_URL+"cocheras_porcentaje_zona.geojson")
             }
         }
     }).addTo(grupoCocherasZonificacion);
+    });
 
 fetch(BASE_URL+"backdoor/loteos_privados_habilitados.geojson").then(r=>r.json()).then(data=>{
     L.geoJSON(data,{
