@@ -293,6 +293,7 @@ fetch(BASE_URL+"backdoor/loteos_privados_habilitados.geojson").then(r=>r.json())
             "<b>Ordenanza:</b> "+(f.properties.ordenanza || "-")
         )
     }).addTo(grupoLoteosPrivadosHabilitados);
+    });
 
 fetch(BASE_URL+"backdoor/loteos_privados_aprobados.geojson").then(r=>r.json()).then(data=>{
     L.geoJSON(data,{
@@ -310,6 +311,7 @@ fetch(BASE_URL+"backdoor/loteos_privados_aprobados.geojson").then(r=>r.json()).t
             "<b>Ordenanza:</b> "+(f.properties.ordenanza || "-")
         )
     }).addTo(grupoLoteosPrivadosAprobados);
+    });
 
 fetch(BASE_URL+"backdoor/loteos_sin_ordenanza.geojson").then(r=>r.json()).then(data=>{
     L.geoJSON(data,{
@@ -326,7 +328,7 @@ fetch(BASE_URL+"backdoor/loteos_sin_ordenanza.geojson").then(r=>r.json()).then(d
             "<b>Año:</b> "+(f.properties.anio || "-")
         )
     }).addTo(grupoLoteosSinOrdenanza);
-});
+    });
 
 
 });
