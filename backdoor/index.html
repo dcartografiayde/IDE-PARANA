@@ -122,14 +122,56 @@ var grupoParcelas=L.layerGroup();
 
 ["parcela1_4.geojson","parcela5_7.geojson","parcela8_15.geojson"].forEach(nombre=>{
     fetch(BASE_URL+nombre).then(r=>r.json()).then(data=>{
-        var layer=L.geoJSON(data,{
-            style:{color:"#2980b9",weight:0.6,fillOpacity:0.1},
+
+        // 🔹 Agrupar por geometría
+        var grupos = {};
+
+        data.features.forEach(f=>{
+            var key = JSON.stringify(f.geometry.coordinates);
+
+            if(!grupos[key]) grupos[key]=[];
+            grupos[key].push(f);
+        });
+
+        // 🔹 Crear una feature por grupo
+        var featuresAgrupadas = Object.values(grupos).map(grupo=>{
+            var base = grupo[0];
+
+            return {
+                type:"Feature",
+                geometry: base.geometry,
+                properties:{
+                    esPH: grupo.length > 1,
+                    partidas: grupo.map(g=>g.properties.nropasd),
+                    ubicacion: base.properties.ubipar1
+                }
+            };
+        });
+
+        var layer=L.geoJSON(featuresAgrupadas,{
+            style:function(f){
+                return {
+                    color: f.properties.esPH ? "#8e44ad" : "#2980b9",
+                    weight: f.properties.esPH ? 1.5 : 0.6,
+                    fillOpacity: f.properties.esPH ? 0.2 : 0.1
+                };
+            },
             onEachFeature:(f,l)=>{
-                l.bindPopup(
-                    "<b>Parcelas</b><br>"+
-                    "<b>N° Partida:</b> "+(f.properties.nropasd || "-")+"<br>"+
-                    "<b>Ubicación:</b> "+(f.properties.ubipar1 || "-")
-                );
+
+                if(f.properties.esPH){
+                    l.bindPopup(
+                        "<b>Propiedad Horizontal</b><br>"+
+                        "<b>Partidas:</b><br>" +
+                        f.properties.partidas.join("<br>") +
+                        "<br><b>Ubicación:</b> "+(f.properties.ubicacion || "-")
+                    );
+                } else {
+                    l.bindPopup(
+                        "<b>Parcelas</b><br>"+
+                        "<b>N° Partida:</b> "+(f.properties.partidas[0] || "-")+"<br>"+
+                        "<b>Ubicación:</b> "+(f.properties.ubicacion || "-")
+                    );
+                }
             }
         });
 
