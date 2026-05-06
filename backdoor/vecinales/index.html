@@ -1,1 +1,303 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>Visor Paraná - Vecinales, Calles y Parcelas</title>
 
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<!-- Librerías para conversión de coordenadas (EPSG:22185 -> WGS84) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.11.0/proj4.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/proj4leaflet/1.0.1/proj4leaflet.min.js"></script>
+<!-- Plugin para nombres de calles -->
+<script src="https://cdn.jsdelivr.net/npm/leaflet-textpath@1.2.3/leaflet.textpath.min.js"></script>
+<!-- Plugin para búsqueda por dirección (Geocoder) -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+<script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+
+<style>
+body { margin:0; padding:0; font-family: 'Segoe UI', sans-serif; }
+#map { height: 100vh; width: 100%; background:#001a33; }
+
+.panel-superior {
+    position:absolute; top:15px; left:60px; z-index:2000;
+    background:rgba(255, 255, 255, 0.95); padding:12px; border-radius:8px;
+    box-shadow:0 4px 15px rgba(0,0,0,0.3);
+    display:flex; gap:10px; flex-wrap: wrap;
+    max-width: 80vw;
+}
+
+.input-busqueda { padding:8px; border: 1px solid #ccc; border-radius: 4px; min-width: 140px; }
+.btn-busqueda { padding:8px 15px; cursor: pointer; background: #2c3e50; color: white; border: none; border-radius: 4px; font-weight: bold; }
+.btn-busqueda:hover { background: #34495e; }
+
+/* Estilo para vecinales: Opacidad controlada por JS según zoom */
+.etiqueta-vecinal {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    font-size: 11px !important;
+    font-weight: 900 !important;
+    color: #333 !important;
+    text-shadow: 2px 2px 2px #fff, -2px -2px 2px #fff, 2px -2px 2px #fff, -2px 2px 2px #fff !important;
+    text-transform: uppercase;
+    text-align: center;
+    pointer-events: none;
+    white-space: normal !important;
+    width: 120px !important;
+    display: block;
+    line-height: 1.1;
+    transition: opacity 0.3s;
+}
+</style>
+</head>
+
+<body>
+
+<div class="panel-superior">
+    <input type="text" id="input-pm" class="input-busqueda" placeholder="Partida Municipal">
+    <button onclick="buscarPM()" class="btn-busqueda">Buscar Parcela</button>
+    <input type="text" id="input-vecinal" class="input-busqueda" placeholder="Nombre Vecinal...">
+    <button onclick="buscarVecinal()" class="btn-busqueda">Buscar Vecinal</button>
+</div>
+
+<div id="map"></div>
+
+<script>
+// Configuración de Proyección POSGAR 94 / Argentina 5 (EPSG:22185)
+proj4.defs("EPSG:22185","+proj=tmerc +lat_0=-90 +lon_0=-60 +k=1 +x_0=5500000 +y_0=0 +ellps=intl +towgs84=-148,136,90,0,0,0,0 +units=m +no_defs");
+
+const REPO_ROOT = "https://raw.githubusercontent.com/dcartografiayde/IDE-PARANA/main/";
+const VERSION = "?v=" + Date.now();
+
+var map = L.map('map',{
+    center:[-31.74, -60.52],
+    zoom:13, // Iniciamos un poco más lejos para ver los límites
+});
+
+/* Capas Base */
+var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
+var sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}');
+var ref = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}');
+var hibrido = L.layerGroup([sat, ref]).addTo(map);
+
+/* Grupos de Capas */
+var grupoVecinales = L.layerGroup().addTo(map);
+var grupoCalles = L.layerGroup(); 
+var grupoParcelas = L.layerGroup(); 
+
+var lyVecinales;
+var parcelasLayers = [];
+var capasCalles = [];
+
+/* --- UTILIDADES --- */
+function getColor(texto) {
+    if (!texto) return '#7f8c8d';
+    const colores = ['#e6194B', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#42d4f4', '#f032e6', '#bfef45', '#fabed4', '#469990', '#dcbeff', '#9A6324', '#fffac8', '#800000', '#aaffc3', '#808000', '#ffd8b1', '#000075', '#a9a9a9'];
+    let hash = 0;
+    for (let i = 0; i < texto.length; i++) { hash = texto.charCodeAt(i) + ((hash << 5) - hash); }
+    return colores[Math.abs(hash) % colores.length];
+}
+
+function transformarCoordenadas(data) {
+    data.features.forEach(f => {
+        const transform = ring => ring.map(c => proj4("EPSG:22185", "WGS84", c));
+        if (f.geometry.type === "Polygon") f.geometry.coordinates = f.geometry.coordinates.map(transform);
+        if (f.geometry.type === "MultiPolygon") f.geometry.coordinates = f.geometry.coordinates.map(poly => poly.map(transform));
+    });
+    return data;
+}
+
+function formatearNombreMultilinea(texto, limite = 18) {
+    if (!texto || texto.length <= limite) return texto;
+    let palabras = texto.split(" "), lineas = [""], i = 0;
+    palabras.forEach(p => {
+        if ((lineas[i] + p).length > limite) { i++; lineas[i] = p; }
+        else { lineas[i] += (lineas[i] === "" ? "" : " ") + p; }
+    });
+    return lineas.join("<br>");
+}
+
+/* --- LÓGICA VECINALES --- */
+async function cargarVecinales() {
+    try {
+        const r = await fetch(REPO_ROOT + "backdoor/vecinales/vecinal.geojson" + VERSION);
+        let data = await r.json();
+        data = transformarCoordenadas(data);
+        lyVecinales = L.geoJSON(data, {
+            style: (f) => {
+                const colorBarrio = getColor(f.properties.nombre || f.properties.NOM_VECINAL || "");
+                return { 
+                    color: colorBarrio, 
+                    weight: 3, 
+                    fillColor: colorBarrio, 
+                    fillOpacity: 0.25 
+                };
+            },
+            onEachFeature: (f, l) => {
+                let nom = f.properties.nombre || f.properties.NOM_VECINAL || "Vecinal";
+                l.bindPopup("<b>Vecinal: " + nom + "</b>");
+                l.bindTooltip(formatearNombreMultilinea(nom), { 
+                    permanent: true, 
+                    direction: 'center', 
+                    className: 'etiqueta-vecinal' 
+                });
+            }
+        }).addTo(grupoVecinales);
+        
+        actualizarVisibilidadCapas();
+    } catch (e) { console.error("Error Vecinales:", e); }
+}
+
+/* --- LÓGICA DINÁMICA DE ZOOM --- */
+function actualizarVisibilidadCapas() {
+    const z = map.getZoom();
+    
+    // Visibilidad de Etiquetas de Vecinales: Se activan en nivel 15
+    document.querySelectorAll('.etiqueta-vecinal').forEach(el => {
+        el.style.opacity = (z >= 15) ? "1" : "0";
+    });
+
+    // Visibilidad de Capas Detalladas (Calle y Parcela en Zoom 16)
+    if (z >= 16) {
+        if (!map.hasLayer(grupoParcelas)) map.addLayer(grupoParcelas);
+        if (!map.hasLayer(grupoCalles)) map.addLayer(grupoCalles);
+        actualizarNombresCalles();
+    } else {
+        if (map.hasLayer(grupoCalles)) map.removeLayer(grupoCalles);
+        if (map.hasLayer(grupoParcelas)) map.removeLayer(grupoParcelas);
+    }
+
+    // Asegurar que los límites de vecinales estén siempre visibles pero al fondo si hay parcelas
+    if (lyVecinales) {
+        if (z >= 16) lyVecinales.bringToBack();
+        else lyVecinales.bringToFront();
+    }
+}
+
+/* --- LÓGICA CALLES --- */
+async function cargarCalles() {
+    try {
+        const r = await fetch(REPO_ROOT + "calles.geojson" + VERSION);
+        const data = await r.json();
+        L.geoJSON(data, {
+            style: { color: "#333", weight: 2, opacity: 0.15 },
+            onEachFeature: (f, l) => {
+                if (f.properties.nombre && l instanceof L.Polyline) {
+                    capasCalles.push({ layer: l, nombre: f.properties.nombre });
+                }
+            }
+        }).addTo(grupoCalles);
+    } catch (e) { console.error("Error Calles:", e); }
+}
+
+function actualizarNombresCalles() {
+    const z = map.getZoom();
+    if (z < 16) return;
+    const bounds = map.getBounds();
+    capasCalles.forEach(item => {
+        if (bounds.intersects(item.layer.getBounds())) {
+            if (!item.layer._text) {
+                item.layer.setText(item.nombre, {
+                    repeat: false, center: true, offset: 0, orientation: 'flip',
+                    attributes: { 
+                        fill: '#00FFFF', 
+                        'font-size': z >= 18 ? '15' : '12', 
+                        'font-weight': '900', 
+                        'text-shadow': '1px 1px 2px #000' 
+                    }
+                });
+            }
+        } else if (item.layer._text) { item.layer.setText(null); }
+    });
+}
+
+/* --- LÓGICA PARCELAS --- */
+async function cargarParcelas() {
+    const archivos = ["parcela1_4.geojson", "parcela5_7.geojson", "parcela8_15.geojson"];
+    archivos.forEach(async (file) => {
+        try {
+            const r = await fetch(REPO_ROOT + file + VERSION);
+            const data = await r.json();
+            
+            var grupos = {};
+            data.features.forEach(f => {
+                var key = JSON.stringify(f.geometry.coordinates);
+                if(!grupos[key]) grupos[key] = [];
+                grupos[key].push(f);
+            });
+
+            var featuresAgrupadas = Object.values(grupos).map(grupo => {
+                var base = grupo[0];
+                return {
+                    type: "Feature",
+                    geometry: base.geometry,
+                    properties: {
+                        esPH: grupo.length > 1,
+                        partidas: grupo.map(g => g.properties.nropasd),
+                        ubicacion: base.properties.ubipar1
+                    }
+                };
+            });
+
+            const ly = L.geoJSON(featuresAgrupadas, {
+                style: (f) => ({
+                    color: f.properties.esPH ? "#8e44ad" : "#2980b9",
+                    weight: f.properties.esPH ? 1.5 : 0.6,
+                    fillOpacity: f.properties.esPH ? 0.2 : 0.1
+                }),
+                onEachFeature: (f, l) => {
+                    var content = f.properties.esPH ? 
+                        "<b>Propiedad Horizontal</b><br><b>Partidas:</b><br>" + f.properties.partidas.join("<br>") :
+                        "<b>Parcela</b><br><b>N° Partida:</b> "+(f.properties.partidas[0] || "-");
+                    l.bindPopup(content + "<br><b>Ubicación:</b> "+(f.properties.ubicacion || "-"));
+                }
+            });
+            parcelasLayers.push(ly);
+            grupoParcelas.addLayer(ly);
+        } catch (e) { console.log("Error en " + file); }
+    });
+}
+
+/* --- BUSCADORES --- */
+function buscarVecinal() {
+    let t = document.getElementById('input-vecinal').value.toLowerCase().trim();
+    if (!lyVecinales || !t) return;
+    lyVecinales.eachLayer(l => {
+        let n = (l.feature.properties.nombre || l.feature.properties.NOM_VECINAL || "").toLowerCase();
+        if (n.includes(t)) { map.fitBounds(l.getBounds()); l.openPopup(); }
+    });
+}
+
+function buscarPM() {
+    let v = document.getElementById('input-pm').value.trim();
+    parcelasLayers.forEach(ly => {
+        ly.eachLayer(l => {
+            var partidas = (l.feature.properties.partidas || []).map(String);
+            if (partidas.includes(v)) {
+                map.setView(l.getBounds().getCenter(), 18);
+                setTimeout(() => { l.openPopup(); }, 500);
+            }
+        });
+    });
+}
+
+L.Control.geocoder({ defaultMarkGeocode: true, placeholder: "Buscar dirección...", title: "Búsqueda de Google" }).addTo(map);
+
+cargarVecinales();
+cargarCalles();
+cargarParcelas();
+
+map.on('zoomend', actualizarVisibilidadCapas);
+map.on('moveend', actualizarNombresCalles);
+
+L.control.layers(
+    {"Híbrido": hibrido, "Calles (OSM)": osm}, 
+    {"Vecinales (Límites)": grupoVecinales, "Parcelas (Zoom 16+)": grupoParcelas, "Calles (Zoom 16+)": grupoCalles}
+).addTo(map);
+
+</script>
+</body>
+</html>
