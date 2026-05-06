@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="utf-8" />
-<title>Visor Paraná - Vecinales, Calles y Parcelas</title>
+<title>Visor Paraná - Vecinales, Calles y Parcelas con IA</title>
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
@@ -18,7 +18,7 @@
 <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
 
 <style>
-body { margin:0; padding:0; font-family: 'Segoe UI', sans-serif; }
+body { margin:0; padding:0; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
 #map { height: 100vh; width: 100%; background:#001a33; }
 
 .panel-superior {
@@ -26,14 +26,53 @@ body { margin:0; padding:0; font-family: 'Segoe UI', sans-serif; }
     background:rgba(255, 255, 255, 0.95); padding:12px; border-radius:8px;
     box-shadow:0 4px 15px rgba(0,0,0,0.3);
     display:flex; gap:10px; flex-wrap: wrap;
-    max-width: 80vw;
+    max-width: 85vw;
 }
 
-.input-busqueda { padding:8px; border: 1px solid #ccc; border-radius: 4px; min-width: 140px; }
+.contenedor-busqueda { position: relative; display: inline-block; }
+.input-busqueda { padding:8px; border: 1px solid #ccc; border-radius: 4px; min-width: 160px; }
 .btn-busqueda { padding:8px 15px; cursor: pointer; background: #2c3e50; color: white; border: none; border-radius: 4px; font-weight: bold; }
 .btn-busqueda:hover { background: #34495e; }
 
-/* Estilo para vecinales: Opacidad controlada por JS según zoom */
+/* Estilos IA */
+.btn-ia { background: #8e44ad; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; margin-top: 8px; display: block; width: 100%; font-weight: bold; }
+.btn-ia:hover { background: #9b59b6; }
+.ia-response { 
+    margin-top: 10px; 
+    padding: 10px; 
+    background: #f4f4f9; 
+    border-left: 4px solid #8e44ad; 
+    font-size: 13px; 
+    max-height: 200px; 
+    overflow-y: auto;
+    color: #333;
+}
+.loading-ia { font-style: italic; color: #777; }
+
+/* Estilos para el autocompletado */
+.sugerencias-lista {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #ccc;
+    border-top: none;
+    z-index: 3000;
+    max-height: 200px;
+    overflow-y: auto;
+    border-radius: 0 0 4px 4px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    display: none;
+}
+.sugerencia-item {
+    padding: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    border-bottom: 1px solid #eee;
+}
+.sugerencia-item:hover { background-color: #f0f0f0; }
+
 .etiqueta-vecinal {
     background: transparent !important;
     border: none !important;
@@ -51,21 +90,42 @@ body { margin:0; padding:0; font-family: 'Segoe UI', sans-serif; }
     line-height: 1.1;
     transition: opacity 0.3s;
 }
+
+#asistente-ia-panel {
+    border-left: 2px solid #ddd;
+    padding-left: 10px;
+    display: flex;
+    gap: 5px;
+}
 </style>
 </head>
 
 <body>
 
 <div class="panel-superior">
-    <input type="text" id="input-pm" class="input-busqueda" placeholder="Partida Municipal">
-    <button onclick="buscarPM()" class="btn-busqueda">Buscar Parcela</button>
-    <input type="text" id="input-vecinal" class="input-busqueda" placeholder="Nombre Vecinal...">
-    <button onclick="buscarVecinal()" class="btn-busqueda">Buscar Vecinal</button>
+    <div class="contenedor-busqueda">
+        <input type="text" id="input-pm" class="input-busqueda" placeholder="Partida Municipal">
+        <button onclick="buscarPM()" class="btn-busqueda">Buscar Parcela</button>
+    </div>
+    
+    <div class="contenedor-busqueda">
+        <input type="text" id="input-vecinal" class="input-busqueda" placeholder="Nombre Vecinal..." autocomplete="off">
+        <div id="lista-sugerencias" class="sugerencias-lista"></div>
+        <button onclick="buscarVecinal()" class="btn-busqueda">Buscar Vecinal</button>
+    </div>
+
+    <div id="asistente-ia-panel">
+        <input type="text" id="prompt-ia" class="input-busqueda" placeholder="Pregunta a la IA sobre Paraná...">
+        <button onclick="preguntarIA()" class="btn-busqueda" style="background:#8e44ad">✨ Consultar</button>
+    </div>
 </div>
 
 <div id="map"></div>
 
 <script>
+// API Gemini Config
+const apiKey = ""; // Se inyecta automáticamente en el entorno
+
 // Configuración de Proyección POSGAR 94 / Argentina 5 (EPSG:22185)
 proj4.defs("EPSG:22185","+proj=tmerc +lat_0=-90 +lon_0=-60 +k=1 +x_0=5500000 +y_0=0 +ellps=intl +towgs84=-148,136,90,0,0,0,0 +units=m +no_defs");
 
@@ -74,7 +134,7 @@ const VERSION = "?v=" + Date.now();
 
 var map = L.map('map',{
     center:[-31.74, -60.52],
-    zoom:13, // Iniciamos un poco más lejos para ver los límites
+    zoom:13, 
 });
 
 /* Capas Base */
@@ -91,6 +151,67 @@ var grupoParcelas = L.layerGroup();
 var lyVecinales;
 var parcelasLayers = [];
 var capasCalles = [];
+var nombresVecinales = [];
+
+/* --- INTEGRACIÓN GEMINI API --- */
+
+async function llamarGemini(prompt) {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+    
+    const payload = {
+        contents: [{ parts: [{ text: prompt }] }],
+        systemInstruction: { parts: [{ text: "Eres un historiador y urbanista experto en la ciudad de Paraná, Entre Ríos, Argentina. Proporcionas información precisa, amable y culturalmente relevante." }] }
+    };
+
+    let retries = 0;
+    const maxRetries = 5;
+    
+    while (retries < maxRetries) {
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (!response.ok) throw new Error('API Error');
+            const result = await response.json();
+            return result.candidates?.[0]?.content?.parts?.[0]?.text;
+        } catch (e) {
+            retries++;
+            await new Promise(r => setTimeout(r, Math.pow(2, retries) * 1000));
+        }
+    }
+    return "Lo siento, no pude obtener una respuesta de la IA en este momento.";
+}
+
+async function generarPerfilBarrio(nombreVecinal, elementoId) {
+    const container = document.getElementById(elementoId);
+    container.innerHTML = '<span class="loading-ia">✨ Analizando barrio...</span>';
+    
+    const prompt = `Proporciona una breve descripción histórica y características principales de la zona de la Vecinal "${nombreVecinal}" en Paraná, Entre Ríos. Menciona posibles puntos de interés o su ubicación general en la ciudad. Sé conciso (máximo 120 palabras).`;
+    
+    const respuesta = await llamarGemini(prompt);
+    container.innerHTML = respuesta;
+}
+
+async function preguntarIA() {
+    const promptInput = document.getElementById('prompt-ia');
+    const pregunta = promptInput.value;
+    if (!pregunta) return;
+
+    // Crear un modal simple para la respuesta de IA global
+    const responseText = await llamarGemini(pregunta);
+    
+    const modalDiv = document.createElement('div');
+    modalDiv.style = "position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:white; padding:20px; z-index:10000; border-radius:8px; box-shadow:0 0 20px rgba(0,0,0,0.5); max-width:500px; width:90%;";
+    modalDiv.innerHTML = `
+        <h3 style="margin-top:0; color:#8e44ad">✨ Asistente Urbanístico</h3>
+        <p style="font-size:14px; line-height:1.5">${responseText.replace(/\n/g, '<br>')}</p>
+        <button onclick="this.parentElement.remove()" class="btn-busqueda" style="width:100%">Cerrar</button>
+    `;
+    document.body.appendChild(modalDiv);
+    promptInput.value = '';
+}
 
 /* --- UTILIDADES --- */
 function getColor(texto) {
@@ -126,6 +247,9 @@ async function cargarVecinales() {
         const r = await fetch(REPO_ROOT + "backdoor/vecinales/vecinal.geojson" + VERSION);
         let data = await r.json();
         data = transformarCoordenadas(data);
+        
+        nombresVecinales = [];
+
         lyVecinales = L.geoJSON(data, {
             style: (f) => {
                 const colorBarrio = getColor(f.properties.nombre || f.properties.NOM_VECINAL || "");
@@ -138,7 +262,18 @@ async function cargarVecinales() {
             },
             onEachFeature: (f, l) => {
                 let nom = f.properties.nombre || f.properties.NOM_VECINAL || "Vecinal";
-                l.bindPopup("<b>Vecinal: " + nom + "</b>");
+                if (!nombresVecinales.includes(nom)) nombresVecinales.push(nom);
+
+                const iaId = "ia-vec-" + Math.random().toString(36).substr(2, 9);
+                
+                let popupContent = `
+                    <div style="min-width:200px">
+                        <b>Vecinal: ${nom}</b>
+                        <button class="btn-ia" onclick="generarPerfilBarrio('${nom}', '${iaId}')">✨ Ver Perfil Histórico</button>
+                        <div id="${iaId}" class="ia-response">Haz clic para descubrir la historia de este barrio.</div>
+                    </div>
+                `;
+                l.bindPopup(popupContent);
                 l.bindTooltip(formatearNombreMultilinea(nom), { 
                     permanent: true, 
                     direction: 'center', 
@@ -147,6 +282,8 @@ async function cargarVecinales() {
             }
         }).addTo(grupoVecinales);
         
+        nombresVecinales.sort();
+        configurarAutocompletado();
         actualizarVisibilidadCapas();
     } catch (e) { console.error("Error Vecinales:", e); }
 }
@@ -154,13 +291,9 @@ async function cargarVecinales() {
 /* --- LÓGICA DINÁMICA DE ZOOM --- */
 function actualizarVisibilidadCapas() {
     const z = map.getZoom();
-    
-    // Visibilidad de Etiquetas de Vecinales: Se activan en nivel 15
     document.querySelectorAll('.etiqueta-vecinal').forEach(el => {
         el.style.opacity = (z >= 15) ? "1" : "0";
     });
-
-    // Visibilidad de Capas Detalladas (Calle y Parcela en Zoom 16)
     if (z >= 16) {
         if (!map.hasLayer(grupoParcelas)) map.addLayer(grupoParcelas);
         if (!map.hasLayer(grupoCalles)) map.addLayer(grupoCalles);
@@ -169,8 +302,6 @@ function actualizarVisibilidadCapas() {
         if (map.hasLayer(grupoCalles)) map.removeLayer(grupoCalles);
         if (map.hasLayer(grupoParcelas)) map.removeLayer(grupoParcelas);
     }
-
-    // Asegurar que los límites de vecinales estén siempre visibles pero al fondo si hay parcelas
     if (lyVecinales) {
         if (z >= 16) lyVecinales.bringToBack();
         else lyVecinales.bringToFront();
@@ -221,14 +352,12 @@ async function cargarParcelas() {
         try {
             const r = await fetch(REPO_ROOT + file + VERSION);
             const data = await r.json();
-            
             var grupos = {};
             data.features.forEach(f => {
                 var key = JSON.stringify(f.geometry.coordinates);
                 if(!grupos[key]) grupos[key] = [];
                 grupos[key].push(f);
             });
-
             var featuresAgrupadas = Object.values(grupos).map(grupo => {
                 var base = grupo[0];
                 return {
@@ -241,7 +370,6 @@ async function cargarParcelas() {
                     }
                 };
             });
-
             const ly = L.geoJSON(featuresAgrupadas, {
                 style: (f) => ({
                     color: f.properties.esPH ? "#8e44ad" : "#2980b9",
@@ -257,17 +385,48 @@ async function cargarParcelas() {
             });
             parcelasLayers.push(ly);
             grupoParcelas.addLayer(ly);
-        } catch (e) { console.log("Error en " + file); }
+        } catch (e) { }
     });
 }
 
-/* --- BUSCADORES --- */
+/* --- BUSCADORES Y AUTOCOMPLETADO --- */
+function configurarAutocompletado() {
+    const input = document.getElementById('input-vecinal');
+    const lista = document.getElementById('lista-sugerencias');
+    input.addEventListener('input', function() {
+        const valor = this.value.toLowerCase().trim();
+        lista.innerHTML = '';
+        if (!valor) { lista.style.display = 'none'; return; }
+        const filtrados = nombresVecinales.filter(n => n.toLowerCase().startsWith(valor));
+        if (filtrados.length > 0) {
+            filtrados.forEach(nombre => {
+                const item = document.createElement('div');
+                item.className = 'sugerencia-item';
+                item.textContent = nombre;
+                item.onclick = function() {
+                    input.value = nombre;
+                    lista.style.display = 'none';
+                    buscarVecinal();
+                };
+                lista.appendChild(item);
+            });
+            lista.style.display = 'block';
+        } else { lista.style.display = 'none'; }
+    });
+    document.addEventListener('click', (e) => {
+        if (e.target !== input) lista.style.display = 'none';
+    });
+}
+
 function buscarVecinal() {
     let t = document.getElementById('input-vecinal').value.toLowerCase().trim();
     if (!lyVecinales || !t) return;
     lyVecinales.eachLayer(l => {
         let n = (l.feature.properties.nombre || l.feature.properties.NOM_VECINAL || "").toLowerCase();
-        if (n.includes(t)) { map.fitBounds(l.getBounds()); l.openPopup(); }
+        if (n === t || n.startsWith(t)) {
+            map.fitBounds(l.getBounds());
+            l.openPopup();
+        }
     });
 }
 
@@ -275,8 +434,7 @@ function buscarPM() {
     let v = document.getElementById('input-pm').value.trim();
     parcelasLayers.forEach(ly => {
         ly.eachLayer(l => {
-            var partidas = (l.feature.properties.partidas || []).map(String);
-            if (partidas.includes(v)) {
+            if ((l.feature.properties.partidas || []).map(String).includes(v)) {
                 map.setView(l.getBounds().getCenter(), 18);
                 setTimeout(() => { l.openPopup(); }, 500);
             }
@@ -295,7 +453,7 @@ map.on('moveend', actualizarNombresCalles);
 
 L.control.layers(
     {"Híbrido": hibrido, "Calles (OSM)": osm}, 
-    {"Vecinales (Límites)": grupoVecinales, "Parcelas (Zoom 16+)": grupoParcelas, "Calles (Zoom 16+)": grupoCalles}
+    {"Vecinales": grupoVecinales, "Parcelas": grupoParcelas, "Calles Detalle": grupoCalles}
 ).addTo(map);
 
 </script>
