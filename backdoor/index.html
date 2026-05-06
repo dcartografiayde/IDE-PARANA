@@ -33,6 +33,10 @@ body { margin:0; padding:0; font-family: 'Segoe UI', sans-serif; }
     font-weight:bold!important;
     color:#d35400!important;
 }
+
+/* Estilos para los popups de loteos */
+.popup-loteo b { color: #2c3e50; }
+.popup-loteo hr { border: 0; border-top: 1px solid #eee; margin: 5px 0; }
 </style>
 </head>
 
@@ -89,28 +93,6 @@ function getLineLength(layer) {
     }
 }
 
-/**
- * Función para normalizar el orden de coordenadas para el texto
- * Asegura que el array de coordenadas fluya de izquierda a derecha.
- */
-function obtenerCoordenadasLectura(layer) {
-    var latlngs = layer.getLatLngs();
-    var points = (Array.isArray(latlngs[0])) ? latlngs.flat(2) : latlngs;
-    if (points.length < 2) return points;
-
-    var pInicio = points[0];
-    var pFin = points[points.length - 1];
-
-    var dx = pFin.lng - pInicio.lng;
-    var dy = pFin.lat - pInicio.lat;
-
-    // Si fluye a la izquierda, o es muy vertical y fluye hacia abajo, invertimos
-    if (dx < -0.00001 || (Math.abs(dx) < 0.00001 && dy < 0)) {
-        return [...points].reverse();
-    }
-    return points;
-}
-
 /* ================= DISTRITOS ================= */
 var lyDistritos;
 var grupoDistritos=L.layerGroup().addTo(map);
@@ -163,18 +145,15 @@ fetch(BASE_URL+"calles.geojson").then(r=>r.json()).then(data=>{
 function actualizarTextosCalles() {
     var zoomActual = map.getZoom();
     var etiquetasMostradas = 0;
-    
+    const bounds = map.getBounds();
+    const nombresProcesados = new Set();
     const MIN_LENGTH = 70;      
     const MAX_ETIQUETAS = 400;  
     const MIN_ZOOM_VIEW = 16;   
 
-    var bounds = map.getBounds();
-    var nombresProcesados = new Set();
-
     capasCalles.forEach(item => {
         var l = item.layer;
         var nombreNorm = item.nombre.trim().toUpperCase();
-        
         var estaEnPantalla = bounds.intersects(l.getBounds());
         var cumpleFiltros = zoomActual >= MIN_ZOOM_VIEW && 
                             item.length > MIN_LENGTH && 
@@ -185,28 +164,22 @@ function actualizarTextosCalles() {
             nombresProcesados.add(nombreNorm);
             if (!l._text && l._path) {
                 try {
-                    // Calculamos coordenadas de lectura para asegurar I -> D
-                    var coordsLectura = obtenerCoordenadasLectura(l);
-                    
                     l.setText(item.nombre, {
                         repeat: false,
                         center: true,
-                        offset: 0, // SOBRE LA LÍNEA
                         orientation: 'flip',
                         attributes: { 
-                            fill: '#00FFFF', // AZUL FLUORESCENTE (CYAN)
+                            fill: '#00FFFF',
                             'font-size': zoomActual >= 18 ? '15' : '12', 
                             'font-weight': '900',
-                            'text-shadow': '1px 1px 2px #000' // Sombra para legibilidad
+                            'text-shadow': '1px 1px 2px #000'
                         }
                     });
                     etiquetasMostradas++;
                 } catch (err) {}
             }
-        } else {
-            if (l._text) {
-                try { l.setText(null); } catch (err) {}
-            }
+        } else if (l._text) {
+            try { l.setText(null); } catch (err) {}
         }
     });
 }
@@ -260,12 +233,28 @@ var grupoParcelas=L.layerGroup();
     });
 });
 
-/* ================= CAPAS ADICIONALES ================= */
+/* ================= CAPAS DE LOTEOS (NUEVA INFO) ================= */
 var grupoIAPV=L.layerGroup();
 var grupoCocherasZonificacion = L.layerGroup();
 var grupoLoteosPrivadosHabilitados = L.layerGroup();
 var grupoLoteosPrivadosAprobados = L.layerGroup();
 var grupoLoteosSinOrdenanza = L.layerGroup();
+
+// Función genérica para construir el popup de loteos con los campos solicitados
+function popupLoteos(f, titulo) {
+    let props = f.properties;
+    let html = `<div class="popup-loteo">
+        <center><b>Loteo ${titulo}</b></center><hr>
+        <b>Propietario:</b> ${props.propietario || "-"}<br>
+        <b>Trámite:</b> ${props.tramite || "-"}<br>
+        <b>Expediente:</b> ${props.expte || "-"} / ${props.anio || "-"}<br>
+        <b>Ordenanza:</b> ${props.ordenanza || "-"} / ${props.ord_año || props["ord.año"] || "-"}<br>
+        <hr>
+        <b>Cant. Lotes:</b> ${props.cant_lotes || "-"}<br>
+        <b>Sup. (Has):</b> ${props.sup_en_has || "-"}
+    </div>`;
+    return html;
+}
 
 fetch(BASE_URL+"iapv.geojson").then(r=>r.json()).then(data=>{
     L.geoJSON(data,{
@@ -285,16 +274,18 @@ fetch(BASE_URL+"cocheras_porcentaje_zona.geojson").then(r=>r.json()).then(data=>
 });
 
 const loteos = [
-    {file: "backdoor/loteos_privados_habilitados.geojson", grupo: grupoLoteosPrivadosHabilitados, color: "#91522d", titulo: "Habilitados"},
-    {file: "backdoor/loteos_privados_aprobados.geojson", grupo: grupoLoteosPrivadosAprobados, color: "#e5b636", titulo: "Aprobados"},
+    {file: "backdoor/loteos_privados_habilitados.geojson", grupo: grupoLoteosPrivadosHabilitados, color: "#91522d", titulo: "Habilitado"},
+    {file: "backdoor/loteos_privados_aprobados.geojson", grupo: grupoLoteosPrivadosAprobados, color: "#e5b636", titulo: "Aprobado"},
     {file: "backdoor/loteos_sin_ordenanza.geojson", grupo: grupoLoteosSinOrdenanza, color: "#c43c39", titulo: "Sin Ordenanza"}
 ];
 
 loteos.forEach(item => {
     fetch(BASE_URL + item.file).then(r=>r.json()).then(data => {
         L.geoJSON(data, {
-            style: { color: item.color, weight: 2 },
-            onEachFeature: (f,l) => l.bindPopup("<b>Loteo " + item.titulo + "</b><br>Propietario: " + (f.properties.propietario || "-"))
+            style: { color: item.color, weight: 3, fillOpacity: 0.3 },
+            onEachFeature: (f,l) => {
+                l.bindPopup(popupLoteos(f, item.titulo));
+            }
         }).addTo(item.grupo);
     });
 });
@@ -331,7 +322,13 @@ function buscarPM(){
             }
         });
     });
-    if(!encontrada) alert("Partida no encontrada");
+    if(!encontrada) {
+        let msg = document.createElement("div");
+        msg.innerHTML = "Partida no encontrada";
+        msg.style = "position:fixed; top:20px; right:20px; background:red; color:white; padding:10px; z-index:5000; border-radius:5px;";
+        document.body.appendChild(msg);
+        setTimeout(()=>msg.remove(), 3000);
+    }
 }
 
 function filtrarDistritos(){
