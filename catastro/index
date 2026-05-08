@@ -93,6 +93,7 @@
 <div id="map"></div>
 
 <script>
+// Usamos la URL raw para evitar problemas de indexación de GitHub Pages
 const BASE_URL = "https://raw.githubusercontent.com/dcartografiayde/IDE-PARANA/main/";
 
 /* ================= MAPA ================= */
@@ -231,31 +232,31 @@ function getParcelaPopupContent(f, latlng) {
     const esPH = props.esPH;
     const svUrl = getStreetViewLink(latlng.lat, latlng.lng);
     
-    // El estado viene de la base de datos (se asume que existe el campo 'estado' o similar en el GeoJSON original)
-    // Usamos el estado del primer elemento del grupo
-    const estado = props.estado_original ? props.estado_original.trim().toUpperCase() : "";
+    // Normalizamos el estado para la comparación
+    const estado = props.estado_original ? props.estado_original.toString().trim().toUpperCase() : "";
 
     let html = `<div class="popup-parcela">`;
     
     if (estado === "E" || estado === "B") {
         html += `<center><b>DETALLE COMPLETO</b></center><hr>`;
         html += `<table class="table-info">`;
-        // Iteramos sobre todas las propiedades originales que guardamos al agrupar
+        // Mostramos todos los campos si es estado E o B
         for (let key in props.full_data) {
             let val = props.full_data[key];
-            if (val !== null && val !== undefined) {
+            if (val !== null && val !== undefined && key !== "full_data") {
                 html += `<tr><td><b>${key.toUpperCase()}:</b></td><td>${val}</td></tr>`;
             }
         }
         html += `</table>`;
     } else {
-        // Estado H o cualquier otro: Solo info básica
+        // Otros estados (incluyendo H): Solo info básica
         if (esPH) {
             html += `<b>UNIDAD PH</b><br>Partidas:<br>${props.partidas.join("<br>")}`;
         } else {
             html += `<b>Partida:</b> ${props.partidas[0] || "-"}`;
         }
         html += `<br><b>Ubicación:</b> ${props.ubicacion || "-"}`;
+        html += `<br><b>Estado:</b> ${estado || "-"}`;
     }
 
     html += `<br><a href="${svUrl}" target="_blank" class="btn-streetview">Street View</a>`;
@@ -263,9 +264,15 @@ function getParcelaPopupContent(f, latlng) {
     return html;
 }
 
+// Lista de archivos en la carpeta 'catastro'
 ["parcela1_4.geojson","parcela5_7.geojson","parcela8_15.geojson"].forEach(nombre=>{
-    // Ruta corregida a carpeta 'catastro' según captura de pantalla
-    fetch(BASE_URL + "catastro/" + nombre).then(r=>r.json()).then(data=>{
+    // Construimos la URL apuntando directamente al archivo en RAW
+    const fileUrl = BASE_URL + "catastro/" + nombre;
+    
+    fetch(fileUrl).then(r => {
+        if (!r.ok) throw new Error(`HTTP error! status: ${r.status}`);
+        return r.json();
+    }).then(data=>{
         var grupos = {};
         data.features.forEach(f=>{
             var key = JSON.stringify(f.geometry.coordinates);
@@ -282,9 +289,8 @@ function getParcelaPopupContent(f, latlng) {
                     esPH: grupo.length > 1, 
                     partidas: grupo.map(g=>g.properties.nropasd), 
                     ubicacion: base.properties.ubipar1,
-                    // Guardamos el estado y todos los campos para la lógica del popup
                     estado_original: base.properties.estado || "",
-                    full_data: base.properties // Guardamos el objeto completo de propiedades
+                    full_data: base.properties 
                 }
             };
         });
@@ -304,7 +310,7 @@ function getParcelaPopupContent(f, latlng) {
         layer.eachLayer(l => l.bringToBack());
         parcelasLayers.push(layer);
         grupoParcelas.addLayer(layer);
-    }).catch(err => console.error("Error cargando capa catastro:", nombre, err));
+    }).catch(err => console.error("Error cargando:", fileUrl, err));
 });
 
 /* ================= LOTEOS ================= */
