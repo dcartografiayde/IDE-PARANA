@@ -49,7 +49,7 @@
             pointer-events: none;
         }
 
-        .btn-streetview, .btn-gemini {
+        .btn-streetview {
             display: inline-block;
             margin-top: 8px;
             padding: 8px 12px;
@@ -60,10 +60,9 @@
             text-decoration: none;
             cursor: pointer;
             border: none;
+            background-color: #4285F4; 
+            color: white !important;
         }
-
-        .btn-streetview { background-color: #4285F4; color: white !important; }
-        .btn-gemini { background-color: #8e44ad; color: white !important; margin-left: 5px; }
 
         .layer-legend-icon {
             display: inline-block;
@@ -81,34 +80,6 @@
         .table-info { width: 100%; border-collapse: collapse; margin-top: 5px; }
         .table-info td { border-bottom: 1px solid #eee; padding: 4px 0; font-size: 11px; }
         .table-info tr td:first-child { font-weight: bold; padding-right: 10px; color: #555; white-space: nowrap; }
-
-        /* Gemini AI Assistant Styles */
-        .gemini-chat-container {
-            position: absolute; bottom: 20px; right: 20px; z-index: 3000;
-            width: 350px; background: white; border-radius: 12px;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
-            display: flex; flex-direction: column; overflow: hidden;
-            transition: height 0.3s ease; height: 450px;
-        }
-        .gemini-chat-container.minimized { height: 45px; }
-        .gemini-header {
-            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
-            color: white; padding: 12px; font-weight: bold; display: flex;
-            justify-content: space-between; cursor: pointer; align-items: center;
-        }
-        .gemini-messages {
-            flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 8px;
-            background: #f8f9fa; font-size: 13px;
-        }
-        .message { padding: 8px 12px; border-radius: 12px; max-width: 85%; }
-        .message.ai { background: #e9ecef; align-self: flex-start; color: #333; }
-        .message.user { background: #2575fc; align-self: flex-end; color: white; }
-        .gemini-input-area { padding: 10px; display: flex; gap: 5px; border-top: 1px solid #eee; }
-        .gemini-input { flex: 1; border: 1px solid #ddd; border-radius: 20px; padding: 6px 12px; outline: none; }
-        .gemini-send { background: #2575fc; color: white; border: none; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; }
-        
-        .loading-dots:after { content: ' .'; animation: dots 1s steps(5, end) infinite; }
-        @keyframes dots { 0%, 20% { content: ' .'; } 40% { content: ' ..'; } 60% { content: ' ...'; } 80%, 100% { content: ''; } }
     </style>
 </head>
 
@@ -125,28 +96,9 @@
     </button>
 </div>
 
-<!-- Gemini AI Assistant Interface -->
-<div id="gemini-assistant" class="gemini-chat-container">
-    <div class="gemini-header" onclick="toggleChat()">
-        <span>✨ Asistente Urbano</span>
-        <span id="toggle-icon">▼</span>
-    </div>
-    <div id="gemini-messages" class="gemini-messages">
-        <div class="message ai">¡Hola! Soy tu asistente con IA para Paraná. Puedo ayudarte a analizar parcelas, explicar zonificaciones o responder dudas urbanas.</div>
-    </div>
-    <div class="gemini-input-area">
-        <input type="text" id="gemini-input" class="gemini-input" placeholder="Pregunta algo sobre la ciudad...">
-        <button onclick="sendMessage()" class="gemini-send">></button>
-    </div>
-</div>
-
 <div id="map"></div>
 
 <script>
-// API Gemini Configuration
-const apiKey = ""; // La plataforma provee la key automáticamente
-const GEMINI_MODEL = "gemini-2.5-flash-preview-09-2025";
-
 // URL base apuntando al repositorio principal para descargar archivos RAW
 const BASE_URL = "https://raw.githubusercontent.com/dcartografiayde/IDE-PARANA/main/";
 
@@ -191,83 +143,6 @@ function getLineLength(layer) {
     } catch (e) { return 0; }
 }
 
-/* ================= GEMINI API INTEGRATION ================= */
-
-async function callGemini(prompt, systemInstruction = "") {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`;
-    const payload = {
-        contents: [{ parts: [{ text: prompt }] }],
-        systemInstruction: { parts: [{ text: systemInstruction }] }
-    };
-
-    let delay = 1000;
-    for (let i = 0; i < 5; i++) {
-        try {
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            if (!response.ok) throw new Error('API Error');
-            const result = await response.json();
-            return result.candidates?.[0]?.content?.parts?.[0]?.text || "Lo siento, no pude procesar la respuesta.";
-        } catch (error) {
-            if (i === 4) return "Error de conexión persistente con el servicio de IA.";
-            await new Promise(r => setTimeout(r, delay));
-            delay *= 2;
-        }
-    }
-}
-
-function toggleChat() {
-    const chat = document.getElementById('gemini-assistant');
-    chat.classList.toggle('minimized');
-    document.getElementById('toggle-icon').innerText = chat.classList.contains('minimized') ? '▲' : '▼';
-}
-
-async function sendMessage() {
-    const input = document.getElementById('gemini-input');
-    const text = input.value.trim();
-    if (!text) return;
-
-    addMessage(text, 'user');
-    input.value = '';
-
-    const loadingId = 'loading-' + Date.now();
-    addMessage('Pensando...', 'ai', loadingId);
-
-    const systemPrompt = "Eres un Asistente Urbano experto para la ciudad de Paraná, Entre Ríos. Ayudas a los ciudadanos a entender el catastro y la planificación urbana. Sé amable, conciso y profesional.";
-    const response = await callGemini(text, systemPrompt);
-    
-    document.getElementById(loadingId).innerText = response;
-}
-
-function addMessage(text, sender, id = null) {
-    const container = document.getElementById('gemini-messages');
-    const msgDiv = document.createElement('div');
-    msgDiv.className = `message ${sender}`;
-    if (id) msgDiv.id = id;
-    msgDiv.innerText = text;
-    container.appendChild(msgDiv);
-    container.scrollTop = container.scrollHeight;
-}
-
-async function analizarParcelaAI(partida, datosStr) {
-    const container = document.getElementById('gemini-assistant');
-    if (container.classList.contains('minimized')) toggleChat();
-    
-    addMessage(`✨ Solicitando análisis para partida ${partida}...`, 'user');
-    
-    const loadingId = 'loading-analisis-' + Date.now();
-    addMessage('Generando informe de potencial...', 'ai', loadingId);
-
-    const prompt = `Analiza los siguientes datos catastrales de una parcela en Paraná y genera un informe breve sobre su potencial urbano o comercial. Datos: ${datosStr}`;
-    const systemPrompt = "Eres un consultor inmobiliario y urbanístico experto en Paraná. Tu objetivo es resaltar las ventajas competitivas y normativas de una propiedad según sus datos catastrales.";
-    
-    const response = await callGemini(prompt, systemPrompt);
-    document.getElementById(loadingId).innerText = response;
-}
-
 /* ================= CAPA DISTRITOS ================= */
 var lyDistritos;
 var grupoDistritos = L.layerGroup().addTo(map);
@@ -296,7 +171,7 @@ fetch(BASE_URL + "manzana.geojson").then(r => r.json()).then(data => {
     L.geoJSON(data, { style: { color: "#555", weight: 0.2, fillOpacity: 0.01 } }).addTo(map);
 });
 
-/* ================= CAPA CALLS ================= */
+/* ================= CAPA CALLES ================= */
 var grupoCalles = L.layerGroup().addTo(map);
 var capasCalles = [];
 
@@ -357,17 +232,13 @@ map.on('zoomend moveend', actualizarTextosCalles);
 var parcelasLayers = [];
 var grupoParcelas = L.layerGroup();
 
-// Función que define el contenido del popup basado en el estado
 function getParcelaPopupContent(f, latlng) {
     const props = f.properties;
     const svUrl = getStreetViewLink(latlng.lat, latlng.lng);
     const estado = props.estado_original ? props.estado_original.toString().trim().toUpperCase() : "";
-    const partidaPrincipal = props.partidas[0] || "S/D";
-    const datosIA = JSON.stringify(props.full_data || props);
 
     let html = `<div class="popup-parcela">`;
     
-    // Si el estado es E o B, mostramos TODOS los campos del GeoJSON original
     if (estado === "E" || estado === "B") {
         html += `<center><b>DETALLE CATASTRAL (Estado ${estado})</b></center><hr>`;
         html += `<table class="table-info">`;
@@ -378,9 +249,7 @@ function getParcelaPopupContent(f, latlng) {
             }
         }
         html += `</table>`;
-    } 
-    // Para estado H u otros, mostramos información resumida
-    else {
+    } else {
         html += `<center><b>INFORMACIÓN PARCELARIA</b></center><hr>`;
         if (props.esPH) {
             html += `<b>TIPO:</b> UNIDAD PH<br><b>PARTIDAS:</b><br>${props.partidas.join("<br>")}`;
@@ -391,15 +260,13 @@ function getParcelaPopupContent(f, latlng) {
         html += `<br><b>ESTADO:</b> ${estado || "-"}`;
     }
 
-    html += `<div style="display:flex; justify-content:center; gap:5px;">`;
+    html += `<div style="display:flex; justify-content:center; margin-top:10px;">`;
     html += `<a href="${svUrl}" target="_blank" class="btn-streetview">📍 SV</a>`;
-    html += `<button onclick='analizarParcelaAI("${partidaPrincipal}", ${JSON.stringify(datosIA)})' class="btn-gemini">✨ IA Info</button>`;
     html += `</div>`;
     html += `</div>`;
     return html;
 }
 
-// Lista de archivos en la carpeta 'catastro'
 const archivosCatastro = ["parcela1_4.geojson", "parcela5_7.geojson", "parcela8_15.geojson"];
 
 archivosCatastro.forEach(nombre => {
@@ -411,7 +278,6 @@ archivosCatastro.forEach(nombre => {
             return res.json();
         })
         .then(data => {
-            // Agrupamos geometrías idénticas para detectar PHs (Propiedad Horizontal)
             var grupos = {};
             data.features.forEach(f => {
                 var key = JSON.stringify(f.geometry.coordinates);
@@ -461,8 +327,6 @@ var grupoLoteosSinOrdenanza = L.layerGroup();
 var grupoLoteosPrivadosInfoAdicional = L.layerGroup();
 var grupoIAPV = L.layerGroup();
 
-var loteoTooltips = [];
-
 function popupLoteos(f, titulo, latlng) {
     let p = f.properties;
     let svUrl = latlng ? getStreetViewLink(latlng.lat, latlng.lng) : null;
@@ -494,7 +358,6 @@ configLoteos.forEach(item => {
                     var nroVal = f.properties.nro || f.properties.nro_ref || "";
                     if (nroVal) {
                         l.bindTooltip(String(nroVal), { permanent: true, direction: 'center', className: 'etiqueta-loteo-nro', opacity: 0.9 });
-                        loteoTooltips.push(l);
                     }
                 }
                 l.on('click', function(e) { l.bindPopup(popupLoteos(f, item.titulo, e.latlng)).openPopup(); });
@@ -546,7 +409,6 @@ function buscarPM() {
     var val = document.getElementById('input-pm').value.trim();
     if (!val) return;
     
-    // Aseguramos que la capa de parcelas esté visible
     if (!map.hasLayer(grupoParcelas)) grupoParcelas.addTo(map);
     
     let encontrado = false;
@@ -560,8 +422,6 @@ function buscarPM() {
             }
         });
     });
-    
-    if (!encontrado) console.log("Partida no encontrada en las capas cargadas.");
 }
 
 function filtrarDistritos() {
@@ -573,11 +433,6 @@ function filtrarDistritos() {
         if (l.getTooltip()) l.getTooltip().setOpacity(visible ? 0.9 : 0);
     });
 }
-
-// Enter listener for Gemini input
-document.getElementById('gemini-input').addEventListener('keypress', function (e) {
-    if (e.key === 'Enter') sendMessage();
-});
 </script>
 </body>
 </html
