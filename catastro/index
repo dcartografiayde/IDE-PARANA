@@ -1,85 +1,86 @@
-
+<!DOCTYPE html>
 <html>
 <head>
-<meta charset="utf-8" />
-<title>Visor Urbano Paraná</title>
+    <meta charset="utf-8" />
+    <title>Visor Urbano Paraná</title>
 
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-<!-- Plugin para nombres de calles en ruta -->
-<script src="https://cdn.jsdelivr.net/npm/leaflet-textpath@1.2.3/leaflet.textpath.min.js"></script>
+    <!-- Plugin para nombres de calles en ruta -->
+    <script src="https://cdn.jsdelivr.net/npm/leaflet-textpath@1.2.3/leaflet.textpath.min.js"></script>
 
-<link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
-<script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
 
-<style>
-body { margin:0; padding:0; font-family: 'Segoe UI', sans-serif; }
-#map { height: 100vh; width: 100%; background:#001a33; }
+    <style>
+        body { margin:0; padding:0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        #map { height: 100vh; width: 100%; background:#001a33; }
 
-.panel-superior {
-    position:absolute; top:15px; left:60px; z-index:2000;
-    background:white; padding:12px; border-radius:8px;
-    box-shadow:0 4px 15px rgba(0,0,0,0.3);
-    display:flex; gap:10px;
-    align-items: center;
-}
+        .panel-superior {
+            position:absolute; top:15px; left:60px; z-index:2000;
+            background:white; padding:12px; border-radius:8px;
+            box-shadow:0 4px 15px rgba(0,0,0,0.3);
+            display:flex; gap:10px;
+            align-items: center;
+        }
 
-.etiqueta-distrito {
-    background:rgba(255,255,255,0.8)!important;
-    border:1.5px solid #d35400!important;
-    border-radius:4px!important;
-    padding:2px 5px!important;
-    font-size:11px!important;
-    font-weight:bold!important;
-    color:#d35400!important;
-}
+        .etiqueta-distrito {
+            background:rgba(255,255,255,0.8)!important;
+            border:1.5px solid #d35400!important;
+            border-radius:4px!important;
+            padding:2px 5px!important;
+            font-size:11px!important;
+            font-weight:bold!important;
+            color:#d35400!important;
+        }
 
-/* Estilo para las etiquetas Nro de loteos */
-.etiqueta-loteo-nro {
-    background: rgba(0,0,0,0.75);
-    border: 1px solid white;
-    color: #00FF00; /* Texto en verde flúor para resaltar */
-    font-weight: bold;
-    font-size: 11px;
-    padding: 1px 4px;
-    border-radius: 3px;
-    white-space: nowrap;
-    pointer-events: none; /* No interfiere con clics */
-}
+        .etiqueta-loteo-nro {
+            background: rgba(0,0,0,0.75);
+            border: 1px solid white;
+            color: #00FF00;
+            font-weight: bold;
+            font-size: 11px;
+            padding: 1px 4px;
+            border-radius: 3px;
+            white-space: nowrap;
+            pointer-events: none;
+        }
 
-.btn-streetview {
-    display: inline-block;
-    margin-top: 8px;
-    padding: 5px 10px;
-    background-color: #4285F4;
-    color: white !important;
-    text-decoration: none;
-    border-radius: 4px;
-    font-size: 11px;
-    font-weight: bold;
-    text-align: center;
-}
+        .btn-streetview {
+            display: inline-block;
+            margin-top: 8px;
+            padding: 5px 10px;
+            background-color: #4285F4;
+            color: white !important;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+            text-align: center;
+        }
 
-.layer-legend-icon {
-    display: inline-block;
-    width: 12px;
-    height: 12px;
-    margin-right: 8px;
-    border: 1px solid #333;
-    vertical-align: middle;
-}
-.icon-line { height: 3px; border: none; }
+        .layer-legend-icon {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            margin-right: 8px;
+            border: 1px solid #333;
+            vertical-align: middle;
+        }
+        .icon-line { height: 3px; border: none; }
 
-.popup-loteo { font-size: 12px; line-height: 1.4; }
-.popup-loteo b { color: #2c3e50; }
-</style>
+        .popup-loteo, .popup-parcela { font-size: 12px; line-height: 1.4; max-height: 300px; overflow-y: auto; }
+        .popup-loteo b, .popup-parcela b { color: #2c3e50; }
+        .table-info { width: 100%; border-collapse: collapse; margin-top: 5px; }
+        .table-info td { border-bottom: 1px solid #eee; padding: 2px 0; }
+    </style>
 </head>
 
 <body>
 
 <div class="panel-superior">
-    <input type="text" id="input-pm" placeholder="Partida Municipal (sin dígito)" style="width:200px; padding:6px;">
+    <input type="text" id="input-pm" placeholder="Partida Municipal" style="width:150px; padding:6px;">
     <button onclick="buscarPM()" style="padding:6px 12px; cursor:pointer;">Buscar</button>
     <select id="filtro-distrito" onchange="filtrarDistritos()" style="padding:6px;">
         <option value="todos">-- Todos los Distritos --</option>
@@ -220,38 +221,90 @@ function actualizarTextosCalles() {
 }
 map.on('zoomend moveend', actualizarTextosCalles);
 
-/* ================= PARCELAS ================= */
+/* ================= PARCELAS (CATASTRO) ================= */
 var parcelasLayers=[];
 var grupoParcelas=L.layerGroup();
+
+// Función para generar contenido del popup de parcelas basado en el estado
+function getParcelaPopupContent(f, latlng) {
+    const props = f.properties;
+    const esPH = props.esPH;
+    const svUrl = getStreetViewLink(latlng.lat, latlng.lng);
+    
+    // El estado viene de la base de datos (se asume que existe el campo 'estado' o similar en el GeoJSON original)
+    // Usamos el estado del primer elemento del grupo
+    const estado = props.estado_original ? props.estado_original.trim().toUpperCase() : "";
+
+    let html = `<div class="popup-parcela">`;
+    
+    if (estado === "E" || estado === "B") {
+        html += `<center><b>DETALLE COMPLETO</b></center><hr>`;
+        html += `<table class="table-info">`;
+        // Iteramos sobre todas las propiedades originales que guardamos al agrupar
+        for (let key in props.full_data) {
+            let val = props.full_data[key];
+            if (val !== null && val !== undefined) {
+                html += `<tr><td><b>${key.toUpperCase()}:</b></td><td>${val}</td></tr>`;
+            }
+        }
+        html += `</table>`;
+    } else {
+        // Estado H o cualquier otro: Solo info básica
+        if (esPH) {
+            html += `<b>UNIDAD PH</b><br>Partidas:<br>${props.partidas.join("<br>")}`;
+        } else {
+            html += `<b>Partida:</b> ${props.partidas[0] || "-"}`;
+        }
+        html += `<br><b>Ubicación:</b> ${props.ubicacion || "-"}`;
+    }
+
+    html += `<br><a href="${svUrl}" target="_blank" class="btn-streetview">Street View</a>`;
+    html += `</div>`;
+    return html;
+}
+
 ["parcela1_4.geojson","parcela5_7.geojson","parcela8_15.geojson"].forEach(nombre=>{
-    fetch(BASE_URL+nombre).then(r=>r.json()).then(data=>{
+    // Ruta corregida a carpeta 'catastro' según captura de pantalla
+    fetch(BASE_URL + "catastro/" + nombre).then(r=>r.json()).then(data=>{
         var grupos = {};
         data.features.forEach(f=>{
             var key = JSON.stringify(f.geometry.coordinates);
             if(!grupos[key]) grupos[key]=[];
             grupos[key].push(f);
         });
+
         var featuresAgrupadas = Object.values(grupos).map(grupo=>{
             var base = grupo[0];
             return {
-                type:"Feature", geometry: base.geometry,
-                properties:{ esPH: grupo.length > 1, partidas: grupo.map(g=>g.properties.nropasd), ubicacion: base.properties.ubipar1 }
+                type:"Feature", 
+                geometry: base.geometry,
+                properties:{ 
+                    esPH: grupo.length > 1, 
+                    partidas: grupo.map(g=>g.properties.nropasd), 
+                    ubicacion: base.properties.ubipar1,
+                    // Guardamos el estado y todos los campos para la lógica del popup
+                    estado_original: base.properties.estado || "",
+                    full_data: base.properties // Guardamos el objeto completo de propiedades
+                }
             };
         });
+
         var layer=L.geoJSON(featuresAgrupadas,{
-            style:f=>({ color: f.properties.esPH ? "#8e44ad" : "#2980b9", weight: f.properties.esPH ? 1.5 : 0.6, fillOpacity: f.properties.esPH ? 0.2 : 0.1 }),
+            style:f=>({ 
+                color: f.properties.esPH ? "#8e44ad" : "#2980b9", 
+                weight: f.properties.esPH ? 1.5 : 0.6, 
+                fillOpacity: f.properties.esPH ? 0.2 : 0.1 
+            }),
             onEachFeature:(f,l)=>{
                 l.on('click', function(e) {
-                    var svUrl = getStreetViewLink(e.latlng.lat, e.latlng.lng);
-                    var content = f.properties.esPH ? "<b>PH</b><br>Partidas:<br>" + f.properties.partidas.join("<br>") : "<b>Partida:</b> "+(f.properties.partidas[0] || "-");
-                    l.bindPopup(`${content}<br><b>Ubicación:</b> ${(f.properties.ubicacion || "-")}<br><a href="${svUrl}" target="_blank" class="btn-streetview">Street View</a>`).openPopup();
+                    l.bindPopup(getParcelaPopupContent(f, e.latlng)).openPopup();
                 });
             }
         });
         layer.eachLayer(l => l.bringToBack());
         parcelasLayers.push(layer);
         grupoParcelas.addLayer(layer);
-    });
+    }).catch(err => console.error("Error cargando capa catastro:", nombre, err));
 });
 
 /* ================= LOTEOS ================= */
@@ -261,7 +314,6 @@ var grupoLoteosSinOrdenanza = L.layerGroup();
 var grupoLoteosPrivadosInfoAdicional = L.layerGroup();
 var grupoIAPV = L.layerGroup();
 
-// Array para gestionar las etiquetas de loteos con control de visibilidad
 var loteoTooltips = [];
 
 function popupLoteos(f, titulo, latlng) {
@@ -281,59 +333,26 @@ function popupLoteos(f, titulo, latlng) {
     </div>`;
 }
 
-// Configuración de capas con colores fluorescentes y transparencia
-// Solo se activará el etiquetado (campo NRO) si label: true
 const configLoteos = [
-    {
-        file: "backdoor/loteos_privados_habilitados.geojson", 
-        grupo: grupoLoteosPrivadosHabilitados, 
-        color: "#39FF14", // Verde Neón
-        titulo: "Habilitado",
-        label: true
-    },
-    {
-        file: "backdoor/loteos_privados_aprobados.geojson", 
-        grupo: grupoLoteosPrivadosAprobados, 
-        color: "#FFFF33", // Amarillo Neón
-        titulo: "Aprobado",
-        label: true
-    },
-    {
-        file: "backdoor/loteos_sin_ordenanza.geojson", 
-        grupo: grupoLoteosSinOrdenanza, 
-        color: "#FF00FF", // Magenta Neón
-        titulo: "Sin Ordenanza",
-        label: true
-    },
-    {
-        file: "backdoor/loteos_privados.geojson", 
-        grupo: grupoLoteosPrivadosInfoAdicional, 
-        color: "#00FFFF", // Cyan Neón
-        titulo: "Info Adicional",
-        label: false // Desactivado para esta capa por solicitud del usuario
-    }
+    { file: "backdoor/loteos_privados_habilitados.geojson", grupo: grupoLoteosPrivadosHabilitados, color: "#39FF14", titulo: "Habilitado", label: true },
+    { file: "backdoor/loteos_privados_aprobados.geojson", grupo: grupoLoteosPrivadosAprobados, color: "#FFFF33", titulo: "Aprobado", label: true },
+    { file: "backdoor/loteos_sin_ordenanza.geojson", grupo: grupoLoteosSinOrdenanza, color: "#FF00FF", titulo: "Sin Ordenanza", label: true },
+    { file: "backdoor/loteos_privados.geojson", grupo: grupoLoteosPrivadosInfoAdicional, color: "#00FFFF", titulo: "Info Adicional", label: false }
 ];
 
 configLoteos.forEach(item => {
     fetch(BASE_URL + item.file).then(r=>r.json()).then(data => {
         L.geoJSON(data, {
             style: { 
-                color: item.color, 
-                weight: 2.5, 
-                fillColor: item.color, 
-                fillOpacity: 0.25, 
+                color: item.color, weight: 2.5, fillColor: item.color, fillOpacity: 0.25, 
                 dashArray: item.label ? '' : '4,4' 
             },
             onEachFeature: (f,l) => {
-                // Etiquetado condicional (Solo si la capa lo permite y el campo existe)
                 if (item.label) {
                     var nroVal = f.properties.nro || f.properties.nro_ref || "";
                     if (nroVal) {
                         l.bindTooltip(String(nroVal), {
-                            permanent: true, 
-                            direction: 'center', 
-                            className: 'etiqueta-loteo-nro',
-                            opacity: 0.9
+                            permanent: true, direction: 'center', className: 'etiqueta-loteo-nro', opacity: 0.9
                         });
                         loteoTooltips.push(l);
                     }
@@ -344,15 +363,11 @@ configLoteos.forEach(item => {
     });
 });
 
-// Control de visibilidad de etiquetas según zoom (Zoom >= 15 para ver etiquetas)
 map.on('zoomend', function() {
     var zoom = map.getZoom();
     loteoTooltips.forEach(layer => {
-        if (zoom < 15) {
-            if (layer.getTooltip()) layer.closeTooltip();
-        } else {
-            if (layer.getTooltip()) layer.openTooltip();
-        }
+        if (zoom < 15) { if (layer.getTooltip()) layer.closeTooltip(); }
+        else { if (layer.getTooltip()) layer.openTooltip(); }
     });
 });
 
@@ -363,7 +378,6 @@ fetch(BASE_URL+"iapv.geojson").then(r=>r.json()).then(data=>{
     }).addTo(grupoIAPV);
 });
 
-/* ================= COCHERAS ================= */
 var grupoCocherasZonificacion = L.layerGroup();
 fetch(BASE_URL+"cocheras_porcentaje_zona.geojson").then(r=>r.json()).then(data=>{
     function getZC(p){ return p >= 20 ? "#4a148c" : p >= 15 ? "#7b1fa2" : "#ce93d8"; }
