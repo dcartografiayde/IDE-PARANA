@@ -62,7 +62,7 @@
 
         /* Popups */
         .popup-info {
-            font-size: 12px; line-height: 1.4; max-width: 250px; max-height: 350px; overflow-y: auto;
+            font-size: 12px; line-height: 1.4; min-width: 200px; max-width: 280px; max-height: 350px; overflow-y: auto;
         }
         .popup-info b { color: #2c3e50; }
         
@@ -76,6 +76,9 @@
             display: flex;
             align-items: flex-start;
             gap: 4px;
+            padding: 5px;
+            background: #fff8f0;
+            border-radius: 4px;
         }
         .aviso-sv i { color: #e67e22; font-style: normal; font-weight: bold; }
 
@@ -94,7 +97,7 @@
 <body>
 
 <div class="panel-superior">
-    <div class="titulo-contenedor">Visor Urbano - Preservación y Catastro</div>
+    <div class="titulo-contenedor">Visor Urbano - Paraná</div>
     <div class="controles-busqueda">
         <input type="text" id="input-pm" placeholder="Partida Municipal" style="width:150px; padding:6px; border: 1px solid #ccc; border-radius:4px;">
         <button onclick="buscarPM()" style="padding:6px 12px; cursor:pointer; background: #2c3e50; color: white; border: none; border-radius: 4px;">Buscar</button>
@@ -110,6 +113,25 @@
 const BASE_URL = "https://raw.githubusercontent.com/dcartografiayde/IDE-PARANA/main/";
 const PRESERV_URL = BASE_URL + "preservacion/";
 
+/* ================= FUNCIONES DE LIMPIEZA DE TEXTO ================= */
+// Corrige errores comunes de codificación (UTF-8 interpretado como ISO-8859-1)
+function decodificarTexto(str) {
+    if (!str || typeof str !== 'string') return str;
+    try {
+        // Mapeo de secuencias comunes mal codificadas
+        const correcciones = {
+            'Ã¡': 'á', 'Ã©': 'é', 'Ã­': 'í', 'Ã³': 'ó', 'Ãº': 'ú',
+            'Ã ': 'Á', 'Ã‰': 'É', 'Ã ': 'Í', 'Ã“': 'Ó', 'Ãš': 'Ú',
+            'Ã±': 'ñ', 'Ã‘': 'Ñ', 'Â°': '°', 'Ã¼': 'ü', 'Â¿': '¿'
+        };
+        let textoCorregido = str;
+        for (let mal in correcciones) {
+            textoCorregido = textoCorregido.split(mal).join(correcciones[mal]);
+        }
+        return textoCorregido;
+    } catch (e) { return str; }
+}
+
 /* ================= CONFIGURACIÓN BASE ================= */
 var map = L.map('map', { center: [-31.745, -60.51], zoom: 13 });
 
@@ -123,13 +145,12 @@ function getStreetViewLink(lat, lng) {
     return `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${lat},${lng}`;
 }
 
-// Genera el bloque de advertencia para el botón de Street View
 function getSVHTML(lat, lng) {
     return `
         <div class="aviso-sv">
-            <i>ⓘ</i> <span>Para ver la fachada, asegúrese de haber hecho clic cerca del frente de la parcela.</span>
+            <i>ⓘ</i> <span>Para ver la fachada, haga clic cerca del frente de la parcela.</span>
         </div>
-        <a href="${getStreetViewLink(lat, lng)}" target="_blank" class="btn-sv" title="Abrir Google Street View en esta ubicación">VER STREET VIEW</a>
+        <a href="${getStreetViewLink(lat, lng)}" target="_blank" class="btn-sv" title="Abrir Street View">VER STREET VIEW</a>
     `;
 }
 
@@ -164,15 +185,20 @@ function loadPreserv(file, grupo, color, titulo, op = 0.5) {
                 l.on('click', e => {
                     let p = f.properties;
                     let html = `<div class="popup-info"><b>${titulo}</b><hr>`;
-                    const camposExcluidos = ['link', 'link', 'fid', 'ncp', 'descripdis'];
+                    const camposExcluidos = ['link', 'fid', 'ncp', 'descripdis', 'ogc_fid'];
                     
                     for (let k in p) {
                         let valor = p[k];
-                        if (!valor || camposExcluidos.includes(k.toLowerCase())) continue;
+                        if (!valor || valor === "NULL" || camposExcluidos.includes(k.toLowerCase())) continue;
+                        
                         let labelText = k;
                         if (k.toLowerCase() === 'ubipar1') labelText = "Ubicación";
                         else if (k.toLowerCase() === 'nropasd') labelText = "Partida Municipal";
-                        html += `<b>${labelText}:</b> ${valor}<br>`;
+                        else if (k.toLowerCase() === 'denominaci') labelText = "Nombre";
+
+                        // Aplicamos la corrección de caracteres al valor
+                        let valorLimpio = decodificarTexto(String(valor));
+                        html += `<b>${decodificarTexto(labelText)}:</b> ${valorLimpio}<br>`;
                     }
                     
                     html += getSVHTML(e.latlng.lat, e.latlng.lng);
@@ -201,9 +227,10 @@ fetch(BASE_URL + "calles.geojson").then(r => r.json()).then(data => {
         style: { color: "#333", weight: 2, opacity: 0.1 },
         onEachFeature: (f, l) => {
             if (f.properties.nombre && l instanceof L.Polyline) {
-                capasCalles.push({ layer: l, nombre: f.properties.nombre, length: getLineLength(l) });
+                let nombreCalle = decodificarTexto(f.properties.nombre);
+                capasCalles.push({ layer: l, nombre: nombreCalle, length: getLineLength(l) });
                 l.on('click', e => {
-                    l.bindPopup(`<b>Calle:</b> ${f.properties.nombre}<br>${getSVHTML(e.latlng.lat, e.latlng.lng)}`).openPopup();
+                    l.bindPopup(`<b>Calle:</b> ${nombreCalle}<br>${getSVHTML(e.latlng.lat, e.latlng.lng)}`).openPopup();
                 });
             }
         }
@@ -266,7 +293,7 @@ archivosCatastro.forEach(nombre => {
                     let p = f.properties;
                     let html = `<div class="popup-info"><center><b>INFORMACIÓN PARCELARIA</b></center><hr>`;
                     html += `<b>PARTIDA MUNICIPAL:</b> ${p.partidas.join(", ")}<br>`;
-                    html += `<b>UBICACIÓN:</b> ${p.ubicacion || "-"}<br>`;
+                    html += `<b>UBICACIÓN:</b> ${decodificarTexto(p.ubicacion || "-")}<br>`;
                     html += getSVHTML(e.latlng.lat, e.latlng.lng);
                     html += `</div>`;
                     l.bindPopup(html).openPopup();
@@ -286,10 +313,11 @@ fetch(BASE_URL + "distritos.geojson").then(r => r.json()).then(data => {
         style: { color: 'white', weight: 2, fillOpacity: 0.1, dashArray: '5,5' },
         onEachFeature: (f, l) => {
             if (f.properties.distrito) {
-                l.bindTooltip(f.properties.distrito, { permanent: true, direction: 'center', className: 'etiqueta-distrito' }).closeTooltip();
+                let nombreDistrito = decodificarTexto(f.properties.distrito);
+                l.bindTooltip(nombreDistrito, { permanent: true, direction: 'center', className: 'etiqueta-distrito' }).closeTooltip();
                 var sel = document.getElementById('filtro-distrito');
-                if (!Array.from(sel.options).some(o => o.value === f.properties.distrito)) {
-                    var opt = document.createElement('option'); opt.value = f.properties.distrito; opt.text = f.properties.distrito; sel.add(opt);
+                if (!Array.from(sel.options).some(o => o.value === nombreDistrito)) {
+                    var opt = document.createElement('option'); opt.value = nombreDistrito; opt.text = nombreDistrito; sel.add(opt);
                 }
             }
         }
@@ -335,7 +363,7 @@ function filtrarDistritos() {
     var val = document.getElementById('filtro-distrito').value;
     if (!lyDistritos) return;
     lyDistritos.eachLayer(l => {
-        var visible = (val === "todos" || l.feature.properties.distrito === val);
+        var visible = (val === "todos" || decodificarTexto(l.feature.properties.distrito) === val);
         l.setStyle({ opacity: visible ? 1 : 0, fillOpacity: visible ? 0.1 : 0 });
         if (visible && map.hasLayer(grupoDistritos)) l.openTooltip(); else l.closeTooltip();
     });
