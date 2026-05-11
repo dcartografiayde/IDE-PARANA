@@ -1,1 +1,344 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>Mapa de Preservación - Paraná</title>
 
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+<script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+
+<style>
+body { margin:0; padding:0; font-family: 'Segoe UI', sans-serif; }
+#map { height: 100vh; width: 100%; background:#001a33; }
+
+.panel-superior {
+    position:absolute; top:15px; left:60px; z-index:2000;
+    background:white; padding:15px; border-radius:8px;
+    box-shadow:0 4px 15px rgba(0,0,0,0.3);
+    display:flex; flex-direction: column; gap:10px;
+}
+
+.titulo-contenedor {
+    font-size: 14px;
+    font-weight: bold;
+    color: #2c3e50;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-bottom: 2px solid #e63946;
+    padding-bottom: 5px;
+    margin-bottom: 5px;
+}
+
+.controles-busqueda {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+/* Estilo para las etiquetas de los Sitios Históricos */
+.etiqueta-sitio-historico {
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid #d35400;
+    color: #d35400;
+    font-weight: bold;
+    font-size: 10px;
+    padding: 3px 6px;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    /* Permitir multilínea */
+    white-space: normal !important;
+    width: auto;
+    max-width: 120px;
+    text-align: center;
+    line-height: 1.1;
+}
+
+/* Estilo para las etiquetas de los Distritos */
+.etiqueta-distrito {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    color: #ffffff;
+    font-weight: bold;
+    font-size: 14px;
+    text-shadow: 2px 2px 4px #000000;
+    white-space: nowrap;
+}
+
+.layer-legend-icon {
+    display: inline-block; width: 12px; height: 12px;
+    margin-right: 8px; border: 1px solid #333; vertical-align: middle;
+}
+
+/* Estilo para el contenido de los Popups */
+.popup-preservacion {
+    font-size: 12px;
+    line-height: 1.4;
+    max-width: 250px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+.popup-preservacion b { color: #2c3e50; text-transform: capitalize; }
+.btn-sv {
+    display: block;
+    margin-top: 10px;
+    padding: 8px;
+    background: #fbbc05;
+    color: #000 !important;
+    text-align: center;
+    text-decoration: none;
+    font-weight: bold;
+    border-radius: 4px;
+    border: 1px solid #e2a900;
+    font-size: 11px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="panel-superior">
+    <div class="titulo-contenedor">Mapa de preservación</div>
+    <div class="controles-busqueda">
+        <input type="text" id="input-pm" placeholder="Partida Municipal" style="width:180px; padding:6px;">
+        <button onclick="buscarPM()" style="padding:6px 12px; cursor:pointer; background: #2c3e50; color: white; border: none; border-radius: 4px;">Buscar</button>
+        <select id="filtro-distrito" onchange="filtrarDistritos()" style="padding:6px;">
+            <option value="todos">-- Todos los Distritos --</option>
+        </select>
+    </div>
+</div>
+
+<div id="map"></div>
+
+<script>
+const BASE_URL = "https://raw.githubusercontent.com/dcartografiayde/IDE-PARANA/main/";
+const PRESERV_URL = BASE_URL + "preservacion/";
+
+/* ================= FUNCIONES DE UTILIDAD ================= */
+// Función para dividir texto en múltiples líneas si supera los caracteres indicados
+function formatearTextoMultilinea(texto, maxChars = 15) {
+    if (!texto || texto.length <= maxChars) return texto;
+    
+    let palabras = texto.split(' ');
+    let lineas = [];
+    let lineaActual = "";
+
+    palabras.forEach(palabra => {
+        if ((lineaActual + palabra).length > maxChars) {
+            lineas.push(lineaActual.trim());
+            lineaActual = palabra + " ";
+        } else {
+            lineaActual += palabra + " ";
+        }
+    });
+    lineas.push(lineaActual.trim());
+    return lineas.join('<br>');
+}
+
+/* ================= MAPAS BASE ================= */
+var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors'
+});
+
+var sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}');
+var ref = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}');
+var hibrido = L.layerGroup([sat, ref]);
+
+var map = L.map('map', { 
+    center: [-31.745, -60.51], 
+    zoom: 13,
+    layers: [hibrido] // Satélite Híbrido por defecto
+});
+
+/* ================= CAPAS DE PRESERVACIÓN ================= */
+const grupoPreservacion = {
+    total: L.layerGroup().addTo(map),
+    fachadas: L.layerGroup(),
+    patrimonial: L.layerGroup(),
+    naturales: L.layerGroup(),
+    interes: L.layerGroup(),
+    sitios: L.layerGroup(),
+    corredores: L.layerGroup()
+};
+
+var sitiosTooltips = [];
+
+function crearPopupDinamico(p, layerName, latlng) {
+    let contenidoHtml = `<div class="popup-preservacion">`;
+    contenidoHtml += `<div style="border-bottom:2px solid #e63946; margin-bottom:8px; font-weight:bold; color:#2c3e50; text-align:center;">${layerName}</div>`;
+    
+    for (const key in p) {
+        if (p.hasOwnProperty(key)) {
+            let valor = p[key];
+            if (valor !== null && valor !== "" && valor !== "NULL" && key.toLowerCase() !== "link") {
+                let labelKey = key.startsWith('.') ? key.substring(1) : key;
+                contenidoHtml += `<b>${labelKey}:</b> ${valor}<br>`;
+            }
+        }
+    }
+
+    let svLink = p.link || p.LINK;
+    if (!svLink || svLink === "NULL") {
+        svLink = `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${latlng.lat},${latlng.lng}`;
+    } else if (!svLink.startsWith('http')) {
+        svLink = `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${svLink}`;
+    }
+
+    contenidoHtml += `<a href="${svLink}" target="_blank" class="btn-sv">VER STREET VIEW 📍</a>`;
+    contenidoHtml += `</div>`;
+    return contenidoHtml;
+}
+
+function loadPreserv(file, grupo, color, op = 0.5) {
+    fetch(PRESERV_URL + file).then(r=>r.json()).then(data => {
+        L.geoJSON(data, {
+            style: { color: color, weight: 2, fillOpacity: op },
+            onEachFeature: (f,l) => {
+                let p = f.properties;
+                let layerName = file.includes("total") ? "Preservación Total" : 
+                                file.includes("fachadas") ? "Preservación Fachadas" : 
+                                file.replace('.geojson','').replace(/_/g, ' ');
+                
+                l.on('click', function(e) {
+                    l.bindPopup(crearPopupDinamico(p, layerName, e.latlng)).openPopup();
+                });
+            }
+        }).addTo(grupo);
+    });
+}
+
+loadPreserv("preservacion_total2.geojson", grupoPreservacion.total, "#e63946", 0.7);
+loadPreserv("preservacion_fachadas2.geojson", grupoPreservacion.fachadas, "#f4a261", 0.6);
+loadPreserv("areas_proteccion_patrimonial.geojson", grupoPreservacion.patrimonial, "#bc6c25");
+loadPreserv("areas_naturales_protegidas.geojson", grupoPreservacion.naturales, "#2a9d8f");
+loadPreserv("areas_interes_dec_1035_95.geojson", grupoPreservacion.interes, "#8ab17d");
+loadPreserv("corredores_urbanos_preservacion_altura.geojson", grupoPreservacion.corredores, "#a2d2ff");
+
+fetch(PRESERV_URL + "sitios_de_valor_historico_cultural.geojson").then(r=>r.json()).then(data => {
+    L.geoJSON(data, {
+        pointToLayer: (feature, latlng) => {
+            return L.circleMarker(latlng, {
+                radius: 5, fillColor: "#e9c46a", color: "#d35400", weight: 1, opacity: 1, fillOpacity: 0.8
+            });
+        },
+        onEachFeature: (f, l) => {
+            let p = f.properties;
+            let nombre = p.nombre || p.denominaci || p.tipo || 'Sitio Histórico';
+            
+            // Aplicar formato multilínea si supera 15 caracteres
+            let nombreFormateado = formatearTextoMultilinea(nombre, 15);
+
+            l.bindTooltip(nombreFormateado, { 
+                permanent: true, 
+                direction: 'right', 
+                className: 'etiqueta-sitio-historico', 
+                offset: [10, 0] 
+            });
+            
+            if (map.getZoom() < 15) l.closeTooltip();
+            
+            sitiosTooltips.push(l);
+            
+            l.on('click', function(e) {
+                l.bindPopup(crearPopupDinamico(p, "Sitio de Valor Histórico", e.latlng)).openPopup();
+            });
+        }
+    }).addTo(grupoPreservacion.sitios);
+});
+
+/* ================= DISTRITOS CON ETIQUETADO ================= */
+var lyDistritos;
+var grupoDistritos = L.layerGroup();
+fetch(BASE_URL + "distritos.geojson").then(r=>r.json()).then(data => {
+    lyDistritos = L.geoJSON(data, {
+        style: { color: 'white', weight: 2, fillOpacity: 0.1, dashArray: '5, 5' },
+        onEachFeature: (f, l) => {
+            if (f.properties.distrito) {
+                var sel = document.getElementById('filtro-distrito');
+                if (!Array.from(sel.options).some(o => o.value === f.properties.distrito)) {
+                    var opt = document.createElement('option');
+                    opt.value = f.properties.distrito; opt.text = f.properties.distrito;
+                    sel.add(opt);
+                }
+                l.bindTooltip(f.properties.distrito, {
+                    permanent: true,
+                    direction: 'center',
+                    className: 'etiqueta-distrito'
+                }).closeTooltip();
+            }
+        }
+    }).addTo(grupoDistritos);
+});
+
+/* ================= CONTROL DE CAPAS ================= */
+function label(color, text) { return `<span class="layer-legend-icon" style="background:${color}"></span>${text}`; }
+
+const baseMaps = {
+    "Satélite Híbrido": hibrido,
+    "OpenStreetMap": osm
+};
+
+const overlays = {
+    "<b>Preservación Patrimonial</b>": grupoPreservacion.total,
+    [label('#e63946', 'Preservación Total')]: grupoPreservacion.total,
+    [label('#f4a261', 'Preservación Fachadas')]: grupoPreservacion.fachadas,
+    [label('#bc6c25', 'Protección Patrimonial')]: grupoPreservacion.patrimonial,
+    [label('#e9c46a', 'Sitios Históricos')]: grupoPreservacion.sitios,
+    [label('#a2d2ff', 'Corredores Altura')]: grupoPreservacion.corredores,
+    "<b>Preservación Ambiental</b>": grupoPreservacion.naturales,
+    [label('#2a9d8f', 'Áreas Naturales Protegidas')]: grupoPreservacion.naturales,
+    [label('#8ab17d', 'Áreas Interés (Dec. 1035)')]: grupoPreservacion.interes,
+    "<b>Referencia Urbana</b>": grupoDistritos,
+    "Límites de Distritos": grupoDistritos
+};
+
+L.control.layers(baseMaps, overlays, { collapsed: false }).addTo(map);
+
+/* ================= LOGICA DE VISIBILIDAD DE ETIQUETAS ================= */
+map.on('overlayadd', function(e) {
+    if (e.group === grupoDistritos || e.name === "Límites de Distritos") {
+        lyDistritos.eachLayer(l => l.openTooltip());
+    }
+});
+
+map.on('overlayremove', function(e) {
+    if (e.group === grupoDistritos || e.name === "Límites de Distritos") {
+        lyDistritos.eachLayer(l => l.closeTooltip());
+    }
+});
+
+function actualizarEtiquetasSitios() {
+    let z = map.getZoom();
+    let activa = map.hasLayer(grupoPreservacion.sitios);
+    sitiosTooltips.forEach(l => {
+        if (activa && z >= 15) {
+            l.openTooltip();
+        } else {
+            l.closeTooltip();
+        }
+    });
+}
+
+map.on('zoomend', actualizarEtiquetasSitios);
+map.on('overlayadd overlayremove', function(e) {
+    if (e.name && e.name.includes("Sitios Históricos")) actualizarEtiquetasSitios();
+});
+
+function filtrarDistritos() {
+    var val = document.getElementById('filtro-distrito').value;
+    if (!lyDistritos) return;
+    lyDistritos.eachLayer(l => {
+        var visible = (val === "todos" || l.feature.properties.distrito === val);
+        l.setStyle({ opacity: visible ? 1 : 0, fillOpacity: visible ? 0.1 : 0 });
+        if (visible && map.hasLayer(grupoDistritos)) l.openTooltip(); else l.closeTooltip();
+    });
+}
+
+function buscarPM() {
+    console.log("Búsqueda de PM operativa.");
+}
+</script>
+</body>
+</html>
