@@ -1,1 +1,264 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visor Urbano Paraná - Calles y Catastro</title>
 
+    <!-- Leaflet CSS y JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- Plugins -->
+    <script src="https://cdn.jsdelivr.net/npm/leaflet-textpath@1.2.3/leaflet.textpath.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+
+    <style>
+        body { margin:0; padding:0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        #map { height: 100vh; width: 100%; background:#001a33; }
+
+        .panel-superior {
+            position:absolute; top:15px; left:60px; z-index:2000;
+            background:white; padding:12px; border-radius:8px;
+            box-shadow:0 4px 15px rgba(0,0,0,0.3);
+            display:flex; gap:10px;
+            align-items: center;
+        }
+
+        .btn-streetview {
+            display: inline-block;
+            margin-top: 8px;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            text-align: center;
+            text-decoration: none;
+            cursor: pointer;
+            border: none;
+            background-color: #4285F4; 
+            color: white !important;
+        }
+
+        .layer-legend-icon {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            margin-right: 8px;
+            border: 1px solid #333;
+            vertical-align: middle;
+        }
+        .icon-line { height: 3px; border: none; }
+
+        .popup-parcela { font-size: 12px; line-height: 1.4; max-height: 350px; min-width: 250px; overflow-y: auto; }
+        .table-info { width: 100%; border-collapse: collapse; margin-top: 5px; }
+        .table-info td { border-bottom: 1px solid #eee; padding: 4px 0; font-size: 11px; }
+        .table-info tr td:first-child { font-weight: bold; padding-right: 10px; color: #555; white-space: nowrap; }
+    </style>
+</head>
+<body>
+
+<div class="panel-superior">
+    <input type="text" id="input-pm" placeholder="Partida Municipal" style="width:140px; padding:6px; border: 1px solid #ccc; border-radius: 4px;">
+    <button onclick="buscarPM()" style="padding:6px 12px; cursor:pointer; background:#2980b9; color:white; border:none; border-radius:4px;">Buscar Parcela</button>
+</div>
+
+<div id="map"></div>
+
+<script>
+const BASE_URL = "https://raw.githubusercontent.com/dcartografiayde/IDE-PARANA/main/";
+
+/* ================= CONFIGURACIÓN MAPA ================= */
+var map = L.map('map',{
+    center:[-31.745, -60.51], 
+    zoom:14, 
+});
+
+var sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}');
+var ref = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}');
+var hibrido = L.layerGroup([sat,ref]).addTo(map);
+var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
+
+/* ================= FUNCIONES AUXILIARES ================= */
+function getStreetViewLink(lat, lng) {
+    return `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${lat},${lng}`;
+}
+
+function getLineLength(layer) {
+    try {
+        var latlngs = layer.getLatLngs();
+        if (latlngs.length > 0 && Array.isArray(latlngs[0])) { latlngs = latlngs.flat(2); }
+        var distance = 0;
+        for (var i = 0; i < latlngs.length - 1; i++) {
+            if (latlngs[i] && latlngs[i+1]) { distance += latlngs[i].distanceTo(latlngs[i+1]); }
+        }
+        return distance;
+    } catch (e) { return 0; }
+}
+
+/* ================= CAPA CALLES ================= */
+var grupoCalles = L.layerGroup().addTo(map);
+var capasCalles = [];
+
+fetch(BASE_URL + "calles.geojson").then(r => r.json()).then(data => {
+    L.geoJSON(data, {
+        renderer: L.svg(), 
+        style: { color: "#333", weight: 2, opacity: 0.05 }, 
+        onEachFeature: (f, l) => {
+            if (f.properties.nombre && l instanceof L.Polyline) {
+                var len = getLineLength(l);
+                capasCalles.push({ layer: l, nombre: f.properties.nombre, length: len });
+                l.on('click', function(e) {
+                    var svUrl = getStreetViewLink(e.latlng.lat, e.latlng.lng);
+                    l.bindPopup(`<b>Calle:</b> ${f.properties.nombre}<br><a href="${svUrl}" target="_blank" class="btn-streetview">Ver Street View</a>`).openPopup();
+                });
+            }
+        }
+    }).addTo(grupoCalles);
+    setTimeout(actualizarTextosCalles, 800);
+});
+
+function actualizarTextosCalles() {
+    var zoomActual = map.getZoom();
+    const bounds = map.getBounds();
+    const nombresProcesados = new Set();
+    const MIN_ZOOM_VIEW = 15; 
+    const MAX_ETIQUETAS_PANTALLA = 100; 
+    var contador = 0;
+
+    capasCalles.forEach(item => {
+        var l = item.layer;
+        if (l._text) { try { l.setText(null); } catch(e){} }
+        var nombreNorm = item.nombre.trim().toUpperCase();
+        var estaEnPantalla = bounds.intersects(l.getBounds());
+        var minLengthRequired = zoomActual >= 18 ? 15 : (zoomActual >= 17 ? 40 : 80);
+        var cumpleFiltros = zoomActual >= MIN_ZOOM_VIEW && item.length > minLengthRequired && contador < MAX_ETIQUETAS_PANTALLA && !nombresProcesados.has(nombreNorm);
+
+        if (estaEnPantalla && cumpleFiltros) {
+            nombresProcesados.add(nombreNorm);
+            try {
+                l.setText(item.nombre, {
+                    repeat: false, center: true, offset: 0, orientation: 'flip', 
+                    attributes: { 
+                        fill: '#FFFF00', 'font-size': zoomActual >= 18 ? '14' : '11', 
+                        'font-weight': 'bold', 'stroke': 'black', 'stroke-width': '2.5px',
+                        'paint-order': 'stroke', 'text-transform': 'uppercase'
+                    }
+                });
+                contador++;
+            } catch (err) {}
+        }
+    });
+}
+map.on('zoomend moveend', actualizarTextosCalles);
+
+/* ================= PARCELAS (CATASTRO) ================= */
+var parcelasLayers = [];
+var grupoParcelas = L.layerGroup().addTo(map);
+
+function getParcelaPopupContent(f, latlng) {
+    const props = f.properties;
+    const svUrl = getStreetViewLink(latlng.lat, latlng.lng);
+    const estado = props.estado_original ? props.estado_original.toString().trim().toUpperCase() : "";
+
+    let html = `<div class="popup-parcela">`;
+    if (estado === "E" || estado === "B") {
+        html += `<center><b>DETALLE CATASTRAL</b></center><hr>`;
+        html += `<table class="table-info">`;
+        for (let key in props.full_data) {
+            let val = props.full_data[key];
+            if (val !== null && val !== undefined && typeof val !== 'object') {
+                html += `<tr><td>${key.toUpperCase()}</td><td>${val}</td></tr>`;
+            }
+        }
+        html += `</table>`;
+    } else {
+        html += `<center><b>INFORMACIÓN PARCELARIA</b></center><hr>`;
+        if (props.esPH) {
+            html += `<b>TIPO:</b> UNIDAD PH<br><b>PARTIDAS:</b><br>${props.partidas.join("<br>")}`;
+        } else {
+            html += `<b>PARTIDA:</b> ${props.partidas[0] || "No disponible"}`;
+        }
+        html += `<br><b>UBICACIÓN:</b> ${props.ubicacion || "-"}`;
+    }
+    html += `<div style="display:flex; justify-content:center; margin-top:10px;">`;
+    html += `<a href="${svUrl}" target="_blank" class="btn-streetview">📍 Ver Street View</a>`;
+    html += `</div></div>`;
+    return html;
+}
+
+const archivosCatastro = ["parcela1_4.geojson", "parcela5_7.geojson", "parcela8_15.geojson"];
+
+archivosCatastro.forEach(nombre => {
+    fetch(BASE_URL + "catastro/" + nombre)
+        .then(res => res.json())
+        .then(data => {
+            var grupos = {};
+            data.features.forEach(f => {
+                var key = JSON.stringify(f.geometry.coordinates);
+                if (!grupos[key]) grupos[key] = [];
+                grupos[key].push(f);
+            });
+
+            var featuresAgrupadas = Object.values(grupos).map(grupo => {
+                var base = grupo[0];
+                return {
+                    type: "Feature", 
+                    geometry: base.geometry,
+                    properties: { 
+                        esPH: grupo.length > 1, 
+                        partidas: grupo.map(g => g.properties.nropasd), 
+                        ubicacion: base.properties.ubipar1,
+                        estado_original: base.properties.estado || "",
+                        full_data: base.properties 
+                    }
+                };
+            });
+
+            var layer = L.geoJSON(featuresAgrupadas, {
+                style: f => ({ 
+                    color: f.properties.esPH ? "#8e44ad" : "#2980b9", 
+                    weight: f.properties.esPH ? 1.5 : 0.8, 
+                    fillOpacity: f.properties.esPH ? 0.3 : 0.15 
+                }),
+                onEachFeature: (f, l) => {
+                    l.on('click', function(e) {
+                        l.bindPopup(getParcelaPopupContent(f, e.latlng)).openPopup();
+                    });
+                }
+            });
+            parcelasLayers.push(layer);
+            grupoParcelas.addLayer(layer);
+        });
+});
+
+/* ================= CONTROLES ================= */
+const baseLayers = { "Satélite": hibrido, "Mapa": osm };
+const overlays = {
+    [`<span class="layer-legend-icon icon-line" style="background-color: #FFFF00;"></span> Calles`]: grupoCalles,
+    [`<span class="layer-legend-icon" style="background-color: #2980b9;"></span> Catastro`]: grupoParcelas
+};
+
+L.control.layers(baseLayers, overlays).addTo(map);
+L.Control.geocoder({ position: 'topright' }).addTo(map);
+
+/* ================= BÚSQUEDA ================= */
+function buscarPM() {
+    var val = document.getElementById('input-pm').value.trim();
+    if (!val) return;
+    let encontrado = false;
+    parcelasLayers.forEach(layer => {
+        layer.eachLayer(l => {
+            var partidas = (l.feature.properties.partidas || []).map(String);
+            if (partidas.includes(val)) {
+                map.fitBounds(l.getBounds(), { maxZoom: 18 });
+                l.openPopup();
+                encontrado = true;
+            }
+        });
+    });
+}
+</script>
+</body>
+</html>
