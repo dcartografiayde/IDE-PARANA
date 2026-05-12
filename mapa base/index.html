@@ -3,262 +3,352 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Visor Urbano Paraná - Calles y Catastro</title>
+    <title>Visor Urbano Paraná - Análisis de Código Urbano Pro</title>
 
     <!-- Leaflet CSS y JS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-    <!-- Plugins -->
+    <!-- Turf.js para análisis espacial -->
+    <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
+
+    <!-- Plugins: TextPath para nombres de calles -->
     <script src="https://cdn.jsdelivr.net/npm/leaflet-textpath@1.2.3/leaflet.textpath.min.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
     <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
 
     <style>
-        body { margin:0; padding:0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { margin:0; padding:0; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; overflow: hidden; background: #f4f7f9; }
         #map { height: 100vh; width: 100%; background:#001a33; }
 
         .panel-superior {
             position:absolute; top:15px; left:60px; z-index:2000;
-            background:white; padding:12px; border-radius:8px;
-            box-shadow:0 4px 15px rgba(0,0,0,0.3);
-            display:flex; gap:10px;
-            align-items: center;
+            background:white; padding:12px; border-radius:12px;
+            box-shadow:0 8px 32px rgba(0,0,0,0.15);
+            display:flex; gap:10px; align-items: center;
+            max-width: calc(100% - 100px);
         }
 
-        .btn-streetview {
-            display: inline-block;
-            margin-top: 8px;
-            padding: 8px 12px;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: bold;
-            text-align: center;
-            text-decoration: none;
-            cursor: pointer;
-            border: none;
-            background-color: #4285F4; 
-            color: white !important;
+        .input-search { width:150px; padding:10px; border: 1px solid #ddd; border-radius: 8px; font-size: 13px; outline: none; }
+
+        .btn-ai-primary {
+            background: linear-gradient(135deg, #6e8efb, #a777e3);
+            color: white !important; border: none; padding: 10px 16px;
+            border-radius: 8px; cursor: pointer; font-weight: bold;
+            display: flex; align-items: center; gap: 8px; transition: 0.3s;
         }
 
-        .layer-legend-icon {
-            display: inline-block;
-            width: 12px;
-            height: 12px;
-            margin-right: 8px;
-            border: 1px solid #333;
-            vertical-align: middle;
+        #ai-sidebar {
+            position: fixed; right: -420px; top: 0; width: 400px; height: 100vh;
+            background: white; z-index: 3000; box-shadow: -10px 0 30px rgba(0,0,0,0.1);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex; flex-direction: column;
         }
-        .icon-line { height: 3px; border: none; }
+        #ai-sidebar.active { right: 0; }
+        
+        .ai-header { padding: 20px; background: #2c3e50; color: white; display: flex; justify-content: space-between; align-items: center; }
+        .ai-body { flex-grow: 1; overflow-y: auto; padding: 20px; }
+        .ai-footer { padding: 15px; border-top: 1px solid #eee; background: #fafafa; }
 
-        .popup-parcela { font-size: 12px; line-height: 1.4; max-height: 350px; min-width: 250px; overflow-y: auto; }
-        .table-info { width: 100%; border-collapse: collapse; margin-top: 5px; }
-        .table-info td { border-bottom: 1px solid #eee; padding: 4px 0; font-size: 11px; }
-        .table-info tr td:first-child { font-weight: bold; padding-right: 10px; color: #555; white-space: nowrap; }
+        .ai-message { 
+            background: #f0f2f5; padding: 12px; border-radius: 12px; 
+            margin-bottom: 15px; border-left: 4px solid #8e44ad; font-size: 14px;
+        }
+        .ai-message.edificabilidad { border-left-color: #27ae60; background: #eafaf1; }
+
+        .search-container { position: relative; }
+        #lista-calles {
+            position: absolute; top: 100%; left: 0; width: 100%;
+            background: white; border: 1px solid #ddd; max-height: 200px; 
+            overflow-y: auto; z-index: 1000; display: none; border-radius: 0 0 8px 8px;
+        }
+        #lista-calles div { padding: 8px; cursor: pointer; font-size: 12px; border-bottom: 1px solid #eee; }
+
+        /* Estilos Popup con todos los campos */
+        .popup-container { min-width: 300px; max-height: 450px; overflow-y: auto; padding-right: 5px; }
+        .popup-section { margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #eee; }
+        .popup-title { font-weight: bold; color: #2c3e50; font-size: 14px; margin-bottom: 5px; display: block; border-left: 3px solid #3498db; padding-left: 8px; }
+        .popup-row { display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 11px; line-height: 1.2; }
+        .popup-label { color: #7f8c8d; font-weight: 500; flex: 1; }
+        .popup-value { color: #2c3e50; font-weight: bold; text-align: right; flex: 1; word-break: break-all; margin-left: 10px; }
+        
+        .badge-ph { background: #e74c3c; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; }
+        .badge-comun { background: #3498db; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; }
+        .badge-zona { background: #e67e22; color: white; padding: 4px 10px; border-radius: 6px; font-weight: bold; font-size: 13px; display: inline-block; margin-top: 5px; }
+
+        .btn-action { 
+            width: 100%; padding: 10px; margin-top: 8px; border: none; border-radius: 6px; 
+            cursor: pointer; font-weight: bold; font-size: 12px; transition: 0.2s;
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+        }
+        .btn-sv { background: #4285f4; color: white; }
+        .btn-ai-blue { background: #8e44ad; color: white; }
+        .btn-ai-green { background: #27ae60; color: white; }
+
+        .loading-dots:after { content: ' .'; animation: dots 1.5s steps(5, end) infinite; }
+        @keyframes dots { 0%, 20% { color: rgba(0,0,0,0); text-shadow: .5em 0 0 rgba(0,0,0,0), 1em 0 0 rgba(0,0,0,0); } 40% { color: #8e44ad; text-shadow: .5em 0 0 rgba(0,0,0,0), 1em 0 0 rgba(0,0,0,0); } 60% { text-shadow: .5em 0 0 #8e44ad, 1em 0 0 rgba(0,0,0,0); } 80%, 100% { text-shadow: .5em 0 0 #8e44ad, 1em 0 0 #8e44ad; } }
     </style>
 </head>
 <body>
 
 <div class="panel-superior">
-    <input type="text" id="input-pm" placeholder="Partida Municipal" style="width:140px; padding:6px; border: 1px solid #ccc; border-radius: 4px;">
-    <button onclick="buscarPM()" style="padding:6px 12px; cursor:pointer; background:#2980b9; color:white; border:none; border-radius:4px;">Buscar Parcela</button>
+    <div class="search-container">
+        <input type="text" id="input-calle" class="input-search" placeholder="Buscar calle..." oninput="sugerirCalles()">
+        <div id="lista-calles"></div>
+    </div>
+    <input type="text" id="input-pm" class="input-search" placeholder="Partida Municipal...">
+    <button onclick="buscarPM()" style="padding:10px 15px; cursor:pointer; background:#2c3e50; color:white; border:none; border-radius:8px; font-weight: 600;">Buscar</button>
+    <button class="btn-ai-primary" onclick="toggleAISidebar(true)">✨ IA Urbana</button>
+</div>
+
+<div id="ai-sidebar">
+    <div class="ai-header">
+        <h2 style="margin:0; font-size: 16px;">Análisis de Inversión ✨</h2>
+        <span style="cursor:pointer; font-size: 24px;" onclick="toggleAISidebar(false)">&times;</span>
+    </div>
+    <div class="ai-body" id="ai-chat-history">
+        <div class="ai-message">Selecciona una parcela para desplegar todos sus datos y realizar análisis de factibilidad.</div>
+    </div>
+    <div class="ai-footer">
+        <div class="chat-input-container">
+            <input type="text" id="chat-input" placeholder="Pregunta sobre la parcela..." style="flex:1; padding:10px; border-radius:8px; border:1px solid #ddd;" onkeypress="if(event.key==='Enter') sendChatQuery()">
+            <button onclick="sendChatQuery()" style="background:#2c3e50; color:white; border:none; padding:10px; border-radius:8px;">➔</button>
+        </div>
+    </div>
 </div>
 
 <div id="map"></div>
 
 <script>
 const BASE_URL = "https://raw.githubusercontent.com/dcartografiayde/IDE-PARANA/main/";
+const apiKey = ""; 
 
-/* ================= CONFIGURACIÓN MAPA ================= */
-var map = L.map('map',{
-    center:[-31.745, -60.51], 
-    zoom:14, 
-});
-
-var sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}');
-var ref = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}');
-var hibrido = L.layerGroup([sat,ref]).addTo(map);
-var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
-
-/* ================= FUNCIONES AUXILIARES ================= */
-function getStreetViewLink(lat, lng) {
-    return `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${lat},${lng}`;
-}
-
-function getLineLength(layer) {
+/* ================= IA GEMINI ================= */
+async function callGemini(prompt, systemMsg) {
     try {
-        var latlngs = layer.getLatLngs();
-        if (latlngs.length > 0 && Array.isArray(latlngs[0])) { latlngs = latlngs.flat(2); }
-        var distance = 0;
-        for (var i = 0; i < latlngs.length - 1; i++) {
-            if (latlngs[i] && latlngs[i+1]) { distance += latlngs[i].distanceTo(latlngs[i+1]); }
-        }
-        return distance;
-    } catch (e) { return 0; }
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: prompt }] }],
+                systemInstruction: { parts: [{ text: systemMsg }] }
+            })
+        });
+        const result = await response.json();
+        return result.candidates?.[0]?.content?.parts?.[0]?.text || "No se pudo generar el informe.";
+    } catch (e) { return "Error de conexión con el servicio de IA."; }
 }
 
-/* ================= CAPA CALLES ================= */
-var grupoCalles = L.layerGroup().addTo(map);
-var capasCalles = [];
+async function analizarFactibilidad(parcelaData, zonaNombre) {
+    toggleAISidebar(true);
+    const history = document.getElementById('ai-chat-history');
+    const loadingMsg = document.createElement('div');
+    loadingMsg.className = 'ai-message loading-dots';
+    loadingMsg.innerText = `Analizando normativa para ${zonaNombre}`;
+    history.appendChild(loadingMsg);
+    history.scrollTop = history.scrollHeight;
 
-fetch(BASE_URL + "calles.geojson").then(r => r.json()).then(data => {
-    L.geoJSON(data, {
-        renderer: L.svg(), 
-        style: { color: "#333", weight: 2, opacity: 0.05 }, 
-        onEachFeature: (f, l) => {
-            if (f.properties.nombre && l instanceof L.Polyline) {
-                var len = getLineLength(l);
-                capasCalles.push({ layer: l, nombre: f.properties.nombre, length: len });
-                l.on('click', function(e) {
-                    var svUrl = getStreetViewLink(e.latlng.lat, e.latlng.lng);
-                    l.bindPopup(`<b>Calle:</b> ${f.properties.nombre}<br><a href="${svUrl}" target="_blank" class="btn-streetview">Ver Street View</a>`).openPopup();
-                });
-            }
-        }
-    }).addTo(grupoCalles);
-    setTimeout(actualizarTextosCalles, 800);
+    const systemMsg = `Eres un asesor técnico experto en la Ord. 8563 de Paraná. Describe usos, FOS, FOT y retiros de forma conceptual basándote en la zona.`;
+    const prompt = `Parcela: ${JSON.stringify(parcelaData)}. Distrito: ${zonaNombre}. Realiza un informe normativo detallado.`;
+    
+    const respuesta = await callGemini(prompt, systemMsg);
+    history.removeChild(loadingMsg);
+    const aiMsg = document.createElement('div');
+    aiMsg.className = 'ai-message';
+    aiMsg.innerHTML = `<strong>Normativa en ${zonaNombre}:</strong><br>${respuesta.replace(/\n/g, '<br>')}`;
+    history.appendChild(aiMsg);
+    history.scrollTop = history.scrollHeight;
+}
+
+async function generarInformeEdificabilidad(parcelaData, zonaNombre, areaParcela) {
+    toggleAISidebar(true);
+    const history = document.getElementById('ai-chat-history');
+    const loadingMsg = document.createElement('div');
+    loadingMsg.className = 'ai-message loading-dots';
+    loadingMsg.innerText = `Calculando m² edificables...`;
+    history.appendChild(loadingMsg);
+    history.scrollTop = history.scrollHeight;
+
+    const systemMsg = `Eres un experto en desarrollo inmobiliario de Paraná. Calcula el potencial constructivo estimado para una parcela de ${areaParcela.toFixed(2)} m² en el distrito ${zonaNombre}. Incluye FOT estimado, FOS y m² totales.`;
+    const prompt = `Datos Parcela: ${JSON.stringify(parcelaData)}. Área Real: ${areaParcela.toFixed(2)} m². Genera un informe numérico.`;
+
+    const respuesta = await callGemini(prompt, systemMsg);
+    history.removeChild(loadingMsg);
+    const aiMsg = document.createElement('div');
+    aiMsg.className = 'ai-message edificabilidad';
+    aiMsg.innerHTML = `<strong>📊 Informe de Edificabilidad:</strong><br>${respuesta.replace(/\n/g, '<br>')}`;
+    history.appendChild(aiMsg);
+    history.scrollTop = history.scrollHeight;
+}
+
+function toggleAISidebar(show) { document.getElementById('ai-sidebar').classList.toggle('active', show); }
+
+/* ================= MAPA ================= */
+var map = L.map('map',{ center:[-31.733, -60.52], zoom:15 });
+var hibrido = L.layerGroup([
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'),
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}')
+]).addTo(map);
+
+/* ================= DISTRITOS ================= */
+var distritosGeoJSON = null;
+var grupoDistritos = L.layerGroup();
+fetch(BASE_URL + "distritos.geojson").then(r => r.json()).then(data => {
+    distritosGeoJSON = data;
+    L.geoJSON(data, { style: { color: "#e67e22", weight: 2, fillOpacity: 0.1, dashArray: '5,5' } }).addTo(grupoDistritos);
 });
 
-function actualizarTextosCalles() {
-    var zoomActual = map.getZoom();
-    const bounds = map.getBounds();
-    const nombresProcesados = new Set();
-    const MIN_ZOOM_VIEW = 15; 
-    const MAX_ETIQUETAS_PANTALLA = 100; 
-    var contador = 0;
-
-    capasCalles.forEach(item => {
-        var l = item.layer;
-        if (l._text) { try { l.setText(null); } catch(e){} }
-        var nombreNorm = item.nombre.trim().toUpperCase();
-        var estaEnPantalla = bounds.intersects(l.getBounds());
-        var minLengthRequired = zoomActual >= 18 ? 15 : (zoomActual >= 17 ? 40 : 80);
-        var cumpleFiltros = zoomActual >= MIN_ZOOM_VIEW && item.length > minLengthRequired && contador < MAX_ETIQUETAS_PANTALLA && !nombresProcesados.has(nombreNorm);
-
-        if (estaEnPantalla && cumpleFiltros) {
-            nombresProcesados.add(nombreNorm);
-            try {
-                l.setText(item.nombre, {
-                    repeat: false, center: true, offset: 0, orientation: 'flip', 
-                    attributes: { 
-                        fill: '#FFFF00', 'font-size': zoomActual >= 18 ? '14' : '11', 
-                        'font-weight': 'bold', 'stroke': 'black', 'stroke-width': '2.5px',
-                        'paint-order': 'stroke', 'text-transform': 'uppercase'
-                    }
-                });
-                contador++;
-            } catch (err) {}
+function detectarZona(latlng) {
+    if (!distritosGeoJSON) return "Cargando...";
+    const point = turf.point([latlng.lng, latlng.lat]);
+    let zona = "No Identificado";
+    turf.featureEach(distritosGeoJSON, (f) => {
+        if (turf.booleanPointInPolygon(point, f)) {
+            zona = f.properties.nombre || f.properties.distrito || zona;
         }
     });
+    return zona;
 }
-map.on('zoomend moveend', actualizarTextosCalles);
 
-/* ================= PARCELAS (CATASTRO) ================= */
+/* ================= PARCELAS ================= */
 var parcelasLayers = [];
 var grupoParcelas = L.layerGroup().addTo(map);
 
-function getParcelaPopupContent(f, latlng) {
-    const props = f.properties;
-    const svUrl = getStreetViewLink(latlng.lat, latlng.lng);
-    const estado = props.estado_original ? props.estado_original.toString().trim().toUpperCase() : "";
+function getParcelaPopup(f, latlng) {
+    const p = f.properties;
+    const zona = detectarZona(latlng);
+    const area = turf.area(f);
+    const esPH = p.partidas && p.partidas.length > 1;
+    const lat = latlng.lat;
+    const lng = latlng.lng;
+    const dataStr = JSON.stringify(p).replace(/'/g, "&apos;");
 
-    let html = `<div class="popup-parcela">`;
-    if (estado === "E" || estado === "B") {
-        html += `<center><b>DETALLE CATASTRAL</b></center><hr>`;
-        html += `<table class="table-info">`;
-        for (let key in props.full_data) {
-            let val = props.full_data[key];
-            if (val !== null && val !== undefined && typeof val !== 'object') {
-                html += `<tr><td>${key.toUpperCase()}</td><td>${val}</td></tr>`;
-            }
-        }
-        html += `</table>`;
-    } else {
-        html += `<center><b>INFORMACIÓN PARCELARIA</b></center><hr>`;
-        if (props.esPH) {
-            html += `<b>TIPO:</b> UNIDAD PH<br><b>PARTIDAS:</b><br>${props.partidas.join("<br>")}`;
-        } else {
-            html += `<b>PARTIDA:</b> ${props.partidas[0] || "No disponible"}`;
-        }
-        html += `<br><b>UBICACIÓN:</b> ${props.ubicacion || "-"}`;
+    let html = `<div class="popup-container">`;
+    
+    // 1. Cabecera con Zonificación
+    html += `<div class="popup-section">
+        <span class="popup-title">ESTADO Y ZONA (Ord. 8563)</span>
+        <center><span class="badge-zona">${zona}</span></center>
+        <div class="popup-row" style="margin-top:10px;"><span class="popup-label">Superficie Medida:</span><span class="popup-value">${area.toFixed(2)} m²</span></div>
+        <div class="popup-row"><span class="popup-label">Régimen:</span><span class="${esPH ? 'badge-ph' : 'badge-comun'}">${esPH ? 'Propiedad Horizontal (PH)' : 'Parcela Común'}</span></div>
+    </div>`;
+
+    // 2. Todos los campos del GeoJSON
+    html += `<div class="popup-section">
+        <span class="popup-title">DATOS CATASTRALES COMPLETOS</span>`;
+    
+    // Mostramos los campos clave primero
+    if (p.partidas) {
+        html += `<div class="popup-row"><span class="popup-label">Partida(s):</span><span class="popup-value">${p.partidas.join(', ')}</span></div>`;
     }
-    html += `<div style="display:flex; justify-content:center; margin-top:10px;">`;
-    html += `<a href="${svUrl}" target="_blank" class="btn-streetview">📍 Ver Street View</a>`;
-    html += `</div></div>`;
+
+    // Iteramos por absolutamente todos los campos del objeto properties
+    for (let key in p) {
+        if (key !== 'partidas') { // Evitamos repetir partidas si ya se mostró
+            let label = key.toUpperCase();
+            let val = p[key] === null ? "S/D" : p[key];
+            html += `<div class="popup-row"><span class="popup-label">${label}:</span><span class="popup-value">${val}</span></div>`;
+        }
+    }
+    html += `</div>`;
+
+    // 3. Acciones
+    html += `<button class="btn-action btn-sv" onclick="window.open('https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${lat},${lng}', '_blank')">📷 Ver en Street View</button>`;
+    html += `<button class="btn-action btn-ai-blue" onclick='analizarFactibilidad(${dataStr}, "${zona}")'>✨ Normativa IA</button>`;
+    html += `<button class="btn-action btn-ai-green" onclick='generarInformeEdificabilidad(${dataStr}, "${zona}", ${area})'>🏢 Edificabilidad IA</button>`;
+    
+    html += `</div>`;
     return html;
 }
 
-const archivosCatastro = ["parcela1_4.geojson", "parcela5_7.geojson", "parcela8_15.geojson"];
-
-archivosCatastro.forEach(nombre => {
-    fetch(BASE_URL + "catastro/" + nombre)
-        .then(res => res.json())
-        .then(data => {
-            var grupos = {};
-            data.features.forEach(f => {
-                var key = JSON.stringify(f.geometry.coordinates);
-                if (!grupos[key]) grupos[key] = [];
-                grupos[key].push(f);
-            });
-
-            var featuresAgrupadas = Object.values(grupos).map(grupo => {
-                var base = grupo[0];
-                return {
-                    type: "Feature", 
-                    geometry: base.geometry,
-                    properties: { 
-                        esPH: grupo.length > 1, 
-                        partidas: grupo.map(g => g.properties.nropasd), 
-                        ubicacion: base.properties.ubipar1,
-                        estado_original: base.properties.estado || "",
-                        full_data: base.properties 
-                    }
-                };
-            });
-
-            var layer = L.geoJSON(featuresAgrupadas, {
-                style: f => ({ 
-                    color: f.properties.esPH ? "#8e44ad" : "#2980b9", 
-                    weight: f.properties.esPH ? 1.5 : 0.8, 
-                    fillOpacity: f.properties.esPH ? 0.3 : 0.15 
-                }),
-                onEachFeature: (f, l) => {
-                    l.on('click', function(e) {
-                        l.bindPopup(getParcelaPopupContent(f, e.latlng)).openPopup();
-                    });
-                }
-            });
-            parcelasLayers.push(layer);
-            grupoParcelas.addLayer(layer);
+const catArchivos = ["parcela1_4.geojson", "parcela5_7.geojson", "parcela8_15.geojson"];
+catArchivos.forEach(n => {
+    fetch(BASE_URL + "catastro/" + n).then(r => r.json()).then(data => {
+        var grupos = {};
+        data.features.forEach(f => {
+            var k = JSON.stringify(f.geometry.coordinates);
+            if (!grupos[k]) grupos[k] = [];
+            grupos[k].push(f);
         });
-});
-
-/* ================= CONTROLES ================= */
-const baseLayers = { "Satélite": hibrido, "Mapa": osm };
-const overlays = {
-    [`<span class="layer-legend-icon icon-line" style="background-color: #FFFF00;"></span> Calles`]: grupoCalles,
-    [`<span class="layer-legend-icon" style="background-color: #2980b9;"></span> Catastro`]: grupoParcelas
-};
-
-L.control.layers(baseLayers, overlays).addTo(map);
-L.Control.geocoder({ position: 'topright' }).addTo(map);
-
-/* ================= BÚSQUEDA ================= */
-function buscarPM() {
-    var val = document.getElementById('input-pm').value.trim();
-    if (!val) return;
-    let encontrado = false;
-    parcelasLayers.forEach(layer => {
-        layer.eachLayer(l => {
-            var partidas = (l.feature.properties.partidas || []).map(String);
-            if (partidas.includes(val)) {
-                map.fitBounds(l.getBounds(), { maxZoom: 18 });
-                l.openPopup();
-                encontrado = true;
+        var merged = Object.values(grupos).map(g => ({
+            type: "Feature", geometry: g[0].geometry,
+            properties: { ...g[0].properties, partidas: g.map(x=>x.properties.nropasd) }
+        }));
+        var ly = L.geoJSON(merged, {
+            style: { color: "#2980b9", weight: 1.5, fillOpacity: 0.25 },
+            onEachFeature: (f, l) => {
+                l.on('click', (e) => {
+                    l.bindPopup(getParcelaPopup(f, e.latlng)).openPopup();
+                });
             }
         });
+        parcelasLayers.push(ly);
+        grupoParcelas.addLayer(ly);
+    });
+});
+
+/* ================= CALLES ================= */
+var grupoCalles = L.layerGroup().addTo(map);
+var listaCallesGlobal = [];
+var capasCallesRender = [];
+
+fetch(BASE_URL + "calles.geojson").then(r => r.json()).then(data => {
+    L.geoJSON(data, {
+        style: { color: "#333", weight: 2, opacity: 0.1 },
+        onEachFeature: (f, l) => {
+            if (f.properties.nombre && l instanceof L.Polyline) {
+                const n = f.properties.nombre;
+                if (!listaCallesGlobal.find(x => x.nombre === n)) listaCallesGlobal.push({ nombre: n, bounds: l.getBounds() });
+                
+                var latlngs = l.getLatLngs();
+                if (Array.isArray(latlngs[0])) latlngs = latlngs.flat(2);
+                var d = 0; for(var i=0; i<latlngs.length-1; i++) d += latlngs[i].distanceTo(latlngs[i+1]);
+                capasCallesRender.push({ layer: l, nombre: n, len: d });
+            }
+        }
+    }).addTo(grupoCalles);
+    refreshStreetLabels();
+});
+
+function refreshStreetLabels() {
+    var z = map.getZoom(), b = map.getBounds();
+    capasCallesRender.forEach(c => {
+        if (c.layer._text) c.layer.setText(null);
+        if (z >= 16 && b.intersects(c.layer.getBounds()) && c.len > 40) {
+            c.layer.setText(c.nombre, { center:true, attributes: { fill:'#FFFF00', 'font-weight':'bold', 'font-size':'12', stroke:'black', 'stroke-width':'2px' } });
+        }
     });
 }
+map.on('zoomend moveend', refreshStreetLabels);
+
+function sugerirCalles() {
+    const val = document.getElementById('input-calle').value.toLowerCase();
+    const list = document.getElementById('lista-calles');
+    list.innerHTML = '';
+    if (val.length < 2) { list.style.display='none'; return; }
+    const filtered = listaCallesGlobal.filter(c => c.nombre.toLowerCase().includes(val)).slice(0,10);
+    filtered.forEach(c => {
+        const d = document.createElement('div');
+        d.innerText = c.nombre;
+        d.onclick = () => { document.getElementById('input-calle').value = c.nombre; list.style.display='none'; map.fitBounds(c.bounds); };
+        list.appendChild(d);
+    });
+    list.style.display = filtered.length ? 'block' : 'none';
+}
+
+function buscarPM() {
+    var v = document.getElementById('input-pm').value.trim();
+    if (!v) return;
+    parcelasLayers.forEach(ly => ly.eachLayer(l => {
+        if (l.feature.properties.partidas.map(String).includes(v)) {
+            map.fitBounds(l.getBounds(), { maxZoom: 19 });
+            l.openPopup();
+        }
+    }));
+}
+
+L.control.layers({ "Satelital": hibrido }, { "Parcelas": grupoParcelas, "Distritos": grupoDistritos, "Calles": grupoCalles }).addTo(map);
+document.addEventListener('click', (e) => { if(e.target.id!=='input-calle') document.getElementById('lista-calles').style.display='none'; });
 </script>
 </body>
 </html>
