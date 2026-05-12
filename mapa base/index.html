@@ -73,7 +73,6 @@
         .loading-dots:after { content: ' .'; animation: dots 1.5s steps(5, end) infinite; }
         @keyframes dots { 0%, 20% { color: rgba(0,0,0,0); text-shadow: .5em 0 0 rgba(0,0,0,0), 1em 0 0 rgba(0,0,0,0); } 40% { color: #8e44ad; text-shadow: .5em 0 0 rgba(0,0,0,0), 1em 0 0 rgba(0,0,0,0); } 60% { text-shadow: .5em 0 0 #8e44ad, 1em 0 0 rgba(0,0,0,0); } 80%, 100% { text-shadow: .5em 0 0 #8e44ad, 1em 0 0 #8e44ad; } }
 
-        /* Buscador Sugerencias */
         .search-container { position: relative; }
         #lista-calles {
             position: absolute; top: 100%; left: 0; width: 100%;
@@ -115,33 +114,35 @@
 
 <script>
 const BASE_URL = "https://raw.githubusercontent.com/dcartografiayde/IDE-PARANA/main/";
-// CLAVE DE API: En este entorno se inyecta automáticamente. 
-// Para que funcione en tu GitHub, DEBES pegar aquí tu clave de la captura d5358d.png si esta no se autocompleta.
-let apiKey = ""; 
 
-/* ================= NÚCLEO IA GEMINI - VERSIÓN ESTABLE ================= */
+// La API Key se asume configurada externamente o vacía para el entorno de ejecución.
+const apiKey = ""; 
+
+/* ================= NÚCLEO IA GEMINI - OPTIMIZACIÓN DE RESPUESTA ================= */
 async function callGemini(prompt, systemMsg) {
-    // Usamos el modelo más reciente y estable disponible
-    const modelName = "gemini-2.0-flash-exp"; 
+    const modelName = "gemini-2.5-flash-preview-09-2025"; 
     const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
 
     const requestBody = {
-        contents: [
-            {
-                role: "user",
-                parts: [{ text: `INSTRUCCIÓN DE SISTEMA: ${systemMsg}\n\nPREGUNTA DEL USUARIO: ${prompt}` }]
-            }
-        ],
+        contents: [{
+            role: "user",
+            parts: [{ text: prompt }]
+        }],
+        systemInstruction: {
+            parts: [{ text: systemMsg + " IMPORTANTE: Proporciona respuestas completas y detalladas sin cortes. Si el análisis es extenso, utiliza listas para mantener la claridad." }]
+        },
         generationConfig: {
-            temperature: 0.2,
-            topK: 40,
+            temperature: 0.1,
+            maxOutputTokens: 4096, // Aumentado significativamente para evitar cortes
             topP: 0.95,
-            maxOutputTokens: 1024,
+            topK: 40
         }
     };
 
-    // Lógica de reintentos
-    for (let attempt = 0; attempt < 3; attempt++) {
+    let retries = 0;
+    const maxRetries = 5;
+
+    while (retries <= maxRetries) {
         try {
             const response = await fetch(endpoint, {
                 method: 'POST',
@@ -152,52 +153,50 @@ async function callGemini(prompt, systemMsg) {
             const data = await response.json();
 
             if (response.ok) {
-                return data.candidates?.[0]?.content?.parts?.[0]?.text || "La IA no pudo generar una respuesta coherente.";
+                return data.candidates?.[0]?.content?.parts?.[0]?.text || "La IA no devolvió contenido.";
+            } else {
+                throw new Error(`Status ${response.status}: ${data.error?.message}`);
             }
-
-            // Manejo específico de errores según tus capturas
-            if (response.status === 404) {
-                console.error("Modelo no encontrado. Probando con modelo alternativo...");
-                return "❌ Error 404: El modelo especificado no está activo en tu región o proyecto de Google Cloud.";
-            }
-            
-            if (response.status === 429) {
-                await new Promise(r => setTimeout(r, 2000)); // Esperar 2 segundos si hay saturación
-                continue;
-            }
-
-            return `❌ Error HTTP ${response.status}: ${data.error?.message || "Error desconocido"}`;
-
         } catch (error) {
-            if (attempt === 2) return "❌ Error de conexión: No se pudo contactar con el servidor de Google.";
+            retries++;
+            if (retries > maxRetries) {
+                return "❌ Error persistente: No se pudo completar la respuesta larga.";
+            }
+            const delay = Math.pow(2, retries - 1) * 1000;
+            await new Promise(resolve => setTimeout(resolve, delay));
         }
     }
 }
 
 async function analizarFactibilidad(parcelaData, zonaNombre) {
     toggleAISidebar(true);
-    const history = document.getElementById('ai-chat-history');
-    const loading = showLoading("Consultando normativa local...");
-
-    const system = "Eres un consultor experto en Urbanismo de Paraná. Conoces la Ordenanza 8563. Responde de forma técnica pero clara.";
-    const prompt = `Analiza la parcela con datos catastrales: ${JSON.stringify(parcelaData)}. Está en el Distrito ${zonaNombre}. Indica brevemente usos principales (vivienda, comercio) y si existen retiros obligatorios conocidos.`;
-
+    const loading = showLoading("Analizando Parcela con Ord. 8563...");
+    const system = "Eres el Consultor Urbano principal de Paraná. Especialista en la Ord. 8563/2004 (Código Urbano).";
+    const prompt = `Realiza un informe detallado para esta parcela en el distrito ${zonaNombre}. Datos: ${JSON.stringify(parcelaData)}. 
+    Estructura la respuesta así:
+    1. Usos Permitidos (Principales y Complementarios).
+    2. Retiros (Frontal, Lateral, Fondo).
+    3. Observaciones especiales de la zona.`;
+    
     const respuesta = await callGemini(prompt, system);
     removeLoading(loading);
-    addAiMessage(`Normativa en ${zonaNombre}`, respuesta);
+    addAiMessage(`Análisis Normativo - ${zonaNombre}`, respuesta);
 }
 
 async function generarInformeEdificabilidad(parcelaData, zonaNombre, area) {
     toggleAISidebar(true);
-    const history = document.getElementById('ai-chat-history');
-    const loading = showLoading("Calculando m² potenciales...");
-
-    const system = "Eres un analista de inversiones inmobiliarias en Argentina. Estimas FOS y FOT.";
-    const prompt = `Parcela de ${area.toFixed(2)} m² en Distrito ${zonaNombre} de Paraná. Estima: 1. Metros construibles totales (FOT estimado). 2. Superficie en planta (FOS estimado). 3. Cantidad posible de pisos. Aclara que es una estimación basada en la Ord. 8563.`;
-
+    const loading = showLoading("Calculando potencial constructivo...");
+    const system = "Experto en desarrollo inmobiliario y normativa de edificación en Entre Ríos.";
+    const prompt = `Calcula el potencial constructivo detallado para un lote de ${area.toFixed(2)}m² en zona ${zonaNombre}. 
+    Incluye:
+    - Estimación de FOS (Factor de Ocupación del Suelo).
+    - Estimación de FOT (Factor de Ocupación Total).
+    - Metros cuadrados totales cubiertos proyectados.
+    - Cantidad estimada de niveles/pisos según zona.`;
+    
     const respuesta = await callGemini(prompt, system);
     removeLoading(loading);
-    addAiMessage(`Potencial Edificable - ${zonaNombre}`, respuesta, "edificabilidad");
+    addAiMessage(`Informe de Edificabilidad`, respuesta, "edificabilidad");
 }
 
 async function sendChatQuery() {
@@ -205,20 +204,20 @@ async function sendChatQuery() {
     const text = input.value.trim();
     if (!text) return;
     input.value = '';
-
     addAiMessage("Tú", text, "user");
-    const loading = showLoading("Analizando...");
-    const respuesta = await callGemini(text, "Asistente del Visor Urbano de Paraná. Responde dudas sobre la ciudad y su código urbano.");
+    const loading = showLoading("Consultando...");
+    const respuesta = await callGemini(text, "Asistente experto en planeamiento urbano de la Municipalidad de Paraná.");
     removeLoading(loading);
     addAiMessage("IA Urbana", respuesta);
 }
 
-/* Helpers UI IA */
 function showLoading(txt) {
+    const history = document.getElementById('ai-chat-history');
     const d = document.createElement('div');
     d.className = 'ai-message loading-dots';
     d.innerText = txt;
-    document.getElementById('ai-chat-history').appendChild(d);
+    history.appendChild(d);
+    history.scrollTop = history.scrollHeight;
     return d;
 }
 function removeLoading(el) { el.remove(); }
@@ -226,13 +225,19 @@ function addAiMessage(title, text, type="") {
     const history = document.getElementById('ai-chat-history');
     const d = document.createElement('div');
     d.className = `ai-message ${type}`;
-    d.innerHTML = `<strong>${title}:</strong><br>${text.replace(/\n/g, '<br>')}`;
+    // Usamos marked-like formatting simple
+    const formattedText = text
+        .replace(/\n/g, '<br>')
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.*?)\*/g, '<em>$1</em>');
+    
+    d.innerHTML = `<strong>${title}:</strong><br>${formattedText}`;
     history.appendChild(d);
     history.scrollTop = history.scrollHeight;
 }
 function toggleAISidebar(show) { document.getElementById('ai-sidebar').classList.toggle('active', show); }
 
-/* ================= MAPA Y LÓGICA ESPACIAL ================= */
+/* ================= MAPA ================= */
 var map = L.map('map',{ center:[-31.733, -60.52], zoom:15 });
 L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; CARTO' }).addTo(map);
 
@@ -263,14 +268,12 @@ function getParcelaPopup(f, latlng) {
     html += `<span class="badge-zona">${zona}</span>`;
     html += `<span class="popup-title">Datos del Inmueble</span>`;
     html += `<div class="popup-row"><span class="popup-label">Sup. Terreno:</span><span class="popup-value">${area.toFixed(2)} m²</span></div>`;
-    
     for (let key in p) {
         if(p[key] && key !== 'nropar') {
             html += `<div class="popup-row"><span class="popup-label">${key}:</span><span class="popup-value">${p[key]}</span></div>`;
         }
     }
-
-    html += `<button class="btn-action btn-sv" onclick="window.open('https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${latlng.lat},${latlng.lng}', '_blank')">📷 Ver Street View</button>`;
+    html += `<button class="btn-action btn-sv" onclick="window.open('https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${latlng.lat},${latlng.lng}', '_blank')">📷 Street View</button>`;
     html += `<button class="btn-action btn-ai-blue" onclick='analizarFactibilidad(${dataJson}, "${zona}")'>✨ Normativa IA</button>`;
     html += `<button class="btn-action btn-ai-green" onclick='generarInformeEdificabilidad(${dataJson}, "${zona}", ${area})'>📊 Edificabilidad IA</button>`;
     html += `</div>`;
@@ -291,7 +294,6 @@ capasCatastro.forEach(file => {
     });
 });
 
-/* ================= BUSCADORES ================= */
 var callesData = [];
 fetch(BASE_URL + "calles.geojson").then(r => r.json()).then(data => {
     callesData = data.features.map(f => ({
@@ -307,7 +309,6 @@ function sugerirCalles() {
     const list = document.getElementById('lista-calles');
     list.innerHTML = '';
     if (val.length < 3) { list.style.display = 'none'; return; }
-
     const sugerencias = [...new Set(callesData.filter(c => c.nombre && c.nombre.toLowerCase().includes(val)).map(c => c.nombre))].slice(0, 6);
     sugerencias.forEach(s => {
         const d = document.createElement('div');
@@ -334,7 +335,7 @@ function buscarPM() {
             encontrada = true;
         }
     }));
-    if(!encontrada) addAiMessage("Buscador", "No se encontró la Partida Municipal " + pm, "error");
+    if(!encontrada) addAiMessage("Buscador", "No se encontró la Partida " + pm, "error");
 }
 </script>
 </body>
