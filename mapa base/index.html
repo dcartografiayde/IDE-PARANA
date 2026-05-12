@@ -121,14 +121,13 @@
 
 <script>
 const BASE_URL = "https://raw.githubusercontent.com/dcartografiayde/IDE-PARANA/main/";
-// CLAVE API proporcionada por el usuario
 const apiKey = "AIzaSyCCwJb9GN23evSwpot1kd7r3PVrjL7H8cM"; 
 
 /* ================= IA GEMINI CORE ================= */
 async function callGemini(prompt, systemMsg) {
     if (!apiKey) return "⚠️ Falta la clave API.";
 
-    // Usamos el modelo 1.5-flash que es el más estable para claves gratuitas
+    // CORRECCIÓN CLAVE: La URL debe tener la ruta completa del modelo
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
     try {
@@ -137,23 +136,29 @@ async function callGemini(prompt, systemMsg) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 contents: [
-                    { role: "user", parts: [{ text: `INSTRUCCIÓN DE SISTEMA: ${systemMsg}\n\nSOLICITUD DEL USUARIO: ${prompt}` }] }
-                ]
+                    { 
+                        parts: [{ text: `Actúa como un experto en urbanismo de Paraná, Entre Ríos. Basándote en la siguiente instrucción de sistema: ${systemMsg}. Ahora responde a: ${prompt}` }] 
+                    }
+                ],
+                generationConfig: {
+                    temperature: 0.7,
+                    maxOutputTokens: 800,
+                }
             })
         });
 
+        const result = await response.json();
+
         if (!response.ok) {
-            const errorData = await response.json();
-            console.error("Error API:", errorData);
-            return `❌ Error ${response.status}: ${errorData.error?.message || "No se pudo conectar con la IA"}`;
+            console.error("Detalle del Error:", result);
+            return `❌ Error: ${result.error?.message || "No se pudo conectar"}`;
         }
 
-        const result = await response.json();
-        return result.candidates?.[0]?.content?.parts?.[0]?.text || "No recibí respuesta inteligible de la IA.";
+        return result.candidates?.[0]?.content?.parts?.[0]?.text || "No hay respuesta.";
 
     } catch (e) {
         console.error("Error conexión:", e);
-        return "❌ Error de conexión a Internet o bloqueo de la API.";
+        return "❌ Error de red. Revisa tu conexión.";
     }
 }
 
@@ -166,8 +171,8 @@ async function analizarFactibilidad(parcelaData, zonaNombre) {
     history.appendChild(loadingMsg);
     history.scrollTop = history.scrollHeight;
 
-    const systemMsg = "Eres un consultor urbano de Paraná, experto en la Ordenanza 8563. Explica brevemente los usos permitidos y retiros para la zona indicada.";
-    const prompt = `Datos de la Parcela: ${JSON.stringify(parcelaData)}. Distrito: ${zonaNombre}. Por favor, haz un resumen técnico de qué se permite construir aquí.`;
+    const systemMsg = "Eres un consultor experto en la Ordenanza 8563 de Paraná. Explica usos permitidos y retiros.";
+    const prompt = `Parcela: ${JSON.stringify(parcelaData)}. Distrito: ${zonaNombre}. Resume qué se puede construir.`;
     
     const respuesta = await callGemini(prompt, systemMsg);
     history.removeChild(loadingMsg);
@@ -184,12 +189,12 @@ async function generarInformeEdificabilidad(parcelaData, zonaNombre, areaParcela
     const history = document.getElementById('ai-chat-history');
     const loadingMsg = document.createElement('div');
     loadingMsg.className = 'ai-message loading-dots';
-    loadingMsg.innerText = `Calculando potencial de construcción...`;
+    loadingMsg.innerText = `Calculando potencial...`;
     history.appendChild(loadingMsg);
     history.scrollTop = history.scrollHeight;
 
-    const systemMsg = "Eres un analista de inversiones inmobiliarias en Paraná. Calcula el potencial de m² edificables usando FOS y FOT típicos del distrito mencionado.";
-    const prompt = `Parcela de ${areaParcela.toFixed(2)} m² en zona ${zonaNombre}. Estima cuántos m² totales se pueden construir y cuántos pisos aproximadamente.`;
+    const systemMsg = "Analista inmobiliario. Calcula m² con FOS/FOT.";
+    const prompt = `Superficie: ${areaParcela.toFixed(2)} m². Zona: ${zonaNombre}. Estima m² construibles y pisos.`;
 
     const respuesta = await callGemini(prompt, systemMsg);
     history.removeChild(loadingMsg);
@@ -208,11 +213,8 @@ async function sendChatQuery() {
     
     input.value = '';
     const history = document.getElementById('ai-chat-history');
-    
     const userMsg = document.createElement('div');
-    userMsg.className = 'ai-message';
-    userMsg.style.background = '#fff';
-    userMsg.style.borderLeft = '4px solid #2c3e50';
+    userMsg.className = 'ai-message'; userMsg.style.background = '#fff';
     userMsg.innerHTML = `<strong>Tú:</strong> ${query}`;
     history.appendChild(userMsg);
 
@@ -220,11 +222,10 @@ async function sendChatQuery() {
     loadingMsg.className = 'ai-message loading-dots';
     loadingMsg.innerText = `Analizando`;
     history.appendChild(loadingMsg);
-    history.scrollTop = history.scrollHeight;
 
-    const response = await callGemini(query, "Eres un asistente técnico del Visor Urbano de Paraná. Responde dudas sobre urbanismo.");
-    
+    const response = await callGemini(query, "Asistente del Visor Urbano de Paraná.");
     history.removeChild(loadingMsg);
+    
     const aiMsg = document.createElement('div');
     aiMsg.className = 'ai-message';
     aiMsg.innerHTML = `<strong>IA:</strong> ${response.replace(/\n/g, '<br>')}`;
@@ -236,15 +237,7 @@ function toggleAISidebar(show) { document.getElementById('ai-sidebar').classList
 
 /* ================= MAPA Y CAPAS ================= */
 var map = L.map('map',{ center:[-31.733, -60.52], zoom:15 });
-
-var modoOscuro = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-	attribution: '&copy; CARTO'
-}).addTo(map);
-
-var satelital = L.layerGroup([
-    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'),
-    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}')
-]);
+var modoOscuro = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; CARTO' }).addTo(map);
 
 /* ================= DISTRITOS ================= */
 var distritosGeoJSON = null;
@@ -257,11 +250,9 @@ fetch(BASE_URL + "distritos.geojson").then(r => r.json()).then(data => {
 function detectarZona(latlng) {
     if (!distritosGeoJSON) return "U.R.";
     const point = turf.point([latlng.lng, latlng.lat]);
-    let zona = "No Identificado";
+    let zona = "S/D";
     turf.featureEach(distritosGeoJSON, (f) => {
-        if (turf.booleanPointInPolygon(point, f)) {
-            zona = f.properties.nombre || f.properties.distrito || zona;
-        }
+        if (turf.booleanPointInPolygon(point, f)) { zona = f.properties.nombre || f.properties.distrito || zona; }
     });
     return zona;
 }
@@ -274,25 +265,15 @@ function getParcelaPopup(f, latlng) {
     const p = f.properties;
     const zona = detectarZona(latlng);
     const area = turf.area(f);
-    const esPH = p.partidas && p.partidas.length > 1;
     const dataStr = JSON.stringify(p).replace(/'/g, "&apos;");
 
     let html = `<div class="popup-container">`;
-    html += `<div class="popup-section">
-        <span class="popup-title">ZONIFICACIÓN ORD. 8563</span>
-        <center><span class="badge-zona">${zona}</span></center>
-        <div class="popup-row" style="margin-top:10px;"><span class="popup-label">Superficie:</span><span class="popup-value">${area.toFixed(2)} m²</span></div>
-        <div class="popup-row"><span class="popup-label">Estado:</span><span class="${esPH ? 'badge-ph' : 'badge-comun'}">${esPH ? 'Propiedad Horizontal' : 'Común'}</span></div>
-    </div>`;
-
-    html += `<div class="popup-section"><span class="popup-title">INFORMACIÓN CATASTRAL</span>`;
-    for (let key in p) {
-        if (key === 'partidas') continue;
-        html += `<div class="popup-row"><span class="popup-label">${key.toUpperCase()}:</span><span class="popup-value">${p[key] || '-'}</span></div>`;
-    }
+    html += `<div class="popup-section"><span class="popup-title">ZONIFICACIÓN</span><center><span class="badge-zona">${zona}</span></center></div>`;
+    html += `<div class="popup-section"><span class="popup-title">CATASTRO</span>`;
+    html += `<div class="popup-row"><span class="popup-label">Sup:</span><span class="popup-value">${area.toFixed(1)} m²</span></div>`;
+    html += `<div class="popup-row"><span class="popup-label">Partida:</span><span class="popup-value">${p.nropar || p.nropasd || '-'}</span></div>`;
     html += `</div>`;
-
-    html += `<button class="btn-action btn-sv" onclick="window.open('https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${latlng.lat},${latlng.lng}', '_blank')">📷 Ver en Street View</button>`;
+    html += `<button class="btn-action btn-sv" onclick="window.open('https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${latlng.lat},${latlng.lng}', '_blank')">📷 Street View</button>`;
     html += `<button class="btn-action btn-ai-blue" onclick='analizarFactibilidad(${dataStr}, "${zona}")'>✨ Analizar Normativa IA</button>`;
     html += `<button class="btn-action btn-ai-green" onclick='generarInformeEdificabilidad(${dataStr}, "${zona}", ${area})'>🏢 Informe Edificabilidad IA</button>`;
     html += `</div>`;
@@ -302,9 +283,8 @@ function getParcelaPopup(f, latlng) {
 const archivos = ["parcela1_4.geojson", "parcela5_7.geojson", "parcela8_15.geojson"];
 archivos.forEach(n => {
     fetch(BASE_URL + "catastro/" + n).then(r => r.json()).then(data => {
-        var merged = []; // Aquí se podría aplicar la lógica de merge si fuera necesario
         var ly = L.geoJSON(data, {
-            style: { color: "#3498db", weight: 1.5, fillOpacity: 0.2 },
+            style: { color: "#3498db", weight: 1.2, fillOpacity: 0.15 },
             onEachFeature: (f, l) => {
                 l.on('click', (e) => { l.bindPopup(getParcelaPopup(f, e.latlng)).openPopup(); });
             }
@@ -314,22 +294,14 @@ archivos.forEach(n => {
     });
 });
 
-/* ================= CALLES ================= */
-var grupoCalles = L.layerGroup().addTo(map);
+/* ================= BUSCADORES ================= */
 var listaCallesGlobal = [];
-var capasCallesRender = [];
-
 fetch(BASE_URL + "calles.geojson").then(r => r.json()).then(data => {
     L.geoJSON(data, {
-        style: { color: "#fff", weight: 2, opacity: 0.2 },
         onEachFeature: (f, l) => {
-            if (f.properties.nombre) {
-                const n = f.properties.nombre;
-                if (!listaCallesGlobal.find(x => x.nombre === n)) listaCallesGlobal.push({ nombre: n, bounds: l.getBounds() });
-                capasCallesRender.push({ layer: l, nombre: n });
-            }
+            if (f.properties.nombre) listaCallesGlobal.push({ nombre: f.properties.nombre, bounds: l.getBounds() });
         }
-    }).addTo(grupoCalles);
+    });
 });
 
 function sugerirCalles() {
@@ -337,15 +309,11 @@ function sugerirCalles() {
     const list = document.getElementById('lista-calles');
     list.innerHTML = '';
     if (val.length < 3) { list.style.display='none'; return; }
-    const filtered = listaCallesGlobal.filter(c => c.nombre.toLowerCase().includes(val)).slice(0,8);
+    const filtered = listaCallesGlobal.filter(c => c.nombre.toLowerCase().includes(val)).slice(0,5);
     filtered.forEach(c => {
         const d = document.createElement('div');
         d.innerText = c.nombre;
-        d.onclick = () => { 
-            document.getElementById('input-calle').value = c.nombre; 
-            list.style.display='none'; 
-            map.fitBounds(c.bounds); 
-        };
+        d.onclick = () => { document.getElementById('input-calle').value = c.nombre; list.style.display='none'; map.fitBounds(c.bounds); };
         list.appendChild(d);
     });
     list.style.display = filtered.length ? 'block' : 'none';
@@ -354,18 +322,13 @@ function sugerirCalles() {
 function buscarPM() {
     var v = document.getElementById('input-pm').value.trim();
     if (!v) return;
-    let encontrada = false;
     parcelasLayers.forEach(ly => ly.eachLayer(l => {
         if (String(l.feature.properties.nropasd) === v || String(l.feature.properties.nropar) === v) {
-            map.fitBounds(l.getBounds(), { maxZoom: 18 });
+            map.fitBounds(l.getBounds(), { maxZoom: 19 });
             l.openPopup();
-            encontrada = true;
         }
     }));
-    if (!encontrada) console.log("Partida no encontrada en las capas cargadas.");
 }
-
-L.control.layers({ "Mapa Oscuro": modoOscuro, "Satélite": satelital }, { "Parcelario": grupoParcelas, "Zonificación": grupoDistritos }).addTo(map);
 </script>
 </body>
 </html>
