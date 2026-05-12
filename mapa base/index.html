@@ -12,11 +12,6 @@
     <!-- Turf.js para análisis espacial -->
     <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
 
-    <!-- Plugins: TextPath para nombres de calles -->
-    <script src="https://cdn.jsdelivr.net/npm/leaflet-textpath@1.2.3/leaflet.textpath.min.js"></script>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
-    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
-
     <style>
         body { margin:0; padding:0; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; overflow: hidden; background: #0b1622; }
         #map { height: 100vh; width: 100%; background:#001a33; }
@@ -66,16 +61,15 @@
         }
         #lista-calles div { padding: 8px; cursor: pointer; font-size: 12px; border-bottom: 1px solid #eee; }
 
-        .popup-container { min-width: 300px; max-height: 450px; overflow-y: auto; padding-right: 5px; }
+        .popup-container { min-width: 320px; max-height: 500px; overflow-y: auto; padding-right: 10px; }
         .popup-section { margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #eee; }
-        .popup-title { font-weight: bold; color: #2c3e50; font-size: 14px; margin-bottom: 5px; display: block; border-left: 3px solid #3498db; padding-left: 8px; }
-        .popup-row { display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 11px; }
-        .popup-label { color: #7f8c8d; flex: 1; }
-        .popup-value { color: #2c3e50; font-weight: bold; text-align: right; flex: 1; }
+        .popup-title { font-weight: bold; color: #2c3e50; font-size: 14px; margin-bottom: 8px; display: block; border-left: 3px solid #3498db; padding-left: 8px; text-transform: uppercase; }
+        .popup-row { display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 11px; padding: 2px 0; }
+        .popup-row:nth-child(even) { background: #f9f9f9; }
+        .popup-label { color: #7f8c8d; font-weight: 500; flex: 1.2; padding-right: 5px; }
+        .popup-value { color: #2c3e50; font-weight: bold; text-align: right; flex: 1; word-break: break-word; }
         
-        .badge-ph { background: #e74c3c; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; }
-        .badge-comun { background: #3498db; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; }
-        .badge-zona { background: #e67e22; color: white; padding: 4px 10px; border-radius: 6px; font-weight: bold; font-size: 13px; display: inline-block; margin-top: 5px; }
+        .badge-zona { background: #e67e22; color: white; padding: 4px 10px; border-radius: 6px; font-weight: bold; font-size: 13px; display: inline-block; margin: 5px 0; }
 
         .btn-action { 
             width: 100%; padding: 10px; margin-top: 8px; border: none; border-radius: 6px; 
@@ -107,7 +101,7 @@
         <span style="cursor:pointer; font-size: 24px;" onclick="toggleAISidebar(false)">&times;</span>
     </div>
     <div class="ai-body" id="ai-chat-history">
-        <div class="ai-message">Selecciona una parcela para desplegar todos sus datos y realizar análisis de factibilidad con la normativa vigente (Ord. 8563).</div>
+        <div class="ai-message">Selecciona una parcela para desplegar datos y realizar análisis con IA (Ord. 8563).</div>
     </div>
     <div class="ai-footer">
         <div class="chat-input-container" style="display:flex; gap:5px;">
@@ -121,45 +115,48 @@
 
 <script>
 const BASE_URL = "https://raw.githubusercontent.com/dcartografiayde/IDE-PARANA/main/";
-const apiKey = "AIzaSyCCwJb9GN23evSwpot1kd7r3PVrjL7H8cM"; 
+const apiKey = ""; // Se inyecta automáticamente en el entorno de ejecución
 
-/* ================= IA GEMINI CORE ================= */
+/* ================= IA GEMINI CORE CORREGIDA ================= */
 async function callGemini(prompt, systemMsg) {
-    if (!apiKey) return "⚠️ Falta la clave API.";
-
-    // CORRECCIÓN CLAVE: La URL debe tener la ruta completa del modelo
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
-
-    try {
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: [
-                    { 
-                        parts: [{ text: `Actúa como un experto en urbanismo de Paraná, Entre Ríos. Basándote en la siguiente instrucción de sistema: ${systemMsg}. Ahora responde a: ${prompt}` }] 
-                    }
-                ],
-                generationConfig: {
-                    temperature: 0.7,
-                    maxOutputTokens: 800,
-                }
-            })
-        });
-
-        const result = await response.json();
-
-        if (!response.ok) {
-            console.error("Detalle del Error:", result);
-            return `❌ Error: ${result.error?.message || "No se pudo conectar"}`;
+    const model = "gemini-2.5-flash-preview-09-2025";
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+    
+    const payload = {
+        contents: [{ 
+            parts: [{ text: prompt }] 
+        }],
+        systemInstruction: { 
+            parts: [{ text: `Actúa como un experto en urbanismo de Paraná, Entre Ríos. ${systemMsg}` }] 
         }
+    };
 
-        return result.candidates?.[0]?.content?.parts?.[0]?.text || "No hay respuesta.";
-
-    } catch (e) {
-        console.error("Error conexión:", e);
-        return "❌ Error de red. Revisa tu conexión.";
+    // Implementación de Reintentos (Exponential Backoff)
+    for (let i = 0; i < 5; i++) {
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            
+            const result = await response.json();
+            
+            if (response.ok) {
+                return result.candidates?.[0]?.content?.parts?.[0]?.text || "No se obtuvo respuesta.";
+            }
+            
+            if (response.status === 404) return "❌ Error: El modelo de IA no está disponible o la URL es incorrecta.";
+            
+            // Si es error de cuota (429) o servidor (500), esperamos
+            const delay = Math.pow(2, i) * 1000;
+            await new Promise(res => setTimeout(res, delay));
+            
+        } catch (e) {
+            if (i === 4) return "❌ Error de conexión persistente. Revisa tu internet.";
+        }
     }
+    return "❌ No se pudo conectar con la IA después de varios intentos.";
 }
 
 async function analizarFactibilidad(parcelaData, zonaNombre) {
@@ -171,12 +168,11 @@ async function analizarFactibilidad(parcelaData, zonaNombre) {
     history.appendChild(loadingMsg);
     history.scrollTop = history.scrollHeight;
 
-    const systemMsg = "Eres un consultor experto en la Ordenanza 8563 de Paraná. Explica usos permitidos y retiros.";
-    const prompt = `Parcela: ${JSON.stringify(parcelaData)}. Distrito: ${zonaNombre}. Resume qué se puede construir.`;
+    const systemMsg = "Eres un consultor experto en la Ordenanza 8563 de Paraná. Explica brevemente usos permitidos y retiros para este distrito.";
+    const prompt = `Analiza la siguiente parcela con estos datos: ${JSON.stringify(parcelaData)}. Está ubicada en el Distrito: ${zonaNombre}. ¿Qué dice la normativa sobre qué se puede construir allí?`;
     
     const respuesta = await callGemini(prompt, systemMsg);
     history.removeChild(loadingMsg);
-    
     const aiMsg = document.createElement('div');
     aiMsg.className = (respuesta.includes('❌')) ? 'ai-message error' : 'ai-message';
     aiMsg.innerHTML = `<strong>Normativa en ${zonaNombre}:</strong><br>${respuesta.replace(/\n/g, '<br>')}`;
@@ -193,12 +189,11 @@ async function generarInformeEdificabilidad(parcelaData, zonaNombre, areaParcela
     history.appendChild(loadingMsg);
     history.scrollTop = history.scrollHeight;
 
-    const systemMsg = "Analista inmobiliario. Calcula m² con FOS/FOT.";
-    const prompt = `Superficie: ${areaParcela.toFixed(2)} m². Zona: ${zonaNombre}. Estima m² construibles y pisos.`;
+    const systemMsg = "Eres un analista inmobiliario técnico. Calcula metros cuadrados potenciales usando estimaciones de FOS y FOT para el distrito mencionado.";
+    const prompt = `La parcela tiene una superficie gráfica de ${areaParcela.toFixed(2)} m². Se encuentra en la Zona: ${zonaNombre}. Estima m² totales construibles, cantidad aproximada de unidades funcionales y pisos permitidos según la Ord 8563.`;
 
     const respuesta = await callGemini(prompt, systemMsg);
     history.removeChild(loadingMsg);
-    
     const aiMsg = document.createElement('div');
     aiMsg.className = (respuesta.includes('❌')) ? 'ai-message error' : 'ai-message edificabilidad';
     aiMsg.innerHTML = `<strong>📊 Potencial Edificable:</strong><br>${respuesta.replace(/\n/g, '<br>')}`;
@@ -210,20 +205,19 @@ async function sendChatQuery() {
     const input = document.getElementById('chat-input');
     const query = input.value.trim();
     if (!query) return;
-    
     input.value = '';
     const history = document.getElementById('ai-chat-history');
     const userMsg = document.createElement('div');
     userMsg.className = 'ai-message'; userMsg.style.background = '#fff';
     userMsg.innerHTML = `<strong>Tú:</strong> ${query}`;
     history.appendChild(userMsg);
-
+    
     const loadingMsg = document.createElement('div');
     loadingMsg.className = 'ai-message loading-dots';
     loadingMsg.innerText = `Analizando`;
     history.appendChild(loadingMsg);
-
-    const response = await callGemini(query, "Asistente del Visor Urbano de Paraná.");
+    
+    const response = await callGemini(query, "Eres el asistente inteligente del Visor Urbano de Paraná. Responde dudas sobre catastro y normativa local.");
     history.removeChild(loadingMsg);
     
     const aiMsg = document.createElement('div');
@@ -237,7 +231,7 @@ function toggleAISidebar(show) { document.getElementById('ai-sidebar').classList
 
 /* ================= MAPA Y CAPAS ================= */
 var map = L.map('map',{ center:[-31.733, -60.52], zoom:15 });
-var modoOscuro = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; CARTO' }).addTo(map);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; CARTO' }).addTo(map);
 
 /* ================= DISTRITOS ================= */
 var distritosGeoJSON = null;
@@ -250,9 +244,11 @@ fetch(BASE_URL + "distritos.geojson").then(r => r.json()).then(data => {
 function detectarZona(latlng) {
     if (!distritosGeoJSON) return "U.R.";
     const point = turf.point([latlng.lng, latlng.lat]);
-    let zona = "S/D";
+    let zona = "U.R.";
     turf.featureEach(distritosGeoJSON, (f) => {
-        if (turf.booleanPointInPolygon(point, f)) { zona = f.properties.nombre || f.properties.distrito || zona; }
+        if (turf.booleanPointInPolygon(point, f)) { 
+            zona = f.properties.nombre || f.properties.distrito || zona; 
+        }
     });
     return zona;
 }
@@ -268,11 +264,17 @@ function getParcelaPopup(f, latlng) {
     const dataStr = JSON.stringify(p).replace(/'/g, "&apos;");
 
     let html = `<div class="popup-container">`;
-    html += `<div class="popup-section"><span class="popup-title">ZONIFICACIÓN</span><center><span class="badge-zona">${zona}</span></center></div>`;
-    html += `<div class="popup-section"><span class="popup-title">CATASTRO</span>`;
-    html += `<div class="popup-row"><span class="popup-label">Sup:</span><span class="popup-value">${area.toFixed(1)} m²</span></div>`;
-    html += `<div class="popup-row"><span class="popup-label">Partida:</span><span class="popup-value">${p.nropar || p.nropasd || '-'}</span></div>`;
+    html += `<div class="popup-section"><span class="popup-title">Zonificación</span><center><span class="badge-zona">${zona}</span></center></div>`;
+    
+    html += `<div class="popup-section"><span class="popup-title">Información Catastral</span>`;
+    html += `<div class="popup-row"><span class="popup-label">Sup. Gráfica:</span><span class="popup-value">${area.toFixed(1)} m²</span></div>`;
+    for (let key in p) {
+        let label = key.replace(/_/g, ' ');
+        let value = (p[key] !== null && p[key] !== undefined) ? p[key] : '-';
+        html += `<div class="popup-row"><span class="popup-label">${label}:</span><span class="popup-value">${value}</span></div>`;
+    }
     html += `</div>`;
+
     html += `<button class="btn-action btn-sv" onclick="window.open('https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${latlng.lat},${latlng.lng}', '_blank')">📷 Street View</button>`;
     html += `<button class="btn-action btn-ai-blue" onclick='analizarFactibilidad(${dataStr}, "${zona}")'>✨ Analizar Normativa IA</button>`;
     html += `<button class="btn-action btn-ai-green" onclick='generarInformeEdificabilidad(${dataStr}, "${zona}", ${area})'>🏢 Informe Edificabilidad IA</button>`;
@@ -299,24 +301,44 @@ var listaCallesGlobal = [];
 fetch(BASE_URL + "calles.geojson").then(r => r.json()).then(data => {
     L.geoJSON(data, {
         onEachFeature: (f, l) => {
-            if (f.properties.nombre) listaCallesGlobal.push({ nombre: f.properties.nombre, bounds: l.getBounds() });
+            if (f.properties.nombre) {
+                listaCallesGlobal.push({ 
+                    nombre: f.properties.nombre, 
+                    desde: parseInt(f.properties.desde) || 0,
+                    hasta: parseInt(f.properties.hasta) || 0,
+                    bounds: l.getBounds() 
+                });
+            }
         }
     });
 });
 
 function sugerirCalles() {
-    const val = document.getElementById('input-calle').value.toLowerCase();
+    const fullInput = document.getElementById('input-calle').value;
+    const matchAltura = fullInput.match(/(.*?)\s+(\d+)$/);
+    const nombreBuscado = matchAltura ? matchAltura[1].trim().toLowerCase() : fullInput.trim().toLowerCase();
     const list = document.getElementById('lista-calles');
     list.innerHTML = '';
-    if (val.length < 3) { list.style.display='none'; return; }
-    const filtered = listaCallesGlobal.filter(c => c.nombre.toLowerCase().includes(val)).slice(0,5);
-    filtered.forEach(c => {
+    if (nombreBuscado.length < 3) { list.style.display='none'; return; }
+    const sugerenciasUnicas = [...new Set(listaCallesGlobal.filter(c => c.nombre.toLowerCase().includes(nombreBuscado)).map(c => c.nombre))].slice(0, 5);
+    sugerenciasUnicas.forEach(nombreCalle => {
         const d = document.createElement('div');
-        d.innerText = c.nombre;
-        d.onclick = () => { document.getElementById('input-calle').value = c.nombre; list.style.display='none'; map.fitBounds(c.bounds); };
+        d.innerText = nombreCalle;
+        d.onclick = () => { 
+            const inputVal = document.getElementById('input-calle').value;
+            const currentMatch = inputVal.match(/\d+$/);
+            const altura = currentMatch ? parseInt(currentMatch[0]) : null;
+            document.getElementById('input-calle').value = nombreCalle + (altura ? " " + altura : "");
+            list.style.display = 'none';
+            if (altura) {
+                const seg = listaCallesGlobal.find(c => c.nombre === nombreCalle && ((altura >= c.desde && altura <= c.hasta) || (altura >= c.hasta && altura <= c.desde)));
+                if (seg) map.fitBounds(seg.bounds);
+                else { const g = listaCallesGlobal.find(c => c.nombre === nombreCalle); if (g) map.fitBounds(g.bounds); }
+            } else { const g = listaCallesGlobal.find(c => c.nombre === nombreCalle); if (g) map.fitBounds(g.bounds); }
+        };
         list.appendChild(d);
     });
-    list.style.display = filtered.length ? 'block' : 'none';
+    list.style.display = sugerenciasUnicas.length ? 'block' : 'none';
 }
 
 function buscarPM() {
