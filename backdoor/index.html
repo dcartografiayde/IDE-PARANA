@@ -1,4 +1,4 @@
-
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="utf-8" />
@@ -16,7 +16,7 @@
 
         /* Panel Superior - Ajustado para evitar solapamiento excesivo */
         .panel-superior {
-            position:absolute; top:12px; left:55px; z-index:1000;
+            position:absolute; top:12px; left:55px; z-index:900;
             background: rgba(255, 255, 255, 0.95); padding:10px; border-radius:10px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.4);
             display:flex; gap:8px; align-items: center; flex-wrap: wrap;
@@ -69,7 +69,7 @@
         .layer-legend-icon { display: inline-block; width: 14px; height: 14px; margin-right: 8px; border: 1px solid #fff; vertical-align: middle; border-radius: 3px; }
         
         /* Ajuste para que el popup no sea tapado por el buscador */
-        .leaflet-popup { margin-bottom: 20px; }
+        .leaflet-popup { z-index: 2000 !important; }
     </style>
 </head>
 
@@ -209,11 +209,23 @@ archivosCatastro.forEach(file => {
                     let p = f.properties;
                     let sv = `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${e.latlng.lat},${e.latlng.lng}`;
                     
-                    // Identificar Distrito
+                    // Identificar Distrito mediante Point-in-Polygon preciso
                     let dist = "No identificado";
                     if (geojsonDistritos) {
+                        const pt = [e.latlng.lng, e.latlng.lat];
                         geojsonDistritos.eachLayer(dl => {
-                            if (dl.getBounds().contains(e.latlng)) dist = dl.feature.properties.distrito;
+                            const geom = dl.feature.geometry;
+                            let isInside = false;
+                            
+                            if (geom.type === "Polygon") {
+                                if (pointInPoly(pt, geom.coordinates[0])) isInside = true;
+                            } else if (geom.type === "MultiPolygon") {
+                                geom.coordinates.forEach(ring => {
+                                    if (pointInPoly(pt, ring[0])) isInside = true;
+                                });
+                            }
+
+                            if (isInside) dist = dl.feature.properties.distrito;
                         });
                     }
 
@@ -243,7 +255,7 @@ archivosCatastro.forEach(file => {
                     content += `<div class="adv-legal">Nota Ord. 8563 (C.U.): Para parcelas frentistas a calles de límite, los organismos competentes pueden considerar usos del distrito colindante según Sección V (Interpretación de fronteras).</div>`;
                     content += `</div>`;
                     
-                    l.bindPopup(content, { autoPanPadding: L.point(50, 100) }).openPopup();
+                    l.bindPopup(content, { autoPanPadding: L.point(50, 150), closeButton: true }).openPopup();
                 });
             }
         });
@@ -251,6 +263,19 @@ archivosCatastro.forEach(file => {
         grupoParcelas.addLayer(ly);
     });
 });
+
+// Algoritmo Ray Casting para detección precisa de punto en polígono
+function pointInPoly(point, vs) {
+    var x = point[0], y = point[1];
+    var inside = false;
+    for (var i = 0, j = vs.length - 1; i < vs.length; j = i++) {
+        var xi = vs[i][0], yi = vs[i][1];
+        var xj = vs[j][0], yj = vs[j][1];
+        var intersect = ((yi > y) != (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+        if (intersect) inside = !inside;
+    }
+    return inside;
+}
 
 var grupoCocheras = L.layerGroup();
 var grupoCorredores = L.layerGroup();
