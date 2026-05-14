@@ -48,13 +48,25 @@
         .table-info tr td:first-child { font-weight: 700; color: #4a5568; width: 35%; text-transform: uppercase; }
 
         .btn-streetview {
-        .btn-streetview:hover { background: #3367d6; transform: translateY(-1px); }
+            display: block; margin: 8px auto 4px; padding: 6px; border-radius: 4px;
+            background: #4285F4; color: white !important; text-align: center;
+            text-decoration: none; font-weight: bold; font-size: 10px;
+        }
         
         .adv-sv { font-size: 9px; color: #718096; text-align: center; font-style: italic; margin-top: 4px; line-height: 1.2; }
         .adv-legal { font-size: 8px; color: #a0aec0; margin-top: 6px; border-top: 1px dashed #cbd5e0; padding-top: 4px; line-height: 1.1; }
         
         .adv-distrito { position: absolute; bottom: 25px; right: 10px; z-index: 1000; background: rgba(255,255,255,0.8); padding: 4px 8px; border-radius: 6px; font-size: 9px; color: #4a5568; pointer-events: none; border: 1px solid rgba(0,0,0,0.1); }
-        .layer-legend-icon { display: inline-block; width: 12px; height: 12px; margin-right: 6px; border: 1px solid #fff; vertical-align: middle; border-radius: 2px; }
+        
+        .layer-legend-icon { 
+            display: inline-block; 
+            width: 14px; 
+            height: 14px; 
+            margin-right: 8px; 
+            border: 1px solid #333; 
+            vertical-align: middle; 
+            border-radius: 3px; 
+        }
         
         .etiqueta-loteo-nro {
             background: rgba(0,0,0,0.6); color: white; border: 1px solid white;
@@ -98,26 +110,45 @@ const BASE_URL = "https://raw.githubusercontent.com/dcartografiayde/IDE-PARANA/m
 var map = L.map('map', { 
     center: [-31.745, -60.51], 
     zoom: 14,
-    zoomControl: true, // Control de zoom habilitado
+    zoomControl: true,
     maxZoom: 22
 });
 
-// Capas base con soporte para overscaling (zoom hasta 22)
 var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 22, maxNativeZoom: 19 });
 var dark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 22, maxNativeZoom: 20 });
 var sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 22, maxNativeZoom: 18 });
 var ref = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}', { maxZoom: 22, maxNativeZoom: 18 });
 var hibrido = L.layerGroup([sat, ref]).addTo(map);
 
+function getColorDistrito(d) {
+    const colors = {
+        'R1': '#e74c3c', 'R2': '#3498db', 'R3': '#2ecc71', 'R4': '#f1c40f', 'R5': '#9b59b6',
+        'R6': '#1abc9c', 'C1': '#e67e22', 'C2': '#d35400', 'C3': '#c0392b', 'I': '#34495e',
+        'UR': '#7f8c8d', 'PR': '#27ae60'
+    };
+    return colors[d] || '#' + Math.floor(Math.random()*16777215).toString(16);
+}
+
 var grupoDistritos = L.layerGroup().addTo(map);
 var geojsonDistritos;
 
 fetch(BASE_URL + "distritos.geojson").then(r => r.json()).then(data => {
     geojsonDistritos = L.geoJSON(data, {
-        style: f => ({ fillColor: '#e67e22', weight: 4, color: 'white', fillOpacity: 0.15, dashArray: '8, 8' }),
+        style: f => ({ 
+            fillColor: getColorDistrito(f.properties.distrito), 
+            weight: 4, 
+            color: 'white', 
+            fillOpacity: 0.4, 
+            dashArray: '8, 8' 
+        }),
         onEachFeature: (f, l) => {
             if (f.properties.distrito) {
-                l.bindTooltip(f.properties.distrito, { permanent: true, className: 'etiqueta-distrito', opacity: 0.85 });
+                l.bindTooltip(f.properties.distrito, { 
+                    permanent: true, 
+                    className: 'etiqueta-distrito', 
+                    direction: 'center',
+                    opacity: 0.9 
+                });
             }
         }
     }).addTo(grupoDistritos);
@@ -128,7 +159,7 @@ var listaCallesParaBusqueda = [];
 
 fetch(BASE_URL + "calles.geojson").then(r => r.json()).then(data => {
     L.geoJSON(data, {
-        style: { color: "#333", weight: 6, opacity: 0.01 },
+        style: { color: "#FFFF00", weight: 6, opacity: 0.01 },
         onEachFeature: (f, l) => {
             if (f.properties.nombre) {
                 listaCallesParaBusqueda.push({ nombre: f.properties.nombre.toUpperCase(), layer: l });
@@ -145,23 +176,34 @@ fetch(BASE_URL + "calles.geojson").then(r => r.json()).then(data => {
 });
 
 function activarEtiquetasCalles() {
-    map.on('zoomend moveend', function() {
+    const renderLabels = () => {
         let z = map.getZoom();
-        grupoCalles.eachLayer(ly => { if(ly._text) ly.setText(null); });
-        if (z >= 16) {
-            grupoCalles.eachLayer(ly => {
-                if (ly.feature && ly.feature.properties.nombre && map.getBounds().intersects(ly.getBounds())) {
-                    ly.setText(ly.feature.properties.nombre.toUpperCase(), {
-                        repeat: false, center: true, orientation: 'flip',
-                        attributes: { 
-                            fill: '#FFFF00', 'font-weight': 'bold', 'font-size': z >= 18 ? '13' : '10',
-                            'stroke': 'black', 'stroke-width': '2px', 'paint-order': 'stroke'
-                        }
-                    });
+        grupoCalles.eachLayer(geoJsonGroup => {
+            geoJsonGroup.eachLayer(ly => {
+                if (ly.setText) {
+                    ly.setText(null);
+                    if (z >= 16 && ly.feature && ly.feature.properties.nombre && map.getBounds().intersects(ly.getBounds())) {
+                        ly.setText(ly.feature.properties.nombre.toUpperCase(), {
+                            repeat: false,
+                            center: true, 
+                            orientation: 'flip',
+                            offset: 0,
+                            attributes: { 
+                                fill: '#FFFF00', 
+                                'font-weight': 'bold', 
+                                'font-size': z >= 18 ? '13' : '10',
+                                'stroke': 'black', 
+                                'stroke-width': '2px', 
+                                'paint-order': 'stroke'
+                            }
+                        });
+                    }
                 }
             });
-        }
-    });
+        });
+    };
+    map.on('zoomend moveend', renderLabels);
+    renderLabels();
 }
 
 var grupoParcelas = L.layerGroup().addTo(map);
@@ -242,7 +284,7 @@ archivosCatastro.forEach(file => {
         });
         parcelasLayers.push(ly);
         grupoParcelas.addLayer(ly);
-    }).catch(err => console.error("Error cargando catastro:", err));
+    });
 });
 
 var grupoCocheras = L.layerGroup();
@@ -269,7 +311,7 @@ const setupLoteo = (file, grupo, color, titulo) => {
                 });
             }
         }).addTo(grupo);
-    }).catch(e => console.log("Loteo no disponible:", file));
+    });
 };
 
 setupLoteo("backdoor/loteos_privados_habilitados.geojson", grupoLoteosHabilitados, "#39FF14", "HABILITADO");
@@ -290,15 +332,13 @@ function buscarPM() {
             }
         });
     });
-    if(!encontrado) console.log("Partida no encontrada");
 }
 
 function buscarDireccion() {
     let nom = document.getElementById('input-calle').value.toUpperCase();
-    let alt = document.getElementById('input-altura').value;
     let match = listaCallesParaBusqueda.find(c => c.nombre === nom);
     if (match) {
-        map.fitBounds(match.layer.getBounds(), { maxZoom: alt ? 18 : 16 });
+        map.fitBounds(match.layer.getBounds(), { maxZoom: 16 });
         match.layer.fire('click');
     }
 }
@@ -333,14 +373,14 @@ function buscarGoogle() {
                 const lat = parseFloat(data[0].lat);
                 const lon = parseFloat(data[0].lon);
                 map.setView([lat, lon], 18);
-                L.marker([lat, lon]).addTo(map).bindPopup(`<b>Google Result:</b><br>${val}`).openPopup();
+                L.marker([lat, lon]).addTo(map).bindPopup(`<b>Resultado Google:</b><br>${val}`).openPopup();
             }
         });
 }
 
 const overlays = {
-    "<span class='layer-legend-icon' style='background:#e67e22'></span> Distritos (Trazos)": grupoDistritos,
-    "<span class='layer-legend-icon' style='background:#FFFF00; height:3px; border:none'></span> Nombres de Calles": grupoCalles,
+    "<span class='layer-legend-icon' style='background:rgba(255,255,255,0.1); border:2px dashed white;'></span> Distritos (Trazos)": grupoDistritos,
+    "<span class='layer-legend-icon' style='background:#FFFF00; height:4px; border:1px solid #000;'></span> Nombres de Calles": grupoCalles,
     "<span class='layer-legend-icon' style='background:#2980b9'></span> Parcelas Catastrales": grupoParcelas,
     "<span class='layer-legend-icon' style='background:#7b1fa2'></span> Zonificación Cocheras": grupoCocheras,
     "<span class='layer-legend-icon' style='background:#e91e63; height:3px; border:none'></span> Corredores Cocheras": grupoCorredores,
