@@ -293,9 +293,10 @@ var grupoLoteosHabilitados = L.layerGroup();
 var grupoLoteosAprobados = L.layerGroup();
 var grupoLoteosSinOrd = L.layerGroup();
 var grupoLoteosPrivadosInfo = L.layerGroup();
+var grupoBarriosPrivados = L.layerGroup();
 
 const setupLoteo = (file, grupo, color, titulo) => {
-    fetch(BASE_URL + file).then(r => r.json()).then(data => {
+    fetch(BASE_URL + "backdoor/" + file).then(r => r.json()).then(data => {
         L.geoJSON(data, {
             style: { color: color, weight: 2, fillColor: color, fillOpacity: 0.3 },
             onEachFeature: (f, l) => {
@@ -314,10 +315,11 @@ const setupLoteo = (file, grupo, color, titulo) => {
     });
 };
 
-setupLoteo("backdoor/loteos_privados_habilitados.geojson", grupoLoteosHabilitados, "#39FF14", "HABILITADO");
-setupLoteo("backdoor/loteos_privados_aprobados.geojson", grupoLoteosAprobados, "#FFFF33", "APROBADO");
-setupLoteo("backdoor/loteos_sin_ordenanza.geojson", grupoLoteosSinOrd, "#FF00FF", "SIN ORD.");
-setupLoteo("backdoor/loteos_privados.geojson", grupoLoteosPrivadosInfo, "#00FFFF", "PRIVADO");
+setupLoteo("loteos_privados_habilitados.geojson", grupoLoteosHabilitados, "#39FF14", "HABILITADO");
+setupLoteo("loteos_privados_aprobados.geojson", grupoLoteosAprobados, "#FFFF33", "APROBADO");
+setupLoteo("loteos_sin_ordenanza.geojson", grupoLoteosSinOrd, "#FF00FF", "SIN ORD.");
+setupLoteo("loteos_privados.geojson", grupoLoteosPrivadosInfo, "#00FFFF", "PRIVADO");
+setupLoteo("loteos_barrios_privados.geojson", grupoBarriosPrivados, "#FF8C00", "BARRIO PRIVADO");
 
 function buscarPM() {
     let val = document.getElementById('input-pm').value.trim();
@@ -387,7 +389,8 @@ const overlays = {
     "<span class='layer-legend-icon' style='background:#39FF14'></span> Loteos Habilitados": grupoLoteosHabilitados,
     "<span class='layer-legend-icon' style='background:#FFFF33'></span> Loteos Aprobados": grupoLoteosAprobados,
     "<span class='layer-legend-icon' style='background:#FF00FF'></span> Loteos Sin Ordenanza": grupoLoteosSinOrd,
-    "<span class='layer-legend-icon' style='background:#00FFFF'></span> Loteos Privados (Cyan)": grupoLoteosPrivadosInfo
+    "<span class='layer-legend-icon' style='background:#00FFFF'></span> Info adicional-otros loteos": grupoLoteosPrivadosInfo,
+    "<span class='layer-legend-icon' style='background:#FF8C00'></span> Barrios Privados": grupoBarriosPrivados
 };
 
 L.control.layers(
