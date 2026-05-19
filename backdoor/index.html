@@ -67,6 +67,8 @@
             vertical-align: middle; 
             border-radius: 3px; 
         }
+
+        .icon-line { height: 3px; border: none; }
         
         .etiqueta-loteo-nro {
             background: rgba(0,0,0,0.6); color: white; border: 1px solid white;
@@ -76,6 +78,26 @@
             background: rgba(255,255,255,0.9)!important; border: 1px solid #333!important;
             padding: 1px 4px!important; font-size: 10px!important; font-weight: bold!important; pointer-events: none;
         }
+
+        /* Popups de Preservación */
+        .popup-info {
+            font-size: 11px; line-height: 1.3; min-width: 220px; max-width: 280px; max-height: 320px; overflow-y: auto;
+        }
+        .popup-info b { color: #2c3e50; }
+        .aviso-sv {
+            margin-top: 10px;
+            font-size: 9px;
+            color: #666;
+            font-style: italic;
+            line-height: 1.2;
+            display: flex;
+            align-items: flex-start;
+            gap: 4px;
+            padding: 5px;
+            background: #fff8f0;
+            border-radius: 4px;
+        }
+        .aviso-sv i { color: #e67e22; font-style: normal; font-weight: bold; }
     </style>
 </head>
 
@@ -107,9 +129,28 @@
 
 <script>
 const BASE_URL = "https://raw.githubusercontent.com/dcartografiayde/IDE-PARANA/main/";
+const PRESERV_URL = BASE_URL + "preservacion/";
+
+/* ================= FUNCIONES DE LIMPIEZA DE TEXTO ================= */
+function decodificarTexto(str) {
+    if (!str || typeof str !== 'string') return str;
+    try {
+        const correcciones = {
+            'Ã¡': 'á', 'Ã©': 'é', 'Ã­': 'í', 'Ã³': 'ó', 'Ãº': 'ú',
+            'Ã ': 'Á', 'Ã‰': 'É', 'Ã ': 'Í', 'Ã“': 'Ó', 'Ãš': 'Ú',
+            'Ã±': 'ñ', 'Ã‘': 'Ñ', 'Â°': '°', 'Ã¼': 'ü', 'Â¿': '¿'
+        };
+        let textoCorregido = str;
+        for (let mal in correcciones) {
+            textoCorregido = textoCorregido.split(mal).join(correcciones[mal]);
+        }
+        return textoCorregido;
+    } catch (e) { return str; }
+}
+
 var map = L.map('map', { 
     center: [-31.745, -60.51], 
-    zoom: 14,
+    zoom: 13, // Iniciamos en un nivel de zoom más general para la vista total de la ciudad
     zoomControl: true,
     maxZoom: 22
 });
@@ -118,7 +159,10 @@ var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { ma
 var dark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 22, maxNativeZoom: 20 });
 var sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 22, maxNativeZoom: 18 });
 var ref = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}', { maxZoom: 22, maxNativeZoom: 18 });
-var hibrido = L.layerGroup([sat, ref]).addTo(map);
+var hibrido = L.layerGroup([sat, ref]);
+
+// Arrancamos el visor exclusivamente con el mapa oscuro activo
+dark.addTo(map);
 
 function getColorDistrito(d) {
     const colors = {
@@ -129,6 +173,7 @@ function getColorDistrito(d) {
     return colors[d] || '#' + Math.floor(Math.random()*16777215).toString(16);
 }
 
+// Distrito arranca encendido por defecto
 var grupoDistritos = L.layerGroup().addTo(map);
 var geojsonDistritos;
 
@@ -154,6 +199,7 @@ fetch(BASE_URL + "distritos.geojson").then(r => r.json()).then(data => {
     }).addTo(grupoDistritos);
 });
 
+// Calles arranca encendido por defecto
 var grupoCalles = L.layerGroup().addTo(map);
 var listaCallesParaBusqueda = [];
 
@@ -178,35 +224,52 @@ fetch(BASE_URL + "calles.geojson").then(r => r.json()).then(data => {
 function activarEtiquetasCalles() {
     const renderLabels = () => {
         let z = map.getZoom();
+        const activeOnMap = map.hasLayer(grupoCalles);
+
         grupoCalles.eachLayer(geoJsonGroup => {
             geoJsonGroup.eachLayer(ly => {
                 if (ly.setText) {
-                    ly.setText(null);
-                    if (z >= 16 && ly.feature && ly.feature.properties.nombre && map.getBounds().intersects(ly.getBounds())) {
-                        ly.setText(ly.feature.properties.nombre.toUpperCase(), {
-                            repeat: false,
-                            center: true, 
-                            orientation: 'flip',
-                            offset: 0,
-                            attributes: { 
-                                fill: '#FFFF00', 
-                                'font-weight': 'bold', 
-                                'font-size': z >= 18 ? '13' : '10',
-                                'stroke': 'black', 
-                                'stroke-width': '2px', 
-                                'paint-order': 'stroke'
+                    try {
+                        ly.setText(null);
+                    } catch (e) {}
+
+                    if (activeOnMap && z >= 16 && ly._map && ly._renderer && ly.feature && ly.feature.properties.nombre) {
+                        try {
+                            if (map.getBounds().intersects(ly.getBounds())) {
+                                ly.setText(ly.feature.properties.nombre.toUpperCase(), {
+                                    repeat: false,
+                                    center: true, 
+                                    orientation: 'flip',
+                                    offset: 0,
+                                    attributes: { 
+                                        fill: '#FFFF00', 
+                                        'font-weight': 'bold', 
+                                        'font-size': z >= 18 ? '13' : '10',
+                                        'stroke': 'black', 
+                                        'stroke-width': '2px', 
+                                        'paint-order': 'stroke'
+                                    }
+                                });
                             }
-                        });
+                        } catch (err) {}
                     }
                 }
             });
         });
     };
+
     map.on('zoomend moveend', renderLabels);
+    map.on('layeradd layerremove', (e) => {
+        if (e.layer === grupoCalles) {
+            renderLabels();
+        }
+    });
+
     renderLabels();
 }
 
-var grupoParcelas = L.layerGroup().addTo(map);
+// Las parcelas no se agregan al mapa de inicio (se manejan dinámicamente con el zoom >= 14)
+var grupoParcelas = L.layerGroup();
 var parcelasLayers = [];
 
 function pointInPoly(point, vs) {
@@ -287,9 +350,61 @@ archivosCatastro.forEach(file => {
     });
 });
 
+// Controlar de forma dinámica la visibilidad de parcelas basándose en el zoom
+function controlarVisibilidadParcelas() {
+    let zoomActual = map.getZoom();
+    // Solo mostramos parcelas si el zoom es mayor o igual a 14
+    if (zoomActual >= 14) {
+        if (!map.hasLayer(grupoParcelas)) {
+            map.addLayer(grupoParcelas);
+        }
+    } else {
+        if (map.hasLayer(grupoParcelas)) {
+            map.removeLayer(grupoParcelas);
+        }
+    }
+}
+map.on('zoomend', controlarVisibilidadParcelas);
+
 var grupoCocheras = L.layerGroup();
 var grupoCorredores = L.layerGroup();
-var grupoLoteosHabilitados = L.layerGroup();
+
+// CARGA DE CAPAS DE COCHERAS (Zonificación y Corredores cocheras cargados de forma asíncrona)
+fetch(BASE_URL + "cocheras_porcentaje_zona.geojson").then(r => r.json()).then(data => {
+    L.geoJSON(data, {
+        style: { color: "#7b1fa2", weight: 2, fillColor: "#7b1fa2", fillOpacity: 0.25 },
+        onEachFeature: (f, l) => {
+            l.on('click', e => {
+                let latlng = e.latlng || l.getBounds().getCenter();
+                let html = `<div class="popup-custom"><div class="popup-header" style="color:#7b1fa2;">Zonificación Cocheras</div><table class="table-info">`;
+                for (let [k, v] of Object.entries(f.properties)) {
+                    if (v) html += `<tr><td>${k.toUpperCase()}</td><td>${decodificarTexto(String(v))}</td></tr>`;
+                }
+                html += `</table></div>`;
+                l.bindPopup(html).openPopup(latlng);
+            });
+        }
+    }).addTo(grupoCocheras);
+});
+
+fetch(BASE_URL + "cocheras_corredores.geojson").then(r => r.json()).then(data => {
+    L.geoJSON(data, {
+        style: { color: "#e91e63", weight: 4, opacity: 0.8 },
+        onEachFeature: (f, l) => {
+            l.on('click', e => {
+                let latlng = e.latlng || l.getBounds().getCenter();
+                let html = `<div class="popup-custom"><div class="popup-header" style="color:#e91e63;">Corredor Cocheras</div><table class="table-info">`;
+                for (let [k, v] of Object.entries(f.properties)) {
+                    if (v) html += `<tr><td>${k.toUpperCase()}</td><td>${decodificarTexto(String(v))}</td></tr>`;
+                }
+                html += `</table></div>`;
+                l.bindPopup(html).openPopup(latlng);
+            });
+        }
+    }).addTo(grupoCorredores);
+});
+
+var grupoLoteosHabilitados = L.layerGroup().addTo(map); // Loteos Habilitados arranca encendido por defecto
 var grupoLoteosAprobados = L.layerGroup();
 var grupoLoteosSinOrd = L.layerGroup();
 var grupoLoteosPrivadosInfo = L.layerGroup();
@@ -321,6 +436,75 @@ setupLoteo("loteos_sin_ordenanza.geojson", grupoLoteosSinOrd, "#FF00FF", "SIN OR
 setupLoteo("loteos_privados.geojson", grupoLoteosPrivadosInfo, "#00FFFF", "PRIVADO");
 setupLoteo("loteos_barrios_privados.geojson", grupoBarriosPrivados, "#FF8C00", "BARRIO PRIVADO");
 
+/* ================= CAPAS DE PRESERVACIÓN ================= */
+const grupoPreservacion = {
+    total: L.layerGroup(),
+    fachadas: L.layerGroup(),
+    patrimonial: L.layerGroup(),
+    naturales: L.layerGroup(),
+    interes: L.layerGroup(),
+    sitios: L.layerGroup(),
+    corredores: L.layerGroup()
+};
+
+function getStreetViewLink(lat, lng) {
+    return `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${lat},${lng}`;
+}
+
+function getSVHTML(lat, lng) {
+    return `
+        <div class="aviso-sv">
+            <i>ⓘ</i> <span>Para ver la fachada, haga clic cerca del frente de la parcela.</span>
+        </div>
+        <a href="${getStreetViewLink(lat, lng)}" target="_blank" class="btn-streetview" title="Abrir Street View">📍 VER STREET VIEW</a>
+    `;
+}
+
+function loadPreserv(file, grupo, color, titulo, op = 0.5) {
+    fetch(PRESERV_URL + file).then(r => r.json()).then(data => {
+        L.geoJSON(data, {
+            style: { color: color, weight: 2, fillColor: color, fillOpacity: op },
+            onEachFeature: (f, l) => {
+                l.on('click', e => {
+                    let latlng = e.latlng || l.getBounds().getCenter();
+                    let p = f.properties;
+                    let html = `<div class="popup-info"><div class="popup-header" style="color:${color};">${titulo.toUpperCase()}</div><hr style="margin-bottom:6px;">`;
+                    const camposExcluidos = ['link', 'fid', 'ncp', 'descripdis', 'ogc_fid'];
+                    
+                    for (let k in p) {
+                        let valor = p[k];
+                        if (!valor || valor === "NULL" || camposExcluidos.includes(k.toLowerCase())) continue;
+                        
+                        let labelText = k;
+                        if (k.toLowerCase() === 'ubipar1') labelText = "Ubicación";
+                        else if (k.toLowerCase() === 'nropasd') labelText = "Partida Municipal";
+                        else if (k.toLowerCase() === 'denominaci') labelText = "Nombre";
+
+                        let valorLimpio = decodificarTexto(String(valor));
+                        html += `<b>${decodificarTexto(labelText).toUpperCase()}:</b> ${valorLimpio}<br>`;
+                    }
+                    
+                    html += getSVHTML(latlng.lat, latlng.lng);
+                    html += `</div>`;
+                    l.bindPopup(html, { autoPanPadding: L.point(10, 110) }).openPopup(latlng);
+                });
+            }
+        }).addTo(grupo);
+    });
+}
+
+// Inicializar la carga de archivos de preservación respetando el mismo estilo, color y opacidad de preservacion.html
+loadPreserv("preservacion_total2.geojson", grupoPreservacion.total, "#e63946", "Preservación Total", 0.7);
+loadPreserv("preservacion_fachadas2.geojson", grupoPreservacion.fachadas, "#f4a261", "Preservación Fachadas", 0.6);
+loadPreserv("areas_proteccion_patrimonial.geojson", grupoPreservacion.patrimonial, "#bc6c25", "Protección Patrimonial", 0.5);
+loadPreserv("areas_naturales_protegidas.geojson", grupoPreservacion.naturales, "#2a9d8f", "Áreas Naturales", 0.5);
+loadPreserv("areas_interes_dec_1035_95.geojson", grupoPreservacion.interes, "#8ab17d", "Áreas de Interés", 0.5);
+loadPreserv("sitios_de_valor_historico_cultural.geojson", grupoPreservacion.sitios, "#e9c46a", "Sitios de Valor Histórico", 0.5);
+loadPreserv("corredores_urbanos_preservacion_altura.geojson", grupoPreservacion.corredores, "#a2d2ff", "Corredores Urbanos", 0.5);
+
+
+/* ================= CONTROLES Y BÚSQUEDA ================= */
+
 function buscarPM() {
     let val = document.getElementById('input-pm').value.trim();
     if (!val) return;
@@ -328,6 +512,7 @@ function buscarPM() {
     parcelasLayers.forEach(ly => {
         ly.eachLayer(l => {
             if (l.feature.properties.partidas.includes(val)) {
+                // Al buscar, forzamos el zoom a 19, lo que activará automáticamente la visibilidad de las parcelas
                 map.fitBounds(l.getBounds(), { maxZoom: 19 });
                 l.fire('click');
                 encontrado = true;
@@ -380,6 +565,7 @@ function buscarGoogle() {
         });
 }
 
+/* ================= LEYENDAS Y CONTROL DE CAPAS ================= */
 const overlays = {
     "<span class='layer-legend-icon' style='background:rgba(255,255,255,0.1); border:2px dashed white;'></span> Distritos (Trazos)": grupoDistritos,
     "<span class='layer-legend-icon' style='background:#FFFF00; height:4px; border:1px solid #000;'></span> Nombres de Calles": grupoCalles,
@@ -390,15 +576,27 @@ const overlays = {
     "<span class='layer-legend-icon' style='background:#FFFF33'></span> Loteos Aprobados": grupoLoteosAprobados,
     "<span class='layer-legend-icon' style='background:#FF00FF'></span> Loteos Sin Ordenanza": grupoLoteosSinOrd,
     "<span class='layer-legend-icon' style='background:#00FFFF'></span> Info adicional-otros loteos": grupoLoteosPrivadosInfo,
-    "<span class='layer-legend-icon' style='background:#FF8C00'></span> Barrios Privados": grupoBarriosPrivados
+    "<span class='layer-legend-icon' style='background:#FF8C00'></span> Barrios Privados": grupoBarriosPrivados,
+    
+    // Submenú de Preservación de Patrimonio (Agregado de forma exacta respetando estilos del mapa original de preservación)
+    "<b>Preservación de Patrimonio</b>": grupoPreservacion.total,
+    "<span class='layer-legend-icon' style='background:#e63946'></span> Preservación Total": grupoPreservacion.total,
+    "<span class='layer-legend-icon' style='background:#f4a261'></span> Preservación Fachadas": grupoPreservacion.fachadas,
+    "<span class='layer-legend-icon' style='background:#bc6c25'></span> Protección Patrimonial": grupoPreservacion.patrimonial,
+    "<span class='layer-legend-icon' style='background:#2a9d8f'></span> Áreas Naturales": grupoPreservacion.naturales,
+    "<span class='layer-legend-icon' style='background:#8ab17d'></span> Áreas de Interés": grupoPreservacion.interes,
+    "<span class='layer-legend-icon' style='background:#e9c46a'></span> Valor Histórico/Cult.": grupoPreservacion.sitios,
+    "<span class='layer-legend-icon' style='background:#a2d2ff'></span> Corredores Altura": grupoPreservacion.corredores
 };
 
 L.control.layers(
-    { "Híbrido": hibrido, "OpenStreetMap": osm, "Mapa Oscuro": dark }, 
+    { "Mapa Oscuro": dark, "Híbrido": hibrido, "OpenStreetMap": osm }, 
     overlays, 
     { collapsed: false }
 ).addTo(map);
 
+// Forzamos el control de visibilidad de parcelas inicial al cargar la página
+controlarVisibilidadParcelas();
 </script>
 </body>
 </html>
