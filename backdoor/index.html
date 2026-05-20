@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Visor Urbano Paraná - IDE Completo</title>
+    <title>VISOR URBANIZACIONES - MUNICIPALIDAD DE PARANA</title>
 
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -35,6 +35,13 @@
             border-radius: 6px; max-height: 150px; overflow-y: auto; z-index: 2000;
             width: 180px; display: none; margin-top: 34px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
+        
+        #sugerencias-loteos, #sugerencias-ordenanzas, #sugerencias-expedientes {
+            position: absolute; background: white; border: 1px solid #ccc;
+            border-radius: 6px; max-height: 200px; overflow-y: auto; z-index: 2000;
+            width: 280px; display: none; margin-top: 34px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
         .sugerencia-item { padding: 6px 10px; cursor: pointer; font-size: 11px; border-bottom: 1px solid #f0f0f0; }
         .sugerencia-item:hover { background: #f8f9fa; color: #2980b9; }
 
@@ -56,7 +63,7 @@
         .adv-sv { font-size: 9px; color: #718096; text-align: center; font-style: italic; margin-top: 4px; line-height: 1.2; }
         .adv-legal { font-size: 8px; color: #a0aec0; margin-top: 6px; border-top: 1px dashed #cbd5e0; padding-top: 4px; line-height: 1.1; }
         
-        .adv-distrito { position: absolute; bottom: 25px; right: 10px; z-index: 1000; background: rgba(255,255,255,0.8); padding: 4px 8px; border-radius: 6px; font-size: 9px; color: #4a5568; pointer-events: none; border: 1px solid rgba(0,0,0,0.1); }
+        .adv-distrito { position: absolute; bottom: 25px; right: 10px; z-index: 1000; background: rgba(255,255,255,0.8); padding: 6px 10px; border-radius: 6px; font-size: 9px; color: #4a5568; pointer-events: none; border: 1px solid rgba(0,0,0,0.1); }
         
         .layer-legend-icon { 
             display: inline-block; 
@@ -104,6 +111,11 @@
 <body>
 
 <div class="panel-superior">
+    <!-- Título Visual del Mapa -->
+    <div class="w-full text-center text-[10px] font-extrabold text-slate-800 tracking-wider border-b border-slate-200 pb-1.5 mb-1.5 uppercase">
+        VISOR URBANIZACIONES - MUNICIPALIDAD DE PARANA
+    </div>
+
     <input type="text" id="input-pm" placeholder="Partida" style="width:80px;">
     <button class="btn-buscar" onclick="buscarPM()">Buscar PM</button>
     
@@ -118,23 +130,49 @@
 
     <div style="height: 20px; width: 1px; background: #e2e8f0; margin: 0 4px;"></div>
 
+    <div style="position:relative; display: flex; gap: 4px;">
+        <input type="text" id="input-loteo" placeholder="Buscar Loteo..." style="width:110px;" autocomplete="off">
+        <div id="sugerencias-loteos"></div>
+    </div>
+
+    <div style="height: 20px; width: 1px; background: #e2e8f0; margin: 0 4px;"></div>
+
+    <div style="position:relative; display: flex; gap: 4px;">
+        <input type="text" id="input-ordenanza" placeholder="Buscar Ord..." style="width:100px;" autocomplete="off">
+        <div id="sugerencias-ordenanzas"></div>
+    </div>
+
+    <div style="height: 20px; width: 1px; background: #e2e8f0; margin: 0 4px;"></div>
+
+    <div style="position:relative; display: flex; gap: 4px;">
+        <input type="text" id="input-expediente" placeholder="Buscar Expte..." style="width:110px;" autocomplete="off">
+        <div id="sugerencias-expedientes"></div>
+    </div>
+
+    <div style="height: 20px; width: 1px; background: #e2e8f0; margin: 0 4px;"></div>
+
     <div style="display: flex; gap: 4px;">
         <input type="text" id="input-google" placeholder="Lugar/Google..." style="width:90px;">
         <button class="btn-google" onclick="buscarGoogle()">Google</button>
     </div>
 </div>
 
-<div class="adv-distrito">IDE Paraná - Límites indicativos (Ord. 8563). Zoom Máx: 22.</div>
+<!-- Cuadro Informativo de Distritos + Nueva Leyenda de Elaboración -->
+<div class="adv-distrito text-right">
+    <div>IDE Paraná - Límites indicativos (Ord. 8563). Zoom Máx: 22.</div>
+    <div class="text-[8px] text-slate-500 font-semibold mt-0.5">Elaborado por Dirección de Cartografía y Datos Espaciales</div>
+</div>
 <div id="map"></div>
 
 <script>
 const BASE_URL = "https://raw.githubusercontent.com/dcartografiayde/IDE-PARANA/main/";
 const PRESERV_URL = BASE_URL + "preservacion/";
 
-/* ================= FUNCIONES DE LIMPIEZA DE TEXTO ================= */
+/* ================= FUNCIONES DE LIMPIEZA Y DECODIFICACIÓN DE TEXTO ================= */
 function decodificarTexto(str) {
     if (!str || typeof str !== 'string') return str;
     try {
+        // 1. Correcciones de mojibake UTF-8 directo
         const correcciones = {
             'Ã¡': 'á', 'Ã©': 'é', 'Ã­': 'í', 'Ã³': 'ó', 'Ãº': 'ú',
             'Ã ': 'Á', 'Ã‰': 'É', 'Ã ': 'Í', 'Ã“': 'Ó', 'Ãš': 'Ú',
@@ -144,8 +182,61 @@ function decodificarTexto(str) {
         for (let mal in correcciones) {
             textoCorregido = textoCorregido.split(mal).join(correcciones[mal]);
         }
+
+        // 2. Mapeador inteligente para secuencias de caracteres corruptas (ï¿½ o Ï¿½) en el dataset
+        const reemplazosClave = [
+            { mal: /TORRE[ïÏ]¿½N/gi, bien: 'TORREÓN' },
+            { mal: /Torre[ïÏ]¿½n/gi, bien: 'Torreón' },
+            { mal: /APROBACI[ïÏ]¿½N/gi, bien: 'APROBACIÓN' },
+            { mal: /Aprobaci[ïÏ]¿½n/gi, bien: 'Aprobación' },
+            { mal: /ASOCIACI[ïÏ]¿½N/gi, bien: 'ASOCIACIÓN' },
+            { mal: /Asociaci[ïÏ]¿½n/gi, bien: 'Asociación' },
+            { mal: /CONSTITUCI[ïÏ]¿½N/gi, bien: 'CONSTITUCIÓN' },
+            { mal: /Constituci[ïÏ]¿½n/gi, bien: 'Constitución' },
+            { mal: /DECLARACI[ïÏ]¿½N/gi, bien: 'DECLARACIÓN' },
+            { mal: /Declaraci[ïÏ]¿½n/gi, bien: 'Declaración' },
+            { mal: /URBANIZACI[ïÏ]¿½N/gi, bien: 'URBANIZACIÓN' },
+            { mal: /Urbanizaci[ïÏ]¿½n/gi, bien: 'Urbanización' },
+            { mal: /PROLONGACI[ïÏ]¿½N/gi, bien: 'PROLONGACIÓN' },
+            { mal: /Prolongaci[ïÏ]¿½n/gi, bien: 'Prolongación' },
+            { mal: /SECCI[ïÏ]¿½N/gi, bien: 'SECCIÓN' },
+            { mal: /Secci[ïÏ]¿½n/gi, bien: 'Sección' },
+            { mal: /ESTACI[ïÏ]¿½N/gi, bien: 'ESTACIÓN' },
+            { mal: /Estaci[ïÏ]¿½n/gi, bien: 'Estación' },
+            { mal: /REVOLUCI[ïÏ]¿½N/gi, bien: 'REVOLUCIÓN' },
+            { mal: /Revoluci[ïÏ]¿½n/gi, bien: 'Revolución' },
+            { mal: /N[ïÏ]¿½/g, bien: 'Nº' },
+            { mal: /n[ïÏ]¿½/g, bien: 'nº' },
+            { mal: /PARAN[ïÏ]¿½/gi, bien: 'PARANÁ' },
+            { mal: /Paran[ïÏ]¿½/gi, bien: 'Paraná' },
+            { mal: /CI[ïÏ]¿½N/g, bien: 'CIÓN' },
+            { mal: /ci[ïÏ]¿½n/g, bien: 'ción' }
+        ];
+
+        for (let r of reemplazosClave) {
+            textoCorregido = textoCorregido.replace(r.mal, r.bien);
+        }
+
         return textoCorregido;
     } catch (e) { return str; }
+}
+
+// Carga inteligente de archivos GeoJSON detectando problemas de codificación (UTF-8 vs Windows-1252)
+async function fetchGeoJSON(url) {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    const arrayBuffer = await response.arrayBuffer();
+    
+    // Intentar decodificar como UTF-8
+    const decoderUTF8 = new TextDecoder('utf-8');
+    let text = decoderUTF8.decode(arrayBuffer);
+    
+    // Si contiene caracteres de reemplazo, volvemos a decodificar usando Windows-1252 (ANSI)
+    if (text.includes('\uFFFD')) {
+        const decoderANSI = new TextDecoder('windows-1252');
+        text = decoderANSI.decode(arrayBuffer);
+    }
+    return JSON.parse(text);
 }
 
 var map = L.map('map', { 
@@ -154,6 +245,11 @@ var map = L.map('map', {
     zoomControl: true,
     maxZoom: 22
 });
+
+// CREACIÓN DE PANEL PERSONALIZADO PARA QUE LAS PARCELAS SE RENDERIZEN ABAJO DE OTRAS CAPAS VECTORIALES
+map.createPane('parcelasPane');
+map.getPane('parcelasPane').style.zIndex = 350; // Inferior a overlayPane (400)
+map.getPane('parcelasPane').style.pointerEvents = 'auto'; // Permitir clics seguros
 
 var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 22, maxNativeZoom: 19 });
 var dark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 22, maxNativeZoom: 20 });
@@ -177,7 +273,7 @@ function getColorDistrito(d) {
 var grupoDistritos = L.layerGroup().addTo(map);
 var geojsonDistritos;
 
-fetch(BASE_URL + "distritos.geojson").then(r => r.json()).then(data => {
+fetchGeoJSON(BASE_URL + "distritos.geojson").then(data => {
     geojsonDistritos = L.geoJSON(data, {
         style: f => ({ 
             fillColor: getColorDistrito(f.properties.distrito), 
@@ -188,7 +284,7 @@ fetch(BASE_URL + "distritos.geojson").then(r => r.json()).then(data => {
         }),
         onEachFeature: (f, l) => {
             if (f.properties.distrito) {
-                l.bindTooltip(f.properties.distrito, { 
+                l.bindTooltip(decodificarTexto(f.properties.distrito), { 
                     permanent: true, 
                     className: 'etiqueta-distrito', 
                     direction: 'center',
@@ -203,16 +299,17 @@ fetch(BASE_URL + "distritos.geojson").then(r => r.json()).then(data => {
 var grupoCalles = L.layerGroup().addTo(map);
 var listaCallesParaBusqueda = [];
 
-fetch(BASE_URL + "calles.geojson").then(r => r.json()).then(data => {
+fetchGeoJSON(BASE_URL + "calles.geojson").then(data => {
     L.geoJSON(data, {
         style: { color: "#FFFF00", weight: 6, opacity: 0.01 },
         onEachFeature: (f, l) => {
             if (f.properties.nombre) {
-                listaCallesParaBusqueda.push({ nombre: f.properties.nombre.toUpperCase(), layer: l });
+                let nombreCalle = decodificarTexto(f.properties.nombre);
+                listaCallesParaBusqueda.push({ nombre: nombreCalle.toUpperCase(), layer: l });
                 l.on('click', (e) => {
                     let latlng = e.latlng || l.getBounds().getCenter();
                     let sv = `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${latlng.lat},${latlng.lng}`;
-                    l.bindPopup(`<b>Calle:</b> ${f.properties.nombre.toUpperCase()}<br><a href="${sv}" target="_blank" class="btn-streetview">📍 STREET VIEW</a>`).openPopup();
+                    l.bindPopup(`<b>Calle:</b> ${nombreCalle.toUpperCase()}<br><a href="${sv}" target="_blank" class="btn-streetview">📍 STREET VIEW</a>`).openPopup();
                 });
             }
         }
@@ -236,7 +333,7 @@ function activarEtiquetasCalles() {
                     if (activeOnMap && z >= 16 && ly._map && ly._renderer && ly.feature && ly.feature.properties.nombre) {
                         try {
                             if (map.getBounds().intersects(ly.getBounds())) {
-                                ly.setText(ly.feature.properties.nombre.toUpperCase(), {
+                                ly.setText(decodificarTexto(ly.feature.properties.nombre).toUpperCase(), {
                                     repeat: false,
                                     center: true, 
                                     orientation: 'flip',
@@ -284,9 +381,53 @@ function pointInPoly(point, vs) {
     return inside;
 }
 
+// Consulta de forma inteligente si existe alguna parcela cargada en memoria bajo las coordenadas especificadas
+function obtenerInfoParcelaEnPunto(latlng) {
+    let resultado = null;
+    if (!latlng) return resultado;
+    const pt = [latlng.lng, latlng.lat];
+    
+    parcelasLayers.forEach(ly => {
+        ly.eachLayer(l => {
+            if (resultado) return; 
+            const geom = l.feature.geometry;
+            let isInside = false;
+            if (geom.type === "Polygon") {
+                if (geom.coordinates && geom.coordinates[0]) {
+                    if (pointInPoly(pt, geom.coordinates[0])) isInside = true;
+                }
+            } else if (geom.type === "MultiPolygon") {
+                if (geom.coordinates) {
+                    geom.coordinates.forEach(poly => {
+                        if (poly && poly[0]) {
+                            if (pointInPoly(pt, poly[0])) isInside = true;
+                        }
+                    });
+                }
+            }
+            if (isInside) {
+                resultado = { feature: l.feature, layer: l };
+            }
+        });
+    });
+    return resultado;
+}
+
+// Función global para cerrar el popup actual de la capa superior y simular clic en la parcela catastral subyacente
+window.mostrarInfoParcelaDesdePopup = function(lat, lng) {
+    const latlng = L.latLng(lat, lng);
+    const resultado = obtenerInfoParcelaEnPunto(latlng);
+    if (resultado) {
+        map.closePopup();
+        setTimeout(() => {
+            resultado.layer.fire('click', { latlng: latlng });
+        }, 100);
+    }
+};
+
 const archivosCatastro = ["parcela1_4.geojson", "parcela5_7.geojson", "parcela8_15.geojson"];
 archivosCatastro.forEach(file => {
-    fetch(BASE_URL + "catastro/" + file).then(r => r.json()).then(data => {
+    fetchGeoJSON(BASE_URL + "catastro/" + file).then(data => {
         let grupos = {};
         data.features.forEach(f => {
             let key = JSON.stringify(f.geometry.coordinates);
@@ -307,7 +448,9 @@ archivosCatastro.forEach(file => {
             };
         });
 
+        // Configurado para renderizarse en el panel 'parcelasPane' por debajo del resto de capas geográficas
         let ly = L.geoJSON(featuresProcesadas, {
+            pane: 'parcelasPane',
             style: f => ({ color: f.properties.esPH ? "#8e44ad" : "#2980b9", weight: 0.7, fillOpacity: 0.12 }),
             onEachFeature: (f, l) => {
                 l.on('click', e => {
@@ -328,12 +471,14 @@ archivosCatastro.forEach(file => {
                     }
 
                     let content = `<div class="popup-custom"><div class="popup-header">DATOS DE LA PARCELA</div>`;
-                    content += `<div style="margin-bottom:2px; font-weight:bold; color:#2d3748; font-size:9px;">DISTRITO: <span style="color:#2980b9">${dist}</span></div>`;
+                    content += `<div style="margin-bottom:2px; font-weight:bold; color:#2d3748; font-size:9px;">DISTRITO: <span style="color:#2980b9">${decodificarTexto(dist)}</span></div>`;
                     if (p.esPH) {
-                        content += `<div style="padding:2px; font-size:9px;"><b>PH DETECTADA</b><br><b>PARTIDAS:</b> ${p.partidas.join(", ")}<br><b>UBICACIÓN:</b> ${p.ubicacion}</div>`;
+                        content += `<div style="padding:2px; font-size:9px;"><b>PH DETECTADA</b><br><b>PARTIDAS:</b> ${p.partidas.join(", ")}<br><b>UBICACIÓN:</b> ${decodificarTexto(p.ubicacion)}</div>`;
                     } else {
                         content += `<table class="table-info">`;
-                        for (let [k, v] of Object.entries(p.full)) { if (v && v !== "0") content += `<tr><td>${k.toUpperCase()}</td><td>${v}</td></tr>`; }
+                        for (let [k, v] of Object.entries(p.full)) { 
+                            if (v && v !== "0") content += `<tr><td>${decodificarTexto(k).toUpperCase()}</td><td>${decodificarTexto(String(v))}</td></tr>`; 
+                        }
                         content += `</table>`;
                     }
                     content += `<a href="${sv}" target="_blank" class="btn-streetview">📍 STREET VIEW</a>`;
@@ -370,7 +515,7 @@ var grupoCocheras = L.layerGroup();
 var grupoCorredores = L.layerGroup();
 
 // CARGA DE CAPAS DE COCHERAS (Zonificación y Corredores cocheras cargados de forma asíncrona)
-fetch(BASE_URL + "cocheras_porcentaje_zona.geojson").then(r => r.json()).then(data => {
+fetchGeoJSON(BASE_URL + "cocheras_porcentaje_zona.geojson").then(data => {
     L.geoJSON(data, {
         style: { color: "#7b1fa2", weight: 2, fillColor: "#7b1fa2", fillOpacity: 0.25 },
         onEachFeature: (f, l) => {
@@ -378,16 +523,27 @@ fetch(BASE_URL + "cocheras_porcentaje_zona.geojson").then(r => r.json()).then(da
                 let latlng = e.latlng || l.getBounds().getCenter();
                 let html = `<div class="popup-custom"><div class="popup-header" style="color:#7b1fa2;">Zonificación Cocheras</div><table class="table-info">`;
                 for (let [k, v] of Object.entries(f.properties)) {
-                    if (v) html += `<tr><td>${k.toUpperCase()}</td><td>${decodificarTexto(String(v))}</td></tr>`;
+                    if (v) html += `<tr><td>${decodificarTexto(k).toUpperCase()}</td><td>${decodificarTexto(String(v))}</td></tr>`;
                 }
-                html += `</table></div>`;
+                html += `</table>`;
+                
+                // Opción para acceder a la info de la parcela subyacente de forma ágil
+                let parcelaEncontrada = obtenerInfoParcelaEnPunto(latlng);
+                if (parcelaEncontrada) {
+                    html += `<hr style="margin: 6px 0; border-style: dashed; border-color: #cbd5e1;">`;
+                    html += `<div class="text-[8px] text-slate-500 italic text-center mb-1">Hay una parcela catastral debajo.</div>`;
+                    html += `<button onclick="mostrarInfoParcelaDesdePopup(${latlng.lat}, ${latlng.lng})" class="w-full text-center py-1 bg-blue-600 hover:bg-blue-700 text-white rounded font-bold text-[9px] uppercase transition-colors">👉 Ver Parcela Catastral debajo</button>`;
+                } else {
+                    html += `<div class="text-[8px] text-slate-400 italic text-center mt-1">Para ver la parcela debajo, desactive esta capa de cocheras en el panel de control de la derecha.</div>`;
+                }
+                html += `</div>`;
                 l.bindPopup(html).openPopup(latlng);
             });
         }
     }).addTo(grupoCocheras);
 });
 
-fetch(BASE_URL + "cocheras_corredores.geojson").then(r => r.json()).then(data => {
+fetchGeoJSON(BASE_URL + "cocheras_corredores.geojson").then(data => {
     L.geoJSON(data, {
         style: { color: "#e91e63", weight: 4, opacity: 0.8 },
         onEachFeature: (f, l) => {
@@ -395,35 +551,99 @@ fetch(BASE_URL + "cocheras_corredores.geojson").then(r => r.json()).then(data =>
                 let latlng = e.latlng || l.getBounds().getCenter();
                 let html = `<div class="popup-custom"><div class="popup-header" style="color:#e91e63;">Corredor Cocheras</div><table class="table-info">`;
                 for (let [k, v] of Object.entries(f.properties)) {
-                    if (v) html += `<tr><td>${k.toUpperCase()}</td><td>${decodificarTexto(String(v))}</td></tr>`;
+                    if (v) html += `<tr><td>${decodificarTexto(k).toUpperCase()}</td><td>${decodificarTexto(String(v))}</td></tr>`;
                 }
-                html += `</table></div>`;
+                html += `</table>`;
+                
+                // Opción para acceder a la info de la parcela subyacente de forma ágil
+                let parcelaEncontrada = obtenerInfoParcelaEnPunto(latlng);
+                if (parcelaEncontrada) {
+                    html += `<hr style="margin: 6px 0; border-style: dashed; border-color: #cbd5e1;">`;
+                    html += `<div class="text-[8px] text-slate-500 italic text-center mb-1">Hay una parcela catastral debajo.</div>`;
+                    html += `<button onclick="mostrarInfoParcelaDesdePopup(${latlng.lat}, ${latlng.lng})" class="w-full text-center py-1 bg-blue-600 hover:bg-blue-700 text-white rounded font-bold text-[9px] uppercase transition-colors">👉 Ver Parcela Catastral debajo</button>`;
+                } else {
+                    html += `<div class="text-[8px] text-slate-400 italic text-center mt-1">Para ver la parcela debajo, desactive esta capa de corredores en el panel de control de la derecha.</div>`;
+                }
+                html += `</div>`;
                 l.bindPopup(html).openPopup(latlng);
             });
         }
     }).addTo(grupoCorredores);
 });
 
+var listaLoteosParaBusqueda = []; // Array para almacenar los loteos indexados de forma predictiva
 var grupoLoteosHabilitados = L.layerGroup().addTo(map); // Loteos Habilitados arranca encendido por defecto
-var grupoLoteosAprobados = L.layerGroup();
-var grupoLoteosSinOrd = L.layerGroup();
-var grupoLoteosPrivadosInfo = L.layerGroup();
+var grupoLoteosConOrdenanza = L.layerGroup();
+var grupoLoteosConAprobacionProyecto = L.layerGroup();
+var grupoLoteosConOrdenanzaAntiguos = L.layerGroup();
 var grupoBarriosPrivados = L.layerGroup();
 
 const setupLoteo = (file, grupo, color, titulo) => {
-    fetch(BASE_URL + "backdoor/" + file).then(r => r.json()).then(data => {
+    fetchGeoJSON(BASE_URL + "backdoor/" + file).then(data => {
         L.geoJSON(data, {
             style: { color: color, weight: 2, fillColor: color, fillOpacity: 0.3 },
             onEachFeature: (f, l) => {
                 let nro = f.properties.nro || f.properties.nro_ref || "";
                 if(nro) l.bindTooltip(String(nro), { permanent: true, className: 'etiqueta-loteo-nro', direction: 'center' });
+                
+                // POPUP SIN STREET VIEW EXCLUSIVO PARA CAPAS DE LOTEOS
                 l.on('click', (e) => {
                     let latlng = e.latlng || l.getBounds().getCenter();
-                    let sv = `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${latlng.lat},${latlng.lng}`;
                     let c = `<div class="popup-custom"><div class="popup-header">LOTEO ${titulo}</div><table class="table-info">`;
-                    for (let [k,v] of Object.entries(f.properties)) { if(v) c += `<tr><td>${k.toUpperCase()}</td><td>${v}</td></tr>`; }
-                    c += `</table><a href="${sv}" target="_blank" class="btn-streetview">📍 STREET VIEW</a></div>`;
+                    for (let [k,v] of Object.entries(f.properties)) { 
+                        if(v) c += `<tr><td>${decodificarTexto(k).toUpperCase()}</td><td>${decodificarTexto(String(v))}</td></tr>`; 
+                    }
+                    c += `</table>`;
+                    
+                    // Comprobación espacial: Si existe parcela catastral debajo, ofrece acceso directo alternativo
+                    let parcelaEncontrada = obtenerInfoParcelaEnPunto(latlng);
+                    if (parcelaEncontrada) {
+                        c += `<hr style="margin: 6px 0; border-style: dashed; border-color: #cbd5e1;">`;
+                        c += `<div class="text-[8px] text-slate-500 italic text-center mb-1">Hay una parcela catastral debajo.</div>`;
+                        c += `<button onclick="mostrarInfoParcelaDesdePopup(${latlng.lat}, ${latlng.lng})" class="w-full text-center py-1 bg-blue-600 hover:bg-blue-700 text-white rounded font-bold text-[9px] uppercase transition-colors">👉 Ver Parcela Catastral debajo</button>`;
+                    } else {
+                        c += `<div class="text-[8px] text-slate-400 italic text-center mt-1">Para ver la parcela debajo, desactive la capa de Loteos desde el menú de la derecha.</div>`;
+                    }
+                    c += `</div>`;
                     l.bindPopup(c, { autoPanPadding: L.point(10, 110) }).openPopup(latlng);
+                });
+
+                // INDEXACIÓN PARA LA BÚSQUEDA PREDICTIVA Decodificada para evitar fallos de búsqueda con caracteres especiales
+                let props = f.properties;
+                let nombre = "";
+                let propietario = "";
+                let ordenanza = "";
+                let expediente = "";
+                for (let [k, v] of Object.entries(props)) {
+                    let keyLower = k.toLowerCase();
+                    if (keyLower.includes("nombre") || keyLower.includes("denominac")) nombre = decodificarTexto(String(v));
+                    if (keyLower.includes("propietario") || keyLower.includes("firma") || keyLower.includes("solicitan") || keyLower.includes("titular")) propietario = decodificarTexto(String(v));
+                    if (keyLower.includes("ordenanza") || keyLower === "ord" || keyLower.includes("nro_ord")) ordenanza = decodificarTexto(String(v));
+                    
+                    // Indexamos cualquier expediente de aprobación, factibilidad o trámite administrativo
+                    if (keyLower.includes("exp") || keyLower.includes("expediente") || keyLower.includes("expte")) {
+                        let expVal = decodificarTexto(String(v)).trim();
+                        if (expVal && expVal !== "0" && expVal !== "NULL" && expVal !== "-") {
+                            if (expediente) {
+                                expediente += " / " + expVal;
+                            } else {
+                                expediente = expVal;
+                            }
+                        }
+                    }
+                }
+
+                if (!nombre && (props.nombre || props.Nombre)) nombre = decodificarTexto(String(props.nombre || props.Nombre));
+
+                listaLoteosParaBusqueda.push({
+                    nombre: String(nombre || "").toUpperCase().trim(),
+                    propietario: String(propietario || "").toUpperCase().trim(),
+                    ordenanza: String(ordenanza || "").toUpperCase().trim(),
+                    expediente: String(expediente || "").toUpperCase().trim(),
+                    layer: l,
+                    grupo: grupo,
+                    tipo: titulo,
+                    fullLabel: `${titulo}: ${nombre || 'S/N'}${propietario ? ' - Prop: ' + propietario : ''}${ordenanza ? ' (Ord: ' + ordenanza + ')' : ''}${expediente ? ' (Expte: ' + expediente + ')' : ''}`
                 });
             }
         }).addTo(grupo);
@@ -431,9 +651,9 @@ const setupLoteo = (file, grupo, color, titulo) => {
 };
 
 setupLoteo("loteos_privados_habilitados.geojson", grupoLoteosHabilitados, "#39FF14", "HABILITADO");
-setupLoteo("loteos_privados_aprobados.geojson", grupoLoteosAprobados, "#FFFF33", "APROBADO");
-setupLoteo("loteos_sin_ordenanza.geojson", grupoLoteosSinOrd, "#FF00FF", "SIN ORD.");
-setupLoteo("loteos_privados.geojson", grupoLoteosPrivadosInfo, "#00FFFF", "PRIVADO");
+setupLoteo("loteos_con_ordenanza.geojson", grupoLoteosConOrdenanza, "#FFFF33", "ORDENANZA");
+setupLoteo("loteos_con_aprobacion_proyecto.geojson", grupoLoteosConAprobacionProyecto, "#FF00FF", "APROB. PROYECTO");
+setupLoteo("loteos_con_ordenanza_antiguos.geojson", grupoLoteosConOrdenanzaAntiguos, "#00FFFF", "ORD. ANTIGUA");
 setupLoteo("loteos_barrios_privados.geojson", grupoBarriosPrivados, "#FF8C00", "BARRIO PRIVADO");
 
 /* ================= CAPAS DE PRESERVACIÓN ================= */
@@ -461,7 +681,7 @@ function getSVHTML(lat, lng) {
 }
 
 function loadPreserv(file, grupo, color, titulo, op = 0.5) {
-    fetch(PRESERV_URL + file).then(r => r.json()).then(data => {
+    fetchGeoJSON(PRESERV_URL + file).then(data => {
         L.geoJSON(data, {
             style: { color: color, weight: 2, fillColor: color, fillOpacity: op },
             onEachFeature: (f, l) => {
@@ -485,7 +705,18 @@ function loadPreserv(file, grupo, color, titulo, op = 0.5) {
                     }
                     
                     html += getSVHTML(latlng.lat, latlng.lng);
+                    
+                    // Comprobación espacial: Si existe parcela catastral debajo, ofrece acceso directo alternativo
+                    let parcelaEncontrada = obtenerInfoParcelaEnPunto(latlng);
+                    if (parcelaEncontrada) {
+                        html += `<hr style="margin: 8px 0; border-color: #e2e8f0;">`;
+                        html += `<div class="text-[8px] text-slate-500 italic text-center mb-1">Hay una parcela catastral debajo.</div>`;
+                        html += `<button onclick="mostrarInfoParcelaDesdePopup(${latlng.lat}, ${latlng.lng})" class="w-full text-center py-1 bg-blue-600 hover:bg-blue-700 text-white rounded font-bold text-[9px] uppercase transition-colors">👉 Ver Parcela Catastral debajo</button>`;
+                    } else {
+                        html += `<div class="text-[8px] text-slate-400 italic text-center mt-1">Para ver la parcela debajo, desactive esta capa de preservación en el panel de control de la derecha.</div>`;
+                    }
                     html += `</div>`;
+                    
                     l.bindPopup(html, { autoPanPadding: L.point(10, 110) }).openPopup(latlng);
                 });
             }
@@ -551,6 +782,149 @@ function configurarBuscadorCalles() {
     });
 }
 
+function configurarBuscadorLoteos() {
+    const input = document.getElementById('input-loteo');
+    const sug = document.getElementById('sugerencias-loteos');
+    
+    input.addEventListener('input', () => {
+        let val = input.value.toUpperCase().trim();
+        sug.innerHTML = '';
+        if (val.length < 2) { sug.style.display = 'none'; return; }
+        
+        // Búsqueda predictiva comparando campos Nombre, Propietario u Ordenanza
+        let matches = listaLoteosParaBusqueda.filter(item => {
+            return item.nombre.includes(val) || 
+                   item.propietario.includes(val) || 
+                   item.ordenanza.includes(val);
+        }).slice(0, 8);
+        
+        if (matches.length > 0) {
+            sug.style.display = 'block';
+            matches.forEach(item => {
+                let d = document.createElement('div');
+                d.className = 'sugerencia-item';
+                d.innerText = decodificarTexto(item.fullLabel);
+                d.onclick = () => {
+                    input.value = decodificarTexto(item.nombre || item.propietario || item.ordenanza || "");
+                    sug.style.display = 'none';
+                    
+                    // Activar la capa de loteos correspondiente si se encuentra desactivada en la leyenda
+                    if (!map.hasLayer(item.grupo)) {
+                        map.addLayer(item.grupo);
+                    }
+                    
+                    // Zoom dinámico a los límites de la entidad seleccionada
+                    map.fitBounds(item.layer.getBounds(), { maxZoom: 18 });
+                    item.layer.fire('click');
+                };
+                sug.appendChild(d);
+            });
+        } else {
+            sug.style.display = 'none';
+        }
+    });
+
+    // Cerrar sugerencias al hacer clic fuera del buscador
+    document.addEventListener('click', (e) => {
+        if (e.target !== input) {
+            sug.style.display = 'none';
+        }
+    });
+}
+
+function configurarBuscadorOrdenanzas() {
+    const input = document.getElementById('input-ordenanza');
+    const sug = document.getElementById('sugerencias-ordenanzas');
+    
+    input.addEventListener('input', () => {
+        let val = input.value.toUpperCase().trim();
+        sug.innerHTML = '';
+        if (val.length < 1) { sug.style.display = 'none'; return; }
+        
+        let matches = listaLoteosParaBusqueda.filter(item => {
+            return item.ordenanza.includes(val);
+        }).slice(0, 8);
+        
+        if (matches.length > 0) {
+            sug.style.display = 'block';
+            matches.forEach(item => {
+                let d = document.createElement('div');
+                d.className = 'sugerencia-item';
+                d.innerText = `ORD: ${decodificarTexto(item.ordenanza)} (${decodificarTexto(item.nombre || item.tipo)})`;
+                d.onclick = () => {
+                    input.value = decodificarTexto(item.ordenanza);
+                    sug.style.display = 'none';
+                    
+                    if (!map.hasLayer(item.grupo)) {
+                        map.addLayer(item.grupo);
+                    }
+                    
+                    map.fitBounds(item.layer.getBounds(), { maxZoom: 18 });
+                    item.layer.fire('click');
+                };
+                sug.appendChild(d);
+            });
+        } else {
+            sug.style.display = 'none';
+        }
+    });
+
+    document.addEventListener('click', (e) => {
+        if (e.target !== input) {
+            sug.style.display = 'none';
+        }
+    });
+}
+
+function configurarBuscadorExpedientes() {
+    const input = document.getElementById('input-expediente');
+    const sug = document.getElementById('sugerencias-expedientes');
+    
+    input.addEventListener('input', () => {
+        let val = input.value.toUpperCase().trim();
+        sug.innerHTML = '';
+        if (val.length < 1) { sug.style.display = 'none'; return; }
+        
+        let matches = listaLoteosParaBusqueda.filter(item => {
+            return item.expediente.includes(val);
+        }).slice(0, 8);
+        
+        if (matches.length > 0) {
+            sug.style.display = 'block';
+            matches.forEach(item => {
+                let d = document.createElement('div');
+                d.className = 'sugerencia-item';
+                d.innerText = `EXPTE: ${decodificarTexto(item.expediente)} (${decodificarTexto(item.nombre || item.tipo)})`;
+                d.onclick = () => {
+                    input.value = decodificarTexto(item.expediente);
+                    sug.style.display = 'none';
+                    
+                    if (!map.hasLayer(item.grupo)) {
+                        map.addLayer(item.grupo);
+                    }
+                    
+                    map.fitBounds(item.layer.getBounds(), { maxZoom: 18 });
+                    item.layer.fire('click');
+                };
+                sug.appendChild(d);
+            });
+        } else {
+            sug.style.display = 'none';
+        }
+    });
+
+    document.addEventListener('click', (e) => {
+        if (e.target !== input) {
+            sug.style.display = 'none';
+        }
+    });
+}
+
+// Inicializar buscadores predictivos
+configurarBuscadorLoteos();
+configurarBuscadorOrdenanzas();
+configurarBuscadorExpedientes();
+
 function buscarGoogle() {
     let val = document.getElementById('input-google').value.trim();
     if (!val) return;
@@ -573,9 +947,9 @@ const overlays = {
     "<span class='layer-legend-icon' style='background:#7b1fa2'></span> Zonificación Cocheras": grupoCocheras,
     "<span class='layer-legend-icon' style='background:#e91e63; height:3px; border:none'></span> Corredores Cocheras": grupoCorredores,
     "<span class='layer-legend-icon' style='background:#39FF14'></span> Loteos Habilitados": grupoLoteosHabilitados,
-    "<span class='layer-legend-icon' style='background:#FFFF33'></span> Loteos Aprobados": grupoLoteosAprobados,
-    "<span class='layer-legend-icon' style='background:#FF00FF'></span> Loteos Sin Ordenanza": grupoLoteosSinOrd,
-    "<span class='layer-legend-icon' style='background:#00FFFF'></span> Info adicional-otros loteos": grupoLoteosPrivadosInfo,
+    "<span class='layer-legend-icon' style='background:#FFFF33'></span> Loteos con Ordenanza": grupoLoteosConOrdenanza,
+    "<span class='layer-legend-icon' style='background:#FF00FF'></span> Loteos con Aprobacion de Proyecto": grupoLoteosConAprobacionProyecto,
+    "<span class='layer-legend-icon' style='background:#00FFFF'></span> Loteos con Ordenanza Antiguos": grupoLoteosConOrdenanzaAntiguos,
     "<span class='layer-legend-icon' style='background:#FF8C00'></span> Barrios Privados": grupoBarriosPrivados,
     
     // Submenú de Preservación de Patrimonio (Agregado de forma exacta respetando estilos del mapa original de preservación)
