@@ -1,1 +1,287 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MAPA DE OBRAS PRIVADAS</title>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet-textpath@1.2.3/leaflet.textpath.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        body { margin:0; padding:0; font-family: 'Inter', sans-serif; background: #0f172a; overflow: hidden; }
+        #map { height: 100vh; width: 100%; z-index: 1; }
+
+        .panel-superior {
+            position:absolute; top:12px; left:55px; z-index:900;
+            background: rgba(255, 255, 255, 0.95); padding:8px; border-radius:10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            display:flex; gap:6px; align-items: center; flex-wrap: wrap;
+            backdrop-filter: blur(5px); border: 1px solid rgba(0,0,0,0.1);
+            max-width: calc(100% - 70px);
+        }
+
+        input { padding: 4px 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 12px; outline: none; transition: 0.2s; }
+        input:focus { border-color: #2980b9; box-shadow: 0 0 0 2px rgba(41,128,185,0.2); }
+        .btn-buscar { background: #2980b9; color: white; padding: 4px 10px; cursor: pointer; border-radius: 6px; font-weight: 600; font-size: 12px; border: none; }
+        .btn-buscar:hover { background: #1f6391; }
+        
+        .btn-google { background: #4285F4; color: white; padding: 4px 10px; cursor: pointer; border-radius: 6px; font-weight: 600; font-size: 12px; border: none; }
+
+        #sugerencias-calles {
+            position: absolute; background: white; border: 1px solid #ccc;
+            border-radius: 6px; max-height: 150px; overflow-y: auto; z-index: 2000;
+            width: 180px; display: none; margin-top: 34px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .sugerencia-item { padding: 6px 10px; cursor: pointer; font-size: 11px; border-bottom: 1px solid #f0f0f0; }
+        .sugerencia-item:hover { background: #f8f9fa; color: #2980b9; }
+
+        .popup-custom { font-size: 10px; line-height: 1.1; min-width: 240px; max-height: 280px; overflow-y: auto; padding: 2px; }
+        .popup-header { 
+            text-align: center; font-weight: 800; border-bottom: 1px solid #eee; 
+            padding-bottom: 2px; margin-bottom: 3px; color: #1a202c; text-transform: uppercase;
+        }
+        .table-info { width: 100%; border-collapse: collapse; margin-bottom: 4px; }
+        .table-info td { border-bottom: 1px solid #edf2f7; padding: 1px 0; font-size: 9px; vertical-align: top; }
+        .table-info tr td:first-child { font-weight: 700; color: #4a5568; width: 35%; text-transform: uppercase; }
+
+        .btn-streetview {
+            display: block; margin: 8px auto 4px; padding: 6px; border-radius: 4px;
+            background: #4285F4; color: white !important; text-align: center;
+            text-decoration: none; font-weight: bold; font-size: 10px;
+        }
+        
+        .adv-distrito { position: absolute; bottom: 25px; right: 10px; z-index: 1000; background: rgba(255,255,255,0.8); padding: 6px 10px; border-radius: 6px; font-size: 9px; color: #4a5568; pointer-events: none; border: 1px solid rgba(0,0,0,0.1); }
+        
+        .etiqueta-distrito {
+            background: rgba(255,255,255,0.9)!important; border: 1px solid #333!important;
+            padding: 1px 4px!important; font-size: 10px!important; font-weight: bold!important; pointer-events: none;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="panel-superior">
+    <div class="w-full text-center text-[10px] font-extrabold text-slate-800 tracking-wider border-b border-slate-200 pb-1.5 mb-1.5 uppercase">
+        MAPA DE OBRAS PRIVADAS
+    </div>
+
+    <input type="text" id="input-pm" placeholder="Partida" style="width:80px;">
+    <button class="btn-buscar" onclick="buscarPM()">Buscar PM</button>
+    
+    <div style="height: 20px; width: 1px; background: #e2e8f0; margin: 0 4px;"></div>
+
+    <div style="position:relative; display: flex; gap: 4px;">
+        <input type="text" id="input-calle" placeholder="Calle..." style="width:110px;" autocomplete="off">
+        <input type="number" id="input-altura" placeholder="Alt." style="width:40px;">
+        <button class="btn-buscar" onclick="buscarDireccion()">Ir</button>
+        <div id="sugerencias-calles"></div>
+    </div>
+
+    <div style="height: 20px; width: 1px; background: #e2e8f0; margin: 0 4px;"></div>
+
+    <div style="display: flex; gap: 4px;">
+        <input type="text" id="input-google" placeholder="Lugar/Google..." style="width:90px;">
+        <button class="btn-google" onclick="buscarGoogle()">Google</button>
+    </div>
+</div>
+
+<div class="adv-distrito text-right">
+    <div>IDE Paraná - Límites indicativos (Ord. 8563). Zoom Máx: 22.</div>
+    <div class="text-[8px] text-slate-500 font-semibold mt-0.5">Elaborado por Dirección de Cartografía y Datos Espaciales</div>
+</div>
+<div id="map"></div>
+
+<script>
+const BASE_URL = "https://raw.githubusercontent.com/dcartografiayde/IDE-PARANA/main/";
+
+function decodificarTexto(str) {
+    if (!str || typeof str !== 'string') return str;
+    try {
+        const correcciones = {
+            'Ã¡': 'á', 'Ã©': 'é', 'Ã­': 'í', 'Ã³': 'ó', 'Ãº': 'ú',
+            'Ã ': 'Á', 'Ã‰': 'É', 'Ã ': 'Í', 'Ã—': 'Ó', 'Ãš': 'Ú',
+            'Ã±': 'ñ', 'Ã‘': 'Ñ', 'Â°': '°', 'Ã¼': 'ü', 'Â¿': '¿'
+        };
+        let textoCorregido = str;
+        for (let mal in correcciones) {
+            textoCorregido = textoCorregido.split(mal).join(correcciones[mal]);
+        }
+        return textoCorregido;
+    } catch (e) { return str; }
+}
+
+async function fetchGeoJSON(url) {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    const arrayBuffer = await response.arrayBuffer();
+    const decoderUTF8 = new TextDecoder('utf-8');
+    let text = decoderUTF8.decode(arrayBuffer);
+    if (text.includes('\uFFFD')) {
+        text = new TextDecoder('windows-1252').decode(arrayBuffer);
+    }
+    return JSON.parse(text);
+}
+
+function getColorDistrito(d) {
+    const colors = {
+        'R1': '#e74c3c', 'R2': '#3498db', 'R3': '#2ecc71', 'R4': '#f1c40f', 'R5': '#9b59b6',
+        'R6': '#1abc9c', 'C1': '#e67e22', 'C2': '#d35400', 'C3': '#c0392b', 'I': '#34495e',
+        'UR': '#7f8c8d', 'PR': '#27ae60'
+    };
+    return colors[d] || '#' + Math.floor(Math.random()*16777215).toString(16);
+}
+
+var map = L.map('map', { center: [-31.745, -60.51], zoom: 13, maxZoom: 22 });
+
+var baseOSM = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 22, attribution: 'OSM' });
+var baseDark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 22, attribution: 'Carto' }).addTo(map);
+var baseEsri = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 22, attribution: 'Esri' });
+
+var baseMaps = { "Modo Oscuro": baseDark, "OpenStreetMap": baseOSM, "Satelital (Esri)": baseEsri };
+
+var grupoDistritos = L.layerGroup().addTo(map);
+fetchGeoJSON(BASE_URL + "distritos.geojson").then(data => {
+    L.geoJSON(data, {
+        style: f => ({ fillColor: getColorDistrito(f.properties.distrito), weight: 4, color: 'white', fillOpacity: 0.4, dashArray: '8, 8' }),
+        onEachFeature: (f, l) => {
+            if (f.properties.distrito) l.bindTooltip(decodificarTexto(f.properties.distrito), { permanent: true, className: 'etiqueta-distrito', direction: 'center', opacity: 0.9 });
+        }
+    }).addTo(grupoDistritos);
+});
+
+var grupoCalles = L.layerGroup().addTo(map);
+var listaCallesParaBusqueda = [];
+fetchGeoJSON(BASE_URL + "calles.geojson").then(data => {
+    L.geoJSON(data, {
+        style: { color: "#FFFF00", weight: 6, opacity: 0.01 },
+        onEachFeature: (f, l) => {
+            if (f.properties.nombre) {
+                let nombreCalle = decodificarTexto(f.properties.nombre);
+                listaCallesParaBusqueda.push({ nombre: nombreCalle.toUpperCase(), layer: l });
+                l.on('click', (e) => {
+                    let latlng = e.latlng || l.getBounds().getCenter();
+                    let sv = `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${latlng.lat},${latlng.lng}`;
+                    l.bindPopup(`<b>Calle:</b> ${nombreCalle.toUpperCase()}<br><a href="${sv}" target="_blank" class="btn-streetview">📍 STREET VIEW</a>`).openPopup();
+                });
+            }
+        }
+    }).addTo(grupoCalles);
+    configurarBuscadorCalles();
+});
+
+var grupoParcelas = L.layerGroup();
+var parcelasLayers = [];
+const archivosCatastro = ["parcela1_4.geojson", "parcela5_7.geojson", "parcela8_15.geojson"];
+archivosCatastro.forEach(file => {
+    fetchGeoJSON(BASE_URL + "catastro/" + file).then(data => {
+        let ly = L.geoJSON(data, {
+            style: f => ({ color: "#2980b9", weight: 0.7, fillOpacity: 0.12 }),
+            onEachFeature: (f, l) => {
+                l.on('click', e => {
+                    let latlng = e.latlng || l.getBounds().getCenter();
+                    let sv = `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${latlng.lat},${latlng.lng}`;
+                    let content = `<div class="popup-custom"><div class="popup-header">DATOS DE PARCELA</div><table class="table-info">`;
+                    for (let [k, v] of Object.entries(f.properties)) { 
+                        if (v) content += `<tr><td>${k.toUpperCase()}</td><td>${decodificarTexto(String(v))}</td></tr>`;
+                    }
+                    content += `</table><a href="${sv}" target="_blank" class="btn-streetview">📍 STREET VIEW</a></div>`;
+                    l.bindPopup(content).openPopup(latlng);
+                });
+            }
+        });
+        parcelasLayers.push(ly);
+        grupoParcelas.addLayer(ly);
+    });
+});
+
+function controlarVisibilidadParcelas() {
+    if (map.getZoom() >= 14) { if (!map.hasLayer(grupoParcelas)) map.addLayer(grupoParcelas); }
+    else { if (map.hasLayer(grupoParcelas)) map.removeLayer(grupoParcelas); }
+}
+map.on('zoomend', controlarVisibilidadParcelas);
+
+const capasObrasConfig = [
+    { file: "archivo%20historico%20hasta%202004.geojson", nombre: "ARCHIVO HISTORICO DE OBRAS PRIVADAS", color: "#64748b", icon: '●' },
+    { file: "edificios%20de%20mas%20de%203%20plantas.geojson", nombre: "EDIFICIOS MAS DE 3 PLANTAS", color: "#ef4444", icon: '■' },
+    { file: "obra%20nueva%20desde%202019.geojson", nombre: "OBRAS CIVILES PROYECTOS desde 2019", color: "#3b82f6", icon: '▲' },
+    { file: "obras%20particulares%202004%202019.geojson", nombre: "OBRAS CIVILES 2004-2019", color: "#f59e0b", icon: '◆' },
+    { file: "obras%20civiles%20tramite%20digital.geojson", nombre: "OBRAS CIVILES TRAMITE DIGITAL", color: "#8b5cf6", icon: '★' },
+    { file: "relevamientos%20desde%202019.geojson", nombre: "OBRAS CIVILES RELEVAMIENTOS DESDE 2019", color: "#10b981", icon: '⬟' }
+];
+
+const gruposObras = {};
+capasObrasConfig.forEach(cfg => {
+    gruposObras[cfg.nombre] = L.layerGroup();
+    fetchGeoJSON(BASE_URL + "obras%20privadas/" + cfg.file).then(data => {
+        L.geoJSON(data, {
+            pointToLayer: (f, latlng) => {
+                return L.circleMarker(latlng, { radius: 6, fillColor: cfg.color, color: "#fff", weight: 1.5, fillOpacity: 0.9 });
+            },
+            onEachFeature: (f, l) => {
+                const coords = f.geometry.coordinates;
+                const sv = `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${coords[1]},${coords[0]}`;
+                let content = `<div class="popup-custom"><div class="popup-header" style="color:${cfg.color}">${cfg.nombre}</div><table class="table-info">`;
+                for (let [k, v] of Object.entries(f.properties)) { if (v) content += `<tr><td>${k.toUpperCase()}</td><td>${decodificarTexto(String(v))}</td></tr>`; }
+                content += `</table><a href="${sv}" target="_blank" class="btn-streetview">📍 STREET VIEW</a></div>`;
+                l.bindPopup(content);
+            }
+        }).addTo(gruposObras[cfg.nombre]);
+    });
+});
+
+function buscarPM() {
+    let val = document.getElementById('input-pm').value.trim();
+    parcelasLayers.forEach(ly => { ly.eachLayer(l => { if (l.feature.properties.nropasd == val) { map.fitBounds(l.getBounds(), { maxZoom: 19 }); l.fire('click'); } }); });
+}
+
+function buscarDireccion() {
+    let nom = document.getElementById('input-calle').value.toUpperCase();
+    let match = listaCallesParaBusqueda.find(c => c.nombre === nom);
+    if (match) { map.fitBounds(match.layer.getBounds(), { maxZoom: 16 }); match.layer.fire('click'); }
+}
+
+function configurarBuscadorCalles() {
+    const input = document.getElementById('input-calle'), sug = document.getElementById('sugerencias-calles');
+    input.addEventListener('input', () => {
+        let val = input.value.toUpperCase(); sug.innerHTML = '';
+        if (val.length < 2) { sug.style.display = 'none'; return; }
+        let matches = [...new Set(listaCallesParaBusqueda.map(c => c.nombre))].filter(n => n.includes(val)).slice(0, 6);
+        if (matches.length > 0) {
+            sug.style.display = 'block';
+            matches.forEach(m => {
+                let d = document.createElement('div'); d.className = 'sugerencia-item'; d.innerText = m;
+                d.onclick = () => { input.value = m; sug.style.display = 'none'; }; sug.appendChild(d);
+            });
+        } else { sug.style.display = 'none'; }
+    });
+}
+
+function buscarGoogle() {
+    let val = document.getElementById('input-google').value.trim();
+    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(val + ", Paraná")}`)
+        .then(r => r.json()).then(data => { if (data.length > 0) map.setView([data[0].lat, data[0].lon], 18); });
+}
+
+const overlays = {
+    "Distritos": grupoDistritos,
+    "Calles": grupoCalles,
+    "Parcelas": grupoParcelas,
+    "---": L.layerGroup(),
+    "ARCHIVO HISTORICO DE OBRAS PRIVADAS": gruposObras["ARCHIVO HISTORICO DE OBRAS PRIVADAS"],
+    "EDIFICIOS MAS DE 3 PLANTAS": gruposObras["EDIFICIOS MAS DE 3 PLANTAS"],
+    "OBRAS CIVILES PROYECTOS desde 2019": gruposObras["OBRAS CIVILES PROYECTOS desde 2019"],
+    "OBRAS CIVILES 2004-2019": gruposObras["OBRAS CIVILES 2004-2019"],
+    "OBRAS CIVILES TRAMITE DIGITAL": gruposObras["OBRAS CIVILES TRAMITE DIGITAL"],
+    "OBRAS CIVILES RELEVAMIENTOS DESDE 2019": gruposObras["OBRAS CIVILES RELEVAMIENTOS DESDE 2019"]
+};
+
+L.control.layers(baseMaps, overlays, { collapsed: false }).addTo(map);
+</script>
+</body>
+</html>
 
