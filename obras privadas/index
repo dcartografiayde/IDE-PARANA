@@ -138,16 +138,11 @@ function getColorDistrito(d) {
 
 var map = L.map('map', { center: [-31.745, -60.51], zoom: 13, maxZoom: 22 });
 
-// Mapas base originales
 var baseOSM = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 22, attribution: 'OSM' });
 var baseDark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 22, attribution: 'Carto' }).addTo(map);
 var baseEsri = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 22, attribution: 'Esri' });
 
-var baseMaps = {
-    "Modo Oscuro": baseDark,
-    "OpenStreetMap": baseOSM,
-    "Satelital (Esri)": baseEsri
-};
+var baseMaps = { "Modo Oscuro": baseDark, "OpenStreetMap": baseOSM, "Satelital (Esri)": baseEsri };
 
 var grupoDistritos = L.layerGroup().addTo(map);
 fetchGeoJSON(BASE_URL + "distritos.geojson").then(data => {
@@ -210,32 +205,32 @@ function controlarVisibilidadParcelas() {
 }
 map.on('zoomend', controlarVisibilidadParcelas);
 
-const capasObrasPrivadasConfig = [
-    { file: "archivo%20historico%20hasta%202004.geojson", nombre: "ARCHIVO HISTORICO", color: "#64748b" },
-    { file: "edificios%20de%20mas%20de%203%20plantas.geojson", nombre: "EDIFICIOS > 3 PLANTAS", color: "#ef4444" },
-    { file: "obra%20nueva%20desde%202019.geojson", nombre: "OBRAS PROYECTOS 2019", color: "#3b82f6" },
-    { file: "obras%20particulares%202004%202019.geojson", nombre: "OBRAS 2004-2019", color: "#f59e0b" },
-    { file: "obras%20civiles%20tramite%20digital.geojson", nombre: "TRAMITE DIGITAL", color: "#8b5cf6" },
-    { file: "relevamientos%20desde%202019.geojson", nombre: "RELEVAMIENTOS", color: "#10b981" }
+const capasObrasConfig = [
+    { file: "archivo%20historico%20hasta%202004.geojson", nombre: "ARCHIVO HISTORICO DE OBRAS PRIVADAS", color: "#64748b", icon: '●' },
+    { file: "edificios%20de%20mas%20de%203%20plantas.geojson", nombre: "EDIFICIOS MAS DE 3 PLANTAS", color: "#ef4444", icon: '■' },
+    { file: "obra%20nueva%20desde%202019.geojson", nombre: "OBRAS CIVILES PROYECTOS desde 2019", color: "#3b82f6", icon: '▲' },
+    { file: "obras%20particulares%202004%202019.geojson", nombre: "OBRAS CIVILES 2004-2019", color: "#f59e0b", icon: '◆' },
+    { file: "obras%20civiles%20tramite%20digital.geojson", nombre: "OBRAS CIVILES TRAMITE DIGITAL", color: "#8b5cf6", icon: '★' },
+    { file: "relevamientos%20desde%202019.geojson", nombre: "OBRAS CIVILES RELEVAMIENTOS DESDE 2019", color: "#10b981", icon: '⬟' }
 ];
 
-const gruposObrasPrivadas = {};
-capasObrasPrivadasConfig.forEach(cfg => {
-    gruposObrasPrivadas[cfg.nombre] = L.layerGroup();
+const gruposObras = {};
+capasObrasConfig.forEach(cfg => {
+    gruposObras[cfg.nombre] = L.layerGroup();
     fetchGeoJSON(BASE_URL + "obras%20privadas/" + cfg.file).then(data => {
         L.geoJSON(data, {
-            pointToLayer: (f, latlng) => L.circleMarker(latlng, { radius: 5, fillColor: cfg.color, color: "#fff", weight: 1, fillOpacity: 0.8 }),
+            pointToLayer: (f, latlng) => {
+                return L.circleMarker(latlng, { radius: 6, fillColor: cfg.color, color: "#fff", weight: 1.5, fillOpacity: 0.9 });
+            },
             onEachFeature: (f, l) => {
                 const coords = f.geometry.coordinates;
                 const sv = `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${coords[1]},${coords[0]}`;
                 let content = `<div class="popup-custom"><div class="popup-header" style="color:${cfg.color}">${cfg.nombre}</div><table class="table-info">`;
-                for (let [k, v] of Object.entries(f.properties)) { 
-                    if (v) content += `<tr><td>${k.toUpperCase()}</td><td>${decodificarTexto(String(v))}</td></tr>`;
-                }
+                for (let [k, v] of Object.entries(f.properties)) { if (v) content += `<tr><td>${k.toUpperCase()}</td><td>${decodificarTexto(String(v))}</td></tr>`; }
                 content += `</table><a href="${sv}" target="_blank" class="btn-streetview">📍 STREET VIEW</a></div>`;
                 l.bindPopup(content);
             }
-        }).addTo(gruposObrasPrivadas[cfg.nombre]);
+        }).addTo(gruposObras[cfg.nombre]);
     });
 });
 
@@ -277,12 +272,12 @@ const overlays = {
     "Calles": grupoCalles,
     "Parcelas": grupoParcelas,
     "---": L.layerGroup(),
-    "Archivo Histórico": gruposObrasPrivadas["ARCHIVO HISTORICO"],
-    "Edificios > 3 Plantas": gruposObrasPrivadas["EDIFICIOS > 3 PLANTAS"],
-    "Obras Proyectos 2019": gruposObrasPrivadas["OBRAS PROYECTOS 2019"],
-    "Obras 2004-2019": gruposObrasPrivadas["OBRAS 2004-2019"],
-    "Trámite Digital": gruposObrasPrivadas["TRAMITE DIGITAL"],
-    "Relevamientos": gruposObrasPrivadas["RELEVAMIENTOS"]
+    "ARCHIVO HISTORICO DE OBRAS PRIVADAS": gruposObras["ARCHIVO HISTORICO DE OBRAS PRIVADAS"],
+    "EDIFICIOS MAS DE 3 PLANTAS": gruposObras["EDIFICIOS MAS DE 3 PLANTAS"],
+    "OBRAS CIVILES PROYECTOS desde 2019": gruposObras["OBRAS CIVILES PROYECTOS desde 2019"],
+    "OBRAS CIVILES 2004-2019": gruposObras["OBRAS CIVILES 2004-2019"],
+    "OBRAS CIVILES TRAMITE DIGITAL": gruposObras["OBRAS CIVILES TRAMITE DIGITAL"],
+    "OBRAS CIVILES RELEVAMIENTOS DESDE 2019": gruposObras["OBRAS CIVILES RELEVAMIENTOS DESDE 2019"]
 };
 
 L.control.layers(baseMaps, overlays, { collapsed: false }).addTo(map);
