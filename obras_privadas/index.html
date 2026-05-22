@@ -326,6 +326,83 @@ window.mostrarInfoParcelaDesdePopup = function(lat, lng) {
     }
 };
 
+/* ================= GLOBAL HELPER PARA CENTRAR Y ACTIVAR OBRA DESDE LA PARCELA ================= */
+// PROTOCOLO NO REGRESIÓN: Permite encender de forma dinámica y automática la capa si estaba apagada
+window.centrarYVerObra = function(capaNombre, lat, lng) {
+    const grupo = gruposObras[capaNombre];
+    if (grupo) {
+        if (!map.hasLayer(grupo)) {
+            map.addLayer(grupo);
+            // Actualizar visualmente la leyenda (Checkbox)
+            let controlLayers = document.querySelector('.leaflet-control-layers');
+            if (controlLayers) {
+                let labels = controlLayers.querySelectorAll('label');
+                labels.forEach(label => {
+                    if (label.textContent.includes(capaNombre)) {
+                        let cb = label.querySelector('input[type="checkbox"]');
+                        if (cb) cb.checked = true;
+                    }
+                });
+            }
+        }
+        map.setView([lat, lng], 19);
+        setTimeout(() => {
+            grupo.eachLayer(geoJsonGroup => {
+                geoJsonGroup.eachLayer(l => {
+                    const lLatLng = l.getLatLng ? l.getLatLng() : null;
+                    if (lLatLng && Math.abs(lLatLng.lat - lat) < 0.00001 && Math.abs(lLatLng.lng - lng) < 0.00001) {
+                        l.fire('click');
+                    }
+                });
+            });
+        }, 250);
+    }
+};
+
+/* ================= BUSCADOR ESPACIAL DE OBRAS EN PARCELA ================= */
+// Compara las coordenadas de los puntos cargados en memoria con los límites poligonales de la parcela seleccionada
+function buscarObrasEnParcela(geomParcela) {
+    const obrasDetectadas = [];
+    if (!geomParcela) return obrasDetectadas;
+
+    capasObrasConfig.forEach(cfg => {
+        const dataCapa = cachedObrasData[cfg.nombre];
+        if (dataCapa && dataCapa.features) {
+            dataCapa.features.forEach(f => {
+                if (f.geometry && f.geometry.type === "Point") {
+                    const pt = f.geometry.coordinates; // [lng, lat]
+                    let isInside = false;
+
+                    if (geomParcela.type === "Polygon") {
+                        if (geomParcela.coordinates && geomParcela.coordinates[0]) {
+                            if (pointInPoly(pt, geomParcela.coordinates[0])) isInside = true;
+                        }
+                    } else if (geomParcela.type === "MultiPolygon") {
+                        if (geomParcela.coordinates) {
+                            geomParcela.coordinates.forEach(poly => {
+                                if (poly && poly[0]) {
+                                    if (pointInPoly(pt, poly[0])) isInside = true;
+                                }
+                            });
+                        }
+                    }
+
+                    if (isInside) {
+                        obrasDetectadas.push({
+                            capa: cfg.nombre,
+                            color: cfg.color,
+                            properties: f.properties,
+                            latlng: { lat: pt[1], lng: pt[0] }
+                        });
+                    }
+                }
+            });
+        }
+    });
+
+    return obrasDetectadas;
+}
+
 const archivosCatastro = ["parcela1_4.geojson", "parcela5_7.geojson", "parcela8_15.geojson"];
 archivosCatastro.forEach(file => {
     fetchGeoJSON(BASE_URL + "catastro/" + file).then(data => {
@@ -372,6 +449,7 @@ archivosCatastro.forEach(file => {
 
                     let content = `<div class="popup-custom"><div class="popup-header">DATOS DE LA PARCELA</div>`;
                     content += `<div style="margin-bottom:2px; font-weight:bold; color:#2d3748; font-size:9px;">DISTRITO: <span style="color:#2980b9">${decodificarTexto(dist)}</span></div>`;
+                    
                     if (p.esPH) {
                         content += `<div style="padding:2px; font-size:9px;"><b>PH DETECTADA</b><br><b>PARTIDAS:</b> ${p.partidas.join(", ")}<br><b>UBICACIÓN:</b> ${decodificarTexto(p.ubicacion)}</div>`;
                     } else {
@@ -381,6 +459,29 @@ archivosCatastro.forEach(file => {
                         }
                         content += `</table>`;
                     }
+
+                    /* --- NUEVO DETECTOR ESPACIAL DE OBRAS EN ESTA PARCELA --- */
+                    const obrasEncontradas = buscarObrasEnParcela(f.geometry);
+                    if (obrasEncontradas.length > 0) {
+                        content += `<div style="margin-top: 6px; padding-top: 6px; border-top: 1px dashed #cbd5e1;">`;
+                        content += `<b style="color: #e67e22; font-size: 8px; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 3px;">Obras Registradas en esta Parcela:</b>`;
+                        content += `<div style="max-height: 80px; overflow-y: auto; display: flex; flex-direction: column; gap: 3px;">`;
+                        
+                        obrasEncontradas.forEach(o => {
+                            // Se genera un identificador rápido (ej. nro de expediente o dirección) para mostrar en la fila
+                            let identificador = o.properties.expediente || o.properties.nro_exp || o.properties.ubipar1 || "Ver detalles";
+                            content += `
+                                <div style="display: flex; align-items: center; justify-content: space-between; background: #f8fafc; padding: 3px; border-radius: 4px; border-left: 3px solid ${o.color}; gap: 4px;">
+                                    <span style="font-weight: 700; color: #334155; font-size: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px;" title="${o.capa}">
+                                        ${o.capa} (${decodificarTexto(String(identificador))})
+                                    </span>
+                                    <button onclick="window.centrarYVerObra('${o.capa}', ${o.latlng.lat}, ${o.latlng.lng})" style="background: #2563eb; color: white; padding: 1px 4px; border-radius: 3px; font-weight: bold; font-size: 8px; cursor: pointer; border: none;">VER</button>
+                                </div>
+                            `;
+                        });
+                        content += `</div></div>`;
+                    }
+
                     content += `<a href="${sv}" target="_blank" class="btn-streetview">📍 STREET VIEW</a>`;
                     content += `<div class="adv-sv">Para mejor orientación, haga clic en el frente de la parcela.</div>`;
                     content += `<div class="adv-legal">Nota Ord. 8563: Para parcelas en calles límite, se pueden considerar usos del distrito colindante (Sección V).</div>`;
@@ -450,6 +551,7 @@ const capasObrasConfig = [
 ];
 
 const gruposObras = {};
+const cachedObrasData = {}; // Guarda en memoria los GeoJSON cargados para indexación poligonal en tiempo real
 
 // Cargador robusto con sistema de tolerancia y fallbacks de ruta/nombre
 async function cargarCapaObraConResiliencia(cfg) {
@@ -476,6 +578,8 @@ async function cargarCapaObraConResiliencia(cfg) {
     }
 
     if (data) {
+        cachedObrasData[cfg.nombre] = data; // Almacenamos el buffer de datos para el motor de detección de parcelas
+
         L.geoJSON(data, {
             pointToLayer: (f, latlng) => {
                 return L.circleMarker(latlng, { radius: 6, fillColor: cfg.color, color: "#fff", weight: 1.5, fillOpacity: 0.9 });
