@@ -409,59 +409,6 @@ function controlarVisibilidadParcelas() {
 }
 map.on('zoomend', controlarVisibilidadParcelas);
 
-var grupoCocheras = L.layerGroup();
-var grupoCorredores = L.layerGroup();
-
-fetchGeoJSON(BASE_URL + "cocheras_porcentaje_zona.geojson").then(data => {
-    L.geoJSON(data, {
-        style: { color: "#7b1fa2", weight: 2, fillColor: "#7b1fa2", fillOpacity: 0.25 },
-        onEachFeature: (f, l) => {
-            l.on('click', e => {
-                let latlng = e.latlng || l.getBounds().getCenter();
-                let html = `<div class="popup-custom"><div class="popup-header" style="color:#7b1fa2;">Zonificación Cocheras</div><table class="table-info">`;
-                for (let [k, v] of Object.entries(f.properties)) {
-                    if (v) html += `<tr><td>${decodificarTexto(k).toUpperCase()}</td><td>${decodificarTexto(String(v))}</td></tr>`;
-                }
-                html += `</table>`;
-                
-                let parcelaEncontrada = obtenerInfoParcelaEnPunto(latlng);
-                if (parcelaEncontrada) {
-                    html += `<hr style="margin: 6px 0; border-style: dashed; border-color: #cbd5e1;">`;
-                    html += `<div class="text-[8px] text-slate-500 italic text-center mb-1">Hay una parcela catastral debajo.</div>`;
-                    html += `<button onclick="mostrarInfoParcelaDesdePopup(${latlng.lat}, ${latlng.lng})" class="w-full text-center py-1 bg-blue-600 hover:bg-blue-700 text-white rounded font-bold text-[9px] uppercase transition-colors">👉 Ver Parcela Catastral debajo</button>`;
-                }
-                html += `</div>`;
-                l.bindPopup(html).openPopup(latlng);
-            });
-        }
-    }).addTo(grupoCocheras);
-});
-
-fetchGeoJSON(BASE_URL + "cocheras_corredores.geojson").then(data => {
-    L.geoJSON(data, {
-        style: { color: "#e91e63", weight: 4, opacity: 0.8 },
-        onEachFeature: (f, l) => {
-            l.on('click', e => {
-                let latlng = e.latlng || l.getBounds().getCenter();
-                let html = `<div class="popup-custom"><div class="popup-header" style="color:#e91e63;">Corredor Cocheras</div><table class="table-info">`;
-                for (let [k, v] of Object.entries(f.properties)) {
-                    if (v) html += `<tr><td>${decodificarTexto(k).toUpperCase()}</td><td>${decodificarTexto(String(v))}</td></tr>`;
-                }
-                html += `</table>`;
-                
-                let parcelaEncontrada = obtenerInfoParcelaEnPunto(latlng);
-                if (parcelaEncontrada) {
-                    html += `<hr style="margin: 6px 0; border-style: dashed; border-color: #cbd5e1;">`;
-                    html += `<div class="text-[8px] text-slate-500 italic text-center mb-1">Hay una parcela catastral debajo.</div>`;
-                    html += `<button onclick="mostrarInfoParcelaDesdePopup(${latlng.lat}, ${latlng.lng})" class="w-full text-center py-1 bg-blue-600 hover:bg-blue-700 text-white rounded font-bold text-[9px] uppercase transition-colors">👉 Ver Parcela Catastral debajo</button>`;
-                }
-                html += `</div>`;
-                l.bindPopup(html).openPopup(latlng);
-            });
-        }
-    }).addTo(grupoCorredores);
-});
-
 /* ================= CAPAS DE OBRAS PRIVADAS ================= */
 const capasObrasConfig = [
     { 
@@ -560,7 +507,8 @@ async function cargarCapaObraConResiliencia(cfg) {
 
 // Inicializar grupos de capas y arrancar la carga resiliente
 capasObrasConfig.forEach(cfg => {
-    gruposObras[cfg.nombre] = L.layerGroup().addTo(map); 
+    // PROTOCOLO DE NO REGRESIÓN: Modificamos para iniciar apagadas removiendo .addTo(map)
+    gruposObras[cfg.nombre] = L.layerGroup(); 
     cargarCapaObraConResiliencia(cfg);
 });
 
@@ -630,8 +578,6 @@ const overlays = {
     "<span class='layer-legend-icon' style='background:rgba(255,255,255,0.1); border:2px dashed white;'></span> Distritos (Trazos)": grupoDistritos,
     "<span class='layer-legend-icon' style='background:#FFFF00; height:4px; border:1px solid #000;'></span> Nombres de Calles": grupoCalles,
     "<span class='layer-legend-icon' style='background:#2980b9'></span> Parcelas Catastrales": grupoParcelas,
-    "<span class='layer-legend-icon' style='background:#7b1fa2'></span> Zonificación Cocheras": grupoCocheras,
-    "<span class='layer-legend-icon' style='background:#e91e63; height:3px; border:none'></span> Corredores Cocheras": grupoCorredores,
     
     // Separador de Obras Privadas
     "<b>Obras Privadas</b>": L.layerGroup(),
