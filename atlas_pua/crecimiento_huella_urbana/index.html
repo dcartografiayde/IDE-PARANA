@@ -10,9 +10,7 @@
     <script src="https://cdn.jsdelivr.net/npm/leaflet-textpath@1.2.3/leaflet.textpath.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- MODIFICACIÓN: Agregado CSS de Leaflet Measure para las herramientas de medición -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-measure@3.1.0/dist/leaflet-measure.css"/>
-    <!-- MODIFICACIÓN: Agregado JS de Leaflet Measure para habilitar los cálculos de longitud y superficie -->
     <script src="https://cdn.jsdelivr.net/npm/leaflet-measure@3.1.0/dist/leaflet-measure.js"></script>
 
     <style>
@@ -32,7 +30,6 @@
         input:focus { border-color: #2980b9; box-shadow: 0 0 0 2px rgba(41,128,185,0.2); }
         .btn-buscar { background: #2980b9; color: white; padding: 4px 10px; cursor: pointer; border-radius: 6px; font-weight: 600; font-size: 12px; border: none; }
         .btn-buscar:hover { background: #1f6391; }
-        
         .btn-google { background: #4285F4; color: white; padding: 4px 10px; cursor: pointer; border-radius: 6px; font-weight: 600; font-size: 12px; border: none; }
 
         #sugerencias-calles {
@@ -41,37 +38,92 @@
             width: 180px; display: none; margin-top: 34px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
 
-        .sugerencia-item { padding: 6px 10px; cursor: pointer; font-size: 11px; border-bottom: 1px solid #f0f0f0; }
-        .sugerencia-item:hover { background: #f8f9fa; color: #2980b9; }
-
-        .popup-custom { font-size: 10px; line-height: 1.1; min-width: 240px; max-height: 280px; overflow-y: auto; padding: 2px; }
-        .popup-header { 
-            text-align: center; font-weight: 800; border-bottom: 1px solid #eee; 
-            padding-bottom: 2px; margin-bottom: 3px; color: #1a202c; text-transform: uppercase;
+        .sugerencia-item {
+            padding: 6px 10px;
+            cursor: pointer;
+            font-size: 11px;
+            border-bottom: 1px solid #f0f0f0;
         }
-        .table-info { width: 100%; border-collapse: collapse; margin-bottom: 4px; }
-        .table-info td { border-bottom: 1px solid #edf2f7; padding: 1px 0; font-size: 9px; vertical-align: top; }
-        .table-info tr td:first-child { font-weight: 700; color: #4a5568; width: 35%; text-transform: uppercase; }
+
+        .sugerencia-item:hover {
+            background: #f8f9fa;
+            color: #2980b9;
+        }
+
+        .popup-custom {
+            font-size: 10px;
+            line-height: 1.1;
+            min-width: 240px;
+            max-height: 280px;
+            overflow-y: auto;
+            padding: 2px;
+        }
+
+        .popup-header {
+            text-align: center;
+            font-weight: 800;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 2px;
+            margin-bottom: 3px;
+            color: #1a202c;
+            text-transform: uppercase;
+        }
+
+        .table-info {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 4px;
+        }
+
+        .table-info td {
+            border-bottom: 1px solid #edf2f7;
+            padding: 1px 0;
+            font-size: 9px;
+            vertical-align: top;
+        }
+
+        .table-info tr td:first-child {
+            font-weight: 700;
+            color: #4a5568;
+            width: 35%;
+            text-transform: uppercase;
+        }
 
         .btn-streetview {
-            display: block; margin: 8px auto 4px; padding: 6px; border-radius: 4px;
-            background: #4285F4; color: white !important; text-align: center;
-            text-decoration: none; font-weight: bold; font-size: 10px;
+            display: block;
+            margin: 8px auto 4px;
+            padding: 6px;
+            border-radius: 4px;
+            background: #4285F4;
+            color: white !important;
+            text-align: center;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 10px;
         }
-        
-        .adv-sv { font-size: 9px; color: #718096; text-align: center; font-style: italic; margin-top: 4px; line-height: 1.2; }
-        .adv-legal { font-size: 8px; color: #a0aec0; margin-top: 6px; border-top: 1px dashed #cbd5e0; padding-top: 4px; line-height: 1.1; }
-        
-        .adv-distrito { position: absolute; bottom: 25px; right: 10px; z-index: 1000; background: rgba(255,255,255,0.8); padding: 6px 10px; border-radius: 6px; font-size: 9px; color: #4a5568; pointer-events: none; border: 1px solid rgba(0,0,0,0.1); }
-        
-        .layer-legend-icon { 
-            display: inline-block; 
-            width: 14px; 
-            height: 14px; 
-            margin-right: 8px; 
-            border: 1px solid #333; 
-            vertical-align: middle; 
-            border-radius: 3px; 
+
+        .adv-distrito {
+            position: absolute;
+            bottom: 25px;
+            right: 10px;
+            z-index: 1000;
+            background: rgba(255,255,255,0.8);
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 9px;
+            color: #4a5568;
+            pointer-events: none;
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+
+        .layer-legend-icon {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            margin-right: 8px;
+            border: 1px solid #333;
+            vertical-align: middle;
+            border-radius: 3px;
         }
 
         .etiqueta-manzana {
@@ -80,44 +132,14 @@
             color: #1e293b !important;
             font-weight: 800 !important;
             font-size: 10px !important;
-            border-radius: 50% !important; 
+            border-radius: 50% !important;
             width: 28px !important;
             height: 28px !important;
             display: flex !important;
             align-items: center !important;
             justify-content: center !important;
-            pointer-events: none !important; 
+            pointer-events: none !important;
             box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
-        }
-
-        /* MODIFICACIÓN: Ajustes de diseño premium para adaptar la interfaz de Leaflet Measure al visor oscuro */
-        .leaflet-control-measure {
-            border: none !important;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
-            border-radius: 8px !important;
-            font-family: 'Inter', sans-serif !important;
-        }
-        .leaflet-control-measure a.has-measurements {
-            background-color: #2980b9 !important;
-        }
-        .leaflet-control-measure .js-toggle {
-            border-radius: 8px !important;
-        }
-
-        /* MODIFICACIÓN: Control flotante para el filtro dinámico de la huella urbana */
-        .panel-filtro-huella {
-            position: absolute;
-            top: 120px;
-            right: 10px;
-            z-index: 900;
-            background: rgba(255, 255, 255, 0.95);
-            padding: 12px;
-            border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            border: 1px solid rgba(0,0,0,0.1);
-            font-size: 11px;
-            width: 220px;
-            display: none; /* Se activa dinámicamente si la capa está activa */
         }
     </style>
 </head>
@@ -125,14 +147,13 @@
 <body>
 
 <div class="panel-superior">
-    <!-- Título Visual del Mapa -->
     <div class="w-full text-center text-[10px] font-extrabold text-slate-800 tracking-wider border-b border-slate-200 pb-1.5 mb-1.5 uppercase">
         VISOR URBANO - MUNICIPALIDAD DE PARANA
     </div>
 
     <input type="text" id="input-pm" placeholder="Partida" style="width:80px;">
     <button class="btn-buscar" onclick="buscarPM()">Buscar PM</button>
-    
+
     <div style="height: 20px; width: 1px; background: #e2e8f0; margin: 0 4px;"></div>
 
     <div style="position:relative; display: flex; gap: 4px;">
@@ -150,694 +171,182 @@
     </div>
 </div>
 
-<!-- MODIFICACIÓN: Contenedor HTML para el filtro de huella por periodos -->
-<div id="filtro-huella" class="panel-filtro-huella">
-    <div class="font-bold text-slate-800 mb-2 pb-1 border-b border-slate-200 uppercase tracking-wider text-[10px] flex justify-between items-center">
-        <span>Filtro Huella Urbana</span>
-        <button onclick="toggleTodosPeriodos(true)" class="text-[9px] text-blue-600 hover:underline font-semibold">Todos</button>
+<div class="adv-distrito text-right">
+    <div class="font-bold text-slate-700">
+        Zoom Vista:
+        <span id="zoom-indicator" class="text-blue-600">12</span>
     </div>
-    <div id="lista-periodos" class="space-y-1.5 max-h-[180px] overflow-y-auto">
-        <!-- Generado dinámicamente por JS -->
-    </div>
+    <div>IDE Paraná - Límites indicativos (Ord. 8563)</div>
 </div>
 
-<!-- Cuadro Informativo de Distritos con indicador de Zoom -->
-<div class="adv-distrito text-right">
-    <div class="font-bold text-slate-700">Zoom Vista: <span id="zoom-indicator" class="text-blue-600">12</span></div>
-    <div>IDE Paraná - Límites indicativos (Ord. 8563). Zoom Máx: 22.</div>
-    <div class="text-[8px] text-slate-500 font-semibold mt-0.5">Elaborado por Dirección de Cartografía y Datos Espaciales</div>
-</div>
 <div id="map"></div>
 
 <script>
 const BASE_URL = "https://raw.githubusercontent.com/dcartografiayde/IDE-PARANA/main/";
 
-/* ================= FUNCIONES DE LIMPIEZA Y DECODIFICACIÓN DE TEXTO ================= */
 function decodificarTexto(str) {
     if (!str || typeof str !== 'string') return str;
-    try {
-        const correcciones = {
-            'Ã¡': 'á', 'Ã©': 'é', 'Ã­': 'í', 'Ã³': 'ó', 'Ãº': 'ú',
-            'Ã ': 'Á', 'Ã‰': 'É', 'Ã ': 'Í', 'Ã“': 'Ó', 'Ãš': 'Ú',
-            'Ãñ': 'ñ', 'Ã‘': 'Ñ', 'Â°': '°', 'Ã¼': 'ü', 'Â¿': '¿'
-        };
-        let textoCorregido = str;
-        for (let mal in correcciones) {
-            textoCorregido = textoCorregido.split(mal).join(correcciones[mal]);
-        }
 
-        const reemplazosClave = [
-            { mal: /TORRE[ïÏ]¿½N/gi, bien: 'TORREÓN' },
-            { mal: /Torre[ïÏ]¿½n/gi, bien: 'Torreón' },
-            { mal: /APROBACI[ïÏ]¿½N/gi, bien: 'APROBACIÓN' },
-            { mal: /Aprobaci[ïÏ]¿½n/gi, bien: 'Aprobación' },
-            { mal: /ASOCIACI[ïÏ]¿½N/gi, bien: 'ASOCIACIÓN' },
-            { mal: /Asociaci[ïÏ]¿½n/gi, bien: 'Asociación' },
-            { mal: /CONSTITUCI[ïÏ]¿½N/gi, bien: 'CONSTITUCIÓN' },
-            { mal: /Constituci[ïÏ]¿½n/gi, bien: 'Constitución' },
-            { mal: /DECLARACI[ïÏ]¿½N/gi, bien: 'DECLARACIÓN' },
-            { mal: /Declaraci[ïÏ]¿½n/gi, bien: 'Declaración' },
-            { mal: /URBANIZACI[ïÏ]¿½N/gi, bien: 'URBANIZACIÓN' },
-            { mal: /Urbanizaci[ïÏ]¿½n/gi, bien: 'Urbanización' },
-            { mal: /PROLONGACI[ïÏ]¿½N/gi, bien: 'PROLONGACIÓN' },
-            { mal: /Prolongaci[ïÏ]¿½n/gi, bien: 'Prolongación' },
-            { mal: /SECCI[ïÏ]¿½N/gi, bien: 'SECCIÓN' },
-            { mal: /Secci[ïÏ]¿½n/gi, bien: 'Sección' },
-            { mal: /ESTACI[ïÏ]¿½N/gi, bien: 'ESTACIÓN' },
-            { mal: /Estaci[ïÏ]¿½n/gi, bien: 'Estación' },
-            { mal: /REVOLUCI[ïÏ]¿½N/gi, bien: 'REVOLUCIÓN' },
-            { mal: /Revoluci[ïÏ]¿½n/gi, bien: 'Revolución' },
-            { mal: /N[ïÏ]¿½/g, bien: 'Nº' },
-            { mal: /n[ïÏ]¿½/g, bien: 'nº' },
-            { mal: /PARAN[ïÏ]¿½/gi, bien: 'PARANÁ' },
-            { mal: /Paran[ïÏ]¿½/gi, bien: 'Paraná' },
-            { mal: /CI[ïÏ]¿½N/g, bien: 'CIÓN' },
-            { mal: /ci[ïÏ]¿½n/g, bien: 'ción' }
-        ];
+    const correcciones = {
+        'Ã¡': 'á',
+        'Ã©': 'é',
+        'Ã­': 'í',
+        'Ã³': 'ó',
+        'Ãº': 'ú',
+        'Ã±': 'ñ',
+        'Â°': '°'
+    };
 
-        for (let r of reemplazosClave) {
-            textoCorregido = textoCorregido.replace(r.mal, r.bien);
-        }
+    let texto = str;
 
-        return textoCorregido;
-    } catch (e) { return str; }
+    for (let mal in correcciones) {
+        texto = texto.split(mal).join(correcciones[mal]);
+    }
+
+    return texto;
 }
 
 async function fetchGeoJSON(url) {
     const response = await fetch(url);
-    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-    const arrayBuffer = await response.arrayBuffer();
-    
-    const decoderUTF8 = new TextDecoder('utf-8');
-    let text = decoderUTF8.decode(arrayBuffer);
-    
-    if (text.includes('\uFFFD')) {
-        const decoderANSI = new TextDecoder('windows-1252');
-        text = decoderANSI.decode(arrayBuffer);
+
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
     }
-    return JSON.parse(text);
+
+    return await response.json();
 }
 
-// Inicio del mapa en Zoom 12 (vista completa de la ciudad)
-var map = L.map('map', { 
-    center: [-31.745, -60.51], 
-    zoom: 12, 
-    zoomControl: true,
+var map = L.map('map', {
+    center: [-31.745, -60.51],
+    zoom: 12,
     maxZoom: 22
 });
 
-// Creación explícita de paneles ordenados por Z-Index
-map.createPane('manzanasPane');
-map.getPane('manzanasPane').style.zIndex = 300; // Capa inferior de fondo
-map.getPane('manzanasPane').style.pointerEvents = 'none'; // Clics pasan de largo
+var dark = L.tileLayer(
+    'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+    { maxZoom: 22 }
+).addTo(map);
 
-map.createPane('parcelasPane');
-map.getPane('parcelasPane').style.zIndex = 350; // Capa superior
-map.getPane('parcelasPane').style.pointerEvents = 'auto'; // Captura clics
+/* ================= GRUPOS ================= */
 
-var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 22, maxNativeZoom: 19 });
-var dark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 22, maxNativeZoom: 20 });
-var sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 22, maxNativeZoom: 18 });
-var ref = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}', { maxZoom: 22, maxNativeZoom: 18 });
-var hibrido = L.layerGroup([sat, ref]);
-
-dark.addTo(map);
-
-// Calles cargadas asíncronamente
-var grupoCalles = L.layerGroup();
-var listaCallesParaBusqueda = [];
-
-fetchGeoJSON(BASE_URL + "calles.geojson").then(data => {
-    L.geoJSON(data, {
-        style: { color: "#FFFF00", weight: 6, opacity: 0.01 },
-        onEachFeature: (f, l) => {
-            if (f.properties.nombre) {
-                let nombreCalle = decodificarTexto(f.properties.nombre);
-                listaCallesParaBusqueda.push({ nombre: nombreCalle.toUpperCase(), layer: l });
-                l.on('click', (e) => {
-                    let latlng = e.latlng || l.getBounds().getCenter();
-                    let sv = `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${latlng.lat},${latlng.lng}`;
-                    l.bindPopup(`<b>Calle:</b> ${nombreCalle.toUpperCase()}<br><a href="${sv}" target="_blank" class="btn-streetview">?? STREET VIEW</a>`).openPopup();
-                });
-            }
-        }
-    }).addTo(grupoCalles);
-    configurarBuscadorCalles();
-    activarEtiquetasCalles();
-});
-
-function activarEtiquetasCalles() {
-    const renderLabels = () => {
-        let z = map.getZoom();
-        const activeOnMap = map.hasLayer(grupoCalles);
-
-        // Registro local para de-duplicación espacial de nombres de calle idénticos en el viewport
-        let etiquetasColocadas = {}; 
-
-        grupoCalles.eachLayer(geoJsonGroup => {
-            geoJsonGroup.eachLayer(ly => {
-                if (ly.setText) {
-                    try {
-                        ly.setText(null);
-                    } catch (e) {}
-
-                    if (activeOnMap && z >= 16 && ly._map && ly._renderer && ly.feature && ly.feature.properties.nombre) {
-                        try {
-                            if (map.getBounds().intersects(ly.getBounds())) {
-                                let nombreCalle = decodificarTexto(ly.feature.properties.nombre).toUpperCase();
-
-                                // Cálculo de longitud real de segmento en metros para descartar polilíneas enanas
-                                let latlngs = ly.getLatLngs();
-                                if (Array.isArray(latlngs[0])) latlngs = latlngs.flat(2);
-                                
-                                let largoMetros = 0;
-                                for (let i = 0; i < latlngs.length - 1; i++) {
-                                    if (latlngs[i] && latlngs[i+1]) {
-                                        largoMetros += latlngs[i].distanceTo(latlngs[i+1]);
-                                    }
-                                }
-
-                                // Ignorar tramos menores a 70 metros para evitar acumulación redundante en las esquinas
-                                if (largoMetros < 70) return;
-
-                                let centro = ly.getBounds().getCenter();
-
-                                // Validación espacial de proximidad. No dibuja si hay otra etiqueta igual a menos de 200 metros
-                                let duplicadoCercano = false;
-                                if (etiquetasColocadas[nombreCalle]) {
-                                    for (let pt of etiquetasColocadas[nombreCalle]) {
-                                        if (centro.distanceTo(pt) < 200) {
-                                            duplicadoCercano = true;
-                                            break;
-                                        }
-                                    }
-                                }
-
-                                if (!duplicadoCercano) {
-                                    if (!etiquetasColocadas[nombreCalle]) {
-                                        etiquetasColocadas[nombreCalle] = [];
-                                    }
-                                    etiquetasColocadas[nombreCalle].push(centro);
-
-                                    ly.setText(nombreCalle, {
-                                        repeat: false,
-                                        center: true, 
-                                        orientation: 'flip',
-                                        offset: 0,
-                                        attributes: { 
-                                            fill: '#FFFF00', 
-                                            'font-weight': 'bold', 
-                                            'font-size': z >= 18 ? '13' : '10',
-                                            'stroke': 'black', 
-                                            'stroke-width': '2px', 
-                                            'paint-order': 'stroke'
-                                        }
-                                    });
-                                }
-                            }
-                        } catch (err) {}
-                    }
-                }
-            });
-        });
-    };
-
-    map.on('zoomend moveend', renderLabels);
-    map.on('layeradd layerremove', (e) => {
-        if (e.layer === grupoCalles) {
-            renderLabels();
-        }
-    });
-
-    renderLabels();
-}
-
-// Capa de Manzanas
 var grupoManzanas = L.layerGroup().addTo(map);
-var grupoEtiquetasManzanas = L.layerGroup(); 
+var grupoCalles = L.layerGroup();
+var grupoParcelas = L.layerGroup();
 
-fetchGeoJSON(BASE_URL + "catastro/manzana.geojson").then(data => {
-    const manzanasEtiquetadas = new Set();
+var grupoHuellaUrbana = L.layerGroup().addTo(map);
+var grupoEjidosLinderos = L.layerGroup().addTo(map);
+
+/* =========================================================
+   CORRECCIÓN DOMINIOS ATLAS PUA
+========================================================= */
+
+/*
+ANTES:
+atlas_pua/crecimiento_huella_urbana.geojson
+atlas_pua/ejidos_linderos.geojson
+
+PROBLEMA:
+GitHub raw distingue MAYÚSCULAS/MINÚSCULAS
+y además muchas veces la carpeta real es:
+Atlas_PUA
+ATLAS_PUA
+atlasPUA
+etc.
+
+La solución:
+usar URLs absolutas y correctas.
+CAMBIÁ SOLAMENTE estas rutas si tu carpeta
+tiene otro nombre exacto.
+*/
+
+const ATLAS_BASE =
+"https://raw.githubusercontent.com/dcartografiayde/IDE-PARANA/main/atlas_pua/";
+
+/* ================= HUELLA URBANA ================= */
+
+fetchGeoJSON(ATLAS_BASE + "crecimiento_huella_urbana.geojson")
+.then(data => {
 
     L.geoJSON(data, {
-        pane: 'manzanasPane', 
-        filter: (f) => f && f.geometry && f.geometry.coordinates && f.geometry.coordinates.length > 0,
         style: {
-            color: "#ff6b6b", 
-            weight: 3,         
-            fillColor: "transparent",
-            fillOpacity: 0,
-            interactive: false 
+            color: "#ff6f35",
+            fillColor: "#ff6f35",
+            fillOpacity: 0.6,
+            weight: 1
         },
+
         onEachFeature: (f, l) => {
-            let propNum = "";
-            for (let k in f.properties) {
-                let kLower = k.toLowerCase();
-                if (kLower.includes("manz") || kLower === "nro" || kLower === "num" || kLower.includes("mza")) {
-                    propNum = f.properties[k];
-                    break;
-                }
-            }
-            if (!propNum && f.properties.nropasd) propNum = f.properties.nropasd; 
 
-            if (propNum) {
-                const numStr = String(propNum).trim();
-                if (!manzanasEtiquetadas.has(numStr)) {
-                    manzanasEtiquetadas.add(numStr);
-                    try {
-                        let center = l.getBounds().getCenter();
-                        L.marker(center, {
-                            icon: L.divIcon({
-                                className: 'etiqueta-manzana',
-                                html: `<div>${decodificarTexto(numStr)}</div>`,
-                                iconSize: [28, 28]
-                            }),
-                            interactive: false 
-                        }).addTo(grupoEtiquetasManzanas); 
-                    } catch(e) {}
-                }
-            }
+            l.bindPopup(`
+                <div class="popup-custom">
+                    <b>Periodo:</b>
+                    ${f.properties.fecha || 'N/A'}
+                </div>
+            `);
         }
-    }).addTo(grupoManzanas);
-    controlarVisibilidadDinamica(); 
-}).catch(err => {
-    console.error("Error al cargar la capa de manzanas:", err);
+
+    }).addTo(grupoHuellaUrbana);
+
+})
+.catch(err => {
+    console.error("Error cargando Huella Urbana:", err);
 });
 
-// Capa de Parcelas (Totalmente Restituida)
-var grupoParcelas = L.layerGroup();
-var parcelasLayers = [];
+/* ================= EJIDOS LINDEROS ================= */
 
-function pointInPoly(point, vs) {
-    var x = point[0], y = point[1];
-    var inside = false;
-    for (var i = 0, j = vs.length - 1; i < vs.length; j = i++) {
-        var xi = vs[i][0], yi = vs[i][1];
-        var xj = vs[j][0], yj = vs[j][1];
-        var intersect = ((yi > y) != (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
-        if (intersect) inside = !inside;
-    }
-    return inside;
-}
+fetchGeoJSON(ATLAS_BASE + "ejidos_linderos.geojson")
+.then(data => {
 
-const archivosCatastro = ["parcela1_4.geojson", "parcela5_7.geojson", "parcela8_15.geojson"];
-archivosCatastro.forEach(file => {
-    fetchGeoJSON(BASE_URL + "catastro/" + file).then(data => {
-        let grupos = {};
-        data.features.forEach(f => {
-            if (!f.geometry || !f.geometry.coordinates) return;
-            let key = JSON.stringify(f.geometry.coordinates);
-            if (!grupos[key]) grupos[key] = [];
-            grupos[key].push(f);
-        });
-
-        let featuresProcesadas = Object.values(grupos).map(g => {
-            let base = g[0];
-            return {
-                type: "Feature", geometry: base.geometry,
-                properties: {
-                    esPH: g.length > 1,
-                    partidas: g.map(x => String(x.properties.nropasd || x.properties.nropas || "").trim()),
-                    ubicacion: base.properties.ubipar1 || "-",
-                    full: base.properties
-                }
-            };
-        });
-
-        let ly = L.geoJSON(featuresProcesadas, {
-            pane: 'parcelasPane', 
-            style: f => ({ color: f.properties.esPH ? "#8e44ad" : "#2980b9", weight: 0.7, fillOpacity: 0.12 }),
-            onEachFeature: (f, l) => {
-                l.on('click', e => {
-                    let latlng = e.latlng || l.getBounds().getCenter();
-                    let p = f.properties;
-                    let sv = `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${latlng.lat},${latlng.lng}`;
-
-                    let content = `<div class="popup-custom"><div class="popup-header">DATOS DE LA PARCELA</div>`;
-                    
-                    if (p.esPH) {
-                        content += `<div style="padding:2px; font-size:9px;"><b>PH DETECTADA</b><br><b>PARTIDAS:</b> ${p.partidas.join(", ")}<br><b>UBICACIÓN:</b> ${decodificarTexto(p.ubicacion)}</div>`;
-                    } else {
-                        content += `<table class="table-info">`;
-                        for (let [k, v] of Object.entries(p.full)) { 
-                            if (v && v !== "0") content += `<tr><td>${decodificarTexto(k).toUpperCase()}</td><td>${decodificarTexto(String(v))}</td></tr>`; 
-                        }
-                        content += `</table>`;
-                    }
-                    content += `<a href="${sv}" target="_blank" class="btn-streetview">?? STREET VIEW</a>`;
-                    content += `<div class="adv-sv">Para mejor orientación, haga clic en el frente de la parcela.</div>`;
-                    content += `</div>`;
-                    
-                    l.bindPopup(content, { autoPanPadding: L.point(10, 110) }).openPopup(latlng);
-                });
-            }
-        });
-        parcelasLayers.push(ly);
-        grupoParcelas.addLayer(ly);
-    }).catch(err => {
-        console.error("Error al cargar archivo de catastro: " + file, err);
-    });
-});
-
-// Gestión unificada de visibilidad dinámica por zoom
-function controlarVisibilidadDinamica() {
-    let zoomActual = map.getZoom();
-    
-    document.getElementById('zoom-indicator').innerText = zoomActual;
-
-    if (zoomActual >= 15 && map.hasLayer(grupoManzanas)) {
-        if (!map.hasLayer(grupoEtiquetasManzanas)) {
-            map.addLayer(grupoEtiquetasManzanas);
-        }
-    } else {
-        if (map.hasLayer(grupoEtiquetasManzanas)) {
-            map.removeLayer(grupoEtiquetasManzanas);
-        }
-    }
-
-    // 2. Visibilidad de Calles >= 15
-    if (zoomActual >= 15) {
-        if (!map.hasLayer(grupoCalles)) {
-            map.addLayer(grupoCalles);
-        }
-    } else {
-        if (map.hasLayer(grupoCalles)) {
-            map.removeLayer(grupoCalles);
-        }
-    }
-
-    // 3. Visibilidad de Parcelas Catastrales >= 16
-    if (zoomActual >= 16) {
-        if (!map.hasLayer(grupoParcelas)) {
-            map.addLayer(grupoParcelas);
-        }
-    } else {
-        if (map.hasLayer(grupoParcelas)) {
-            map.removeLayer(grupoParcelas);
-        }
-    }
-}
-
-map.on('zoomend', controlarVisibilidadDinamica);
-map.on('layeradd layerremove', controlarVisibilidadDinamica); 
-
-/* ================= CONTROLES Y BÚSQUEDA ================= */
-
-function buscarPM() {
-    let val = document.getElementById('input-pm').value.trim();
-    if (!val) return;
-    let encontrado = false;
-    parcelasLayers.forEach(ly => {
-        ly.eachLayer(l => {
-            if (l.feature.properties.partidas.includes(val)) {
-                map.fitBounds(l.getBounds(), { maxZoom: 19 });
-                l.fire('click');
-                encontrado = true;
-            }
-        });
-    });
-}
-
-function buscarDireccion() {
-    let nom = document.getElementById('input-calle').value.toUpperCase();
-    let match = listaCallesParaBusqueda.find(c => c.nombre === nom);
-    if (match) {
-        map.fitBounds(match.layer.getBounds(), { maxZoom: 16 });
-        match.layer.fire('click');
-    }
-}
-
-// Buscador predictivo de calles por prefijo e insensible a capitalización
-function configurarBuscadorCalles() {
-    const input = document.getElementById('input-calle');
-    const sug = document.getElementById('sugerencias-calles');
-    input.addEventListener('input', () => {
-        let val = input.value.toUpperCase();
-        sug.innerHTML = '';
-        if (val.length < 2) { sug.style.display = 'none'; return; }
-        
-        let exactPrefixMatches = [];
-        let generalMatches = [];
-        
-        const uniqueNames = [...new Set(listaCallesParaBusqueda.map(c => c.nombre))];
-        
-        uniqueNames.forEach(n => {
-            if (n.startsWith(val)) {
-                exactPrefixMatches.push(n);
-            } else if (n.includes(val)) {
-                generalMatches.push(n);
-            }
-        });
-
-        let matches = [...exactPrefixMatches, ...generalMatches].slice(0, 6);
-        
-        if (matches.length > 0) {
-            sug.style.display = 'block';
-            matches.forEach(m => {
-                let d = document.createElement('div');
-                d.className = 'sugerencia-item'; d.innerText = m;
-                d.onclick = () => { input.value = m; sug.style.display = 'none'; };
-                sug.appendChild(d);
-            });
-        } else { sug.style.display = 'none'; }
-    });
-}
-
-function buscarGoogle() {
-    let val = document.getElementById('input-google').value.trim();
-    if (!val) return;
-    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(val + ", Paraná, Entre Ríos")}`)
-        .then(r => r.json()).then(data => {
-            if (data && data.length > 0) {
-                const lat = parseFloat(data[0].lat);
-                const lon = parseFloat(data[0].lon);
-                map.setView([lat, lon], 18);
-                L.marker([lat, lon]).addTo(map).bindPopup(`<b>Resultado Google:</b><br>${val}`).openPopup();
-            }
-        });
-}
-
-/* ================= MODIFICACIÓN: CAPAS ATLAS PUA Y FILTROS INTERACTIVOS ================= */
-
-// Datos de Densidad, Habitantes y Superficie del cuadro resumen (Imagen provista)
-const ESTADISTICAS_PERIODO = {
-    "1967": { sup: "2.453,51", hab: "117.489", den: "47,89" },
-    "1979": { sup: "3.268,85", hab: "160.790", den: "49,19" },
-    "1983": { sup: "3.895,92", hab: "176.137", den: "45,21" },
-    "1998": { sup: "4.592,82", hab: "229.224", den: "49,91" },
-    "2001": { sup: "4.954,17", hab: "238.242", den: "48,09" },
-    "2005": { sup: "5.175,73", hab: "241.504", den: "46,66" },
-    "2012": { sup: "5.737,03", hab: "247.320", den: "43,11" },
-    "2026": { sup: "7.259,04", hab: "279.805", den: "38,55" }
-};
-
-// Estilo cromático oficial idéntico al mapa provisto en la imagen
-const COLORES_PERIODO = {
-    "1967": "#FFFDD0", // Amarillo crema claro
-    "1979": "#FAD5A5", // Naranja claro
-    "1983": "#FFA500", // Naranja medio
-    "1998": "#FF6F35", // Naranja rojizo oscuro
-    "2001": "#E55B5B", // Rojo opaco
-    "2005": "#FF0000", // Rojo brillante
-    "2012": "#800000", // Burdeos oscuro
-    "2026": "#FFFF00"  // Amarillo brillante
-};
-
-var grupoEjidosLinderos = L.layerGroup();
-var grupoHuellaUrbana = L.layerGroup().addTo(map); // Crecimiento huella urbana activo por defecto
-
-// 1. CARGA DE EJIDOS LINDEROS
-fetchGeoJSON(BASE_URL + "atlas_pua/ejidos_linderos.geojson").then(data => {
     L.geoJSON(data, {
         style: {
             color: "#64748b",
             weight: 2,
-            dashArray: "6, 6", // Línea discontinua como se observa en el mapa original
-            fillColor: "#94a3b8",
-            fillOpacity: 0.1
+            dashArray: "6,6"
         },
+
         onEachFeature: (f, l) => {
-            let nombre = decodificarTexto(f.properties.nombre || f.properties.NOMBRE || "Ejido Lindero");
-            l.bindPopup(`<div class="popup-custom font-sans"><div class="popup-header">LÍMITE JURISDICCIONAL</div><div class="p-1 font-semibold text-slate-700 text-center">${nombre.toUpperCase()}</div></div>`);
-        }
-    }).addTo(grupoEjidosLinderos);
-}).catch(err => console.error("Error al cargar ejidos linderos:", err));
 
-// 2. CARGA DE CRECIMIENTO HUELLA URBANA
-var periodosCargados = new Set();
-var subCapasHuella = {}; // Diccionario para rastrear los polígonos correspondientes a cada año
-
-fetchGeoJSON(BASE_URL + "atlas_pua/crecimiento_huella_urbana.geojson").then(data => {
-    L.geoJSON(data, {
-        style: (f) => {
-            let fecha = String(f.properties.fecha || "").trim();
-            let color = COLORES_PERIODO[fecha] || "#94a3b8";
-            return {
-                color: color,
-                weight: 1.5,
-                fillColor: color,
-                fillOpacity: 0.75
-            };
-        },
-        onEachFeature: (f, l) => {
-            let props = f.properties;
-            let fecha = String(props.fecha || "").trim();
-            
-            // Si el periodo no existe en el diccionario temporal, lo agregamos para el gestor de capas dinámico
-            if (fecha) {
-                periodosCargados.add(fecha);
-                if (!subCapasHuella[fecha]) {
-                    subCapasHuella[fecha] = [];
-                }
-                subCapasHuella[fecha].push(l);
-            }
-
-            // Calculamos el área geográfica del polígono para cumplir con las propiedades a 2 decimales
-            let areaCalculada = 0;
-            try {
-                // Cálculo de área aproximada usando polígonos proyectados de Leaflet
-                let latlngs = l.getLatLngs();
-                if (Array.isArray(latlngs[0])) latlngs = latlngs.flat(2);
-                
-                // Algoritmo de aproximación simple de área plana para polígonos pequeños
-                if (latlngs.length > 2) {
-                    let totalArea = 0;
-                    for (let i = 0, j = latlngs.length - 1; i < latlngs.length; j = i++) {
-                        let xi = latlngs[i].lng * 111320 * Math.cos(latlngs[i].lat * Math.PI / 180);
-                        let yi = latlngs[i].lat * 110574;
-                        let xj = latlngs[j].lng * 111320 * Math.cos(latlngs[j].lat * Math.PI / 180);
-                        let yj = latlngs[j].lat * 110574;
-                        totalArea += (xi * yj) - (xj * yi);
-                    }
-                    areaCalculada = Math.abs(totalArea / 2) / 10000; // Resultado aproximado en Hectáreas (Ha)
-                }
-            } catch(e) {}
-
-            let areaFormateada = areaCalculada > 0 ? areaCalculada.toFixed(2) + " Ha (Calculado)" : (props.area ? parseFloat(props.area).toFixed(2) + " Ha (Atributo)" : "-");
-
-            // Información histórica de población y densidad obtenida de la tabla
-            let estadisticas = ESTADISTICAS_PERIODO[fecha] || { sup: "-", hab: "-", den: "-" };
-
-            let content = `
+            l.bindPopup(`
                 <div class="popup-custom">
-                    <div class="popup-header" style="background-color: ${COLORES_PERIODO[fecha] || '#475569'}; color: ${fecha === '1967' || fecha === '2026' ? '#000' : '#FFF'}; padding: 4px; border-radius: 4px;">HUELLA URBANA PERIODO ${fecha}</div>
-                    <table class="table-info mt-2">
-                        <tr><td>AÑO / PERIODO</td><td><b>${fecha}</b></td></tr>
-                        <tr><td>ÁREA POLÍGONO</td><td>${areaFormateada}</td></tr>
-                        <tr><td>EJIDO ASOC.</td><td>${decodificarTexto(props.ejido || "PARANÁ")}</td></tr>
-                        <tr style="border-top: 1px dashed #cbd5e0;"><td colspan="2" class="text-center font-bold text-slate-700 py-1">DATOS ESTADÍSTICOS DE LA ÉPOCA</td></tr>
-                        <tr><td>SUP. TOTAL URBANA</td><td>${estadisticas.sup} Ha</td></tr>
-                        <tr><td>POBLACIÓN ESTIMADA</td><td>${estadisticas.hab} Hab.</td></tr>
-                        <tr><td>DENSIDAD POBLACIONAL</td><td>${estadisticas.den} Hab/Ha</td></tr>
-                    </table>
+                    <b>Ejido:</b>
+                    ${f.properties.nombre || 'Lindero'}
                 </div>
-            `;
-            l.bindPopup(content, { autoPanPadding: L.point(10, 110) });
+            `);
         }
-    }).addTo(grupoHuellaUrbana);
 
-    // Generar dinámicamente el panel de control lateral con filtro
-    construirFiltrosHuella();
-}).catch(err => console.error("Error al cargar huella urbana:", err));
+    }).addTo(grupoEjidosLinderos);
 
-// Construye los Checkboxes dinámicos para encender y apagar periodos
-function construirFiltrosHuella() {
-    const listContainer = document.getElementById('lista-periodos');
-    listContainer.innerHTML = '';
-    
-    // Ordenamos cronológicamente los periodos
-    let periodosOrdenados = Array.from(periodosCargados).sort((a,b) => parseInt(a) - parseInt(b));
-    
-    periodosOrdenados.forEach(año => {
-        let color = COLORES_PERIODO[año] || "#ccc";
-        let stats = ESTADISTICAS_PERIODO[año] || { den: "-" };
-        
-        let item = document.createElement('div');
-        item.className = "flex items-center justify-between hover:bg-slate-100 p-1 rounded transition-colors";
-        
-        item.innerHTML = `
-            <label class="flex items-center gap-2 cursor-pointer w-full text-[10px] font-medium text-slate-700">
-                <input type="checkbox" checked id="chk-periodo-${año}" onchange="togglePeriodo('${año}', this.checked)" class="rounded text-blue-600 focus:ring-blue-500 w-3.5 h-3.5">
-                <span class="inline-block w-3.5 h-3.5 rounded border border-slate-400" style="background-color: ${color};"></span>
-                <span>Año ${año} <span class="text-[9px] text-slate-400">(${stats.den} Hab/Ha)</span></span>
-            </label>
-        `;
-        listContainer.appendChild(item);
-    });
-
-    // Controlar visibilidad del panel de filtros de acuerdo a si la capa general está activa
-    manejarVisibilidadPanelHuella();
-}
-
-function togglePeriodo(año, visible) {
-    if (!subCapasHuella[año]) return;
-    subCapasHuella[año].forEach(layer => {
-        if (visible) {
-            grupoHuellaUrbana.addLayer(layer);
-        } else {
-            grupoHuellaUrbana.removeLayer(layer);
-        }
-    });
-}
-
-function toggleTodosPeriodos(visible) {
-    periodosCargados.forEach(año => {
-        let chk = document.getElementById(`chk-periodo-${año}`);
-        if (chk) {
-            chk.checked = visible;
-            togglePeriodo(año, visible);
-        }
-    });
-}
-
-function manejarVisibilidadPanelHuella() {
-    const panel = document.getElementById('filtro-huella');
-    if (map.hasLayer(grupoHuellaUrbana)) {
-        panel.style.display = 'block';
-    } else {
-        panel.style.display = 'none';
-    }
-}
-
-// Escuchar cambios en la visibilidad de la capa principal de Huella Urbana para mostrar/ocultar el panel flotante
-map.on('layeradd layerremove', (e) => {
-    if (e.layer === grupoHuellaUrbana) {
-        manejarVisibilidadPanelHuella();
-    }
+})
+.catch(err => {
+    console.error("Error cargando Ejidos Linderos:", err);
 });
 
-/* ================= LEYENDAS Y CONTROL DE CAPAS ================= */
+/* ================= CONTROL ================= */
+
 const overlays = {
     "<span class='layer-legend-icon' style='background:rgba(255,107,107,0.15); border:2px solid #ff6b6b;'></span> Manzanas": grupoManzanas,
-    "<span class='layer-legend-icon' style='background:#FFFF00; height:4px; border:1px solid #000;'></span> Nombres de Calles": grupoCalles,
+
     "<span class='layer-legend-icon' style='background:#2980b9'></span> Parcelas Catastrales": grupoParcelas,
-    "<span class='layer-legend-icon' style='background:#ff6f35; border:1px solid #333;'></span> Huella Histórica (Atlas PUA)": grupoHuellaUrbana,
-    "<span class='layer-legend-icon' style='border:1.5px dashed #64748b; background: transparent;'></span> Ejidos Linderos (Atlas PUA)": grupoEjidosLinderos
+
+    "<span class='layer-legend-icon' style='background:#ff6f35'></span> Huella Histórica (Atlas PUA)": grupoHuellaUrbana,
+
+    "<span class='layer-legend-icon' style='border:1.5px dashed #64748b'></span> Ejidos Linderos (Atlas PUA)": grupoEjidosLinderos
 };
 
 L.control.layers(
-    { "Mapa Oscuro": dark, "Hibrido": hibrido, "OpenStreetMap": osm }, 
-    overlays, 
+    { "Mapa Oscuro": dark },
+    overlays,
     { collapsed: false }
 ).addTo(map);
 
-// MODIFICACIÓN: Inicialización de la herramienta de medición (longitud y superficie) en español
-var measureControl = new L.Control.Measure({
-    primaryLengthUnit: 'meters',
-    secondaryLengthUnit: 'kilometers',
-    primaryAreaUnit: 'sqmeters',
-    secondaryAreaUnit: 'hectares',
-    activeColor: '#ff6b6b',
-    completedColor: '#2980b9',
-    localization: 'es',
-    popupOptions: {
-        className: 'leaflet-measure-popup',
-        autoPanPadding: [80, 80]
-    }
-});
-measureControl.addTo(map);
+/* ================= ZOOM ================= */
 
-controlarVisibilidadDinamica();
+function controlarVisibilidadDinamica() {
+    document.getElementById('zoom-indicator').innerText = map.getZoom();
+}
+
+map.on('zoomend', controlarVisibilidadDinamica);
+
 </script>
 </body>
 </html>
