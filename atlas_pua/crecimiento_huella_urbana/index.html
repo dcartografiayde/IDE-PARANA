@@ -103,6 +103,22 @@
         .leaflet-control-measure .js-toggle {
             border-radius: 8px !important;
         }
+
+        /* MODIFICACIÓN: Control flotante para el filtro dinámico de la huella urbana */
+        .panel-filtro-huella {
+            position: absolute;
+            top: 120px;
+            right: 10px;
+            z-index: 900;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 12px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            border: 1px solid rgba(0,0,0,0.1);
+            font-size: 11px;
+            width: 220px;
+            display: none; /* Se activa dinámicamente si la capa está activa */
+        }
     </style>
 </head>
 
@@ -131,6 +147,17 @@
     <div style="display: flex; gap: 4px;">
         <input type="text" id="input-google" placeholder="Lugar/Google..." style="width:110px;">
         <button class="btn-google" onclick="buscarGoogle()">Google</button>
+    </div>
+</div>
+
+<!-- MODIFICACIÓN: Contenedor HTML para el filtro de huella por periodos -->
+<div id="filtro-huella" class="panel-filtro-huella">
+    <div class="font-bold text-slate-800 mb-2 pb-1 border-b border-slate-200 uppercase tracking-wider text-[10px] flex justify-between items-center">
+        <span>Filtro Huella Urbana</span>
+        <button onclick="toggleTodosPeriodos(true)" class="text-[9px] text-blue-600 hover:underline font-semibold">Todos</button>
+    </div>
+    <div id="lista-periodos" class="space-y-1.5 max-h-[180px] overflow-y-auto">
+        <!-- Generado dinámicamente por JS -->
     </div>
 </div>
 
@@ -250,7 +277,7 @@ fetchGeoJSON(BASE_URL + "calles.geojson").then(data => {
                 l.on('click', (e) => {
                     let latlng = e.latlng || l.getBounds().getCenter();
                     let sv = `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${latlng.lat},${latlng.lng}`;
-                    l.bindPopup(`<b>Calle:</b> ${nombreCalle.toUpperCase()}<br><a href="${sv}" target="_blank" class="btn-streetview">📍 STREET VIEW</a>`).openPopup();
+                    l.bindPopup(`<b>Calle:</b> ${nombreCalle.toUpperCase()}<br><a href="${sv}" target="_blank" class="btn-streetview">?? STREET VIEW</a>`).openPopup();
                 });
             }
         }
@@ -457,7 +484,7 @@ archivosCatastro.forEach(file => {
                         }
                         content += `</table>`;
                     }
-                    content += `<a href="${sv}" target="_blank" class="btn-streetview">📍 STREET VIEW</a>`;
+                    content += `<a href="${sv}" target="_blank" class="btn-streetview">?? STREET VIEW</a>`;
                     content += `<div class="adv-sv">Para mejor orientación, haga clic en el frente de la parcela.</div>`;
                     content += `</div>`;
                     
@@ -590,15 +617,206 @@ function buscarGoogle() {
         });
 }
 
+/* ================= MODIFICACIÓN: CAPAS ATLAS PUA Y FILTROS INTERACTIVOS ================= */
+
+// Datos de Densidad, Habitantes y Superficie del cuadro resumen (Imagen provista)
+const ESTADISTICAS_PERIODO = {
+    "1967": { sup: "2.453,51", hab: "117.489", den: "47,89" },
+    "1979": { sup: "3.268,85", hab: "160.790", den: "49,19" },
+    "1983": { sup: "3.895,92", hab: "176.137", den: "45,21" },
+    "1998": { sup: "4.592,82", hab: "229.224", den: "49,91" },
+    "2001": { sup: "4.954,17", hab: "238.242", den: "48,09" },
+    "2005": { sup: "5.175,73", hab: "241.504", den: "46,66" },
+    "2012": { sup: "5.737,03", hab: "247.320", den: "43,11" },
+    "2026": { sup: "7.259,04", hab: "279.805", den: "38,55" }
+};
+
+// Estilo cromático oficial idéntico al mapa provisto en la imagen
+const COLORES_PERIODO = {
+    "1967": "#FFFDD0", // Amarillo crema claro
+    "1979": "#FAD5A5", // Naranja claro
+    "1983": "#FFA500", // Naranja medio
+    "1998": "#FF6F35", // Naranja rojizo oscuro
+    "2001": "#E55B5B", // Rojo opaco
+    "2005": "#FF0000", // Rojo brillante
+    "2012": "#800000", // Burdeos oscuro
+    "2026": "#FFFF00"  // Amarillo brillante
+};
+
+var grupoEjidosLinderos = L.layerGroup();
+var grupoHuellaUrbana = L.layerGroup().addTo(map); // Crecimiento huella urbana activo por defecto
+
+// 1. CARGA DE EJIDOS LINDEROS
+fetchGeoJSON(BASE_URL + "atlas_pua/ejidos_linderos.geojson").then(data => {
+    L.geoJSON(data, {
+        style: {
+            color: "#64748b",
+            weight: 2,
+            dashArray: "6, 6", // Línea discontinua como se observa en el mapa original
+            fillColor: "#94a3b8",
+            fillOpacity: 0.1
+        },
+        onEachFeature: (f, l) => {
+            let nombre = decodificarTexto(f.properties.nombre || f.properties.NOMBRE || "Ejido Lindero");
+            l.bindPopup(`<div class="popup-custom font-sans"><div class="popup-header">LÍMITE JURISDICCIONAL</div><div class="p-1 font-semibold text-slate-700 text-center">${nombre.toUpperCase()}</div></div>`);
+        }
+    }).addTo(grupoEjidosLinderos);
+}).catch(err => console.error("Error al cargar ejidos linderos:", err));
+
+// 2. CARGA DE CRECIMIENTO HUELLA URBANA
+var periodosCargados = new Set();
+var subCapasHuella = {}; // Diccionario para rastrear los polígonos correspondientes a cada año
+
+fetchGeoJSON(BASE_URL + "atlas_pua/crecimiento_huella_urbana.geojson").then(data => {
+    L.geoJSON(data, {
+        style: (f) => {
+            let fecha = String(f.properties.fecha || "").trim();
+            let color = COLORES_PERIODO[fecha] || "#94a3b8";
+            return {
+                color: color,
+                weight: 1.5,
+                fillColor: color,
+                fillOpacity: 0.75
+            };
+        },
+        onEachFeature: (f, l) => {
+            let props = f.properties;
+            let fecha = String(props.fecha || "").trim();
+            
+            // Si el periodo no existe en el diccionario temporal, lo agregamos para el gestor de capas dinámico
+            if (fecha) {
+                periodosCargados.add(fecha);
+                if (!subCapasHuella[fecha]) {
+                    subCapasHuella[fecha] = [];
+                }
+                subCapasHuella[fecha].push(l);
+            }
+
+            // Calculamos el área geográfica del polígono para cumplir con las propiedades a 2 decimales
+            let areaCalculada = 0;
+            try {
+                // Cálculo de área aproximada usando polígonos proyectados de Leaflet
+                let latlngs = l.getLatLngs();
+                if (Array.isArray(latlngs[0])) latlngs = latlngs.flat(2);
+                
+                // Algoritmo de aproximación simple de área plana para polígonos pequeños
+                if (latlngs.length > 2) {
+                    let totalArea = 0;
+                    for (let i = 0, j = latlngs.length - 1; i < latlngs.length; j = i++) {
+                        let xi = latlngs[i].lng * 111320 * Math.cos(latlngs[i].lat * Math.PI / 180);
+                        let yi = latlngs[i].lat * 110574;
+                        let xj = latlngs[j].lng * 111320 * Math.cos(latlngs[j].lat * Math.PI / 180);
+                        let yj = latlngs[j].lat * 110574;
+                        totalArea += (xi * yj) - (xj * yi);
+                    }
+                    areaCalculada = Math.abs(totalArea / 2) / 10000; // Resultado aproximado en Hectáreas (Ha)
+                }
+            } catch(e) {}
+
+            let areaFormateada = areaCalculada > 0 ? areaCalculada.toFixed(2) + " Ha (Calculado)" : (props.area ? parseFloat(props.area).toFixed(2) + " Ha (Atributo)" : "-");
+
+            // Información histórica de población y densidad obtenida de la tabla
+            let estadisticas = ESTADISTICAS_PERIODO[fecha] || { sup: "-", hab: "-", den: "-" };
+
+            let content = `
+                <div class="popup-custom">
+                    <div class="popup-header" style="background-color: ${COLORES_PERIODO[fecha] || '#475569'}; color: ${fecha === '1967' || fecha === '2026' ? '#000' : '#FFF'}; padding: 4px; border-radius: 4px;">HUELLA URBANA PERIODO ${fecha}</div>
+                    <table class="table-info mt-2">
+                        <tr><td>AÑO / PERIODO</td><td><b>${fecha}</b></td></tr>
+                        <tr><td>ÁREA POLÍGONO</td><td>${areaFormateada}</td></tr>
+                        <tr><td>EJIDO ASOC.</td><td>${decodificarTexto(props.ejido || "PARANÁ")}</td></tr>
+                        <tr style="border-top: 1px dashed #cbd5e0;"><td colspan="2" class="text-center font-bold text-slate-700 py-1">DATOS ESTADÍSTICOS DE LA ÉPOCA</td></tr>
+                        <tr><td>SUP. TOTAL URBANA</td><td>${estadisticas.sup} Ha</td></tr>
+                        <tr><td>POBLACIÓN ESTIMADA</td><td>${estadisticas.hab} Hab.</td></tr>
+                        <tr><td>DENSIDAD POBLACIONAL</td><td>${estadisticas.den} Hab/Ha</td></tr>
+                    </table>
+                </div>
+            `;
+            l.bindPopup(content, { autoPanPadding: L.point(10, 110) });
+        }
+    }).addTo(grupoHuellaUrbana);
+
+    // Generar dinámicamente el panel de control lateral con filtro
+    construirFiltrosHuella();
+}).catch(err => console.error("Error al cargar huella urbana:", err));
+
+// Construye los Checkboxes dinámicos para encender y apagar periodos
+function construirFiltrosHuella() {
+    const listContainer = document.getElementById('lista-periodos');
+    listContainer.innerHTML = '';
+    
+    // Ordenamos cronológicamente los periodos
+    let periodosOrdenados = Array.from(periodosCargados).sort((a,b) => parseInt(a) - parseInt(b));
+    
+    periodosOrdenados.forEach(año => {
+        let color = COLORES_PERIODO[año] || "#ccc";
+        let stats = ESTADISTICAS_PERIODO[año] || { den: "-" };
+        
+        let item = document.createElement('div');
+        item.className = "flex items-center justify-between hover:bg-slate-100 p-1 rounded transition-colors";
+        
+        item.innerHTML = `
+            <label class="flex items-center gap-2 cursor-pointer w-full text-[10px] font-medium text-slate-700">
+                <input type="checkbox" checked id="chk-periodo-${año}" onchange="togglePeriodo('${año}', this.checked)" class="rounded text-blue-600 focus:ring-blue-500 w-3.5 h-3.5">
+                <span class="inline-block w-3.5 h-3.5 rounded border border-slate-400" style="background-color: ${color};"></span>
+                <span>Año ${año} <span class="text-[9px] text-slate-400">(${stats.den} Hab/Ha)</span></span>
+            </label>
+        `;
+        listContainer.appendChild(item);
+    });
+
+    // Controlar visibilidad del panel de filtros de acuerdo a si la capa general está activa
+    manejarVisibilidadPanelHuella();
+}
+
+function togglePeriodo(año, visible) {
+    if (!subCapasHuella[año]) return;
+    subCapasHuella[año].forEach(layer => {
+        if (visible) {
+            grupoHuellaUrbana.addLayer(layer);
+        } else {
+            grupoHuellaUrbana.removeLayer(layer);
+        }
+    });
+}
+
+function toggleTodosPeriodos(visible) {
+    periodosCargados.forEach(año => {
+        let chk = document.getElementById(`chk-periodo-${año}`);
+        if (chk) {
+            chk.checked = visible;
+            togglePeriodo(año, visible);
+        }
+    });
+}
+
+function manejarVisibilidadPanelHuella() {
+    const panel = document.getElementById('filtro-huella');
+    if (map.hasLayer(grupoHuellaUrbana)) {
+        panel.style.display = 'block';
+    } else {
+        panel.style.display = 'none';
+    }
+}
+
+// Escuchar cambios en la visibilidad de la capa principal de Huella Urbana para mostrar/ocultar el panel flotante
+map.on('layeradd layerremove', (e) => {
+    if (e.layer === grupoHuellaUrbana) {
+        manejarVisibilidadPanelHuella();
+    }
+});
+
 /* ================= LEYENDAS Y CONTROL DE CAPAS ================= */
 const overlays = {
     "<span class='layer-legend-icon' style='background:rgba(255,107,107,0.15); border:2px solid #ff6b6b;'></span> Manzanas": grupoManzanas,
     "<span class='layer-legend-icon' style='background:#FFFF00; height:4px; border:1px solid #000;'></span> Nombres de Calles": grupoCalles,
-    "<span class='layer-legend-icon' style='background:#2980b9'></span> Parcelas Catastrales": grupoParcelas
+    "<span class='layer-legend-icon' style='background:#2980b9'></span> Parcelas Catastrales": grupoParcelas,
+    "<span class='layer-legend-icon' style='background:#ff6f35; border:1px solid #333;'></span> Huella Histórica (Atlas PUA)": grupoHuellaUrbana,
+    "<span class='layer-legend-icon' style='border:1.5px dashed #64748b; background: transparent;'></span> Ejidos Linderos (Atlas PUA)": grupoEjidosLinderos
 };
 
 L.control.layers(
-    { "Mapa Oscuro": dark, "Híbrido": hibrido, "OpenStreetMap": osm }, 
+    { "Mapa Oscuro": dark, "Hibrido": hibrido, "OpenStreetMap": osm }, 
     overlays, 
     { collapsed: false }
 ).addTo(map);
