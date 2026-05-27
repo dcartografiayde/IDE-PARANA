@@ -3,7 +3,8 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VISOR URBANIZACIONES - MUNICIPALIDAD DE PARANA</title>
+    <!-- MODIFICACIÓN: Título de página adaptado al Mapa de Servicios -->
+    <title>VISOR URBANO - MUNICIPALIDAD DE PARANA - MAPA DE SERVICIOS POR CALLE</title>
 
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -103,15 +104,236 @@
         .leaflet-control-measure .js-toggle {
             border-radius: 8px !important;
         }
+
+        /* MODIFICACIÓN: Estilos específicos para el nuevo panel lateral de estadísticas (Dashboard) */
+        .panel-dashboard {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            z-index: 950;
+            width: 320px;
+            max-height: calc(100vh - 80px);
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(8px);
+            color: #f8fafc;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            overflow: hidden;
+        }
+        .panel-dashboard.collapsed {
+            transform: translateX(340px);
+            opacity: 0;
+            pointer-events: none;
+        }
+        .btn-toggle-dashboard {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            z-index: 900;
+            background: #1e293b;
+            color: white;
+            border: 1px solid rgba(255,255,255,0.15);
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 12px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+        .btn-toggle-dashboard:hover {
+            background: #334155;
+            border-color: rgba(255,255,255,0.3);
+        }
+        .dashboard-scroll {
+            overflow-y: auto;
+            flex-grow: 1;
+            padding: 14px;
+        }
+        .dashboard-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        .dashboard-scroll::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+        }
     </style>
 </head>
 
 <body>
 
+<!-- MODIFICACIÓN: Botón flotante para abrir y cerrar el Dashboard de estadísticas -->
+<button class="btn-toggle-dashboard" onclick="toggleDashboard()">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M11 3.055A9.003 9.003 0 1020.945 13H11V3.055z" />
+        <path stroke-linecap="round" stroke-linejoin="round" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
+    </svg>
+    <span>Estadísticas</span>
+</button>
+
+<!-- MODIFICACIÓN: Interfaz del Dashboard lateral de cobertura urbana de servicios -->
+<div id="dashboard" class="panel-dashboard collapsed">
+    <div class="p-4 border-b border-slate-700/50 flex justify-between items-center bg-slate-900/80">
+        <div class="flex items-center gap-2">
+            <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+            </svg>
+            <span class="font-bold text-sm tracking-wide uppercase text-slate-100">Indicadores de Redes</span>
+        </div>
+        <button onclick="toggleDashboard()" class="text-slate-400 hover:text-white p-1 rounded-md hover:bg-slate-800 transition">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+    </div>
+
+    <div class="dashboard-scroll space-y-4">
+        <!-- MODIFICACIÓN: Cambiado el título a "Tendido en Vista" para reflejar el comportamiento dinámico del mapa -->
+        <div class="bg-slate-900/60 border border-slate-800 p-3 rounded-lg text-center">
+            <div class="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Tendido Total en Vista</div>
+            <div id="db-total-km" class="text-2xl font-black text-slate-100 mt-1">0.00 <span class="text-xs font-normal text-slate-400">km</span></div>
+            <div class="text-[8px] text-slate-500 mt-0.5">Calculado dinámicamente según la extensión del mapa</div>
+        </div>
+
+        <!-- Seccion Redes de Servicios básicos -->
+        <div class="space-y-3">
+            <h4 class="text-xs font-bold uppercase tracking-wider text-blue-400 border-b border-slate-800 pb-1">Servicios Básicos</h4>
+            
+            <!-- Cobertura de Agua -->
+            <div class="bg-slate-900/40 p-2.5 rounded-lg border border-slate-800/40">
+                <div class="flex justify-between items-center text-xs mb-1">
+                    <span class="font-medium text-slate-300 flex items-center gap-1">
+                        <span class="w-2.5 h-2.5 rounded-full bg-[#00d2ff] inline-block"></span> Agua Potable
+                    </span>
+                    <span id="db-agua-km" class="font-semibold text-slate-200">0.0 km</span>
+                </div>
+                <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                    <div id="db-agua-bar" class="bg-[#00d2ff] h-full transition-all duration-1000" style="width: 0%"></div>
+                </div>
+                <div class="flex justify-between items-center text-[9px] text-slate-400 mt-1">
+                    <span>Porcentaje de cobertura</span>
+                    <span id="db-agua-pct" class="font-bold text-slate-300">0%</span>
+                </div>
+            </div>
+
+            <!-- Cobertura de Cloacas -->
+            <div class="bg-slate-900/40 p-2.5 rounded-lg border border-slate-800/40">
+                <div class="flex justify-between items-center text-xs mb-1">
+                    <span class="font-medium text-slate-300 flex items-center gap-1">
+                        <span class="w-2.5 h-2.5 rounded-full bg-[#a65d34] inline-block"></span> Red de Cloaca
+                    </span>
+                    <span id="db-cloaca-km" class="font-semibold text-slate-200">0.0 km</span>
+                </div>
+                <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                    <div id="db-cloaca-bar" class="bg-[#a65d34] h-full transition-all duration-1000" style="width: 0%"></div>
+                </div>
+                <div class="flex justify-between items-center text-[9px] text-slate-400 mt-1">
+                    <span>Porcentaje de cobertura</span>
+                    <span id="db-cloaca-pct" class="font-bold text-slate-300">0%</span>
+                </div>
+            </div>
+
+            <!-- Cobertura de Gas -->
+            <div class="bg-slate-900/40 p-2.5 rounded-lg border border-slate-800/40">
+                <div class="flex justify-between items-center text-xs mb-1">
+                    <span class="font-medium text-slate-300 flex items-center gap-1">
+                        <span class="w-2.5 h-2.5 rounded-full bg-[#ff9f43] inline-block"></span> Red de Gas Natural
+                    </span>
+                    <span id="db-gas-km" class="font-semibold text-slate-200">0.0 km</span>
+                </div>
+                <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                    <div id="db-gas-bar" class="bg-[#ff9f43] h-full transition-all duration-1000" style="width: 0%"></div>
+                </div>
+                <div class="flex justify-between items-center text-[9px] text-slate-400 mt-1">
+                    <span>Porcentaje de cobertura</span>
+                    <span id="db-gas-pct" class="font-bold text-slate-300">0%</span>
+                </div>
+            </div>
+
+            <!-- Cobertura de Alumbrado -->
+            <div class="bg-slate-900/40 p-2.5 rounded-lg border border-slate-800/40">
+                <div class="flex justify-between items-center text-xs mb-1">
+                    <span class="font-medium text-slate-300 flex items-center gap-1">
+                        <span class="w-2.5 h-2.5 rounded-full bg-[#f1c40f] inline-block"></span> Alumbrado Público
+                    </span>
+                    <span id="db-alumbrado-km" class="font-semibold text-slate-200">0.0 km</span>
+                </div>
+                <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                    <div id="db-alumbrado-bar" class="bg-[#f1c40f] h-full transition-all duration-1000" style="width: 0%"></div>
+                </div>
+                <div class="flex justify-between items-center text-[9px] text-slate-400 mt-1">
+                    <span>Porcentaje de cobertura</span>
+                    <span id="db-alumbrado-pct" class="font-bold text-slate-300">0%</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Seccion Tipos de Pavimento -->
+        <div class="space-y-3">
+            <h4 class="text-xs font-bold uppercase tracking-wider text-green-400 border-b border-slate-800 pb-1">Distribución de Pavimento</h4>
+            
+            <div class="bg-slate-900/40 p-3 rounded-lg border border-slate-800/40 space-y-2.5">
+                <!-- Asfalto -->
+                <div class="text-xs">
+                    <div class="flex justify-between text-[11px] mb-1">
+                        <span class="text-slate-300">Asfalto</span>
+                        <span id="db-asfalto-km" class="font-bold text-slate-200">0.0 km (0%)</span>
+                    </div>
+                    <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                        <div id="db-asfalto-bar" class="bg-[#57606f] h-full" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <!-- Hormigón -->
+                <div class="text-xs">
+                    <div class="flex justify-between text-[11px] mb-1">
+                        <span class="text-slate-300">Hormigón</span>
+                        <span id="db-hormigon-km" class="font-bold text-slate-200">0.0 km (0%)</span>
+                    </div>
+                    <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                        <div id="db-hormigon-bar" class="bg-[#95a5a6] h-full" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <!-- Adoquín -->
+                <div class="text-xs">
+                    <div class="flex justify-between text-[11px] mb-1">
+                        <span class="text-slate-300">Adoquín</span>
+                        <span id="db-adoquin-km" class="font-bold text-slate-200">0.0 km (0%)</span>
+                    </div>
+                    <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                        <div id="db-adoquin-bar" class="bg-[#10ac84] h-full" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <!-- Tierra u Otros -->
+                <div class="text-xs">
+                    <div class="flex justify-between text-[11px] mb-1">
+                        <span class="text-slate-300">Tierra / Sin Pavimento</span>
+                        <span id="db-tierra-km" class="font-bold text-slate-200">0.0 km (0%)</span>
+                    </div>
+                    <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                        <div id="db-tierra-bar" class="bg-red-950 h-full" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="p-3 border-t border-slate-700/40 bg-slate-900 text-[9px] text-center text-slate-500 font-semibold tracking-wider uppercase">
+        Secretaría de Obras Públicas - Paraná
+    </div>
+</div>
+
 <div class="panel-superior">
     <!-- Título Visual del Mapa -->
     <div class="w-full text-center text-[10px] font-extrabold text-slate-800 tracking-wider border-b border-slate-200 pb-1.5 mb-1.5 uppercase">
-        VISOR URBANO - MUNICIPALIDAD DE PARANA
+        VISOR URBANO - MUNICIPALIDAD DE PARANA - MAPA DE SERVICIOS POR CALLE
     </div>
 
     <input type="text" id="input-pm" placeholder="Partida" style="width:80px;">
@@ -145,12 +367,16 @@
 <script>
 const BASE_URL = "https://raw.githubusercontent.com/dcartografiayde/IDE-PARANA/main/";
 
+/* ================= VARIABLES GLOBALES DE DATOS ================= */
+// MODIFICACIÓN: Almacenar los datos geoespaciales crudos para posibilitar el recálculo según extensión visible
+let datosServiciosOriginales = null;
+
 /* ================= FUNCIONES DE LIMPIEZA Y DECODIFICACIÓN DE TEXTO ================= */
 function decodificarTexto(str) {
     if (!str || typeof str !== 'string') return str;
     try {
         const correcciones = {
-            'Ã¡': 'á', 'Ã©': 'é', 'Ã­': 'í', 'Ã³': 'ó', 'Ãº': 'ú',
+            'Ã¡': 'á', 'Ã©': 'é', 'Ã­': 'í', 'Ãdiscretion': 'í', 'Ã³': 'ó', 'Ãº': 'ú',
             'Ã ': 'Á', 'Ã‰': 'É', 'Ã ': 'Í', 'Ã“': 'Ó', 'Ãš': 'Ú',
             'Ãñ': 'ñ', 'Ã‘': 'Ñ', 'Â°': '°', 'Ã¼': 'ü', 'Â¿': '¿'
         };
@@ -223,6 +449,11 @@ var map = L.map('map', {
 map.createPane('manzanasPane');
 map.getPane('manzanasPane').style.zIndex = 300; // Capa inferior de fondo
 map.getPane('manzanasPane').style.pointerEvents = 'none'; // Clics pasan de largo
+
+// Creación de panel específico para el trazado de servicios (por debajo de parcelas y calles para no tapar textos ni clics)
+map.createPane('serviciosPane');
+map.getPane('serviciosPane').style.zIndex = 310;
+map.getPane('serviciosPane').style.pointerEvents = 'none';
 
 map.createPane('parcelasPane');
 map.getPane('parcelasPane').style.zIndex = 350; // Capa superior
@@ -357,7 +588,7 @@ fetchGeoJSON(BASE_URL + "catastro/manzana.geojson").then(data => {
         filter: (f) => f && f.geometry && f.geometry.coordinates && f.geometry.coordinates.length > 0,
         style: {
             color: "#ff6b6b", 
-            weight: 3,         
+            weight: 1.2, // Grosor de línea reducido de 3 a 1.2 para estilizar el mapa base
             fillColor: "transparent",
             fillOpacity: 0,
             interactive: false 
@@ -472,8 +703,307 @@ archivosCatastro.forEach(file => {
     });
 });
 
+// Creación y carga de la capa "calle_servicios.geojson" filtrada por agua === 1
+var grupoServicioAgua = L.layerGroup().addTo(map);
+
+fetchGeoJSON(BASE_URL + "servicios/calle_servicios.geojson").then(data => {
+    L.geoJSON(data, {
+        pane: 'serviciosPane',
+        // Filtramos para conservar únicamente los elementos con servicio de agua (valor "1" o 1 numérico)
+        filter: (f) => f && f.properties && (String(f.properties.agua) === "1" || f.properties.agua == 1),
+        style: {
+            color: "#00d2ff", // Celeste brillante
+            weight: 7,        // Línea gruesa
+            opacity: 0.85
+        },
+        onEachFeature: (f, l) => {
+            if (f.properties.nombre) {
+                let nombreCalle = decodificarTexto(f.properties.nombre).toUpperCase();
+                l.on('click', (e) => {
+                    let latlng = e.latlng || l.getBounds().getCenter();
+                    L.popup()
+                        .setLatLng(latlng)
+                        .setContent(`<b>Calle con Cobertura de Agua</b><br><b>Calle:</b> ${nombreCalle}`)
+                        .openOn(map);
+                });
+            }
+        }
+    }).addTo(grupoServicioAgua);
+}).catch(err => {
+    console.error("Error al cargar la capa de cobertura de agua:", err);
+});
+
+// Creación y carga de la capa "calle_servicios.geojson" filtrada por cloaca === 1
+var grupoServicioCloaca = L.layerGroup().addTo(map);
+
+fetchGeoJSON(BASE_URL + "servicios/calle_servicios.geojson").then(data => {
+    L.geoJSON(data, {
+        pane: 'serviciosPane',
+        // Filtramos para conservar únicamente los elementos con servicio de cloaca (valor "1" o 1 numérico)
+        filter: (f) => f && f.properties && (String(f.properties.cloaca) === "1" || f.properties.cloaca == 1),
+        style: {
+            color: "#a65d34", // Marrón para cloaca
+            weight: 7,        // Línea gruesa
+            opacity: 0.85
+        },
+        onEachFeature: (f, l) => {
+            if (f.properties.nombre) {
+                let nombreCalle = decodificarTexto(f.properties.nombre).toUpperCase();
+                l.on('click', (e) => {
+                    let latlng = e.latlng || l.getBounds().getCenter();
+                    L.popup()
+                        .setLatLng(latlng)
+                        .setContent(`<b>Calle con Cobertura de Cloaca</b><br><b>Calle:</b> ${nombreCalle}`)
+                        .openOn(map);
+                });
+            }
+        }
+    }).addTo(grupoServicioCloaca);
+}).catch(err => {
+    console.error("Error al cargar la capa de cobertura de cloacas:", err);
+});
+
+// Creación y carga de la capa "calle_servicios.geojson" filtrada por gas === 1
+var grupoServicioGas = L.layerGroup().addTo(map);
+
+fetchGeoJSON(BASE_URL + "servicios/calle_servicios.geojson").then(data => {
+    L.geoJSON(data, {
+        pane: 'serviciosPane',
+        // Filtramos para conservar únicamente los elementos con servicio de gas (valor "1" o 1 numérico)
+        filter: (f) => f && f.properties && (String(f.properties.gas) === "1" || f.properties.gas == 1),
+        style: {
+            color: "#ff9f43", // Naranja para gas
+            weight: 7,        // Línea gruesa
+            opacity: 0.85
+        },
+        onEachFeature: (f, l) => {
+            if (f.properties.nombre) {
+                let nombreCalle = decodificarTexto(f.properties.nombre).toUpperCase();
+                l.on('click', (e) => {
+                    let latlng = e.latlng || l.getBounds().getCenter();
+                    L.popup()
+                        .setLatLng(latlng)
+                        .setContent(`<b>Calle con Cobertura de Gas</b><br><b>Calle:</b> ${nombreCalle}`)
+                        .openOn(map);
+                });
+            }
+        }
+    }).addTo(grupoServicioGas);
+}).catch(err => {
+    console.error("Error al cargar la capa de cobertura de gas:", err);
+});
+
+// Creación y carga de la capa "calle_servicios.geojson" filtrada por alumbrado === 1
+var grupoServicioAlumbrado = L.layerGroup().addTo(map);
+
+fetchGeoJSON(BASE_URL + "servicios/calle_servicios.geojson").then(data => {
+    L.geoJSON(data, {
+        pane: 'serviciosPane',
+        // Filtramos para conservar únicamente los elementos con alumbrado público (valor "1" o 1 numérico)
+        filter: (f) => f && f.properties && (String(f.properties.alumbrado) === "1" || f.properties.alumbrado == 1),
+        style: {
+            color: "#f1c40f", // Amarillo para alumbrado
+            weight: 7,        // Línea gruesa
+            opacity: 0.85
+        },
+        onEachFeature: (f, l) => {
+            if (f.properties.nombre) {
+                let nombreCalle = decodificarTexto(f.properties.nombre).toUpperCase();
+                l.on('click', (e) => {
+                    let latlng = e.latlng || l.getBounds().getCenter();
+                    L.popup()
+                        .setLatLng(latlng)
+                        .setContent(`<b>Calle con Alumbrado Público</b><br><b>Calle:</b> ${nombreCalle}`)
+                        .openOn(map);
+                });
+            }
+        }
+    }).addTo(grupoServicioAlumbrado);
+}).catch(err => {
+    console.error("Error al cargar la capa de cobertura de alumbrado público:", err);
+});
+
+// Creación y carga de la capa de tipo de pavimento filtrada por "ADOQUIN", "ASFALTO", "HORMIGON" en "pav_tipo"
+var grupoServicioPavimento = L.layerGroup().addTo(map);
+
+fetchGeoJSON(BASE_URL + "servicios/calle_servicios.geojson").then(data => {
+    L.geoJSON(data, {
+        pane: 'serviciosPane',
+        filter: (f) => {
+            if (!f || !f.properties || !f.properties.pav_tipo) return false;
+            let tipo = String(f.properties.pav_tipo).toUpperCase().trim();
+            return tipo === "ADOQUIN" || tipo === "ASFALTO" || tipo === "HORMIGON";
+        },
+        style: (f) => {
+            let tipo = String(f.properties.pav_tipo).toUpperCase().trim();
+            let col = "#ffffff";
+            if (tipo === "ADOQUIN") col = "#10ac84";     // Verde esmeralda para Adoquín
+            else if (tipo === "ASFALTO") col = "#57606f";  // Gris oscuro/carbono para Asfalto
+            else if (tipo === "HORMIGON") col = "#95a5a6"; // Gris de cemento para Hormigón
+            return {
+                color: col,
+                weight: 7,
+                opacity: 0.85
+            };
+        },
+        onEachFeature: (f, l) => {
+            if (f.properties.nombre) {
+                let nombreCalle = decodificarTexto(f.properties.nombre).toUpperCase();
+                let tipo = String(f.properties.pav_tipo).toUpperCase().trim();
+                l.on('click', (e) => {
+                    let latlng = e.latlng || l.getBounds().getCenter();
+                    L.popup()
+                        .setLatLng(latlng)
+                        .setContent(`<b>Tipo de Pavimento:</b> ${tipo}<br><b>Calle:</b> ${nombreCalle}`)
+                        .openOn(map);
+                });
+            }
+        }
+    }).addTo(grupoServicioPavimento);
+
+    // MODIFICACIÓN: Almacenar los datos originales para poder re-calcular según el viewport cada vez que cambie la vista
+    datosServiciosOriginales = data;
+    // MODIFICACIÓN: Disparamos el análisis dinámico inicial del GeoJSON
+    calcularEstadisticasDashboard();
+}).catch(err => {
+    console.error("Error al cargar la capa de pavimentos:", err);
+});
+
+// MODIFICACIÓN: Función modificada quirúrgicamente para calcular estadísticas considerando solo las calles visibles en el viewport actual
+function calcularEstadisticasDashboard() {
+    let totalMetros = 0;
+    let aguaMetros = 0;
+    let cloacaMetros = 0;
+    let gasMetros = 0;
+    let alumbradoMetros = 0;
+
+    let asfaltoMetros = 0;
+    let hormigonMetros = 0;
+    let adoquinMetros = 0;
+    let tierraMetros = 0;
+
+    if (!datosServiciosOriginales || !datosServiciosOriginales.features) return;
+
+    // MODIFICACIÓN: Obtener los límites geográficos actuales del mapa
+    const mapBounds = map.getBounds();
+
+    datosServiciosOriginales.features.forEach(f => {
+        if (!f.geometry || !f.geometry.coordinates) return;
+
+        // Extraemos las coordenadas del segmento de calle
+        let latlngs = [];
+        if (f.geometry.type === "LineString") {
+            latlngs = f.geometry.coordinates;
+        } else if (f.geometry.type === "MultiLineString") {
+            latlngs = f.geometry.coordinates.flat(1);
+        }
+
+        // Construimos un array de objetos L.LatLng y generamos el Bounding Box de la calle
+        let leafletLatLngs = latlngs.map(coord => L.latLng(coord[1], coord[0]));
+        if (leafletLatLngs.length === 0) return;
+        
+        let featureBounds = L.latLngBounds(leafletLatLngs);
+
+        // MODIFICACIÓN: Si el segmento de la calle no se intersecta con la vista del mapa actual, lo ignoramos
+        if (!mapBounds.intersects(featureBounds)) return;
+
+        let segmentoDistancia = 0;
+        for (let i = 0; i < leafletLatLngs.length - 1; i++) {
+            segmentoDistancia += leafletLatLngs[i].distanceTo(leafletLatLngs[i+1]);
+        }
+
+        totalMetros += segmentoDistancia;
+
+        // Filtramos por cobertura de servicios individuales
+        let props = f.properties || {};
+        if (String(props.agua) === "1" || props.agua == 1) aguaMetros += segmentoDistancia;
+        if (String(props.cloaca) === "1" || props.cloaca == 1) cloacaMetros += segmentoDistancia;
+        if (String(props.gas) === "1" || props.gas == 1) gasMetros += segmentoDistancia;
+        if (String(props.alumbrado) === "1" || props.alumbrado == 1) alumbradoMetros += segmentoDistancia;
+
+        // Distribución por pavimento
+        if (props.pav_tipo) {
+            let tipo = String(props.pav_tipo).toUpperCase().trim();
+            if (tipo === "ASFALTO") asfaltoMetros += segmentoDistancia;
+            else if (tipo === "HORMIGON") hormigonMetros += segmentoDistancia;
+            else if (tipo === "ADOQUIN") adoquinMetros += segmentoDistancia;
+            else tierraMetros += segmentoDistancia;
+        } else {
+            tierraMetros += segmentoDistancia;
+        }
+    });
+
+    // Conversión a Kilómetros para mejor legibilidad
+    let totalKm = totalMetros / 1000;
+    let aguaKm = aguaMetros / 1000;
+    let cloacaKm = cloacaMetros / 1000;
+    let gasKm = gasMetros / 1000;
+    let alumbradoKm = alumbradoMetros / 1000;
+
+    let asfaltoKm = asfaltoMetros / 1000;
+    let hormigonKm = hormigonMetros / 1000;
+    let adoquinKm = adoquinMetros / 1000;
+    let tierraKm = tierraMetros / 1000;
+
+    // Cálculo de porcentajes sobre el total visible
+    let aguaPct = totalKm > 0 ? Math.round((aguaKm / totalKm) * 100) : 0;
+    let cloacaPct = totalKm > 0 ? Math.round((cloacaKm / totalKm) * 100) : 0;
+    let gasPct = totalKm > 0 ? Math.round((gasKm / totalKm) * 100) : 0;
+    let alumbradoPct = totalKm > 0 ? Math.round((alumbradoKm / totalKm) * 100) : 0;
+
+    let asfaltoPct = totalKm > 0 ? Math.round((asfaltoKm / totalKm) * 100) : 0;
+    let hormigonPct = totalKm > 0 ? Math.round((hormigonKm / totalKm) * 100) : 0;
+    let adoquinPct = totalKm > 0 ? Math.round((adoquinKm / totalKm) * 100) : 0;
+    let tierraPct = totalKm > 0 ? Math.round((tierraKm / totalKm) * 100) : 0;
+
+    // Actualización directa del DOM con animación y estilo moderno
+    document.getElementById('db-total-km').innerHTML = `${totalKm.toFixed(2)} <span class="text-xs font-normal text-slate-400">km</span>`;
+    
+    document.getElementById('db-agua-km').innerText = `${aguaKm.toFixed(1)} km`;
+    document.getElementById('db-agua-pct').innerText = `${aguaPct}%`;
+    document.getElementById('db-agua-bar').style.width = `${aguaPct}%`;
+
+    document.getElementById('db-cloaca-km').innerText = `${cloacaKm.toFixed(1)} km`;
+    document.getElementById('db-cloaca-pct').innerText = `${cloacaPct}%`;
+    document.getElementById('db-cloaca-bar').style.width = `${cloacaPct}%`;
+
+    document.getElementById('db-gas-km').innerText = `${gasKm.toFixed(1)} km`;
+    document.getElementById('db-gas-pct').innerText = `${gasPct}%`;
+    document.getElementById('db-gas-bar').style.width = `${gasPct}%`;
+
+    document.getElementById('db-alumbrado-km').innerText = `${alumbradoKm.toFixed(1)} km`;
+    document.getElementById('db-alumbrado-pct').innerText = `${alumbradoPct}%`;
+    document.getElementById('db-alumbrado-bar').style.width = `${alumbradoPct}%`;
+
+    // Pavimentos
+    document.getElementById('db-asfalto-km').innerText = `${asfaltoKm.toFixed(1)} km (${asfaltoPct}%)`;
+    document.getElementById('db-asfalto-bar').style.width = `${asfaltoPct}%`;
+
+    document.getElementById('db-hormigon-km').innerText = `${hormigonKm.toFixed(1)} km (${hormigonPct}%)`;
+    document.getElementById('db-hormigon-bar').style.width = `${hormigonPct}%`;
+
+    document.getElementById('db-adoquin-km').innerText = `${adoquinKm.toFixed(1)} km (${adoquinPct}%)`;
+    document.getElementById('db-adoquin-bar').style.width = `${adoquinPct}%`;
+
+    document.getElementById('db-tierra-km').innerText = `${tierraKm.toFixed(1)} km (${tierraPct}%)`;
+    document.getElementById('db-tierra-bar').style.width = `${tierraPct}%`;
+}
+
+// Función encargada de colapsar o expandir visualmente la interfaz del Dashboard
+function toggleDashboard() {
+    const db = document.getElementById('dashboard');
+    db.classList.toggle('collapsed');
+}
+
+// Bandera de control para evitar bucles recursivos infinitos al disparar eventos addLayer/removeLayer
+var bloqueoVisibilidad = false;
+
 // Gestión unificada de visibilidad dinámica por zoom
 function controlarVisibilidadDinamica() {
+    // Si ya estamos procesando un cambio de visibilidad, salimos para evitar la recursión infinita
+    if (bloqueoVisibilidad) return;
+    bloqueoVisibilidad = true;
+
     let zoomActual = map.getZoom();
     
     document.getElementById('zoom-indicator').innerText = zoomActual;
@@ -509,10 +1039,16 @@ function controlarVisibilidadDinamica() {
             map.removeLayer(grupoParcelas);
         }
     }
+
+    // Liberamos el bloqueo una vez finalizados los cambios
+    bloqueoVisibilidad = false;
 }
 
 map.on('zoomend', controlarVisibilidadDinamica);
 map.on('layeradd layerremove', controlarVisibilidadDinamica); 
+
+// MODIFICACIÓN: Escuchar el evento 'moveend' del mapa para refrescar estadísticas dinámicamente cuando cambie la vista
+map.on('moveend', calcularEstadisticasDashboard);
 
 /* ================= CONTROLES Y BÚSQUEDA ================= */
 
@@ -592,9 +1128,17 @@ function buscarGoogle() {
 
 /* ================= LEYENDAS Y CONTROL DE CAPAS ================= */
 const overlays = {
-    "<span class='layer-legend-icon' style='background:rgba(255,107,107,0.15); border:2px solid #ff6b6b;'></span> Manzanas": grupoManzanas,
+    "<span class='layer-legend-icon' style='background:rgba(255,107,107,0.15); border:2px solid #ff6b6b; height:14px; width:14px; display:inline-block;'></span> Manzanas": grupoManzanas,
     "<span class='layer-legend-icon' style='background:#FFFF00; height:4px; border:1px solid #000;'></span> Nombres de Calles": grupoCalles,
-    "<span class='layer-legend-icon' style='background:#2980b9'></span> Parcelas Catastrales": grupoParcelas
+    "<span class='layer-legend-icon' style='background:#2980b9'></span> Parcelas Catastrales": grupoParcelas,
+    
+    // Agrupación en el selector de capas
+    "<div class='font-bold text-slate-700 border-t border-slate-300 mt-2 pt-2 mb-1 text-[10px] tracking-wider uppercase'>Servicios por segmento de calle</div>": L.layerGroup(),
+    "<span class='layer-legend-icon' style='background:#00d2ff; height:6px; border:1px solid #1a202c; display:inline-block;'></span> Calles con servicio de agua": grupoServicioAgua,
+    "<span class='layer-legend-icon' style='background:#a65d34; height:6px; border:1px solid #1a202c; display:inline-block;'></span> Calles con servicio de cloaca": grupoServicioCloaca,
+    "<span class='layer-legend-icon' style='background:#ff9f43; height:6px; border:1px solid #1a202c; display:inline-block;'></span> Calles con servicio de gas": grupoServicioGas,
+    "<span class='layer-legend-icon' style='background:#f1c40f; height:6px; border:1px solid #1a202c; display:inline-block;'></span> Calles con servicio de alumbrado": grupoServicioAlumbrado,
+    "<span class='layer-legend-icon' style='background: linear-gradient(90deg, #10ac84 33%, #57606f 33%, #57606f 66%, #95a5a6 66%); height:6px; border:1px solid #1a202c; display:inline-block;'></span> Tipo de Pavimento (Adoquín/Asfalto/Hormigón)": grupoServicioPavimento
 };
 
 L.control.layers(
@@ -603,7 +1147,7 @@ L.control.layers(
     { collapsed: false }
 ).addTo(map);
 
-// MODIFICACIÓN: Inicialización de la herramienta de medición (longitud y superficie) en español
+// Inicialización de la herramienta de medición (longitud y superficie) en español
 var measureControl = new L.Control.Measure({
     primaryLengthUnit: 'meters',
     secondaryLengthUnit: 'kilometers',
