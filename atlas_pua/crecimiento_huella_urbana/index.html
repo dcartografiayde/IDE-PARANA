@@ -611,8 +611,9 @@ var grupoEtiquetasEjidos = L.layerGroup();
 /* =========================================================
    CAPA EJIDOS LINDEROS
 ========================================================= */
-
+    
 var grupoEjidosLinderos = L.layerGroup();
+var grupoEtiquetasEjidos = L.layerGroup().addTo(grupoEjidosLinderos);
 
 fetchGeoJSON(
     BASE_URL + "atlas_pua/crecimiento_huella_urbana/ejidos_linderos.geojson"
@@ -658,25 +659,26 @@ fetchGeoJSON(
 
                     interactive: false,
 
-                    icon: L.divIcon({
-                        className: '',
-                        html: `
-                            <div style="
-                                background: rgba(255,255,255,0.90);
-                                padding: 4px 10px;
-                                border-radius: 8px;
-                                border: 2px solid #00b894;
-                                color: #065f46;
-                                font-weight: 800;
-                                font-size: 11px;
-                                white-space: nowrap;
-                                box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-                            ">
-                                ${decodificarTexto(localidad).toUpperCase()}
-                            </div>
-                        `,
-                        iconSize: [120, 24]
-                    })
+icon: L.divIcon({
+    className: '',
+    html: `
+        <div style="
+            color: #00b894;
+            font-weight: 900;
+            font-size: 13px;
+            white-space: nowrap;
+            text-shadow:
+                -1px -1px 0 #ffffff,
+                 1px -1px 0 #ffffff,
+                -1px  1px 0 #ffffff,
+                 1px  1px 0 #ffffff,
+                 0px  0px 4px rgba(0,0,0,0.4);
+        ">
+            ${decodificarTexto(localidad).toUpperCase()}
+        </div>
+    `
+})
+
 
                 }).addTo(grupoEtiquetasEjidos);
 
@@ -792,8 +794,6 @@ var measureControl = new L.Control.Measure({
     }
 });
 measureControl.addTo(map);
-
-grupoEtiquetasEjidos.addTo(map);
 
 controlarVisibilidadDinamica();
 </script>
