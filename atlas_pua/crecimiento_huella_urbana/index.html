@@ -37,134 +37,36 @@
             border-radius: 6px; max-height: 150px; overflow-y: auto; z-index: 2000;
             width: 180px; display: none; margin-top: 34px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
+        .sugerencia-item { padding: 6px 10px; cursor: pointer; font-size: 11px; border-bottom: 1px solid #f0f0f0; }
+        .sugerencia-item:hover { background: #f8f9fa; color: #2980b9; }
 
-        .sugerencia-item {
-            padding: 6px 10px;
-            cursor: pointer;
-            font-size: 11px;
-            border-bottom: 1px solid #f0f0f0;
-        }
+        .popup-custom { font-size: 10px; line-height: 1.1; min-width: 240px; max-height: 280px; overflow-y: auto; padding: 2px; }
+        .popup-header { text-align: center; font-weight: 800; border-bottom: 1px solid #eee; padding-bottom: 2px; margin-bottom: 3px; color: #1a202c; text-transform: uppercase; }
+        .table-info { width: 100%; border-collapse: collapse; margin-bottom: 4px; }
+        .table-info td { border-bottom: 1px solid #edf2f7; padding: 1px 0; font-size: 9px; vertical-align: top; }
+        .table-info tr td:first-child { font-weight: 700; color: #4a5568; width: 35%; text-transform: uppercase; }
 
-        .sugerencia-item:hover {
-            background: #f8f9fa;
-            color: #2980b9;
-        }
-
-        .popup-custom {
-            font-size: 10px;
-            line-height: 1.1;
-            min-width: 240px;
-            max-height: 280px;
-            overflow-y: auto;
-            padding: 2px;
-        }
-
-        .popup-header {
-            text-align: center;
-            font-weight: 800;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 2px;
-            margin-bottom: 3px;
-            color: #1a202c;
-            text-transform: uppercase;
-        }
-
-        .table-info {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 4px;
-        }
-
-        .table-info td {
-            border-bottom: 1px solid #edf2f7;
-            padding: 1px 0;
-            font-size: 9px;
-            vertical-align: top;
-        }
-
-        .table-info tr td:first-child {
-            font-weight: 700;
-            color: #4a5568;
-            width: 35%;
-            text-transform: uppercase;
-        }
-
-        .btn-streetview {
-            display: block;
-            margin: 8px auto 4px;
-            padding: 6px;
-            border-radius: 4px;
-            background: #4285F4;
-            color: white !important;
-            text-align: center;
-            text-decoration: none;
-            font-weight: bold;
-            font-size: 10px;
-        }
-
-        .adv-distrito {
-            position: absolute;
-            bottom: 25px;
-            right: 10px;
-            z-index: 1000;
-            background: rgba(255,255,255,0.8);
-            padding: 6px 10px;
-            border-radius: 6px;
-            font-size: 9px;
-            color: #4a5568;
-            pointer-events: none;
-            border: 1px solid rgba(0,0,0,0.1);
-        }
-
-        .layer-legend-icon {
-            display: inline-block;
-            width: 14px;
-            height: 14px;
-            margin-right: 8px;
-            border: 1px solid #333;
-            vertical-align: middle;
-            border-radius: 3px;
-        }
-
-        .etiqueta-manzana {
-            background: rgba(255, 255, 255, 0.95) !important;
-            border: 2px solid #ff6b6b !important;
-            color: #1e293b !important;
-            font-weight: 800 !important;
-            font-size: 10px !important;
-            border-radius: 50% !important;
-            width: 28px !important;
-            height: 28px !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            pointer-events: none !important;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
-        }
+        .btn-streetview { display: block; margin: 8px auto 4px; padding: 6px; border-radius: 4px; background: #4285F4; color: white !important; text-align: center; text-decoration: none; font-weight: bold; font-size: 10px; }
+        .adv-distrito { position: absolute; bottom: 25px; right: 10px; z-index: 1000; background: rgba(255,255,255,0.8); padding: 6px 10px; border-radius: 6px; font-size: 9px; color: #4a5568; pointer-events: none; border: 1px solid rgba(0,0,0,0.1); }
+        .layer-legend-icon { display: inline-block; width: 14px; height: 14px; margin-right: 8px; border: 1px solid #333; vertical-align: middle; border-radius: 3px; }
+        .etiqueta-manzana { background: rgba(255, 255, 255, 0.95) !important; border: 2px solid #ff6b6b !important; color: #1e293b !important; font-weight: 800 !important; font-size: 10px !important; border-radius: 50% !important; width: 28px !important; height: 28px !important; display: flex !important; align-items: center !important; justify-content: center !important; pointer-events: none !important; box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important; }
     </style>
 </head>
 
 <body>
 
 <div class="panel-superior">
-    <div class="w-full text-center text-[10px] font-extrabold text-slate-800 tracking-wider border-b border-slate-200 pb-1.5 mb-1.5 uppercase">
-        VISOR URBANO - MUNICIPALIDAD DE PARANA
-    </div>
-
+    <div class="w-full text-center text-[10px] font-extrabold text-slate-800 tracking-wider border-b border-slate-200 pb-1.5 mb-1.5 uppercase">VISOR URBANO - MUNICIPALIDAD DE PARANA</div>
     <input type="text" id="input-pm" placeholder="Partida" style="width:80px;">
     <button class="btn-buscar" onclick="buscarPM()">Buscar PM</button>
-
     <div style="height: 20px; width: 1px; background: #e2e8f0; margin: 0 4px;"></div>
-
     <div style="position:relative; display: flex; gap: 4px;">
         <input type="text" id="input-calle" placeholder="Calle..." style="width:110px;" autocomplete="off">
         <input type="number" id="input-altura" placeholder="Alt." style="width:40px;">
         <button class="btn-buscar" onclick="buscarDireccion()">Ir</button>
         <div id="sugerencias-calles"></div>
     </div>
-
     <div style="height: 20px; width: 1px; background: #e2e8f0; margin: 0 4px;"></div>
-
     <div style="display: flex; gap: 4px;">
         <input type="text" id="input-google" placeholder="Lugar/Google..." style="width:110px;">
         <button class="btn-google" onclick="buscarGoogle()">Google</button>
@@ -172,13 +74,9 @@
 </div>
 
 <div class="adv-distrito text-right">
-    <div class="font-bold text-slate-700">
-        Zoom Vista:
-        <span id="zoom-indicator" class="text-blue-600">12</span>
-    </div>
+    <div class="font-bold text-slate-700">Zoom Vista: <span id="zoom-indicator" class="text-blue-600">12</span></div>
     <div>IDE Paraná - Límites indicativos (Ord. 8563)</div>
 </div>
-
 <div id="map"></div>
 
 <script>
@@ -186,167 +84,58 @@ const BASE_URL = "https://raw.githubusercontent.com/dcartografiayde/IDE-PARANA/m
 
 function decodificarTexto(str) {
     if (!str || typeof str !== 'string') return str;
-
-    const correcciones = {
-        'Ã¡': 'á',
-        'Ã©': 'é',
-        'Ã­': 'í',
-        'Ã³': 'ó',
-        'Ãº': 'ú',
-        'Ã±': 'ñ',
-        'Â°': '°'
-    };
-
+    const correcciones = {'Ã¡': 'á', 'Ã©': 'é', 'Ã­': 'í', 'Ã³': 'ó', 'Ãº': 'ú', 'Ã±': 'ñ', 'Â°': '°'};
     let texto = str;
-
-    for (let mal in correcciones) {
-        texto = texto.split(mal).join(correcciones[mal]);
-    }
-
+    for (let mal in correcciones) texto = texto.split(mal).join(correcciones[mal]);
     return texto;
 }
 
 async function fetchGeoJSON(url) {
     const response = await fetch(url);
-
-    if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     return await response.json();
 }
 
-var map = L.map('map', {
-    center: [-31.745, -60.51],
-    zoom: 12,
-    maxZoom: 22
-});
+var map = L.map('map', { center: [-31.745, -60.51], zoom: 12, maxZoom: 22 });
+var dark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 22 }).addTo(map);
 
-var dark = L.tileLayer(
-    'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-    { maxZoom: 22 }
-).addTo(map);
-
-/* ================= GRUPOS ================= */
-
+// Grupos de capas
 var grupoManzanas = L.layerGroup().addTo(map);
 var grupoCalles = L.layerGroup();
 var grupoParcelas = L.layerGroup();
+var grupoHuellaUrbana = L.layerGroup().addTo(map); // MODIFICACIÓN: Huella activa
+var grupoEjidosLinderos = L.layerGroup().addTo(map); // MODIFICACIÓN: Ejidos activos
 
-var grupoHuellaUrbana = L.layerGroup().addTo(map);
-var grupoEjidosLinderos = L.layerGroup().addTo(map);
-
-/* =========================================================
-   CORRECCIÓN DOMINIOS ATLAS PUA
-========================================================= */
-
-/*
-ANTES:
-atlas_pua/crecimiento_huella_urbana.geojson
-atlas_pua/ejidos_linderos.geojson
-
-PROBLEMA:
-GitHub raw distingue MAYÚSCULAS/MINÚSCULAS
-y además muchas veces la carpeta real es:
-Atlas_PUA
-ATLAS_PUA
-atlasPUA
-etc.
-
-La solución:
-usar URLs absolutas y correctas.
-CAMBIÁ SOLAMENTE estas rutas si tu carpeta
-tiene otro nombre exacto.
-*/
-
-const ATLAS_BASE =
-"https://raw.githubusercontent.com/dcartografiayde/IDE-PARANA/main/atlas_pua/";
-
-/* ================= HUELLA URBANA ================= */
-
-fetchGeoJSON(ATLAS_BASE + "crecimiento_huella_urbana.geojson")
-.then(data => {
-
+// Carga Atlas PUA - Huella Urbana
+fetchGeoJSON(BASE_URL + "atlas_pua/crecimiento_huella_urbana.geojson").then(data => {
     L.geoJSON(data, {
-        style: {
-            color: "#ff6f35",
-            fillColor: "#ff6f35",
-            fillOpacity: 0.6,
-            weight: 1
-        },
-
-        onEachFeature: (f, l) => {
-
-            l.bindPopup(`
-                <div class="popup-custom">
-                    <b>Periodo:</b>
-                    ${f.properties.fecha || 'N/A'}
-                </div>
-            `);
-        }
-
+        style: { color: "#ff6f35", fillColor: "#ff6f35", fillOpacity: 0.6, weight: 1 },
+        onEachFeature: (f, l) => l.bindPopup(`<div class="popup-custom"><b>Periodo:</b> ${f.properties.fecha || 'N/A'}</div>`)
     }).addTo(grupoHuellaUrbana);
-
-})
-.catch(err => {
-    console.error("Error cargando Huella Urbana:", err);
 });
 
-/* ================= EJIDOS LINDEROS ================= */
-
-fetchGeoJSON(ATLAS_BASE + "ejidos_linderos.geojson")
-.then(data => {
-
+// Carga Atlas PUA - Ejidos Linderos
+fetchGeoJSON(BASE_URL + "atlas_pua/ejidos_linderos.geojson").then(data => {
     L.geoJSON(data, {
-        style: {
-            color: "#64748b",
-            weight: 2,
-            dashArray: "6,6"
-        },
-
-        onEachFeature: (f, l) => {
-
-            l.bindPopup(`
-                <div class="popup-custom">
-                    <b>Ejido:</b>
-                    ${f.properties.nombre || 'Lindero'}
-                </div>
-            `);
-        }
-
+        style: { color: "#64748b", weight: 2, dashArray: "6,6" },
+        onEachFeature: (f, l) => l.bindPopup(`<div class="popup-custom"><b>Ejido:</b> ${f.properties.nombre || 'Lindero'}</div>`)
     }).addTo(grupoEjidosLinderos);
-
-})
-.catch(err => {
-    console.error("Error cargando Ejidos Linderos:", err);
 });
 
-/* ================= CONTROL ================= */
-
+// Leyendas integradas
 const overlays = {
     "<span class='layer-legend-icon' style='background:rgba(255,107,107,0.15); border:2px solid #ff6b6b;'></span> Manzanas": grupoManzanas,
-
     "<span class='layer-legend-icon' style='background:#2980b9'></span> Parcelas Catastrales": grupoParcelas,
-
     "<span class='layer-legend-icon' style='background:#ff6f35'></span> Huella Histórica (Atlas PUA)": grupoHuellaUrbana,
-
     "<span class='layer-legend-icon' style='border:1.5px dashed #64748b'></span> Ejidos Linderos (Atlas PUA)": grupoEjidosLinderos
 };
 
-L.control.layers(
-    { "Mapa Oscuro": dark },
-    overlays,
-    { collapsed: false }
-).addTo(map);
-
-/* ================= ZOOM ================= */
+L.control.layers({ "Mapa Oscuro": dark }, overlays, { collapsed: false }).addTo(map);
 
 function controlarVisibilidadDinamica() {
     document.getElementById('zoom-indicator').innerText = map.getZoom();
 }
-
 map.on('zoomend', controlarVisibilidadDinamica);
-
 </script>
 </body>
 </html>
