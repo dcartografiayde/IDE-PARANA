@@ -801,30 +801,55 @@ fetchGeoJSON(
 
     });
 
+    /* =========================
+       AGREGAR SUBCAPAS AL PANEL
+    ========================= */
+
+    Object.keys(gruposHuellaPorFecha)
+        .sort()
+        .forEach(fecha => {
+
+            controlCapas.addOverlay(
+                gruposHuellaPorFecha[fecha],
+
+                `<span class='layer-legend-icon'
+                    style='background:${coloresHuella[fecha] || "#ff7800"}'>
+                 </span> Huella Urbana ${fecha}`
+            );
+
+        });
+
 }).catch(err => {
     console.error("Error al cargar crecimiento_huella_urbana.geojson", err);
 });
 
 
 /* ================= LEYENDAS Y CONTROL DE CAPAS ================= */
+
 const overlays = {
     "<span class='layer-legend-icon' style='background:rgba(255,107,107,0.15); border:2px solid #ff6b6b;'></span> Manzanas": grupoManzanas,
-    "<span class='layer-legend-icon' style='background:#FFFF00; height:4px; border:1px solid #000;'></span> Nombres de Calles": grupoCalles,
-    "<span class='layer-legend-icon' style='background:#2980b9'></span> Parcelas Catastrales": grupoParcelas,
-    "<span class='layer-legend-icon' style='background:#00b894'></span> Ejidos Linderos": grupoEjidosLinderos,
-    
-    "<span class='layer-legend-icon' style='background:#f1c40f'></span> Huella Urbana 1990": gruposHuellaPorFecha["1990"],
-    "<span class='layer-legend-icon' style='background:#e67e22'></span> Huella Urbana 2000": gruposHuellaPorFecha["2000"],
-    "<span class='layer-legend-icon' style='background:#e74c3c'></span> Huella Urbana 2010": gruposHuellaPorFecha["2010"],
-    "<span class='layer-legend-icon' style='background:#8e44ad'></span> Huella Urbana 2020": gruposHuellaPorFecha["2020"],
-    "<span class='layer-legend-icon' style='background:#2980b9'></span> Huella Urbana 2024": gruposHuellaPorFecha["2024"],
 
+    "<span class='layer-legend-icon' style='background:#FFFF00; height:4px; border:1px solid #000;'></span> Nombres de Calles": grupoCalles,
+
+    "<span class='layer-legend-icon' style='background:#2980b9'></span> Parcelas Catastrales": grupoParcelas,
+
+    "<span class='layer-legend-icon' style='background:#00b894'></span> Ejidos Linderos": grupoEjidosLinderos
 };
 
-L.control.layers(
-    { "Mapa Oscuro": dark, "Hibrido": hibrido, "OpenStreetMap": osm }, 
-    overlays, 
-    { collapsed: false }
+/* =========================
+   CREAR CONTROL
+========================= */
+
+var controlCapas = L.control.layers(
+    {
+        "Mapa Oscuro": dark,
+        "Hibrido": hibrido,
+        "OpenStreetMap": osm
+    },
+    overlays,
+    {
+        collapsed: false
+    }
 ).addTo(map);
 
 // MODIFICACIÓN: Inicialización de la herramienta de medición (longitud y superficie) en español
