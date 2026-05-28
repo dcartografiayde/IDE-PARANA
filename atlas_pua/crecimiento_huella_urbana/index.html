@@ -805,17 +805,62 @@ fetchGeoJSON(
        AGREGAR SUBCAPAS AL PANEL
     ========================= */
 
-    Object.keys(gruposHuellaPorFecha)
-        .sort()
-        .forEach(fecha => {
+   /* =========================
+   TITULO SECCION
+========================= */
+
+controlCapas.addOverlay(
+
+    L.layerGroup(),
+
+    `<div style="
+        font-weight:800;
+        font-size:11px;
+        color:#1e293b;
+        margin-top:4px;
+        margin-bottom:2px;
+        border-top:1px solid #cbd5e1;
+        padding-top:4px;
+        pointer-events:none;
+    ">
+        CRECIMIENTO HUELLA URBANA
+    </div>`
+);
+
+/* =========================
+   SUBCAPAS POR FECHA
+========================= */
+
+Object.keys(gruposHuellaPorFecha)
+    .sort()
+    .forEach(fecha => {
 
             controlCapas.addOverlay(
-                gruposHuellaPorFecha[fecha],
 
-                `<span class='layer-legend-icon'
-                    style='background:${coloresHuella[fecha] || "#ff7800"}'>
-                 </span> Huella Urbana ${fecha}`
-            );
+    gruposHuellaPorFecha[fecha],
+
+    `<div style="
+        margin-left:14px;
+        display:flex;
+        align-items:center;
+    ">
+
+        <span class='layer-legend-icon'
+            style='
+                background:${coloresHuella[fecha] || "#ff7800"};
+                border:1px solid #333;
+            '>
+        </span>
+
+        <span style="
+            font-weight:600;
+            color:#374151;
+        ">
+            ${fecha}
+        </span>
+
+    </div>`
+);
 
         });
 
