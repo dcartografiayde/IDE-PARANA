@@ -692,71 +692,114 @@ icon: L.divIcon({
     console.error("Error al cargar ejidos_linderos.geojson", err);
 });
 
-
 /* =========================================================
    CAPA CRECIMIENTO HUELLA URBANA
+   SUBDIVIDIDA POR FECHA
 ========================================================= */
 
-var grupoHuellaUrbana = L.layerGroup();
+var gruposHuellaPorFecha = {};
+
+/* =========================
+   COLORES POR FECHA
+========================= */
+
+const coloresHuella = {
+    "1990": "#f1c40f",
+    "2000": "#e67e22",
+    "2010": "#e74c3c",
+    "2020": "#8e44ad",
+    "2024": "#2980b9"
+};
+
+/* =========================
+   CARGA GEOJSON
+========================= */
 
 fetchGeoJSON(
     BASE_URL + "atlas_pua/crecimiento_huella_urbana/crecimiento_huella_urbana.geojson"
 ).then(data => {
 
-    L.geoJSON(data, {
+    data.features.forEach(feature => {
 
-        style: {
-            color: "#ff7800",
-            weight: 2,
-            fillColor: "#ff7800",
-            fillOpacity: 0.22
-        },
+        let props = feature.properties || {};
 
-        onEachFeature: function(feature, layer) {
+        let fecha = String(props.fecha || "SIN FECHA");
 
-            let props = feature.properties || {};
+        /* =========================
+           CREAR GRUPO SI NO EXISTE
+        ========================= */
 
-            let area = props.area_ha
-                ? Number(props.area_ha).toFixed(2)
-                : "-";
-
-            let ejido = props.ejido || "-";
-            let fecha = props.fecha || "-";
-
-            let contenido = `
-                <div class="popup-custom">
-
-                    <div class="popup-header">
-                        CRECIMIENTO HUELLA URBANA
-                    </div>
-
-                    <table class="table-info">
-
-                        <tr>
-                            <td>ÁREA (HA)</td>
-                            <td>${area}</td>
-                        </tr>
-
-                        <tr>
-                            <td>EJIDO</td>
-                            <td>${decodificarTexto(String(ejido))}</td>
-                        </tr>
-
-                        <tr>
-                            <td>FECHA</td>
-                            <td>${decodificarTexto(String(fecha))}</td>
-                        </tr>
-
-                    </table>
-
-                </div>
-            `;
-
-            layer.bindPopup(contenido);
-
+        if (!gruposHuellaPorFecha[fecha]) {
+            gruposHuellaPorFecha[fecha] = L.layerGroup();
         }
 
-    }).addTo(grupoHuellaUrbana);
+        /* =========================
+           COLOR SEGÚN FECHA
+        ========================= */
+
+        let color = coloresHuella[fecha] || "#ff7800";
+
+        /* =========================
+           FEATURE INDIVIDUAL
+        ========================= */
+
+        let layer = L.geoJSON(feature, {
+
+            style: {
+                color: color,
+                weight: 2,
+                fillColor: color,
+                fillOpacity: 0.25
+            },
+
+            onEachFeature: function(feature, layer) {
+
+                let props = feature.properties || {};
+
+                let area = props.area_ha
+                    ? Number(props.area_ha).toFixed(2)
+                    : "-";
+
+                let ejido = props.ejido || "-";
+
+                let contenido = `
+                    <div class="popup-custom">
+
+                        <div class="popup-header">
+                            CRECIMIENTO HUELLA URBANA
+                        </div>
+
+                        <table class="table-info">
+
+                            <tr>
+                                <td>ÁREA (HA)</td>
+                                <td>${area}</td>
+                            </tr>
+
+                            <tr>
+                                <td>EJIDO</td>
+                                <td>${decodificarTexto(String(ejido))}</td>
+                            </tr>
+
+                            <tr>
+                                <td>FECHA</td>
+                                <td>${decodificarTexto(String(fecha))}</td>
+                            </tr>
+
+                        </table>
+
+                    </div>
+                `;
+
+                layer.bindPopup(contenido);
+
+            }
+
+        });
+
+        layer.addTo(gruposHuellaPorFecha[fecha]);
+
+    });
 
 }).catch(err => {
     console.error("Error al cargar crecimiento_huella_urbana.geojson", err);
@@ -768,8 +811,13 @@ const overlays = {
     "<span class='layer-legend-icon' style='background:rgba(255,107,107,0.15); border:2px solid #ff6b6b;'></span> Manzanas": grupoManzanas,
     "<span class='layer-legend-icon' style='background:#FFFF00; height:4px; border:1px solid #000;'></span> Nombres de Calles": grupoCalles,
     "<span class='layer-legend-icon' style='background:#2980b9'></span> Parcelas Catastrales": grupoParcelas,
-    "<span class='layer-legend-icon' style='background:#ff7800'></span> Crecimiento Huella Urbana": grupoHuellaUrbana,
-    "<span class='layer-legend-icon' style='background:#00b894'></span> Ejidos Linderos": grupoEjidosLinderos
+    "<span class='layer-legend-icon' style='background:#00b894'></span> Ejidos Linderos": grupoEjidosLinderos,
+    
+    "<span class='layer-legend-icon' style='background:#f1c40f'></span> Huella Urbana 1990": gruposHuellaPorFecha["1990"],
+    "<span class='layer-legend-icon' style='background:#e67e22'></span> Huella Urbana 2000": gruposHuellaPorFecha["2000"],
+    "<span class='layer-legend-icon' style='background:#e74c3c'></span> Huella Urbana 2010": gruposHuellaPorFecha["2010"],
+    "<span class='layer-legend-icon' style='background:#8e44ad'></span> Huella Urbana 2020": gruposHuellaPorFecha["2020"],
+    "<span class='layer-legend-icon' style='background:#2980b9'></span> Huella Urbana 2024": gruposHuellaPorFecha["2024"],
 
 };
 
