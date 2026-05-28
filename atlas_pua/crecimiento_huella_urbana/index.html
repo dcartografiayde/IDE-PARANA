@@ -64,8 +64,10 @@
         
         .adv-distrito { position: absolute; bottom: 25px; right: 10px; z-index: 1000; background: rgba(255,255,255,0.8); padding: 6px 10px; border-radius: 6px; font-size: 9px; color: #4a5568; pointer-events: none; border: 1px solid rgba(0,0,0,0.1); }
         
-        .layer-legend-icon { 
-            display: inline-block; 
+        .layer-legend-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center; 
             width: 14px; 
             height: 14px; 
             margin-right: 8px; 
@@ -837,31 +839,36 @@ Object.keys(gruposHuellaPorFecha)
     .sort()
     .forEach(fecha => {
 
-            controlCapas.addOverlay(
+           controlCapas.addOverlay(
 
     gruposHuellaPorFecha[fecha],
 
-    `<div style="
+    `<span style="
         margin-left:14px;
-        display:flex;
+        display:inline-flex;
         align-items:center;
+        gap:6px;
+        vertical-align:middle;
     ">
 
         <span class='layer-legend-icon'
             style='
                 background:${coloresHuella[fecha] || "#ff7800"};
                 border:1px solid #333;
+                margin-right:0;
+                vertical-align:middle;
             '>
         </span>
 
         <span style="
             font-weight:600;
             color:#374151;
+            vertical-align:middle;
         ">
             ${fecha}
         </span>
 
-    </div>`
+    </span>`
 );
 
         });
