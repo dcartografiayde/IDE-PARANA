@@ -805,33 +805,7 @@ fetchGeoJSON(
 
     });
 
-    /* =========================
-       AGREGAR SUBCAPAS AL PANEL
-    ========================= */
-
    /* =========================
-   TITULO SECCION
-========================= */
-
-controlCapas.addOverlay(
-
-    L.layerGroup(),
-
-    `<div style="
-        font-weight:800;
-        font-size:11px;
-        color:#1e293b;
-        margin-top:4px;
-        margin-bottom:2px;
-        border-top:1px solid #cbd5e1;
-        padding-top:4px;
-        pointer-events:none;
-    ">
-        CRECIMIENTO HUELLA URBANA
-    </div>`
-);
-
-/* =========================
    SUBCAPAS POR FECHA
 ========================= */
 
@@ -839,39 +813,41 @@ Object.keys(gruposHuellaPorFecha)
     .sort()
     .forEach(fecha => {
 
-           controlCapas.addOverlay(
+        controlCapas.addOverlay(
 
-    gruposHuellaPorFecha[fecha],
+            gruposHuellaPorFecha[fecha],
 
-    `<span style="
-    margin-left:14px;
-    display:inline-block;
-    vertical-align:middle;
-    line-height:18px;
-">
+            `
+            <span style="
+                display:flex;
+                align-items:center;
+                gap:6px;
+                padding-left:18px;
+            ">
 
-        <span class='layer-legend-icon'
-            style='
-                background:${coloresHuella[fecha] || "#ff7800"};
-                border:1px solid #333;
-                margin-right:6px;
-                display:inline-block;
-                vertical-align:middle;
-            '>
-        </span>
+                <span class='layer-legend-icon'
+                    style='
+                        background:${coloresHuella[fecha] || "#ff7800"};
+                        border:1px solid #333;
+                        width:14px;
+                        height:14px;
+                        margin:0;
+                        flex-shrink:0;
+                    '>
+                </span>
 
-        <span style="
-            font-weight:600;
-            color:#374151;
-            vertical-align:middle;
-        ">
-            ${fecha}
-        </span>
+                <span style="
+                    font-weight:600;
+                    color:#374151;
+                ">
+                    ${fecha}
+                </span>
 
-    </span>`
-);
+            </span>
+            `
+        );
 
-        });
+    });
 
 }).catch(err => {
     console.error("Error al cargar crecimiento_huella_urbana.geojson", err);
@@ -905,6 +881,37 @@ var controlCapas = L.control.layers(
         collapsed: false
     }
 ).addTo(map);
+
+    /* =========================
+   TITULO VISUAL DE SECCION
+========================= */
+
+setTimeout(() => {
+
+    const overlaysList =
+        document.querySelector('.leaflet-control-layers-overlays');
+
+    if (overlaysList) {
+
+        const titulo = document.createElement('div');
+
+        titulo.innerHTML = `
+            <div style="
+                font-weight:800;
+                font-size:11px;
+                color:#1e293b;
+                margin:6px 0 4px 0;
+                padding-top:6px;
+                border-top:1px solid #cbd5e1;
+            ">
+                CRECIMIENTO HUELLA URBANA
+            </div>
+        `;
+
+        overlaysList.appendChild(titulo);
+    }
+
+}, 500);
 
 // MODIFICACIÓN: Inicialización de la herramienta de medición (longitud y superficie) en español
 var measureControl = new L.Control.Measure({
