@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VISOR URBANO - MUNICIPALIDAD DE PARANA</title>
+    <title>VISOR URBANIZACIONES - MUNICIPALIDAD DE PARANA</title>
 
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -23,33 +23,39 @@
             max-width: calc(100% - 70px);
         }
 
-        input { padding: 4px 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 12px; outline: none; transition: 0.2s; }
+        /* MODIFICACIÓN: Anchos compactados para evitar superposición en pantallas estándar y móviles */
+        input { padding: 4px 6px; border: 1px solid #ddd; border-radius: 6px; font-size: 11px; outline: none; transition: 0.2s; }
         input:focus { border-color: #2980b9; box-shadow: 0 0 0 2px rgba(41,128,185,0.2); }
-        .btn-buscar { background: #2980b9; color: white; padding: 4px 10px; cursor: pointer; border-radius: 6px; font-weight: 600; font-size: 12px; border: none; }
+        .btn-buscar { background: #2980b9; color: white; padding: 4px 8px; cursor: pointer; border-radius: 6px; font-weight: 600; font-size: 11px; border: none; }
         .btn-buscar:hover { background: #1f6391; }
         
-        .btn-google { background: #4285F4; color: white; padding: 4px 10px; cursor: pointer; border-radius: 6px; font-weight: 600; font-size: 12px; border: none; }
+        .btn-google { background: #4285F4; color: white; padding: 4px 8px; cursor: pointer; border-radius: 6px; font-weight: 600; font-size: 11px; border: none; }
 
         #sugerencias-calles {
             position: absolute; background: white; border: 1px solid #ccc;
             border-radius: 6px; max-height: 150px; overflow-y: auto; z-index: 2000;
-            width: 180px; display: none; margin-top: 34px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            width: 150px; display: none; margin-top: 34px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
 
         .sugerencia-item { padding: 6px 10px; cursor: pointer; font-size: 11px; border-bottom: 1px solid #f0f0f0; }
         .sugerencia-item:hover { background: #f8f9fa; color: #2980b9; }
 
-        .popup-custom { font-size: 10px; line-height: 1.1; min-width: 240px; max-height: 280px; overflow-y: auto; padding: 2px; }
+        .popup-custom { font-size: 9px; line-height: 1.1; min-width: 260px; max-height: 240px; overflow-y: auto; padding: 2px; }
         .popup-header { 
             text-align: center; font-weight: 800; border-bottom: 1px solid #eee; 
             padding-bottom: 2px; margin-bottom: 3px; color: #1a202c; text-transform: uppercase;
         }
+        .table-info { width: 100%; border-collapse: collapse; margin-bottom: 4px; }
+        .table-info td { border-bottom: 1px solid #edf2f7; padding: 2px 0; font-size: 8.5px; vertical-align: top; }
+        .table-info tr td:first-child { font-weight: 700; color: #4a5568; width: 55%; text-transform: uppercase; }
 
         .btn-streetview {
             display: block; margin: 8px auto 4px; padding: 6px; border-radius: 4px;
             background: #4285F4; color: white !important; text-align: center;
             text-decoration: none; font-weight: bold; font-size: 10px;
         }
+        
+        .adv-sv { font-size: 9px; color: #718096; text-align: center; font-style: italic; margin-top: 4px; line-height: 1.2; }
         
         .adv-distrito { position: absolute; bottom: 25px; right: 10px; z-index: 1000; background: rgba(255,255,255,0.8); padding: 6px 10px; border-radius: 6px; font-size: 9px; color: #4a5568; pointer-events: none; border: 1px solid rgba(0,0,0,0.1); }
         
@@ -65,18 +71,26 @@
 
         .etiqueta-manzana {
             background: rgba(255, 255, 255, 0.95) !important;
-            border: 2px solid #ff6b6b !important;
+            border: 1px solid #ff6b6b !important;
             color: #1e293b !important;
             font-weight: 800 !important;
-            font-size: 10px !important;
+            font-size: 9px !important;
             border-radius: 50% !important; 
-            width: 28px !important;
-            height: 28px !important;
+            width: 24px !important;
+            height: 24px !important;
             display: flex !important;
             align-items: center !important;
             justify-content: center !important;
             pointer-events: none !important; 
             box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
+        }
+
+        /* MODIFICACIÓN: Dashboard Estadístico flotante interactivo y elegante */
+        .dashboard-panel {
+            position: absolute; bottom: 25px; left: 10px; z-index: 1000;
+            background: rgba(255, 255, 255, 0.95); padding: 12px; border-radius: 8px;
+            border: 1px solid rgba(0,0,0,0.1); box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            width: 280px; pointer-events: auto; backdrop-filter: blur(4px);
         }
     </style>
 </head>
@@ -84,14 +98,15 @@
 <body>
 
 <div class="panel-superior">
+    <!-- Título Visual del Mapa -->
     <div class="w-full text-center text-[10px] font-extrabold text-slate-800 tracking-wider border-b border-slate-200 pb-1.5 mb-1.5 uppercase">
-        VISOR URBANO - MUNICIPALIDAD DE PARANA
+        VISOR CENSO 2022 - MUNICIPALIDAD DE PARANA
     </div>
 
-    <!-- Buscador de calles simplificado -->
-    <div style="position:relative; display: flex; gap: 4px;">
-        <input type="text" id="input-calle" placeholder="Calle..." style="width:110px;" autocomplete="off">
-        <input type="number" id="input-altura" placeholder="Alt." style="width:40px;">
+    <!-- MODIFICACIÓN: Campos con anchos más reducidos y compactos -->
+    <div style="position:relative; display: flex; gap: 4px; align-items: center;">
+        <input type="text" id="input-calle" placeholder="Calle..." style="width:100px;" autocomplete="off">
+        <input type="number" id="input-altura" placeholder="Alt." style="width:45px;">
         <button class="btn-buscar" onclick="buscarDireccion()">Ir</button>
         <div id="sugerencias-calles"></div>
     </div>
@@ -99,11 +114,21 @@
     <div style="height: 20px; width: 1px; background: #e2e8f0; margin: 0 4px;"></div>
 
     <div style="display: flex; gap: 4px;">
-        <input type="text" id="input-google" placeholder="Lugar/Google..." style="width:110px;">
+        <input type="text" id="input-google" placeholder="Lugar/Google..." style="width:100px;">
         <button class="btn-google" onclick="buscarGoogle()">Google</button>
     </div>
 </div>
 
+<!-- MODIFICACIÓN: Dashboard de Estadísticas Censales Dinámicas -->
+<div id="dashboard" class="dashboard-panel">
+    <div class="font-extrabold text-[11px] text-slate-800 border-b pb-1 mb-1.5 flex items-center justify-between">
+        <span>📊 ESTADÍSTICAS VISIBLES</span>
+        <span class="text-[9px] bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded-full font-bold" id="count-fracciones">0 frac.</span>
+    </div>
+    <div id="stats-content" class="space-y-1 text-[10px]">Cargando estadísticas...</div>
+</div>
+
+<!-- Cuadro Informativo de Distritos con indicador de Zoom -->
 <div class="adv-distrito text-right">
     <div class="font-bold text-slate-700">Zoom Vista: <span id="zoom-indicator" class="text-blue-600">12</span></div>
     <div>IDE Paraná - Límites indicativos (Ord. 8563). Zoom Máx: 22.</div>
@@ -114,6 +139,7 @@
 <script>
 const BASE_URL = "https://raw.githubusercontent.com/dcartografiayde/IDE-PARANA/main/";
 
+/* ================= FUNCIONES DE LIMPIEZA Y DECODIFICACIÓN DE TEXTO ================= */
 function decodificarTexto(str) {
     if (!str || typeof str !== 'string') return str;
     try {
@@ -126,24 +152,40 @@ function decodificarTexto(str) {
         for (let mal in correcciones) {
             textoCorregido = textoCorregido.split(mal).join(correcciones[mal]);
         }
+
         const reemplazosClave = [
-            { mal: /TORRE[ïÏ]¿½N/gi, bien: 'TORREÓN' }, { mal: /Torre[ïÏ]¿½n/gi, bien: 'Torreón' },
-            { mal: /APROBACI[ïÏ]¿½N/gi, bien: 'APROBACIÓN' }, { mal: /Aprobaci[ïÏ]¿½n/gi, bien: 'Aprobación' },
-            { mal: /ASOCIACI[ïÏ]¿½N/gi, bien: 'ASOCIACIÓN' }, { mal: /Asociaci[ïÏ]¿½n/gi, bien: 'Asociación' },
-            { mal: /CONSTITUCI[ïÏ]¿½N/gi, bien: 'CONSTITUCIÓN' }, { mal: /Constituci[ïÏ]¿½n/gi, bien: 'Constitución' },
-            { mal: /DECLARACI[ïÏ]¿½N/gi, bien: 'DECLARACIÓN' }, { mal: /Declaraci[ïÏ]¿½n/gi, bien: 'Declaración' },
-            { mal: /URBANIZACI[ïÏ]¿½N/gi, bien: 'URBANIZACIÓN' }, { mal: /Urbanizaci[ïÏ]¿½n/gi, bien: 'Urbanización' },
-            { mal: /PROLONGACI[ïÏ]¿½N/gi, bien: 'PROLONGACIÓN' }, { mal: /Prolongaci[ïÏ]¿½n/gi, bien: 'Prolongación' },
-            { mal: /SECCI[ïÏ]¿½N/gi, bien: 'SECCIÓN' }, { mal: /Secci[ïÏ]¿½n/gi, bien: 'Sección' },
-            { mal: /ESTACI[ïÏ]¿½N/gi, bien: 'ESTACIÓN' }, { mal: /Estaci[ïÏ]¿½n/gi, bien: 'Estación' },
-            { mal: /REVOLUCI[ïÏ]¿½N/gi, bien: 'REVOLUCIÓN' }, { mal: /Revoluci[ïÏ]¿½n/gi, bien: 'Revolución' },
-            { mal: /N[ïÏ]¿½/g, bien: 'Nº' }, { mal: /n[ïÏ]¿½/g, bien: 'nº' },
-            { mal: /PARAN[ïÏ]¿½/gi, bien: 'PARANÁ' }, { mal: /Paran[ïÏ]¿½/gi, bien: 'Paraná' },
-            { mal: /CI[ïÏ]¿½N/g, bien: 'CIÓN' }, { mal: /ci[ïÏ]¿½n/g, bien: 'ción' }
+            { mal: /TORRE[ïÏ]¿½N/gi, bien: 'TORREÓN' },
+            { mal: /Torre[ïÏ]¿½n/gi, bien: 'Torreón' },
+            { mal: /APROBACI[ïÏ]¿½N/gi, bien: 'APROBACIÓN' },
+            { mal: /Aprobaci[ïÏ]¿½n/gi, bien: 'Aprobación' },
+            { mal: /ASOCIACI[ïÏ]¿½N/gi, bien: 'ASOCIACIÓN' },
+            { mal: /Asociaci[ïÏ]¿½n/gi, bien: 'Asociación' },
+            { mal: /CONSTITUCI[ïÏ]¿½N/gi, bien: 'CONSTITUCIÓN' },
+            { mal: /Constituci[ïÏ]¿½n/gi, bien: 'Constitución' },
+            { mal: /DECLARACI[ïÏ]¿½N/gi, bien: 'DECLARACIÓN' },
+            { mal: /Declaraci[ïÏ]¿½n/gi, bien: 'Declaración' },
+            { mal: /URBANIZACI[ïÏ]¿½N/gi, bien: 'URBANIZACIÓN' },
+            { mal: /Urbanizaci[ïÏ]¿½n/gi, bien: 'Urbanización' },
+            { mal: /PROLONGACI[ïÏ]¿½N/gi, bien: 'PROLONGACIÓN' },
+            { mal: /Prolongaci[ïÏ]¿½n/gi, bien: 'Prolongación' },
+            { mal: /SECCI[ïÏ]¿½N/gi, bien: 'SECCIÓN' },
+            { mal: /Secci[ïÏ]¿½n/gi, bien: 'Sección' },
+            { mal: /ESTACI[ïÏ]¿½N/gi, bien: 'ESTACIÓN' },
+            { mal: /Estaci[ïÏ]¿½n/gi, bien: 'Estación' },
+            { mal: /REVOLUCI[ïÏ]¿½N/gi, bien: 'REVOLUCIÓN' },
+            { mal: /Revoluci[ïÏ]¿½n/gi, bien: 'Revolución' },
+            { mal: /N[ïÏ]¿½/g, bien: 'Nº' },
+            { mal: /n[ïÏ]¿½/g, bien: 'nº' },
+            { mal: /PARAN[ïÏ]¿½/gi, bien: 'PARANÁ' },
+            { mal: /Paran[ïÏ]¿½/gi, bien: 'Paraná' },
+            { mal: /CI[ïÏ]¿½N/g, bien: 'CIÓN' },
+            { mal: /ci[ïÏ]¿½n/g, bien: 'ción' }
         ];
+
         for (let r of reemplazosClave) {
             textoCorregido = textoCorregido.replace(r.mal, r.bien);
         }
+
         return textoCorregido;
     } catch (e) { return str; }
 }
@@ -152,8 +194,10 @@ async function fetchGeoJSON(url) {
     const response = await fetch(url);
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     const arrayBuffer = await response.arrayBuffer();
+    
     const decoderUTF8 = new TextDecoder('utf-8');
     let text = decoderUTF8.decode(arrayBuffer);
+    
     if (text.includes('\uFFFD')) {
         const decoderANSI = new TextDecoder('windows-1252');
         text = decoderANSI.decode(arrayBuffer);
@@ -161,6 +205,7 @@ async function fetchGeoJSON(url) {
     return JSON.parse(text);
 }
 
+// Inicio del mapa en Zoom 12 (vista completa de la ciudad)
 var map = L.map('map', { 
     center: [-31.745, -60.51], 
     zoom: 12, 
@@ -168,8 +213,10 @@ var map = L.map('map', {
     maxZoom: 22
 });
 
+// Creación explícita de paneles ordenados por Z-Index
 map.createPane('manzanasPane');
-map.getPane('manzanasPane').style.zIndex = 300;
+map.getPane('manzanasPane').style.zIndex = 300; // Capa inferior de fondo
+map.getPane('manzanasPane').style.pointerEvents = 'none'; // Clics pasan de largo
 
 var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 22, maxNativeZoom: 19 });
 var dark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 22, maxNativeZoom: 20 });
@@ -179,24 +226,7 @@ var hibrido = L.layerGroup([sat, ref]);
 
 dark.addTo(map);
 
-// Capa Censo 2022
-var grupoCenso = L.layerGroup();
-fetchGeoJSON(BASE_URL + "censo_2022/censo_2022.geojson").then(data => {
-    L.geoJSON(data, {
-        style: { color: "#8e44ad", weight: 2, fillOpacity: 0.3 },
-        onEachFeature: (f, l) => {
-            let p = f.properties;
-            let content = `<div class="popup-custom"><div class="popup-header">DATOS CENSO 2022</div><table class="table-info">`;
-            for (let key in p) {
-                content += `<tr><td>${key.toUpperCase()}</td><td>${p[key]}</td></tr>`;
-            }
-            content += `</table></div>`;
-            l.bindPopup(content);
-        }
-    }).addTo(grupoCenso);
-});
-
-// Capa de Calles
+// Calles cargadas asíncronamente
 var grupoCalles = L.layerGroup();
 var listaCallesParaBusqueda = [];
 
@@ -224,36 +254,59 @@ function activarEtiquetasCalles() {
         let z = map.getZoom();
         const activeOnMap = map.hasLayer(grupoCalles);
         let etiquetasColocadas = {}; 
+
         grupoCalles.eachLayer(geoJsonGroup => {
             geoJsonGroup.eachLayer(ly => {
                 if (ly.setText) {
-                    try { ly.setText(null); } catch (e) {}
+                    try {
+                        ly.setText(null);
+                    } catch (e) {}
+
                     if (activeOnMap && z >= 16 && ly._map && ly._renderer && ly.feature && ly.feature.properties.nombre) {
                         try {
                             if (map.getBounds().intersects(ly.getBounds())) {
                                 let nombreCalle = decodificarTexto(ly.feature.properties.nombre).toUpperCase();
                                 let latlngs = ly.getLatLngs();
                                 if (Array.isArray(latlngs[0])) latlngs = latlngs.flat(2);
+                                
                                 let largoMetros = 0;
                                 for (let i = 0; i < latlngs.length - 1; i++) {
-                                    if (latlngs[i] && latlngs[i+1]) largoMetros += latlngs[i].distanceTo(latlngs[i+1]);
+                                    if (latlngs[i] && latlngs[i+1]) {
+                                        largoMetros += latlngs[i].distanceTo(latlngs[i+1]);
+                                    }
                                 }
+
                                 if (largoMetros < 70) return;
+
                                 let centro = ly.getBounds().getCenter();
                                 let duplicadoCercano = false;
                                 if (etiquetasColocadas[nombreCalle]) {
                                     for (let pt of etiquetasColocadas[nombreCalle]) {
-                                        if (centro.distanceTo(pt) < 200) { duplicadoCercano = true; break; }
+                                        if (centro.distanceTo(pt) < 200) {
+                                            duplicadoCercano = true;
+                                            break;
+                                        }
                                     }
                                 }
+
                                 if (!duplicadoCercano) {
-                                    if (!etiquetasColocadas[nombreCalle]) etiquetasColocadas[nombreCalle] = [];
+                                    if (!etiquetasColocadas[nombreCalle]) {
+                                        etiquetasColocadas[nombreCalle] = [];
+                                    }
                                     etiquetasColocadas[nombreCalle].push(centro);
+
                                     ly.setText(nombreCalle, {
-                                        repeat: false, center: true, orientation: 'flip', offset: 0,
+                                        repeat: false,
+                                        center: true, 
+                                        orientation: 'flip',
+                                        offset: 0,
                                         attributes: { 
-                                            fill: '#FFFF00', 'font-weight': 'bold', 'font-size': z >= 18 ? '13' : '10',
-                                            'stroke': 'black', 'stroke-width': '2px', 'paint-order': 'stroke'
+                                            fill: '#FFFF00', 
+                                            'font-weight': 'bold', 
+                                            'font-size': z >= 18 ? '13' : '10',
+                                            'stroke': 'black', 
+                                            'stroke-width': '2px', 
+                                            'paint-order': 'stroke'
                                         }
                                     });
                                 }
@@ -264,8 +317,13 @@ function activarEtiquetasCalles() {
             });
         });
     };
+
     map.on('zoomend moveend', renderLabels);
-    map.on('layeradd layerremove', (e) => { if (e.layer === grupoCalles) renderLabels(); });
+    map.on('layeradd layerremove', (e) => {
+        if (e.layer === grupoCalles) {
+            renderLabels();
+        }
+    });
     renderLabels();
 }
 
@@ -275,17 +333,28 @@ var grupoEtiquetasManzanas = L.layerGroup();
 
 fetchGeoJSON(BASE_URL + "catastro/manzana.geojson").then(data => {
     const manzanasEtiquetadas = new Set();
+
     L.geoJSON(data, {
         pane: 'manzanasPane', 
         filter: (f) => f && f.geometry && f.geometry.coordinates && f.geometry.coordinates.length > 0,
-        style: { color: "#ff6b6b", weight: 3, fillColor: "transparent", fillOpacity: 0, interactive: false },
+        style: {
+            color: "#ff6b6b", 
+            weight: 1, // MODIFICACIÓN: Grosor reducido para alivianar visualmente el mapa        
+            fillColor: "transparent",
+            fillOpacity: 0,
+            interactive: false 
+        },
         onEachFeature: (f, l) => {
             let propNum = "";
             for (let k in f.properties) {
                 let kLower = k.toLowerCase();
-                if (kLower.includes("manz") || kLower === "nro" || kLower === "num" || kLower.includes("mza")) { propNum = f.properties[k]; break; }
+                if (kLower.includes("manz") || kLower === "nro" || kLower === "num" || kLower.includes("mza")) {
+                    propNum = f.properties[k];
+                    break;
+                }
             }
             if (!propNum && f.properties.nropasd) propNum = f.properties.nropasd; 
+
             if (propNum) {
                 const numStr = String(propNum).trim();
                 if (!manzanasEtiquetadas.has(numStr)) {
@@ -293,7 +362,11 @@ fetchGeoJSON(BASE_URL + "catastro/manzana.geojson").then(data => {
                     try {
                         let center = l.getBounds().getCenter();
                         L.marker(center, {
-                            icon: L.divIcon({ className: 'etiqueta-manzana', html: `<div>${decodificarTexto(numStr)}</div>`, iconSize: [28, 28] }),
+                            icon: L.divIcon({
+                                className: 'etiqueta-manzana',
+                                html: `<div>${decodificarTexto(numStr)}</div>`,
+                                iconSize: [24, 24]
+                            }),
                             interactive: false 
                         }).addTo(grupoEtiquetasManzanas); 
                     } catch(e) {}
@@ -302,29 +375,270 @@ fetchGeoJSON(BASE_URL + "catastro/manzana.geojson").then(data => {
         }
     }).addTo(grupoManzanas);
     controlarVisibilidadDinamica(); 
-}).catch(err => { console.error("Error al cargar la capa de manzanas:", err); });
+}).catch(err => {
+    console.error("Error al cargar la capa de manzanas:", err);
+});
 
-// Gestión unificada de visibilidad dinámica
+/* ================= CÁLCULO GEOMÉTRICO DE ÁREAS (HECTÁREAS) ================= */
+function calcularAreaHectareas(coordinates, type) {
+    let areaM2 = 0;
+    const R = 6371000; // Radio medio de la Tierra en metros
+    
+    function ringArea(coords) {
+        let area = 0;
+        if (coords.length > 2) {
+            for (let i = 0; i < coords.length - 1; i++) {
+                let p1 = coords[i];
+                let p2 = coords[i + 1];
+                let x1 = p1[0] * Math.PI / 180 * Math.cos(-31.74 * Math.PI / 180) * R;
+                let y1 = p1[1] * Math.PI / 180 * R;
+                let x2 = p2[0] * Math.PI / 180 * Math.cos(-31.74 * Math.PI / 180) * R;
+                let y2 = p2[1] * Math.PI / 180 * R;
+                area += (x1 * y2 - x2 * y1);
+            }
+            area = Math.abs(area / 2);
+        }
+        return area;
+    }
+
+    if (type === "Polygon") {
+        areaM2 = ringArea(coordinates[0]);
+    } else if (type === "MultiPolygon") {
+        coordinates.forEach(poly => {
+            if (poly && poly[0]) areaM2 += ringArea(poly[0]);
+        });
+    }
+    return areaM2 / 10000; // Convertir m² a Hectáreas
+}
+
+function getColorDensity(d) {
+    return d > 150 ? '#084594' : // Azul muy oscuro (Densidad extrema)
+           d > 100 ? '#2171b5' : 
+           d > 50  ? '#4292c6' : 
+           d > 20  ? '#6baed6' : 
+           d > 5   ? '#9ecae1' : 
+           d > 0   ? '#c6dbef' : 
+                     '#eff3ff'; // Densidad prácticamente nula / deshabitado
+}
+
+/* ================= NORMALIZACIÓN ROBUSTA DE LLAVES Y VALORES PARA EL CENSO ================= */
+
+function normalizarKey(str) {
+    if (!str) return '';
+    return str.toString()
+        .toUpperCase()
+        .replace(/Ã‘/g, 'Ñ')
+        .replace(/Ã/g, 'Ñ')
+        .replace(/Ã³/g, 'Ó')
+        .replace(/Ã¡/g, 'Á')
+        .replace(/Ã©/g, 'É')
+        .replace(/Ã­/g, 'Í')
+        .replace(/Ãº/g, 'Ú')
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "") // Remueve acentos y diacríticos
+        .replace(/[^A-Z0-9]/g, ""); // Conserva solo caracteres alfanuméricos
+}
+
+function getPropValue(properties, targetKey) {
+    if (!properties) return undefined;
+    // Normaliza clave objetivo mapeando ceros por letras 'O'
+    const targetNorm = normalizarKey(targetKey).replace(/0/g, 'O');
+    
+    for (let k in properties) {
+        let kNorm = normalizarKey(k).replace(/0/g, 'O');
+        if (kNorm === targetNorm) {
+            return properties[k];
+        }
+        // Búsqueda aproximada si el nombre es lo suficientemente característico
+        if (targetNorm.length > 5 && (kNorm.includes(targetNorm) || targetNorm.includes(kNorm))) {
+            return properties[k];
+        }
+    }
+    return undefined;
+}
+
+function parseValue(val) {
+    if (val === undefined || val === null) return 0;
+    if (typeof val === 'number') return val;
+    let str = String(val).trim();
+    if (str === '' || str === '-') return 0;
+    
+    // Tratamiento de formatos decimales/miles españoles y anglosajones
+    if (str.includes('.') && str.includes(',')) {
+        str = str.replace(/\./g, '').replace(/,/g, '.');
+    } else if (str.includes(',')) {
+        str = str.replace(/,/g, '.');
+    } else if (str.includes('.')) {
+        // En datos demográficos enteros de Paraná, un punto (ej. "1.234") representa miles
+        if ((str.match(/\./g) || []).length > 1 || /\.\d{3}$/.test(str)) {
+            str = str.replace(/\./g, '');
+        }
+    }
+    
+    let num = parseFloat(str);
+    return isNaN(num) ? 0 : num;
+}
+
+/* ================= CAPA CENSO 2022 INTEGRADA ================= */
+var grupoCenso = L.layerGroup().addTo(map);
+
+fetchGeoJSON(BASE_URL + "censo_2022/censo_2022.geojson").then(data => {
+    L.geoJSON(data, {
+        style: (feature) => {
+            let p = feature.properties;
+            
+            // Usamos extractor robusto inmune a fallos de encoding
+            let valPob = getPropValue(p, "POBLACI0N TOTAL EN HOGARES PARTICULARES");
+            let pob = parseValue(valPob);
+            
+            // Cálculo dinámico de área y densidad por hectárea
+            let areaHectareas = calcularAreaHectareas(feature.geometry.coordinates, feature.geometry.type);
+            let densidad = areaHectareas > 0 ? (pob / areaHectareas) : 0;
+
+            return {
+                fillColor: getColorDensity(densidad),
+                fillOpacity: 0.65,
+                color: "#1d4ed8", // Borde azul grueso y nítido
+                weight: 2, 
+                opacity: 0.95
+            };
+        },
+        onEachFeature: (f, l) => {
+            let p = f.properties;
+            
+            // Extracción robusta para visualización en pop-up
+            let valPob = getPropValue(p, "POBLACI0N TOTAL EN HOGARES PARTICULARES");
+            let pob = parseValue(valPob);
+            
+            let areaHectareas = calcularAreaHectareas(f.geometry.coordinates, f.geometry.type);
+            let densidad = areaHectareas > 0 ? (pob / areaHectareas) : 0;
+
+            // Popup estructurado e impecable
+            let html = `<div class="popup-custom">`;
+            html += `<div class="popup-header">Censo 2022 - Datos de Fracción</div>`;
+            html += `<table class="table-info">`;
+            html += `<tr><td>DENSIDAD CALCULADA</td><td><b>${densidad.toFixed(2)} hab/ha</b></td></tr>`;
+            html += `<tr><td>SUPERFICIE ESTIMADA</td><td>${areaHectareas.toFixed(2)} ha</td></tr>`;
+            
+            for (let [k, v] of Object.entries(p)) {
+                let keySanitized = decodificarTexto(k).replace("POBLACI0N", "POBLACIÓN");
+                let valSanitized = decodificarTexto(String(v));
+                html += `<tr><td>${keySanitized}</td><td>${valSanitized}</td></tr>`;
+            }
+            html += `</table></div>`;
+            l.bindPopup(html, { maxWidth: 300 });
+        }
+    }).addTo(grupoCenso);
+
+    // Ejecutar el primer cálculo de estadísticas
+    actualizarEstadisticasVisibles();
+}).catch(err => {
+    console.error("Error cargando la capa Censo 2022:", err);
+});
+
+/* ================= CÁLCULO ESTADÍSTICO DINÁMICO POR VIEWPORT ================= */
+function actualizarEstadisticasVisibles() {
+    // Si la capa de censo no se encuentra activa en el mapa, indicamos al usuario
+    if (!map.hasLayer(grupoCenso)) {
+        document.getElementById('count-fracciones').innerText = `0 frac.`;
+        document.getElementById('stats-content').innerHTML = `
+            <div class="text-slate-500 py-3 text-center italic font-medium">
+                Active la capa "Censo 2022" para ver estadísticas
+            </div>`;
+        return;
+    }
+
+    let bounds = map.getBounds();
+    let totalStats = {
+        "TOTAL VIVIENDAS PARTICULARES": 0,
+        "CON PERSONAS PRESENTES": 0,
+        "SIN PERSONAS PRESENTES": 0,
+        "TOTAL HOGARES PARTICULARES": 0,
+        "POBLACI0N TOTAL EN HOGARES PARTICULARES": 0,
+        "MUJERES": 0,
+        "VARONES": 0,
+        "0 A 14 AÑOS": 0,
+        "15 A 64 AÑOS": 0,
+        "65 Y MAS AÑOS": 0
+    };
+    let countFracciones = 0;
+
+    grupoCenso.eachLayer(geoJsonLayer => {
+        if (geoJsonLayer.eachLayer) {
+            geoJsonLayer.eachLayer(layer => {
+                if (layer.getBounds && bounds.intersects(layer.getBounds())) {
+                    let p = layer.feature.properties;
+                    countFracciones++;
+                    
+                    // Suma exacta mediante extracción y formateo seguro de datos
+                    for (let key in totalStats) {
+                        let val = getPropValue(p, key);
+                        if (val !== undefined && val !== null) {
+                            totalStats[key] += parseValue(val);
+                        }
+                    }
+                }
+            });
+        }
+    });
+
+    // Actualizar indicador de cantidad de fracciones contabilizadas
+    document.getElementById('count-fracciones').innerText = `${countFracciones} frac.`;
+
+    // Renderizar tabla estadística estructurada
+    let html = `<table class="w-full text-[10px] text-slate-700">`;
+    for (let [key, val] of Object.entries(totalStats)) {
+        let label = key.replace("POBLACI0N", "POBLACIÓN");
+        html += `
+        <tr class="border-b border-slate-100 last:border-none">
+            <td class="py-1 pr-2 font-medium">${label}</td>
+            <td class="py-1 font-bold text-right text-slate-900">${Math.round(val).toLocaleString('es-AR')}</td>
+        </tr>`;
+    }
+    html += `</table>`;
+    document.getElementById('stats-content').innerHTML = html;
+}
+
+// Suscribir recálculo dinámico a movimientos de paneo y zoom del mapa
+map.on('moveend', actualizarEstadisticasVisibles);
+map.on('layeradd layerremove', (e) => {
+    if (e.layer === grupoCenso) {
+        actualizarEstadisticasVisibles();
+    }
+});
+
+/* ================= GESTIÓN UNIFICADA DE VISIBILIDAD DINÁMICA POR ZOOM ================= */
 function controlarVisibilidadDinamica() {
     let zoomActual = map.getZoom();
     document.getElementById('zoom-indicator').innerText = zoomActual;
+
     if (zoomActual >= 15 && map.hasLayer(grupoManzanas)) {
-        if (!map.hasLayer(grupoEtiquetasManzanas)) map.addLayer(grupoEtiquetasManzanas);
+        if (!map.hasLayer(grupoEtiquetasManzanas)) {
+            map.addLayer(grupoEtiquetasManzanas);
+        }
     } else {
-        if (map.hasLayer(grupoEtiquetasManzanas)) map.removeLayer(grupoEtiquetasManzanas);
+        if (map.hasLayer(grupoEtiquetasManzanas)) {
+            map.removeLayer(grupoEtiquetasManzanas);
+        }
     }
+
     if (zoomActual >= 15) {
-        if (!map.hasLayer(grupoCalles)) map.addLayer(grupoCalles);
+        if (!map.hasLayer(grupoCalles)) {
+            map.addLayer(grupoCalles);
+        }
     } else {
-        if (map.hasLayer(grupoCalles)) map.removeLayer(grupoCalles);
+        if (map.hasLayer(grupoCalles)) {
+            map.removeLayer(grupoCalles);
+        }
     }
 }
 
 map.on('zoomend', controlarVisibilidadDinamica);
 map.on('layeradd layerremove', controlarVisibilidadDinamica); 
 
+/* ================= CONTROLES Y BÚSQUEDA ================= */
 function buscarDireccion() {
-    let nom = document.getElementById('input-calle').value.toUpperCase();
+    let nom = document.getElementById('input-calle').value.toUpperCase().trim();
     let match = listaCallesParaBusqueda.find(c => c.nombre === nom);
     if (match) {
         map.fitBounds(match.layer.getBounds(), { maxZoom: 16 });
@@ -336,25 +650,38 @@ function configurarBuscadorCalles() {
     const input = document.getElementById('input-calle');
     const sug = document.getElementById('sugerencias-calles');
     input.addEventListener('input', () => {
-        let val = input.value.toUpperCase();
+        let val = input.value.toUpperCase().trim();
         sug.innerHTML = '';
         if (val.length < 2) { sug.style.display = 'none'; return; }
-        let exactPrefixMatches = [], generalMatches = [];
+        
+        let exactPrefixMatches = [];
+        let generalMatches = [];
+        
         const uniqueNames = [...new Set(listaCallesParaBusqueda.map(c => c.nombre))];
+        
         uniqueNames.forEach(n => {
-            if (n.startsWith(val)) exactPrefixMatches.push(n);
-            else if (n.includes(val)) generalMatches.push(n);
+            if (n.startsWith(val)) {
+                exactPrefixMatches.push(n);
+            } else if (n.includes(val)) {
+                generalMatches.push(n);
+            }
         });
+
         let matches = [...exactPrefixMatches, ...generalMatches].slice(0, 6);
+        
         if (matches.length > 0) {
             sug.style.display = 'block';
             matches.forEach(m => {
                 let d = document.createElement('div');
                 d.className = 'sugerencia-item'; d.innerText = m;
-                d.onclick = () => { input.value = m; sug.style.display = 'none'; };
+                d.onclick = () => { input.value = m; sug.style.display = 'none'; buscarDireccion(); };
                 sug.appendChild(d);
             });
         } else { sug.style.display = 'none'; }
+    });
+
+    document.addEventListener('click', (e) => {
+        if (e.target !== input && e.target !== sug) sug.style.display = 'none';
     });
 }
 
@@ -372,10 +699,11 @@ function buscarGoogle() {
         });
 }
 
+/* ================= LEYENDAS Y CONTROL DE CAPAS ================= */
 const overlays = {
-    "<span class='layer-legend-icon' style='background:rgba(255,107,107,0.15); border:2px solid #ff6b6b;'></span> Manzanas": grupoManzanas,
-    "<span class='layer-legend-icon' style='background:#FFFF00; height:4px; border:1px solid #000;'></span> Nombres de Calles": grupoCalles,
-    "<span class='layer-legend-icon' style='background:#8e44ad'></span> Censo 2022": grupoCenso
+    "<span class='layer-legend-icon' style='background:rgba(8,81,156,0.6); border:2px solid #1d4ed8;'></span> Censo 2022 (por Densidad)": grupoCenso,
+    "<span class='layer-legend-icon' style='background:rgba(255,107,107,0.15); border:1px solid #ff6b6b;'></span> Manzanas": grupoManzanas,
+    "<span class='layer-legend-icon' style='background:#FFFF00; height:4px; border:1px solid #000;'></span> Nombres de Calles": grupoCalles
 };
 
 L.control.layers(
