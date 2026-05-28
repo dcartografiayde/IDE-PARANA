@@ -64,17 +64,37 @@
         
         .adv-distrito { position: absolute; bottom: 25px; right: 10px; z-index: 1000; background: rgba(255,255,255,0.8); padding: 6px 10px; border-radius: 6px; font-size: 9px; color: #4a5568; pointer-events: none; border: 1px solid rgba(0,0,0,0.1); }
         
-        .layer-legend-icon {
-            display: inline-block;
-            width: 14px;
-            height: 14px;
-            margin-right: 6px;
-            border: 1px solid #333;
-            border-radius: 3px;
-            vertical-align: middle;
-            position: relative;
-            top: -1px;
-    }   
+        .layer-legend-icon{
+    display:inline-block;
+    width:14px;
+    height:14px;
+    margin-right:6px;
+    border:1px solid #333;
+    border-radius:3px;
+    vertical-align:middle;
+    flex-shrink:0;
+}
+
+        /* =========================
+   ALINEACION CONTROL CAPAS
+========================= */
+
+.leaflet-control-layers-overlays label{
+    display:flex !important;
+    align-items:center !important;
+    line-height:1.2 !important;
+    padding:2px 0;
+}
+
+.leaflet-control-layers-selector{
+    margin-right:6px !important;
+    position:relative;
+    top:0 !important;
+}
+
+.leaflet-control-layers span{
+    vertical-align:middle !important;
+}
 
         .etiqueta-manzana {
             background: rgba(255, 255, 255, 0.95) !important;
@@ -819,22 +839,15 @@ Object.keys(gruposHuellaPorFecha)
 
             `
             <span style="
-                display:flex;
-                align-items:center;
-                gap:6px;
-                padding-left:18px;
-            ">
+            margin-left:8px;
+            display:flex;
+            align-items:center;
+            gap:4px;
+        ">
 
                 <span class='layer-legend-icon'
-                    style='
-                        background:${coloresHuella[fecha] || "#ff7800"};
-                        border:1px solid #333;
-                        width:14px;
-                        height:14px;
-                        margin:0;
-                        flex-shrink:0;
-                    '>
-                </span>
+    style='background:${coloresHuella[fecha] || "#ff7800"};'>
+</span>
 
                 <span style="
                     font-weight:600;
