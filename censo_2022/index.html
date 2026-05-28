@@ -23,7 +23,6 @@
             max-width: calc(100% - 70px);
         }
 
-        /* MODIFICACIÓN: Anchos compactados para evitar superposición en pantallas estándar y móviles */
         input { padding: 4px 6px; border: 1px solid #ddd; border-radius: 6px; font-size: 11px; outline: none; transition: 0.2s; }
         input:focus { border-color: #2980b9; box-shadow: 0 0 0 2px rgba(41,128,185,0.2); }
         .btn-buscar { background: #2980b9; color: white; padding: 4px 8px; cursor: pointer; border-radius: 6px; font-weight: 600; font-size: 11px; border: none; }
@@ -85,7 +84,19 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
         }
 
-        /* MODIFICACIÓN: Dashboard Estadístico flotante interactivo y elegante */
+        /* MODIFICACIÓN: Estilo moderno para las etiquetas dinámicas de hogares y habitantes */
+        .etiqueta-censo {
+            background: rgba(255, 255, 255, 0.9) !important;
+            border: 1.5px solid #1d4ed8 !important;
+            border-radius: 6px !important;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.15) !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            pointer-events: none !important;
+            padding: 2px !important;
+        }
+
         .dashboard-panel {
             position: absolute; bottom: 25px; left: 10px; z-index: 1000;
             background: rgba(255, 255, 255, 0.95); padding: 12px; border-radius: 8px;
@@ -103,7 +114,6 @@
         VISOR CENSO 2022 - MUNICIPALIDAD DE PARANA
     </div>
 
-    <!-- MODIFICACIÓN: Campos con anchos más reducidos y compactos -->
     <div style="position:relative; display: flex; gap: 4px; align-items: center;">
         <input type="text" id="input-calle" placeholder="Calle..." style="width:100px;" autocomplete="off">
         <input type="number" id="input-altura" placeholder="Alt." style="width:45px;">
@@ -119,13 +129,26 @@
     </div>
 </div>
 
-<!-- MODIFICACIÓN: Dashboard de Estadísticas Censales Dinámicas -->
 <div id="dashboard" class="dashboard-panel">
     <div class="font-extrabold text-[11px] text-slate-800 border-b pb-1 mb-1.5 flex items-center justify-between">
         <span>📊 ESTADÍSTICAS VISIBLES</span>
         <span class="text-[9px] bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded-full font-bold" id="count-fracciones">0 frac.</span>
     </div>
     <div id="stats-content" class="space-y-1 text-[10px]">Cargando estadísticas...</div>
+    
+    <!-- MODIFICACIÓN: Leyenda visual integrada de densidades en el pie del Dashboard -->
+    <div class="mt-2 pt-1.5 border-t border-slate-200">
+        <div class="font-bold text-[9px] text-slate-500 mb-1">DENSIDAD (hab/ha):</div>
+        <div class="flex items-center gap-1 text-[8px] font-bold">
+            <span class="w-3 h-3 border border-slate-300" style="background:#eff3ff"></span> 0
+            <span class="w-3 h-3 border border-slate-300" style="background:#c6dbef"></span> 1-5
+            <span class="w-3 h-3 border border-slate-300" style="background:#9ecae1"></span> 5-20
+            <span class="w-3 h-3 border border-slate-300" style="background:#6baed6"></span> 20-50
+            <span class="w-3 h-3 border border-slate-300" style="background:#4292c6"></span> 50-100
+            <span class="w-3 h-3 border border-slate-300" style="background:#2171b5"></span> 100-150
+            <span class="w-3 h-3 border border-slate-300" style="background:#084594"></span> +150
+        </div>
+    </div>
 </div>
 
 <!-- Cuadro Informativo de Distritos con indicador de Zoom -->
@@ -339,7 +362,7 @@ fetchGeoJSON(BASE_URL + "catastro/manzana.geojson").then(data => {
         filter: (f) => f && f.geometry && f.geometry.coordinates && f.geometry.coordinates.length > 0,
         style: {
             color: "#ff6b6b", 
-            weight: 1, // MODIFICACIÓN: Grosor reducido para alivianar visualmente el mapa        
+            weight: 1,         
             fillColor: "transparent",
             fillOpacity: 0,
             interactive: false 
@@ -382,7 +405,7 @@ fetchGeoJSON(BASE_URL + "catastro/manzana.geojson").then(data => {
 /* ================= CÁLCULO GEOMÉTRICO DE ÁREAS (HECTÁREAS) ================= */
 function calcularAreaHectareas(coordinates, type) {
     let areaM2 = 0;
-    const R = 6371000; // Radio medio de la Tierra en metros
+    const R = 6371000; 
     
     function ringArea(coords) {
         let area = 0;
@@ -408,48 +431,51 @@ function calcularAreaHectareas(coordinates, type) {
             if (poly && poly[0]) areaM2 += ringArea(poly[0]);
         });
     }
-    return areaM2 / 10000; // Convertir m² a Hectáreas
+    return areaM2 / 10000; 
 }
 
 function getColorDensity(d) {
-    return d > 150 ? '#084594' : // Azul muy oscuro (Densidad extrema)
+    return d > 150 ? '#084594' : 
            d > 100 ? '#2171b5' : 
            d > 50  ? '#4292c6' : 
            d > 20  ? '#6baed6' : 
            d > 5   ? '#9ecae1' : 
            d > 0   ? '#c6dbef' : 
-                     '#eff3ff'; // Densidad prácticamente nula / deshabitado
+                     '#eff3ff'; 
 }
 
 /* ================= NORMALIZACIÓN ROBUSTA DE LLAVES Y VALORES PARA EL CENSO ================= */
 
 function normalizarKey(str) {
     if (!str) return '';
-    return str.toString()
-        .toUpperCase()
-        .replace(/Ã‘/g, 'Ñ')
-        .replace(/Ã/g, 'Ñ')
-        .replace(/Ã³/g, 'Ó')
-        .replace(/Ã¡/g, 'Á')
-        .replace(/Ã©/g, 'É')
-        .replace(/Ã­/g, 'Í')
-        .replace(/Ãº/g, 'Ú')
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "") // Remueve acentos y diacríticos
-        .replace(/[^A-Z0-9]/g, ""); // Conserva solo caracteres alfanuméricos
+    let s = str.toString().toUpperCase();
+    // MODIFICACIÓN: Limpieza previa que mapea caracteres dañados/rotos en el Censo antes de remover no-alfanuméricos
+    s = s.replace(/¢/g, 'O') // Reemplaza centavo/ó rota de PC850 por O
+         .replace(/0/g, 'O') // Mapea ceros por letras O para uniformidad en POBLACION
+         .replace(/Ã‘/g, 'Ñ')
+         .replace(/Ã/g, 'Ñ')
+         .replace(/Ã³/g, 'O')
+         .replace(/Ã¡/g, 'A')
+         .replace(/Ã©/g, 'E')
+         .replace(/Ã­/g, 'I')
+         .replace(/Ãº/g, 'U')
+         .replace(/Â/g, '')
+         .replace(/¤/g, 'N')  // Corrección para Ñ rotas
+         .replace(/§/g, 'O'); // Corrección para Ó rotas
+    return s.normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "") 
+        .replace(/[^A-Z0-9]/g, ""); 
 }
 
 function getPropValue(properties, targetKey) {
     if (!properties) return undefined;
-    // Normaliza clave objetivo mapeando ceros por letras 'O'
-    const targetNorm = normalizarKey(targetKey).replace(/0/g, 'O');
+    const targetNorm = normalizarKey(targetKey);
     
     for (let k in properties) {
-        let kNorm = normalizarKey(k).replace(/0/g, 'O');
+        let kNorm = normalizarKey(k);
         if (kNorm === targetNorm) {
             return properties[k];
         }
-        // Búsqueda aproximada si el nombre es lo suficientemente característico
         if (targetNorm.length > 5 && (kNorm.includes(targetNorm) || targetNorm.includes(kNorm))) {
             return properties[k];
         }
@@ -463,13 +489,11 @@ function parseValue(val) {
     let str = String(val).trim();
     if (str === '' || str === '-') return 0;
     
-    // Tratamiento de formatos decimales/miles españoles y anglosajones
     if (str.includes('.') && str.includes(',')) {
         str = str.replace(/\./g, '').replace(/,/g, '.');
     } else if (str.includes(',')) {
         str = str.replace(/,/g, '.');
     } else if (str.includes('.')) {
-        // En datos demográficos enteros de Paraná, un punto (ej. "1.234") representa miles
         if ((str.match(/\./g) || []).length > 1 || /\.\d{3}$/.test(str)) {
             str = str.replace(/\./g, '');
         }
@@ -481,24 +505,24 @@ function parseValue(val) {
 
 /* ================= CAPA CENSO 2022 INTEGRADA ================= */
 var grupoCenso = L.layerGroup().addTo(map);
+// MODIFICACIÓN: Grupo de capas para contener las etiquetas de hogares y habitantes
+var grupoEtiquetasCenso = L.layerGroup();
 
 fetchGeoJSON(BASE_URL + "censo_2022/censo_2022.geojson").then(data => {
     L.geoJSON(data, {
         style: (feature) => {
             let p = feature.properties;
             
-            // Usamos extractor robusto inmune a fallos de encoding
-            let valPob = getPropValue(p, "POBLACI0N TOTAL EN HOGARES PARTICULARES");
+            let valPob = getPropValue(p, "POBLACI0N TOTAL EN HOGARES PARTICULARES") || getPropValue(p, "POBLACI¢N TOTAL EN HOGARES PARTICULARES");
             let pob = parseValue(valPob);
             
-            // Cálculo dinámico de área y densidad por hectárea
             let areaHectareas = calcularAreaHectareas(feature.geometry.coordinates, feature.geometry.type);
             let densidad = areaHectareas > 0 ? (pob / areaHectareas) : 0;
 
             return {
                 fillColor: getColorDensity(densidad),
                 fillOpacity: 0.65,
-                color: "#1d4ed8", // Borde azul grueso y nítido
+                color: "#1d4ed8", 
                 weight: 2, 
                 opacity: 0.95
             };
@@ -506,14 +530,31 @@ fetchGeoJSON(BASE_URL + "censo_2022/censo_2022.geojson").then(data => {
         onEachFeature: (f, l) => {
             let p = f.properties;
             
-            // Extracción robusta para visualización en pop-up
-            let valPob = getPropValue(p, "POBLACI0N TOTAL EN HOGARES PARTICULARES");
+            let valPob = getPropValue(p, "POBLACI0N TOTAL EN HOGARES PARTICULARES") || getPropValue(p, "POBLACI¢N TOTAL EN HOGARES PARTICULARES");
+            let valHog = getPropValue(p, "TOTAL HOGARES PARTICULARES");
             let pob = parseValue(valPob);
+            let hog = parseValue(valHog);
             
             let areaHectareas = calcularAreaHectareas(f.geometry.coordinates, f.geometry.type);
             let densidad = areaHectareas > 0 ? (pob / areaHectareas) : 0;
 
-            // Popup estructurado e impecable
+            // MODIFICACIÓN: Generación de la etiqueta de hogares y habitantes a nivel de Zoom >= 15
+            try {
+                let center = l.getBounds().getCenter();
+                L.marker(center, {
+                    icon: L.divIcon({
+                        className: 'etiqueta-censo',
+                        html: `<div style="text-align:center; font-size:8px; line-height:1.1; font-weight:bold; color:#1e293b;">
+                                 <div>🏠 ${hog}</div>
+                                 <div style="margin-top:1px;">👥 ${pob}</div>
+                               </div>`,
+                        iconSize: [48, 26],
+                        iconAnchor: [24, 13]
+                    }),
+                    interactive: false
+                }).addTo(grupoEtiquetasCenso);
+            } catch(e) {}
+
             let html = `<div class="popup-custom">`;
             html += `<div class="popup-header">Censo 2022 - Datos de Fracción</div>`;
             html += `<table class="table-info">`;
@@ -521,7 +562,7 @@ fetchGeoJSON(BASE_URL + "censo_2022/censo_2022.geojson").then(data => {
             html += `<tr><td>SUPERFICIE ESTIMADA</td><td>${areaHectareas.toFixed(2)} ha</td></tr>`;
             
             for (let [k, v] of Object.entries(p)) {
-                let keySanitized = decodificarTexto(k).replace("POBLACI0N", "POBLACIÓN");
+                let keySanitized = decodificarTexto(k).replace("POBLACI0N", "POBLACIÓN").replace("POBLACI¢N", "POBLACIÓN");
                 let valSanitized = decodificarTexto(String(v));
                 html += `<tr><td>${keySanitized}</td><td>${valSanitized}</td></tr>`;
             }
@@ -530,15 +571,14 @@ fetchGeoJSON(BASE_URL + "censo_2022/censo_2022.geojson").then(data => {
         }
     }).addTo(grupoCenso);
 
-    // Ejecutar el primer cálculo de estadísticas
     actualizarEstadisticasVisibles();
+    controlarVisibilidadDinamica();
 }).catch(err => {
     console.error("Error cargando la capa Censo 2022:", err);
 });
 
 /* ================= CÁLCULO ESTADÍSTICO DINÁMICO POR VIEWPORT ================= */
 function actualizarEstadisticasVisibles() {
-    // Si la capa de censo no se encuentra activa en el mapa, indicamos al usuario
     if (!map.hasLayer(grupoCenso)) {
         document.getElementById('count-fracciones').innerText = `0 frac.`;
         document.getElementById('stats-content').innerHTML = `
@@ -570,7 +610,6 @@ function actualizarEstadisticasVisibles() {
                     let p = layer.feature.properties;
                     countFracciones++;
                     
-                    // Suma exacta mediante extracción y formateo seguro de datos
                     for (let key in totalStats) {
                         let val = getPropValue(p, key);
                         if (val !== undefined && val !== null) {
@@ -582,10 +621,8 @@ function actualizarEstadisticasVisibles() {
         }
     });
 
-    // Actualizar indicador de cantidad de fracciones contabilizadas
     document.getElementById('count-fracciones').innerText = `${countFracciones} frac.`;
 
-    // Renderizar tabla estadística estructurada
     let html = `<table class="w-full text-[10px] text-slate-700">`;
     for (let [key, val] of Object.entries(totalStats)) {
         let label = key.replace("POBLACI0N", "POBLACIÓN");
@@ -599,11 +636,11 @@ function actualizarEstadisticasVisibles() {
     document.getElementById('stats-content').innerHTML = html;
 }
 
-// Suscribir recálculo dinámico a movimientos de paneo y zoom del mapa
 map.on('moveend', actualizarEstadisticasVisibles);
 map.on('layeradd layerremove', (e) => {
     if (e.layer === grupoCenso) {
         actualizarEstadisticasVisibles();
+        controlarVisibilidadDinamica(); // MODIFICACIÓN: Disparador para asegurar recálculo y encendido de etiquetas
     }
 });
 
@@ -629,6 +666,17 @@ function controlarVisibilidadDinamica() {
     } else {
         if (map.hasLayer(grupoCalles)) {
             map.removeLayer(grupoCalles);
+        }
+    }
+
+    // MODIFICACIÓN: Gestión de visibilidad dinámica de etiquetas del censo (Zoom >= 15 y mapa con capa de Censo activa)
+    if (zoomActual >= 15 && map.hasLayer(grupoCenso)) {
+        if (!map.hasLayer(grupoEtiquetasCenso)) {
+            map.addLayer(grupoEtiquetasCenso);
+        }
+    } else {
+        if (map.hasLayer(grupoEtiquetasCenso)) {
+            map.removeLayer(grupoEtiquetasCenso);
         }
     }
 }
