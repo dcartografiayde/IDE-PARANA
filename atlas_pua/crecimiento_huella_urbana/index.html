@@ -65,16 +65,16 @@
         .adv-distrito { position: absolute; bottom: 25px; right: 10px; z-index: 1000; background: rgba(255,255,255,0.8); padding: 6px 10px; border-radius: 6px; font-size: 9px; color: #4a5568; pointer-events: none; border: 1px solid rgba(0,0,0,0.1); }
         
         .layer-legend-icon {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center; 
-            width: 14px; 
-            height: 14px; 
-            margin-right: 8px; 
-            border: 1px solid #333; 
-            vertical-align: middle; 
-            border-radius: 3px; 
-        }
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            margin-right: 6px;
+            border: 1px solid #333;
+            border-radius: 3px;
+            vertical-align: middle;
+            position: relative;
+            top: -1px;
+    }   
 
         .etiqueta-manzana {
             background: rgba(255, 255, 255, 0.95) !important;
@@ -844,18 +844,18 @@ Object.keys(gruposHuellaPorFecha)
     gruposHuellaPorFecha[fecha],
 
     `<span style="
-        margin-left:14px;
-        display:inline-flex;
-        align-items:center;
-        gap:6px;
-        vertical-align:middle;
-    ">
+    margin-left:14px;
+    display:inline-block;
+    vertical-align:middle;
+    line-height:18px;
+">
 
         <span class='layer-legend-icon'
             style='
                 background:${coloresHuella[fecha] || "#ff7800"};
                 border:1px solid #333;
-                margin-right:0;
+                margin-right:6px;
+                display:inline-block;
                 vertical-align:middle;
             '>
         </span>
