@@ -921,7 +921,17 @@ setTimeout(() => {
             </div>
         `;
 
-        overlaysList.appendChild(titulo);
+        /* =========================
+           INSERTAR ARRIBA DE FECHAS
+        ========================= */
+
+        const labels = overlaysList.querySelectorAll('label');
+
+        if (labels.length > 0) {
+            overlaysList.insertBefore(titulo, labels[labels.length - Object.keys(gruposHuellaPorFecha).length]);
+        } else {
+            overlaysList.appendChild(titulo);
+        }
     }
 
 }, 500);
