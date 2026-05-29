@@ -702,7 +702,17 @@ fetchGeoJSON(
 
             try {
 
-                let center = layer.getBounds().getCenter();
+                let center;
+
+                try {
+
+                    center = layer.getCenter();
+
+                 } catch(e) {
+
+                    center = layer.getBounds().getCenter();
+
+                }
 
                 L.marker(center, {
 
@@ -928,7 +938,7 @@ const overlays = {
 
     "<span class='layer-legend-icon' style='background:#2980b9'></span> Parcelas Catastrales": grupoParcelas,
 
-    "<span class='layer-legend-icon' style='background:#00b894'></span> Ejidos Linderos": grupoEjidosLinderos
+    "<span class='layer-legend-icon' style='background:#00b894'></span> Ejidos Municipales": grupoEjidosLinderos
 };
 
 /* =========================
