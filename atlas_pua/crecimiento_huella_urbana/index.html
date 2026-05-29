@@ -74,26 +74,39 @@
     vertical-align:middle;
     flex-shrink:0;
 }
-
-        /* =========================
-   ALINEACION CONTROL CAPAS
+/* =========================
+   ALINEACION PERFECTA CONTROL CAPAS
 ========================= */
 
 .leaflet-control-layers-overlays label{
     display:flex !important;
     align-items:center !important;
-    line-height:1.2 !important;
-    padding:2px 0;
+    gap:6px;
+    padding:3px 0;
+    margin:0;
+    line-height:1.1 !important;
 }
 
 .leaflet-control-layers-selector{
-    margin-right:6px !important;
+    margin:0 !important;
     position:relative;
     top:0 !important;
+    flex-shrink:0;
 }
 
-.leaflet-control-layers span{
-    vertical-align:middle !important;
+.layer-item{
+    display:flex;
+    align-items:center;
+    gap:6px;
+}
+
+.layer-legend-icon{
+    display:inline-block;
+    width:14px;
+    height:14px;
+    border:1px solid #333;
+    border-radius:3px;
+    flex-shrink:0;
 }
 
         .etiqueta-manzana {
@@ -838,35 +851,43 @@ fetchGeoJSON(
    SUBCAPAS POR FECHA
 ========================= */
 
-Object.keys(gruposHuellaPorFecha)
-    .sort()
-    .forEach(fecha => {
+[
+    "1967",
+    "1979",
+    "1983",
+    "1990",
+    "1998",
+    "2001",
+    "2002",
+    "2005",
+    "2006",
+    "2009",
+    "2012"
+].forEach(fecha => {
+
+    if (!gruposHuellaPorFecha[fecha]) return;
 
         controlCapas.addOverlay(
 
             gruposHuellaPorFecha[fecha],
 
-            `
-            <span style="
-            margin-left:8px;
-            display:flex;
-            align-items:center;
-            gap:4px;
-        ">
+           `
+<span class="layer-item">
 
-                <span class='layer-legend-icon'
-    style='background:${coloresHuella[fecha] || "#ff7800"};'>
+    <span
+        class="layer-legend-icon"
+        style="background:${coloresHuella[fecha] || "#ff7800"};">
+    </span>
+
+    <span style="
+        font-weight:600;
+        color:#374151;
+    ">
+        ${fecha}
+    </span>
+
 </span>
-
-                <span style="
-                    font-weight:600;
-                    color:#374151;
-                ">
-                    ${fecha}
-                </span>
-
-            </span>
-            `
+`
         );
 
     });
@@ -943,8 +964,8 @@ setTimeout(() => {
         }
     }
 
-}, 500);
-
+}, 1200);
+    
 // MODIFICACIÓN: Inicialización de la herramienta de medición (longitud y superficie) en español
 var measureControl = new L.Control.Measure({
     primaryLengthUnit: 'meters',
