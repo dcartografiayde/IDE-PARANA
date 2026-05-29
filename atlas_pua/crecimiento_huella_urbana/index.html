@@ -721,21 +721,28 @@ fetchGeoJSON(
 icon: L.divIcon({
     className: '',
     html: `
-        <div style="
-            color: #00b894;
-            font-weight: 900;
-            font-size: 13px;
-            white-space: nowrap;
-            text-shadow:
-                -1px -1px 0 #ffffff,
-                 1px -1px 0 #ffffff,
-                -1px  1px 0 #ffffff,
-                 1px  1px 0 #ffffff,
-                 0px  0px 4px rgba(0,0,0,0.4);
-        ">
-            ${decodificarTexto(localidad).toUpperCase()}
-        </div>
-    `
+    <div style="
+        position: relative;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+
+        color: #00b894;
+        font-weight: 900;
+        font-size: 13px;
+        white-space: nowrap;
+        text-align: center;
+
+        text-shadow:
+            -1px -1px 0 #ffffff,
+             1px -1px 0 #ffffff,
+            -1px  1px 0 #ffffff,
+             1px  1px 0 #ffffff,
+             0px  0px 4px rgba(0,0,0,0.4);
+    ">
+        ${decodificarTexto(localidad).toUpperCase()}
+    </div>
+`
 })
 
 
