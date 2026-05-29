@@ -714,18 +714,44 @@ fetchGeoJSON(
 
                 }
 
-                L.marker(center, {
+               L.marker(center, {
 
-                    interactive: false,
+    interactive: false,
 
-icon: L.divIcon({
-    className: '',
-    html: `
-    <div style="
-        position: relative;
-        left: 50%;
-        top: 50%;
-        transform: translate(-50%, -50%);
+    icon: L.divIcon({
+
+        className: '',
+
+        iconSize: [220, 24],
+
+        iconAnchor: [110, 12],
+
+        html: `
+        <div style="
+            width:220px;
+
+            color:#00b894;
+            font-weight:900;
+            font-size:13px;
+
+            text-align:center;
+            white-space:nowrap;
+
+            transform:translateY(-2px);
+
+            text-shadow:
+                -1px -1px 0 #ffffff,
+                 1px -1px 0 #ffffff,
+                -1px  1px 0 #ffffff,
+                 1px  1px 0 #ffffff,
+                 0px  0px 4px rgba(0,0,0,0.4);
+        ">
+            ${decodificarTexto(localidad).toUpperCase()}
+        </div>
+        `
+    })
+
+}).addTo(grupoEtiquetasEjidos);
 
         color: #00b894;
         font-weight: 900;
