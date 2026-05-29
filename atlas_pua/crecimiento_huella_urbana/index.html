@@ -956,35 +956,72 @@ setTimeout(() => {
     const overlaysList =
         document.querySelector('.leaflet-control-layers-overlays');
 
-    if (overlaysList) {
+    if (!overlaysList) return;
 
-        const titulo = document.createElement('div');
+    /* =========================================
+       TITULO DE SECCION
+    ========================================= */
 
-        titulo.innerHTML = `
-            <div style="
-                font-weight:800;
-                font-size:11px;
-                color:#1e293b;
-                margin:6px 0 4px 0;
-                padding-top:6px;
-                border-top:1px solid #cbd5e1;
-            ">
-                CRECIMIENTO HUELLA URBANA
-            </div>
-        `;
+    const titulo = document.createElement('div');
 
-        /* =========================
-           INSERTAR ARRIBA DE FECHAS
-        ========================= */
+    titulo.innerHTML = `
+        <div style="
+            font-weight:800;
+            font-size:11px;
+            color:#1e293b;
+            margin:6px 0 4px 0;
+            padding-top:6px;
+            border-top:1px solid #cbd5e1;
+        ">
+            CRECIMIENTO HUELLA URBANA
+        </div>
+    `;
 
-        const labels = overlaysList.querySelectorAll('label');
+    /* =========================================
+       INSERTAR TITULO ANTES DE LAS FECHAS
+    ========================================= */
 
-        if (labels.length > 0) {
-            overlaysList.insertBefore(titulo, labels[labels.length - Object.keys(gruposHuellaPorFecha).length]);
-        } else {
-            overlaysList.appendChild(titulo);
-        }
+    const labels = overlaysList.querySelectorAll('label');
+
+    const cantidadFechas =
+        Object.keys(gruposHuellaPorFecha).length;
+
+    if (labels.length >= cantidadFechas) {
+
+        overlaysList.insertBefore(
+            titulo,
+            labels[labels.length - cantidadFechas]
+        );
+
+    } else {
+
+        overlaysList.appendChild(titulo);
+
     }
+
+    /* =========================================
+       ALINEACION PERFECTA CHECKBOX + ICONO + TEXTO
+    ========================================= */
+
+    labels.forEach(label => {
+
+        label.style.display = "flex";
+        label.style.alignItems = "center";
+        label.style.gap = "6px";
+        label.style.margin = "2px 0";
+
+        const input = label.querySelector('input');
+
+        if (input) {
+
+            input.style.margin = "0";
+            input.style.position = "relative";
+            input.style.top = "0";
+            input.style.flexShrink = "0";
+
+        }
+
+    });
 
 }, 1200);
     
