@@ -81,23 +81,27 @@
 .leaflet-control-layers-overlays label{
     display:flex !important;
     align-items:center !important;
-    gap:6px;
+    gap:7px;
     padding:3px 0;
     margin:0;
-    line-height:1.1 !important;
+    min-height:22px;
+    line-height:1 !important;
 }
 
 .leaflet-control-layers-selector{
     margin:0 !important;
+    padding:0 !important;
     position:relative;
     top:0 !important;
+    vertical-align:middle !important;
     flex-shrink:0;
 }
 
 .layer-item{
     display:flex;
     align-items:center;
-    gap:6px;
+    gap:7px;
+    width:100%;
 }
 
 .layer-legend-icon{
@@ -107,6 +111,12 @@
     border:1px solid #333;
     border-radius:3px;
     flex-shrink:0;
+}
+
+.layer-item span:last-child{
+    display:flex;
+    align-items:center;
+    height:14px;
 }
 
         .etiqueta-manzana {
@@ -381,7 +391,7 @@ function activarEtiquetasCalles() {
 }
 
 // Capa de Manzanas
-var grupoManzanas = L.layerGroup().addTo(map);
+var grupoManzanas = L.layerGroup();
 var grupoEtiquetasManzanas = L.layerGroup(); 
 
 fetchGeoJSON(BASE_URL + "catastro/manzana.geojson").then(data => {
@@ -891,6 +901,14 @@ fetchGeoJSON(
         );
 
     });
+
+    /* =========================
+   ACTIVAR SOLO 1967 AL INICIO
+========================= */
+
+if (gruposHuellaPorFecha["1967"]) {
+    gruposHuellaPorFecha["1967"].addTo(map);
+}
 
 }).catch(err => {
     console.error("Error al cargar crecimiento_huella_urbana.geojson", err);
