@@ -1,0 +1,953 @@
+{
+  "titulo": "Ordenanza 8563 - Código Urbano de Paraná",
+  "articulos": [
+    {
+      "articulo": 1,
+      "texto": "Este cuerpo de normas será conocido y citado como \"CODIGO URBANO DEL MUNICIPIO DE PARANA\", en adelante \"El Código\".-"
+    },
+    {
+      "articulo": 2,
+      "texto": "Las disposiciones de este Código alcanzan y rigen en todos aquellos asuntos relacionados directa o indirectamente con edificios, estructuras, instalaciones, apertura y/ o ensanche de vías públicas, subdivisión, volúmenes edificables, usos del suelo y/o todos aquellos aspectos que tengan relación con el desarrollo y ordenamiento urbanístico dentro del área de su ámbito de vigencia."
+    },
+    {
+      "articulo": 3,
+      "texto": "Las disposiciones de este Código son de aplicación tanto a las personas de derecho privado como a las de derecho público y a los bienes de éstas, cualquiera sea su afectación, localizados dentro de la jurisdicción territorial del Municipio de Paraná."
+    },
+    {
+      "articulo": 4,
+      "texto": "Los artículos precedentes deben considerarse como enunciativos y no deben interpretarse como limitación a la aplicación del Código en cualquier otro supuesto previsto en el mismo.-\nTITULO 2. DEFINICIONES.-\nCAPITULO 1. RELATIVAS AL TERRENO:"
+    },
+    {
+      "articulo": 5,
+      "texto": "CLUB DE CAMPO: Es un área de extensión limitada, con un sector destinado a práctica deportiva, social o cultural, y otro destinado a la construcción de viviendas permanentes o transitorias."
+    },
+    {
+      "articulo": 6,
+      "texto": "COTA DE PARCELA: es la correspondiente al nivel del terreno natural medido en el centro de la parcela en relación a la cota de la vereda. En los casos en que la cota de la parcela sea inferior a la cota de la vereda, las alturas máximas correspondientes deberán ser tomadas desde esta ultima."
+    },
+    {
+      "articulo": 7,
+      "texto": "COTA DE LA VEREDA: Es la correspondiente al nivel de acera medido en el punto medio de la Línea Municipal del frente de la parcela."
+    },
+    {
+      "articulo": 8,
+      "texto": "FRENTE DE PARCELA EN ESQUINA: En los lotes esquineros se considerará como frente el lado de menor extensión."
+    },
+    {
+      "articulo": 9,
+      "texto": "FRENTE DE PARCELA: Es la línea comprendida entre las líneas divisorias laterales y que limita una parcela con la vía pública."
+    },
+    {
+      "articulo": 10,
+      "texto": "LINEA DIVISORIA DE FONDO DE LA PARCELA: Es la línea opuesta y más distante a la línea de frente de parcela."
+    },
+    {
+      "articulo": 11,
+      "texto": "LINEA DIVISORIA LATERAL DE LA PARCELA: Es la línea comprendida entre el frente y la línea de fondo y que constituye el límite lateral de la parcela."
+    },
+    {
+      "articulo": 12,
+      "texto": "LINEA MUNICIPAL: Línea que deslinda la propiedad privada de la vía pública actual o de la línea señalada por la Municipalidad para las futuras vías públicas (abreviada L.M.)."
+    },
+    {
+      "articulo": 13,
+      "texto": "LINEA DE EDIFICACION: Es la línea que limita el área edificable de la parcela en el frente de la misma y que, generalmente, coincide con la línea municipal, salvo en los casos en que se exija retiro obligatorio (abreviada L.E.)."
+    },
+    {
+      "articulo": 14,
+      "texto": "PARCELA: Superficie de terreno delimitada por un polígono y designada como tal en planos de mensura registrados por autoridad competente."
+    },
+    {
+      "articulo": 15,
+      "texto": "MANZANA: Superficie de terreno delimitada en todos sus lados por vía pública y/o registrada como tal por el Organismo Competente."
+    },
+    {
+      "articulo": 16,
+      "texto": "LINEA DE OCHAVA: Es la línea que delimita la vía pública en las esquinas, determinada por la perpendicular a la bisectriz del ángulo que forman las líneas municipales concurrentes, y a una distancia variable del vértice según el ángulo."
+    },
+    {
+      "articulo": 17,
+      "texto": "LOTE / PREDIO: Superficie de terreno que no constituya parcela por no poseer plano de mensura registrado por autoridad competente y que puede ser determinada por otro documento legal que posibilite su identificación y localización."
+    },
+    {
+      "articulo": 18,
+      "texto": "PARCELA DE ESQUINA: La que tiene por lo menos dos lados contiguos adyacentes a dos calles."
+    },
+    {
+      "articulo": 19,
+      "texto": "PARCELA INTERMEDIA: Aquélla que no es \"parcela de esquina\"."
+    },
+    {
+      "articulo": 20,
+      "texto": "PARCELA INTERIOR: Aquella que no tiene frente a vía pública."
+    },
+    {
+      "articulo": 21,
+      "texto": "PARCELA NO CONFORME: Aquella que no cumple con las dimensiones mínimas exigidas para cada Distrito."
+    },
+    {
+      "articulo": 22,
+      "texto": "SISTEMA FLUVIAL-LACUSTRE: Denomínase así, a los efectos de la aplicación de este Código, al constituido por todas las superficies de ríos, arroyos, lagunas y canales a cielo abierto que sirven para la evacuación de las aguas de lluvias, así como las márgenes de los mismos y las superficies de tierra que son cubiertas por las aguas en los ciclos naturales de crecientes medias, según las cotas que fije la Dirección de Hidráulica de la Provincia."
+    },
+    {
+      "articulo": 23,
+      "texto": "SUBDIVISION: Cualquier clase de fraccionamiento de inmuebles."
+    },
+    {
+      "articulo": 24,
+      "texto": "URBANIZACION: Toda subdivisión de tierras donde fuera necesario abrir nuevas calles o prolongar las existentes con el objeto de crear lotes o parcelas."
+    },
+    {
+      "articulo": 25,
+      "texto": "PROYECTOS URBANISTICOS RESIDENCIALES: Toda urba-nización que, además de la subdivisión y apertura de calles incluye la dotación de los servicios de infraestructura completos y equipamiento, la construcción de los edificios en el total de las parcelas y una vía principal pavimentada que vincule el conjunto con la trama circulatoria urbana existente."
+    },
+    {
+      "articulo": 26,
+      "texto": "URBANIZACION ESPECIAL: Aquélla que requiere normas parti-culares en cada caso."
+    },
+    {
+      "articulo": 27,
+      "texto": "VIA PUBLICA: Espacio del dominio público afectado a la circulación peatonal o vehicular (entre otros: autopista, avenida, calle, callejón, pasaje, senda o paso)."
+    },
+    {
+      "articulo": 28,
+      "texto": "LOTEOS: Toda subdivisión que se realice en urbanizaciones."
+    },
+    {
+      "articulo": 29,
+      "texto": "FRACCIONAMIENTO: Toda subdivisión de predios que no tengan como objeto su urbanización ni como consecuencia de la apertura de calles.\nCAPITULO 2. RELATIVAS AL TEJIDO URBANO.-"
+    },
+    {
+      "articulo": 30,
+      "texto": "AREAS ESPECIALES: Aquéllas caracterizadas por sus condi-ciones funcionales, paisajísticas, ambientales o históricas, que requieren un tratamiento urbanístico especial e integral que posibilite ordenar, proteger y promover sus valores, debido al significado e impacto de las mismas sobre las áreas inmediatas y el conjunto de la ciudad, ej.: Parque Urquiza, Puerto Viejo,\nPuerto Nuevo, Plaza de Mayo, etc."
+    },
+    {
+      "articulo": 31,
+      "texto": "BASAMENTO: Parte del edificio construido sobre el nivel del terreno, por encima del cual se asientan los volúmenes sobre elevados y retirados del mismo, que a los efectos de la aplicación del presente se considerará en una altura de entre 4 (cuatro) metros y 12.50 (doce con cincuenta) metros."
+    },
+    {
+      "articulo": 32,
+      "texto": "FACHADA OBLIGATORIA SOBRE LÍNEA MUNICIPAL: recomposición total o virtual del frente sobre línea municipal. A los efectos de la aplicación del presente se considerará en una altura de entre 4 (cuatro) metros y 12.50 (doce con cincuenta) metros sobre la cota de parcela."
+    },
+    {
+      "articulo": 33,
+      "texto": "ALTURA MAXIMA DE EDIFICACION: Se entiende por tal al plano límite determinado por la relación entre la altura del edificio y las distancias al eje de la vía pública y líneas de frente interno, excepto donde esté predeterminado."
+    },
+    {
+      "articulo": 34,
+      "texto": "CENTRO DE MANZANA: Superficie de terreno comprendida entre las líneas de frente interno donde es limitada o restringida la edificación."
+    },
+    {
+      "articulo": 35,
+      "texto": "ESPACIO LIBRE DE MANZANA: Espacio aéreo del interior de la manzana limitado por los planos verticales que pasan por los paramentos de los frentes internos."
+    },
+    {
+      "articulo": 36,
+      "texto": "ESPACIO URBANO: Espacio aéreo comprendido entre los volúmenes edificados de la ciudad."
+    },
+    {
+      "articulo": 37,
+      "texto": "FACHADA DE FONDO: Fachada más próxima a la línea divisoria de fondo de la parcela."
+    },
+    {
+      "articulo": 38,
+      "texto": "FACHADA DE FRENTE: La que se materializa en el frente de la parcela, comunicándose directamente con el espacio urbano de la vía pública."
+    },
+    {
+      "articulo": 39,
+      "texto": "FACHADA INTERNA: Las que se materializan en el interior de las parcelas y no se comunican directamente con el centro de manzana o con el espacio de la vía pública."
+    },
+    {
+      "articulo": 40,
+      "texto": "FACHADA LATERAL: Las que se materializan distanciándose de las líneas divisorias laterales de parcelas."
+    },
+    {
+      "articulo": 41,
+      "texto": "FACTOR DE OCUPACION DEL SUELO (F.O.S.): Porcentaje máximo de la superficie total de la parcela que puede ocuparse con la proyección (real o virtual) de la superficie construida, en cualquier nivel, por encima de la cota de la parcela. Queda excluida la que resulte de la proyección de balcones abiertos en tres de sus lados."
+    },
+    {
+      "articulo": 42,
+      "texto": "FACTOR DE OCUPACION TOTAL (F.O.T.): Coeficiente que debe multiplicarse por la superficie total de cada parcela para obtener la superficie cubierta máxima edificable en ella."
+    },
+    {
+      "articulo": 43,
+      "texto": "LINEA DE FRENTE INTERNO (L.F.I.): Traza del plano que limita la edificación permitida en una parcela con el espacio libre de manzana."
+    },
+    {
+      "articulo": 44,
+      "texto": "PATIO AUXILIAR: Area descubierta ubicada dentro de uno o entre varios volúmenes construidos en una parcela, que por sus dimensiones no es apta para conformar espacio urbano."
+    },
+    {
+      "articulo": 45,
+      "texto": "PATIO APENDICULAR: Todo patio generado por entrantes o retiros parciales de los cuerpos edificados, abierto por uno de sus lados al espacio urbano."
+    },
+    {
+      "articulo": 46,
+      "texto": "PATIO PRINCIPAL: Todo patio delimitado por el volumen edificado y el centro de manzana. En el caso de lotes cuya profundidad no supere la línea de frente interno, es el determinado por la fachada de fondo y el fondo del lote."
+    },
+    {
+      "articulo": 47,
+      "texto": "PATIO DE SERVICIO: Todo patio delimitado por paramentos verticales, al que no pueden ventilar locales de primera."
+    },
+    {
+      "articulo": 48,
+      "texto": "PLANO LIMITE: Plano virtual, horizontal o inclinado, que limita la altura permitida de cualquier punto del edificio."
+    },
+    {
+      "articulo": 49,
+      "texto": "SUPERFICIE CUBIERTA: Sumatoria total de las superficies de los locales cerrados, y entrepisos, incluyendo la sección horizontal de muros y tabiques, hasta las líneas laterales de la parcela, y comprendidas en todas las plantas que componen el edificio."
+    },
+    {
+      "articulo": 50,
+      "texto": "SUPERFICIE SEMICUBIERTA: Es la superficie de los locales abiertos al espacio exterior, en un 25% o más, del perímetro de los mismos."
+    },
+    {
+      "articulo": 51,
+      "texto": "SUPERFICIE CUBIERTA EDIFICABLE: Es la superficie que se permite edificar de acuerdo a los parámetros contemplados para cada distrito."
+    },
+    {
+      "articulo": 52,
+      "texto": "TEJIDO URBANO: Conformación física constituida por los volúmenes edificados y el espacio urbano.-"
+    },
+    {
+      "articulo": 53,
+      "texto": "TIPOLOGIAS EDILICIAS:\n- ENTRE MEDIANERAS: Es toda construcción cuyos laterales coinciden con los límites de los predios linderos.\n- PERIMETRO LIBRE: Es aquella edificación donde ninguna de sus fachadas está en contacto con linderos.\n-PERIMETRO SEMI LIBRE: Es aquella construcción que cuenta con uno de sus lados adosado a un muro medianero y el resto de la edificación como fachada abierta."
+    },
+    {
+      "articulo": 54,
+      "texto": "VOLUMEN EDIFICABLE: Es el volumen máximo que puede construirse en una parcela."
+    },
+    {
+      "articulo": 55,
+      "texto": "VOLUMEN EDIFICADO: Es el volumen total construido en la parcela."
+    },
+    {
+      "articulo": 56,
+      "texto": "VOLUMEN NO CONFORME: Es el volumen edificado que no se ajusta a las prescripciones de este Código.\nCAPITULO 3. RELATIVAS A LA EDIFICACION:"
+    },
+    {
+      "articulo": 57,
+      "texto": "AMPLIAR: Modificar un edificio aumentando la superficie y/o volúmen edificado."
+    },
+    {
+      "articulo": 58,
+      "texto": "RECICLAR: Modificar o transformar un edificio o instalación a fin de cambiar su uso o destino, sin ampliar."
+    },
+    {
+      "articulo": 59,
+      "texto": "RECONSTRUIR: Edificar de nuevo y en el mismo lugar lo que antes estaba. Rehacer una instalación."
+    },
+    {
+      "articulo": 60,
+      "texto": "REFORMAR: Modificar un edificio sin aumentar el volumen edificado\nCAPITULO 4. RELATIVAS AL USO."
+    },
+    {
+      "articulo": 61,
+      "texto": "USO: El uso de un inmueble es la función para la cual el edificio, estructura o terreno ha sido diseñado, construido, ocupado, utilizado o mantenido."
+    },
+    {
+      "articulo": 62,
+      "texto": "UNIDAD DE USO: Ambito compuesto de uno o más locales, que admite un uso funcionalmente independiente, por ejemplo: departamentos, local de comercio, etc."
+    },
+    {
+      "articulo": 63,
+      "texto": "USO COMPLEMENTARIO: El destinado a satisfacer, dentro de la misma parcela, funciones necesarias para el desarrollo del uso principal."
+    },
+    {
+      "articulo": 64,
+      "texto": "USO CONDICIONADO: El que está sujeto a determinados requisitos de ubicación, de tamaño, etc., según cada Distrito."
+    },
+    {
+      "articulo": 65,
+      "texto": "USO NO CONFORME: Cualquier actividad que se desarrolle en una parcela en el momento en que estas normas tengan vigencia y que no cumpla con las mismas según el Distrito en que esté ubicado."
+    },
+    {
+      "articulo": 66,
+      "texto": "USO NO PERMITIDO: El que por sus características no es compatible con el carácter de un Distrito."
+    },
+    {
+      "articulo": 67,
+      "texto": "USO PERMITIDO: El que puede desarrollarse en un Distrito, según las prescripciones de estas normas.\nCAPITULO 5. RELATIVAS A LA PROTECCIÓN PATRIMONIAL.-"
+    },
+    {
+      "articulo": 68,
+      "texto": "ÁREA PROTECCIÓN PATRIMONIAL: áreas, espacios, o conjuntos urbanos que por sus valores históricos, arquitectónicos o ambientales que constituyen ámbitos singulares, claramente identificables como referentes de nuestra cultura."
+    },
+    {
+      "articulo": 69,
+      "texto": "CONSERVACIÓN: son las acciones que implican el mantenimiento de las condiciones en que se encuentran los bienes."
+    },
+    {
+      "articulo": 70,
+      "texto": "ELEMENTO TIPOLÓGICO: parte de un edificio que es esencial para definir su tipo."
+    },
+    {
+      "articulo": 71,
+      "texto": "HITO URBANO: son aquellos elementos destacables que se constituyen en una referencia obligada, física o espacial, para los habitantes o visitantes de la ciudad."
+    },
+    {
+      "articulo": 72,
+      "texto": "LÍNEAS RECTORAS DE FACHADA: son las líneas reales o virtuales, indicadas o insinuadas por los límites de los volúmenes, por los encuentros de planos o por la dimensión o repeticiones de molduras, cornisas, dinteles, coronamientos, antepechos, cambios de texturas, pilastras, balcones."
+    },
+    {
+      "articulo": 73,
+      "texto": "MORFOLOGÍA DEL ÁREA: se refiere al modo físico de ocupar o de organizar el espacio de un área determinada."
+    },
+    {
+      "articulo": 74,
+      "texto": "PROTECCIÓN AMBIENTAL: se refiere al espacio público o privado que circunda al área de Protección Patrimonial donde se regula el modo de uso de dicho espacio así como los edificios que contribuyen a la definición de la situación urbana especial."
+    },
+    {
+      "articulo": 75,
+      "texto": "PROTECCIÓN EDILICIA: se refiere a los edificios que poseen un valor patrimonial a los que se les asigna una protección cautelar."
+    },
+    {
+      "articulo": 76,
+      "texto": "PUESTA EN VALOR DE UN EDIFICIO: son las acciones necesarias destinadas a la recuperación del edificio manteniendo los elementos tipológicos o estructurales del mismo, tanto en su interior como en su fachada, reconociendo la unidad morfológica y funcional, y respetando condiciones básicas de habitabilidad."
+    },
+    {
+      "articulo": 77,
+      "texto": "REFUNCIONALIZACIÓN: implican cambios en las actividades."
+    },
+    {
+      "articulo": 78,
+      "texto": "REHABILITACIÓN: comprende las adecuaciones funcionales y constructivas de los bienes patrimoniales urbanos tendientes a su mejoramiento y/o reutilización, involucrando tanto los espacios construidos como los espacios abiertos y la relación entre ambos."
+    },
+    {
+      "articulo": 79,
+      "texto": "RENOVACIÓN: implica la incorporación, remoción y sustitución de volúmenes, superficies y elementos, así como la incorporación de nuevas actividades."
+    },
+    {
+      "articulo": 80,
+      "texto": "RESTAURACIÓN: implica la consolidación y el mantenimiento de las características originales de los bienes o espacios abiertos, con la posibilidad de restituir partes alteradas y/o inexistentes, con elementos originales."
+    },
+    {
+      "articulo": 81,
+      "texto": "SÍMBOLO URBANO: son aquellos elementos que por sus dimensiones, calidad formal o significado histórico, representa a otros componentes de la ciudad y sus habitantes."
+    },
+    {
+      "articulo": 82,
+      "texto": "TIPO: es una abstracción reconocible, generada por la repetición de determinadas características espaciales, funcionales, etc. o de combinaciones de estas."
+    },
+    {
+      "articulo": 83,
+      "texto": "TIPOLOGÍA: se refiere al análisis del conjunto de tipos."
+    },
+    {
+      "articulo": 84,
+      "texto": "VALOR AMBIENTAL: son aquellos espacios que se destacan por sus cualidades paisajísticas, simbólicas, sociales o espaciales. También se aplica a los edificios que, por sus propios valores, contribuyen a la definición de esa destacada situación especial urbana."
+    },
+    {
+      "articulo": 85,
+      "texto": "VALOR ARQUITECTÓNICO: son aquellos edificios que poseen cualidades destacables relacionadas con estilo, composición, materiales coherencia tipológica u otras particularidades físicas relevantes. Por extensión, pueden referirse a condiciones además de estéticas, sociales, históricas, estructurales o de modo de uso."
+    },
+    {
+      "articulo": 86,
+      "texto": "VALOR SIMBÓLICO: se refiere a los edificios que poseen características que son evocativas de hechos, situaciones, formas de vida o conceptos del pasado o del presente.\nCAPITULO 6. RELATIVO A LA VIVIENDA"
+    },
+    {
+      "articulo": 87,
+      "texto": "VIVIENDA COLECTIVA: conjunto de más de una vivienda construida por parcela o lote."
+    },
+    {
+      "articulo": 88,
+      "texto": "VIVIENDA INDIVIDUAL: vivienda única construida en un lote."
+    },
+    {
+      "articulo": 89,
+      "texto": "VIVIENDA DE INTERES SOCIAL: vivienda construida con asistencia especial desde el Estado.\nTITULO 3. ORGANO DE APLICACION.-\nCAPITULO 1. COMPETENCIA."
+    },
+    {
+      "articulo": 90,
+      "texto": "El Departamento Ejecutivo, por sí o por los órganos de aplicación que él determine, tiene a su cargo la obligación de exigir el cumplimiento de este Código."
+    },
+    {
+      "articulo": 91,
+      "texto": "Derogado por Ordenanza Nº 9430 Remitirse al Tomo III"
+    },
+    {
+      "articulo": 92,
+      "texto": "El Departamento Ejecutivo queda plenamente facultado, por la delegación expresa que en él hace el Concejo Deliberante, para introducir modificaciones al presente código, mediante el sistema de enmiendas que se crea por el presente, debiendo observar en forma estricta para la validez de las mismas, las especificaciones que se explicitan en el artículo siguiente."
+    },
+    {
+      "articulo": 93,
+      "texto": "Para que sea procedente el sistema instituido en el artículo precedente, la Comisión Asesora, con la conformación mínima establecida en el artículo 91º del presente Capítulo deberá, previamente, elevar a consideración del Departamento Ejecutivo, dictamen técnicamente fundado y con la anuencia de dos tercios de sus miembros, avalando las propuestas de enmiendas que estimaren necesarias incorporar al presente Código como resultado de su experiencia, así como todo hecho nuevo o situación no prevista que implique la necesaria adecuación del presente, a las nuevas formas o necesidades que la dinámica de la Ciudad impusieran en las distintas etapas de su desarrollo. Dicho dictamen no será vinculante, siendo facultad exclusiva del Presidente Municipal, en virtud de la delegación expresa del artículo 92º, pronunciarse a favor o en contra. En caso afirmativo, producido el Decreto respectivo, quedará concluido el trámite, entrando en vigencia e incorporándose la enmienda al presente Código.\nSECCION II. NORMAS GENERALES DE LAS SUBDIVISIONES.\nTITULO 1. ALCANCES."
+    },
+    {
+      "articulo": 94,
+      "texto": "Quedan comprendidas en las disposiciones de la presente sección:\na) Todo fraccionamiento de inmuebles a realizarse dentro del Ejido Municipal\nb) Toda división en lotes o subdivisión de los mismos;\nc) Toda apertura o trazado de calles y/o avenidas, sean o no prolongación de las ya existentes;\nd) Toda iniciativa que de alguna manera influya sobre el trazado de calles catastral de la ciudad o modificaciones parcelarias, sea aquélla de origen particular o administrativo, de índole provincial, nacional o provengan de divisiones judiciales.\nTITULO 2. DE LAS URBANIZACIONES."
+    },
+    {
+      "articulo": 95,
+      "texto": "Todo proyecto de urbanización deberá cumplir con los siguientes requisitos:\na) Al carácter que para el área o distrito establezca el presente Código.\nb) Los proyectos de urbanización se realizarán sobre el total del título aún cuando el amanzanamiento y loteo se habilite por etapas. La donación de calles y espacios de reserva será por el total del proyecto.\nc) Las calles deberán posibilitar el desagüe de la zona, sin afectar predios linderos."
+    },
+    {
+      "articulo": 96,
+      "texto": "Cuando se trate de urbanizaciones con asistencia del estado, para el caso de viviendas de interés social u otras soluciones habitacionales que contemplen la construcción de la totalidad de las edificaciones, la dotación de infraestructura y equipamiento comunitario, el Departamento Ejecutivo mediante resolución fundada podrá autorizar excepciones a las normas de esta Ordenanza.\nCAPITULO 1. DE LAS MANZANAS."
+    },
+    {
+      "articulo": 97,
+      "texto": "Las manzanas deberán ser preferentemente regulares, salvo cuando las características del título, la topografía del terreno o la continuidad de las vías de circulación colindantes justifiquen otra conformación."
+    },
+    {
+      "articulo": 98,
+      "texto": "Las dimensiones de las manzanas deberán ajustarse a las siguientes medidas:\na) El lado menor de la manzana tendrá como mínimo sesenta (60) metros.\nb) El lado mayor podrá tener una longitud máxima de ciento cincuenta (150) metros."
+    },
+    {
+      "articulo": 99,
+      "texto": "Cuando por razones de límites de título no se pudiera completar una o varias manzanas, se permitirá proyectarlas en forma incompleta, debiendo cumplir con lo dispuesto en el Art.103º."
+    },
+    {
+      "articulo": 100,
+      "texto": "Su relieve topográfico deberá tener una altimetría tal que permita la normal evacuación de las aguas pluviales hacia las calles colindantes, y respetar los niveles que haya establecido la\nMunicipalidad.\nCAPITULO 2. DE LAS VIAS PUBLICAS."
+    },
+    {
+      "articulo": 101,
+      "texto": "Cuando se proyecten urbanizaciones en zonas destinadas por su ubicación a formar núcleos comerciales o industriales, el Departamento Ejecutivo podrá exigir que se aumente el ancho de las calles, de manera que se asegure en las futuras vías la existencia de espacios libres para estacionamiento de vehículos, de acuerdo a los informes del Organo de aplicación."
+    },
+    {
+      "articulo": 102,
+      "texto": "Deberá darse continuidad a las vías de urbanizaciones colindantes, pudiendo aceptarse exenciones justificadas por el destino o ubicación especial en el área."
+    },
+    {
+      "articulo": 103,
+      "texto": "El trazado de las vías públicas de circulación deberá ser acorde a las funciones que desempeñen y a los anchos respectivos existentes en las urbanizaciones colindantes, los cuales a su vez no podrán ser disminuidos. Los anchos mínimos serán los siguientes: 25(veinticinco) metros en Avenidas (calles de éjido); 20 (veinte) metros las calles principales y 15 (quince) metros las calles secundarias. La determinación de qué avenidas (calles de éjido); calles principales o secundarias, la longitud y las características del trazado queda a criterio exclusivo de los organismos municipales competentes. Las superficies resultantes del trazado de calles y ochavas deberán transferirse gratuitamente a la Municipalidad. Las dimensiones de las ochavas dependen del ángulo que forman las intersecciones de las Líneas Municipales y se determinarán de acuerdo a lo establecido en el cuadro siguiente:\nHasta 30º---2,50 m.\nde 30º a 35º---3,00 m.\nde 35º a 40º---3,50 m.\nde 40º a 45º---4,00 m.\nde 45º a 50º---4,50 m.\nde 50º a 60º---5,00 m.\nde 60º a 70º---5,50 m.\nde 70º a 100º--- 6,00 m.\nde 100º a 110º--- 5,50 m.\nde 110º a 120º--- 5,00 m.\nde 120º a 180º--- 0,00 m."
+    },
+    {
+      "articulo": 104,
+      "texto": "Cuando, de acuerdo al trazado proyectado para completar el ancho de la calle, se afecte una propiedad lindera, deberá gestionarse y efectivizarse la donación de la fracción afectada, adjuntándose compromisos de donación y copia de título del propiedad debidamente certificado. En el caso de que los propietarios linderos no donaran dicha fracción, se proyectará la misma en su totalidad dentro del predio a subdividir."
+    },
+    {
+      "articulo": 105,
+      "texto": "Cuando por accidentes topográficos o impedimentos físicos inamovibles a juicio de los organismos técnicos, no exista posibilidad de continuidad de la vía proyectada, se admitirán calles sin salida con un ancho mínimo de 15 (quince) metros y una longitud máxima de 60 (sesenta) metros, debiendo tener en el fondo cerrado un espacio circular de 12 (doce) metros de radio u otra conformación que acepten los organismos técnicos municipales."
+    },
+    {
+      "articulo": 106,
+      "texto": "En las urbanizaciones afectadas por el trazado de vías férreas y/o el curso de un arroyo, se exigirá el trazado de calle a ambos lados de las vías y/o del arroyo, con un ancho mínimo de 20 (veinte) metros."
+    },
+    {
+      "articulo": 107,
+      "texto": "En el caso de que en el terreno a fraccionar exista una vía férrea y/o un arroyo, cañada o curso de agua, se exigirá en ambas márgenes un espacio libre, con un ancho mínimo de 20 (veinte) metros y en el Arroyo Antoñico, de 30 (treinta) metros, medidos ya sea desde la cresta de la barran-ca y/o desde donde determinen los organismos competentes, dentro del cual se prohibe realizar cualquier tipo de construcción, a excepción del trazado de calles."
+    },
+    {
+      "articulo": 108,
+      "texto": "En los casos en que el terreno esté sobre barrancas o presente pendiente excesivamente pronunciada se exigirá la presentación de un estudio específico de las condiciones de estabilidad realizado por un profesional competente matriculado en el colegio de nuestra provincia que corresponda, el cual deberá ser lo suficientemente exhaustivo y convincente para justificar la realización de construcciones en el mismo."
+    },
+    {
+      "articulo": 109,
+      "texto": "En el AREA EXTRA URBANA RURAL (E.U.R.) no se autorizará el trazado de nuevas avenidas, calles, pasajes u otras vías de circulación.\nCuando fuere necesario la apertura de una vía para continuar el trazado de una ya existente dentro de los límites de la concesión, se la podrá autorizar previo dictamen del Órgano de aplicación.\nSolamente se permitirá la apertura de nuevas calles internas en el caso de proyectos urbanísticos residenciales y clubes de campo.\nCuando se trate de lotes frentistas al Acceso Norte, los mismos podrán fraccionarse en medidas no inferiores a 30 (treinta) metros de frente y 1.500 (mil quinientos) m2 de superficie, con acceso únicamente desde una calle colectora paralela a la ruta, de un ancho de 15 (quince) metros, la cual podrá conectarse con aquella solamente a través de las calles de ejido. Todos los lotes frentistas al Acceso Norte en los cuales no se haya proyectado la calle colectora, la edificación deberá retirarse, como mínimo, 15 (quince) metros de la Línea Municipal.\nCAPITULO 3. DE LOS ESPACIOS PARA RESERVA."
+    },
+    {
+      "articulo": 110,
+      "texto": "En toda urbanización en que la superficie a subdividir, de acuerdo con el título de origen o mensura anterior al desglose de parcelas a calle abierta que hubiere podido realizar el propietario, descontado avenidas, calles y ochavas, supere los 5.000 (cinco mil) m2, el propietario debe donar a la Municipalidad gratuitamente y libre de gastos de escrituración para el donante una superficie de terreno equivalente al 10% (diez por ciento) de dicha superficie con destino a reserva.\nEn los casos de emprendimientos afectados a la ley de propiedad horizontal, realizados en lotes que superen los 5.000 (cinco mil) m2, descontado según proyecto, avenidas, calles y ochavas de dominio privado, el o los propietarios deberán donar a la Municipalidad gratuitamente y libre de gastos de escrituración para el donante una superficie de terreno equivalente al 10% (diez por ciento) de dicha superficie con destino a reserva, la que deberá estar vinculada directamente a calle pública. No corresponderá donación alguna de superficie en aquellos casos en que se ejecuten subdivisiones o desgloses dentro de manzanas ya limitadas por calles oficiales. La donación tendrá el cargo, para la Municipalidad, de dar al inmueble su destino y realizar las obras pertinentes o comenzar los trámites para su cambio de destino, según lo autoriza el Artículo 112° de este Código."
+    },
+    {
+      "articulo": 111,
+      "texto": "La ubicación de las fracciones destinadas a reserva será consensuada por los organismos técnicos competentes de la Municipalidad.\nCuando el predio a donar resulte no conveniente a la Municipalidad, ya sea por sus características, ubicación, dimensiones, formas o preexistencia de otros espacios libres o de reserva en la zona, según informe fundado de los organismos competentes de la Municipalidad, el propietario estará obligado a donar en otra ubicación una superficie de terreno igual o diferente, pero cuyo valor económico sea equivalente al de la propuesta."
+    },
+    {
+      "articulo": 112,
+      "texto": "LAS RESERVAS: Es obligación del urbanizador ejecutar las obras de mejoramiento y parquización de la superficie de los terrenos destinados a reserva para plazas, plazoletas o espacios verdes y/o para uso público, según las especificaciones que, para cada caso, se establezcan. Asimismo se entenderá en todos los casos que el destino de la reserva es el de plazas, plazoletas o espacios verdes, excepto que el Departamento Ejecutivo Municipal le asigne el de uso público, debiendo contar los primeros, como mínimo, con veredas perimetrales, alumbrado interior, juegos para plazas, provisión de agua y arbolado urbano de especies autóctonas. Establézcase como áreas no aptas para reserva las zonas marginales o desechables, como costas de cuencas, bordes de ruta, barrancas o espacios remanentes no funcionales. (Texto según Ordenanza N° 10010)\nCAPITULO 4. DE LAS OBRAS DE INFRAESTRUCTURA."
+    },
+    {
+      "articulo": 113,
+      "texto": "En toda urbanización deberá proyectarse y realizarse bajo responsabilidad exclusiva del propietario, la ejecución de los siguientes servicios de infraestructura esenciales:\na. Agua corriente.\nb. Energía eléctrica domiciliaria, solo en los casos en que no esté comprendido en la Ley Provincial de Energía o Contrato de Locación de Servicios.\nc) Alumbrado público: El mismo deberá contar con Luminarias Led, de iguales y/o similares características a las implementadas a través del programa “Mi Ciudad Led” aprobado por la Ordenanza N° 9656 y el Programa Integral de Alumbrado Público de recambio de Luminarias de Sodio por Lámparas Led establecido por la Ordenanza N° 9662 Artículo 2°. (Texto incorporado por Ordenanza N° 9702)\nd: Alcantarillado y pavimentación de calzadas en los distritos UR incluyendo en la obra, el ancho total de la calle a abrir (acera y veredas), los cordones cunetas y el paquete estructural correspondiente en las vías de acceso al inmueble a urbanizar y de las calles interiores de acuerdo a los requerimientos exigidos por la Dirección de Vialidad Urbana. En el distrito CEU se exigirá un mínimo del 50% de las calzadas pavimentadas con las características enunciadas anteriormente, tomadas por cuadras completas, en tanto el resto podrá ejecutarse en un ancho menor de hasta 5,50m sin cordón cuneta con el paquete estructural correspondiente y el consiguiente pavimento de acuerdo a lo exigido por la Dirección de Vialidad. Estas obras se ejecutarán por cuenta y cargo del propietario.(Texto según Decreto N° 1714/2010)\ne. Servicio de cloacas cuando sea factible conectar a redes existentes.\nf) Arbolado de las calles con especies aceptadas por la Dirección de Parques y Paseos y su conservación por el término de 3 (tres) años. Será ésta una obligación inherente a la posesión del lote; en caso de cambio de titularidad del mismo durante la persistencia de esta obligación, la misma debe constar en la escritura traslativa de dominio. (Texto según Ordenanza N° 10010)\ng) Recolección de residuos urbanos: provisión de equipamientos compatibles con el sistema de recolección de residuos sólidos urbanos (RSU) en cantidad tipo y ubicación, correspondientes al sistema de recolección vigente al momento de la habilitación, de acuerdo a lo estipulado por la autoridad de aplicación. (Texto introducido por Ordenanza N° 10010)\nEn el Área Urbana y en el Área Complementaria podrán admitirse urbanizaciones sin cumplimentar las obras de infraestructura de energía eléctrica, alumbrado público, servicio de cloaca y arbolado de calles, permitiéndose la subdivisión en lotes de dimensiones no inferiores al doble de las medidas mínimas permitidas en el Distrito. Efectuadas las obras de infraestructura exigibles, los lotes podrán subdividirse al 50% (cincuenta por ciento) de estos valores, debiéndose dejar expresa constancia en toda la documentación técnica y legal de la carencia de los servicios; la cual deberá ser transcripta en la Escritura traslativa del dominio con expresa citación del número de Ordenanza.-\nCAPITULO 5. DE LAS SUBDIVISIONES."
+    },
+    {
+      "articulo": 114,
+      "texto": "a) Todo lote resultante de una subdivisión, debe tener acceso directo a vía pública y se ajustará a las dimensiones mínimas de frente y superficie que se establecen para cada distrito en la Sección IV de este Código.\nb) No se permitirá el desglose parcial de títulos sin la previa aprobación de un anteproyecto del total\ndel predio. Los organismos técnicos exigirán las calles y espacios verdes correspondientes.-\nc) Podrá fraccionarse con medidas inferiores a las establecidas en los lotes con edificaciones existentes con diez (10) años de antigüedad, para las distintas áreas en el caso de que:\nI.El inmueble figure a nombre de dos o más propietarios, de acuerdo a las escrituras públicas existentes y cuyo dominio esté inscripto en el Registro Público de la Propiedad, a nombre de los mismos y/u otra forma probatoria (Boleto Compraventa inscripto, plano de edificación existente, etc.), y que tengan fecha cierta con una antigüedad de 10 (diez) años a la fecha de prresentación de la subdivisión.\nII.Del inmueble se desglosen parcelas con edificación con una antigüedad mayor de diez (10) años y siempre que en este tiempo no se hayan comprobado modificaciones o ampliaciones mayores al 30% de la superficie cubierta total.\nIII.Del inmueble se desglosen parcelas para distintos usos (residencial-comercial-industrial) y siempre que los mismos estén permitidos en esa área.\nIV.Se cumpla con un F.O.T. máximo de 1.5\nEn lotes edificados, cada parcela deberá contar con un servicio independiente de energía eléctrica, y las construcciones deberán contar con plano de edificación aprobado y/o en trámite, no autorizándose excepciones respecto de la edificación. La o las parcelas resultantes deberán tener una superficie mínima mayor de 120,00 (ciento veinte) metro cuadrado. Se dejará constancia en toda la documentación de que éstas parcelas conformes no serán susceptibles de ninguna otra excepción a la reglamentación vigente. (Texto introducido por Decreto N° 918/2013)"
+    },
+    {
+      "articulo": 115,
+      "texto": "Las tolerancias para las dimensiones de lotes serán de hasta el 10 % (diez por ciento) para el frente y del 10% (diez por ciento ) para la superficie, pudiendo ser aplicadas a lo sumo a dos lotes de cada manzana, o de parcelamiento de un título."
+    },
+    {
+      "articulo": 116,
+      "texto": "Se podrán proyectar lotes internos, que den a pasillos o accesos vehiculares con salida a la vía pública en el área urbana, en los siguientes casos:\na) En las manzanas en las que por lo menos tres de sus lados tengan una longitud superior a 100 (cien) metros.\nb) La profundidad de la parcela supere los 30 (treinta) metros.\nc) Las dimensiones de lotes sean las establecidas para el Distrito. Se admitirá que el lado mayor sea frentista al pasillo o acceso vehicular.\nd) El pasillo o acceso vehicular se registre en forma independiente y el ancho cumpla con lo especificado en el artículo siguiente. Deberá hacerse constar en el plano de mensura y en la escritura traslativa de dominio, que el lote pasillo será transferido en condominio a los adquirentes de los lotes\ninternos con acceso a través del mismo.\ne) La edificación en los lotes internos no podrá sobrepasar los 7,5 m de altura y F.O.S. máximo de 60%. (Texto modificado según Decreto N° 918/2013)"
+    },
+    {
+      "articulo": 117,
+      "texto": "El pasillo de acceso a los lotes internos tendrá el ancho mínimo libre que resulte de la aplicación de la siguiente fórmula: A = L x 0.02 + 2.50m.; siendo L la longitud total del pasillo. El ancho mínimo será igual o mayor a 3.4 metros.\nEl acceso vehicular que da salida a vía pública a lotes internos, tendrán un ancho mínimo libre que resulte de la aplicación de la siguiente fórmula:\nA=(L x 0,01 x N) m. + 3,50m; siendo L longitud total del acceso vehicular y N el número total de lotes internos a los que se da acceso a la vía pública. Se deberá garantizar la maniobrabilidad de los vehículos. (Texto modificado según Decreto N° 918/2013)"
+    },
+    {
+      "articulo": 118,
+      "texto": "Se permitirán lotes interiores, sin salida a la vía pública cuando sean para anexarlos a parcelas linderas; y siempre que las parcelas remanentes se ajusten a lo establecido para el distrito."
+    },
+    {
+      "articulo": 119,
+      "texto": "Se permitirá el mejoramiento de un lote por anexión del lindero, aún cuando no alcancen las medidas y superficies mínimas, siempre y cuando la parcela remanente se ajuste a lo establecido para el distrito, en lo que respecta a subdivisión y edificación."
+    },
+    {
+      "articulo": 120,
+      "texto": "Se admitirá la unificación de parcelas, aún cuando la o las resultantes no cumplan con las dimensiones mínimas establecidas para el distrito."
+    },
+    {
+      "articulo": 121,
+      "texto": "Los lotes deberán ser preferentemente de forma regular, pudiendo en casos excepcionales presentar otra conformación, cuando los límites de título, el trazado de la manzana o la topografía del predio lo justifiquen."
+    },
+    {
+      "articulo": 122,
+      "texto": "La línea divisoria de lotes deberá formar con la Línea Municipal (L.M.) un ángulo preferentemente de 90º (noventa grados). Como excepción no se aplicará la norma precedente en los siguientes casos:\na) Cuando la L.M. sea una curva, por lo menos una de las líneas divisorias deberá formar un ángulo de 90º (noventa grados) con la tangente de la curva en su punto de intersección.\nb) Cuando se trate de subdivisión de una parcela existente, de una superficie no mayor a 1.000 (mil) m2, cuyos lados tengan otra inclinación con respecto a la L.M., se podrán aceptar ángulos de otra medida, de manera tal que permita el trazado de líneas divisorias paralelas, debiendo tener los lotes resultantes un contrafrente mínimo de 5 (cinco) metros. A los efectos de determinar la responsabilidad del mantenimiento de las aceras se especifica que la línea divisoria entre veredas contiguas estará dada por:\nA) Una perpendicular a la línea municipal en coincidencia con la intersección del eje medianero.\nB) Una perpendicular a la tangente, tomada desde la intersección con el eje medianero, para los casos de veredas curvas.\nC) En el caso de superposición de superficies de vereda para más de una parcela, la responsabilidad será compartida por los propietarios de ambos inmuebles.\nD) En los casos no contemplados en los ejemplos anteriores, será la comisión asesora la que intervendrá para zanjar diferencias sugiriendo las responsabilidades y derechos de cada frentista.\nEn cualquiera de los casos se debe tener siempre presente que la propiedad de la acera es pública.\nTITULO 3.-DE LAS URBANIZACIONES ESPECIALES.-\nCAPITULO 1.- DE LOS PROYECTOS URBANISTICOS RESIDENCIALES"
+    },
+    {
+      "articulo": 123,
+      "texto": "DEROGADO POR ORDENANZA Nº 9130"
+    },
+    {
+      "articulo": 124,
+      "texto": "DEROGADO POR ORDENANZA Nº 9130\nArtículo125°: DEROGADO POR ORDENANZA Nº 9130"
+    },
+    {
+      "articulo": 126,
+      "texto": "DEROGADO POR ORDENANZA Nº 9130\nCAPITULO 2. DE LOS CLUBES DE CAMPO."
+    },
+    {
+      "articulo": 127,
+      "texto": "DEROGADO POR ORDENANZA Nº 9130"
+    },
+    {
+      "articulo": 128,
+      "texto": "DEROGADO POR ORDENANZA Nº 9130\nSECCION III. NORMAS GENERALES SOBRE TEJIDO URBANO."
+    },
+    {
+      "articulo": 129,
+      "texto": "Todos los locales que según el Reglamento de Edificación se clasifican como locales de primera categoría deberán tener los vanos para iluminación y ventilación natural que las normas sobre edificación exigen, abiertos a espacio urbano, el que quedará conformado de acuerdo a las condiciones que más adelante se determinan.\nTITULO 1. DEL ESPACIO URBANO."
+    },
+    {
+      "articulo": 130,
+      "texto": "CONFORMACION.\nSe considera como espacio urbano a todos los patios principales y al de la vía pública, que específicamente se podrían enunciar como:\na) El espacio de la vía pública comprendido entre las líneas Municipales y el comprendido entre dichas\nlíneas y las de retiro obligatorio o voluntario de la edificación.\nb) El centro de manzana.\nc) El espacio entre parámentos laterales de los edificios de perímetro libre y las líneas divisorias entre parcelas, conectado directamente con el espacio de la vía pública y/o con el centro de manzana y cumpla con lo dispuesto en el Título 3 de la presente Sección de este Código.\nd) El espacio entre paramentos verticales correspondientes a uno o diferentes volúmenes edificados dentro de la misma parcela, conectados directamente o no con el espacio de la vía pública y con el centro de manzana y que cumpla con lo dispuesto en el Título 3.- En el caso de volúmenes edificados dentro de la misma parcela, estos deberán guardar una distancia igual o mayor al ancho de la calle y por todo el ancho del lote.\ne) Los patios apendiculares que queden incorporados a algunos de los espacios enunciados anteriormente, siempre que la abertura (A) de unión con el espacio urbano sea igual o mayor que la profundidad (P) del patio, y cumpla con lo dispuesto en el Título 3 de la presente Sección de este Código."
+    },
+    {
+      "articulo": 131,
+      "texto": "En las construcciones que se proyecten o inicien, en predios ubicados sobre las avenidas y calles o dentro de los Distritos que más adelante se determinan, la línea de edificación se debe retirar de la línea municipal a una distancia que para cada caso se establece seguidamente:\n1.- Retiro de 3 (tres) metros en:\n1.Avda. Almafuerte, desde Avda. de Circunvalación hasta A° Las Tunas.-\n1.2.Ruta Nacional N°12 (ex-Ruta Nac. N°131), desde Avda. de Circunvalación hasta A° Las Tunas.\n1.3.Avda. Jorge Newbery, desde Avda. Zanni hasta A° Las Tunas.-\n1.4.Avda. de las Américas, desde Avda. de Circunvalación hasta A° Los Berros.-\n2.- Retiro de 4 (cuatro) metros en:\n2.1. Avda. Estrada, desde Avda. Laurencena hasta Avda. Larramendi.-\n2.2. Avda. Larramendi, desde Avda. Estrada hasta A° Antoñico.-\n2.3. Antonio Crespo, desde Calle Soler hasta Avda. de Circunvalación “José Hernández”.\n2.4. Avda. de Circunvalación “José Hernández” en todo su recorrido.\n2.5. Calle Güemes, desde Bvard. Moreno hasta Avda. Laurencena.\n2.6. Avda. Laurencena, desde Calle Güemes hasta Juan de San Martín.\n2.7. Distrito Urbano Residencial Especial (U.R.E.I.).\n2.8. Distrito Urbano Residencial Turístico (U.R.T.).\n2.9. Distrito Urbano Residencial Especial 2 (URE2)\n3.- Retiro de 5 (cinco) metros en:\n3.1. Avda. Don Bosco, desde Bvard. De los Constituyentes hasta Avda. de Circunvalación “José Hernández”.\n3.2. Avda. Almafuerte, desde Alejandro Carbó hasta Avda. de Circunvalación “José Hernández”.\n3.3. Avda. de las Américas, desde Gral. Sarobe hasta Avda. de Circun-valación “José Hernández”.\n4.- En los predios con frente a calles y pasajes públicos: Menores de 12 (doce) metros de ancho que estén situados fuera de la zona delimitada por el Río Paraná, Avda. Ramírez, Bvard. Moreno, Calle Ituzaingó y A° Antoñico, la línea de edificación se debe retirar a una distancia igual a la mitad de la diferencia entre 12 (doce) metros y el ancho de la calle o pasaje.\n5.- Retiro de 15 (quince) metros en: (cuando no exista calle colectora).\n5.1. Acceso Norte Rep. De Entre Ríos, desde Avda. de Circunvalación hasta A° Las Tunas.\n6- Retiro de 20 (veinte) y 30 (treinta) metros en: En el caso de que una parcela a edificar sea colindante a vía férrea o un arroyo, cañada o curso de agua, deberá retirarse 20 (veinte) metros y en el A° Antoñico de 30 (treinta) metros, medidos ya sea desde la cresta de la barranca y/o donde determinen los organismos técnicos competentes, dentro del cual se prohibe realizar cualquier tipo de construcción.\n7- Retiro de 35 (treinta y cinco) metros en: En el caso de que una parcela a edificar sea colindante al Río Paraná, deberá retirarse 35 (treinta y cinco) metros, medidos de la línea de ribera y/o donde determinen los organismos técnicos competentes, dentro del cual se prohibe realizar cualquier tipo de construcción, excepto los autorizados por Ordenanza Nº 6284.- (loteo Costa Azul)"
+    },
+    {
+      "articulo": 132,
+      "texto": "En el espacio que quede entre la línea municipal y la línea de edificación no se permite proyectar o ejecutar construcciones o edificaciones."
+    },
+    {
+      "articulo": 133,
+      "texto": "Sobre la línea municipal y sobre la línea divisoria de predios, en el espacio o sector comprendido entre la línea municipal y la línea de edificación, solo se permitirá la construcción de muros, con la altura máxima de 1(un) metro, permitiéndose alturas mayores en caso de utilizar rejas o setos vivos."
+    },
+    {
+      "articulo": 134,
+      "texto": "En casos debidamente justificados por las características del terreno (nivel, superficie, medida) o de la edificación existente, el Departamento Ejecutivo podrá autorizar la edificación de\nconstrucciones para cocheras o espacio guarda vehículos u otro destino complementarios de la edificación principal, en el espacio existente entre la línea municipal y la línea de edificación, determinando las características de las mismas."
+    },
+    {
+      "articulo": 135,
+      "texto": "La aplicación del retiro de frente no podrá reducir la superficie disponible para edificación, a menos de 130 (ciento treinta) m2 o afectar más del 25% ( veinticinco por ciento) de la superficie del terreno."
+    },
+    {
+      "articulo": 136,
+      "texto": "En lotes en esquina, afectados por retiro de línea de edificación en ambos frentes donde los mismos afecten una superficie mayor del 25% (veinticinco por ciento), se exigirá el retiro reglamentario establecido para cada Distrito hasta una distancia de 3 (tres) metros medida desde los ejes medianeros. La superficie restante, hasta llegar al 25% (veinticinco por ciento) del lote, se distribuirá en el resto de la zona destinada a retiro de línea de edificación, no pudiendo ser menor de 1,50 (uno con cincuenta) metros la dimensión del espacio libre medida en sentido perpendicular a la Línea Municipal."
+    },
+    {
+      "articulo": 137,
+      "texto": "El retiro reglamentario hasta 3 (tres) metros del eje medianero aludido en el artículo 136º, será obligatorio, aunque queden menos de 130 (ciento treinta) m2. de superficie disponible o se afecte más del 25% (veinticinco por ciento) de la superficie del lote.\nTITULO 2. DEL CENTRO DE MANZANA."
+    },
+    {
+      "articulo": 138,
+      "texto": "El Centro de Manzana quedará delimitado por las respectivas líneas de frente interno."
+    },
+    {
+      "articulo": 139,
+      "texto": "La Línea de Frente Interno se trazará uniendo los tercios centrales de los lados opuestos de la manzana."
+    },
+    {
+      "articulo": 140,
+      "texto": "No serán de aplicación las disposiciones relativas a conformación del Centro de Manzana en los siguientes casos:\na) Manzanas en las que la semisuma de sus lados opuestos resulte inferior a 45 (cuarenta y cinco) metros o su superficie sea inferior a 3.000 (tres mil) m2.\nb) Lotes cuya longitud, medida desde el punto medio de la línea de frente, no supere el quinto de la longitud del lado correspondiente de la manzana de ubicación. GRAFICO 1.\nEn ambos casos son de aplicación las normas que rijan con relación a la Factor de Ocupación del Suelo (F.O.S.) establecidas en los distritos."
+    },
+    {
+      "articulo": 141,
+      "texto": "Serán tratados en forma particular por la Comisión Asesora los casos en los que las manzanas tengan más o menos de cuatro lados o de lados curvos o cuando uno o más de sus lados superen los 200 (doscientos) metros de longitud."
+    },
+    {
+      "articulo": 142,
+      "texto": "Se permite la ocupación de la superficie comprendida en el centro de manzana hasta un 50% (cincuenta por ciento) y una altura máxima de un nivel."
+    },
+    {
+      "articulo": 143,
+      "texto": "En ningún caso, el techado o cubierta de las instalaciones permitidas, se ejecutará con materiales que puedan producir reflexión de luz, calor, etc., ocasionando molestias a los usuarios de las construcciones propias o linderas."
+    },
+    {
+      "articulo": 144,
+      "texto": "Los cercos divisorios de parcelas, en el centro de manzana, no podrán superar los 3 (tres) metros de altura, a excepción de los casos en que los mismos estén construidos con especies arbóreas o vegetales en general."
+    },
+    {
+      "articulo": 145,
+      "texto": "CASOS ESPECIALES.-\nSerán objeto de un estudio particularizado, los siguientes casos:\na) Lotes internos o de conformación irregular (GRAFICO 1 - Centro de Manzana).\nb) Lotes de una superficie superior a los 1.500 (mil quinientos) m2.\nc) Lotes afectados por el centro de manzana, en un porcentaje igual o mayor al 40% (cuarenta por ciento) de su superficie.-En estos casos, después de realizados los estudios pertinentes con intervención de un representante técnico del propietario, y previo dictamen de los órganos técnicos, el Departamento Ejecutivo de la Municipalidad podrá disponer una reducción de la superficie o el cambio de la ubicación de la misma.\nTITULO 3. DE LA EDIFICACION."
+    },
+    {
+      "articulo": 146,
+      "texto": "Línea de Edificación en esquina: La Línea de Edificación en esquina no podrá sobrepasar la línea de ochava determinada por las normas vigentes en todos los niveles de la edificación, con excepción de las salientes de balcones abiertos. En estos lotes se autorizará la construcción de 2 (dos) plantas por encima del máximo de altura resultante, sin exigirse cocheras o espacios guarda vehículos sobre estas superficies, con excepción de aquellos distritos que posean alturas máximas prefijadas.-"
+    },
+    {
+      "articulo": 147,
+      "texto": "Altura de edificios en esquina: En esquinas cuyas vías públicas concurrentes autoricen distintas alturas de edificación, y/o por ser límite de diferentes distritos la altura mayor en la parcela de esquina podrá llevarse sobre la calle transversal a la cual corresponde la altura menor hasta una distancia no mayor de 25 (veinticinco) metros a partir de la intersección virtual de las Líneas Municipales concurrentes, con excepción de aquellos distritos que posean alturas máximas prefijadas."
+    },
+    {
+      "articulo": 148,
+      "texto": "Altura de edificación en parcela intermedia con frente a dos o más calles: Cuando una parcela intermedia tenga frente a dos calles, la determinación de la altura sobre cada frente se hará en forma independiente hasta la línea de frente interna respectiva.\nCAPITULO 1. DE LOS EDIFICIOS DE PERIMETRO LIBRE (GRAFICO 2)."
+    },
+    {
+      "articulo": 149,
+      "texto": "Quedan comprendidos dentro de las prescripciones de este Capítulo los edificios cuyos parámentos estén retirados de las líneas divisorias de la parcela y no constituyan medianeras. Sólo podrán llegar hasta las líneas divisorias los basamentos que se construyan de acuerdo con las\nnormas que para cada Distrito se establecen. La altura máxima permitida, medida desde la cota de la parcela, será determinada en forma concurrente por las relaciones (R), r' y r\", las que constituyen espacio urbano y cuyo valor se establecerá en cada uno de los Distritos:\na) (R) es la relación entre la altura (h) del frente principal y la distancia (d) al eje de la vía pública:\nR = h D\nb) ( r') es la relación entre la altura ( h' ) de los parámentos laterales y la distancia ( d' ) a los ejes divisorios laterales de la parcela:\nr' = h' d' >= 4m. d'\nc) ( r\") es la relación entre la altura (h\") del parámento de fondo y la distancia (d\") a la línea de frente interno:\nr\" = h\" d\"\nEl valor de R, r’ y r” se establecerá en cada uno de los Distritos. Cuando la profundidad de la parcela no supere la L.F.I., las construcciones deberán guardar, con excepción de las parcelas en esquina, un retiro de fondo de 6 (seis) metros a partir del primer nivel que será considerado espacio urbano."
+    },
+    {
+      "articulo": 150,
+      "texto": "Para acrecentar el espacio aéreo circundante de un edificio de perímetro libre, o para alcanzar la separación mínima requerida, podrán constituirse servidumbres reales con las parcelas colindantes, las que perdurarán mientras subsistan los edificios de perímetro libre que se benefician con ellas."
+    },
+    {
+      "articulo": 151,
+      "texto": "Antes de concederse el permiso de obra, las servidumbres especificadas en el artículo anterior deberán estar formalizadas mediante escritura pública e inscriptas en el Registro de la Propiedad Inmueble."
+    },
+    {
+      "articulo": 152,
+      "texto": "La mancomunidad del espacio aéreo debe establecerse por sobre el basamento en toda la profundidad de la parcela sin limitación de altura."
+    },
+    {
+      "articulo": 153,
+      "texto": "El propietario de la parcela sirviente no podrá abrir vanos de iluminación y ventilación sobre el espacio objeto de servidumbre.\nCAPITULO 2. DE LOS EDIFICIOS ENTRE MEDIANERAS (GRAFICO 3)."
+    },
+    {
+      "articulo": 154,
+      "texto": "El tejido urbano resultante de la construcción de edificios entre Medianeras, estará regulado por los parámetros que a continuación se enuncian y que constituyen espacio urbano, cuyo\nvalor se establecerá para cada uno de los Distritos:\na) (R) es la relación entre la altura (h) del paramento de la fachada principal tomado sobre L.M. o L.E. (de encontrarse ésta fijada) y la distancia (d) desde la misma según corresponda, al eje de la calle:\nR = h d\nb) (r') es la relación entre la altura (h') de un paramento y la distancia (d') a otro paramento que se le enfrente dentro de la misma parcela, la que deberá ser menor o igual a 2,50 (dos con cincuenta) metros. La distancia (d') no podrá ser inferior a 6 (seis) metros.-\nr’ = h' d'>=6m d'\nc) (r\") es la relación entre la altura (h\") del paramento de fondo y la distancia (d\") de la línea de frente interno opuesto:\nr\" = h\" d\" Cuando la profundidad de la parcela no supere la L.F.I., las construcciones deberán guardar, con excepción de las parcelas en esquina, un retiro de fondo de 6 (seis) metros a partir del primer nivel que será considerado espacio urbano.-\nd) Cuando la línea divisoria de fondo de la parcela diste de la L.M. menos que la línea de frente interno de la manzana, la primera se considerará como paramento de altura igual al paramento que la enfrente, si en éste se abren vanos de iluminación y ventilación, debiendo cumplir con una relación (r') menor o igual a 3, en este caso la distancia (d') no podrá ser menor a 6 (seis) metros.\ne) Cuando la línea divisoria de fondo de la parcela sobrepase la línea de frente interno de las manzanas en menos de 3 (tres) metros o coincida con la misma, las construcciones deberán retirarse por lo menos 6 (seis) metros de dicha línea divisoria de fondo, si se abren vanos de iluminación y ventilación al espacio libre de manzana."
+    },
+    {
+      "articulo": 155,
+      "texto": "En caso de que se vinculen bloques de un mismo edificio, la distancia (B) entre esta vinculación y los ejes medianeros, deberá ser mayor o igual a la mitad de la distancia (d'). GRAFICO 3. La superficie de vinculación entre bloques será afectada exclusivamente a circulación.-\nCAPITULO 3: DE LOS EDIFICIOS DE PERIMETRO SEMI-LIBRE.(GRAFICO 4 )"
+    },
+    {
+      "articulo": 156,
+      "texto": "Quedan comprendidos dentro de las prescripciones de este Capítulo los edificios que cuenten con uno solo de sus paramentos perimetrales apoyados sobre una sola de las líneas divisorias laterales de la parcela. Estará regulado por los parámetros que a continuación se enuncian y que constituyen espacio urbano, cuyo valor se establecerá para cada uno de los Distritos.\na) La altura de los edificios de perímetro semi-libre está determinada por la relación R entre la altura\n(h) del frente principal y la distancia (d) al eje de la vía pública:\nR = h d\nb) (r') es la relación entre la altura (h') de los paramentos laterales y la distancia (d') al eje divisorio lateral de la parcela:\nr' = h' d' >=4m d'\nc) (r\") es la relación entre la altura (h\") del paramento de fondo y la distancia (d\" ) de la línea de frente interno:\nr\" = h\" d\"\nCuando la profundidad de la parcela no supere la L.F.I., las construcciones deberán guardar, con excepción de las parcelas en esquina, un retiro de fondo de 6 (seis) metros a partir del primer nivel que será considerado espacio urbano y deberá cumplir con la relación r' determinada para cada distrito.-\nCuando la línea divisoria de fondo de la parcela sobrepase la línea de frente interno de la manzana en menos de 3 (tres) metros o coincida con la misma, las construcciones deberán retirarse por lo menos 6 (seis) metros de dicha línea divisoria, si se abren vanos de iluminación y ventilación al centro de manzana.-\nCAPITULO 4 DE LOS PATIOS APENDICULARES (GRAFICO 5)."
+    },
+    {
+      "articulo": 157,
+      "texto": "Los patios apendiculares a los que pueden abrir los locales de 1º categoría deberán cumplir con la siguiente relación: a) La profundidad (P) será menor o igual a la abertura (A).\nCAPITULO 5. DE LOS PATIOS AUXILIARES (GRAFICO 6)."
+    },
+    {
+      "articulo": 158,
+      "texto": "Conformación de los patios auxiliares:\na) En el caso de los patios centrales deberá dibujarse en su superficie una circunferencia cuyo diámetro (D) sea igual o mayor a 1/4 (un cuarto) de la altura (H) de los paramentos. Para los patios laterales o sobre medianeras el diámetro de la circunferencia a inscribir será como mínimo 1/5 (un quinto) de la altura (H). En ningún caso los diámetros aquí determinados podrán ser inferiores a 3 (tres) metros, siendo además los mismos constantes en toda la altura del patio. En caso de paramentos de diferentes alturas, el valor (H) será igual a la semisuma de las alturas de los mismos.\nb) En caso de patios rectangulares el lado menor determinado en el apartado anterior podrá reducirse\nhasta 3 (tres) metros, siempre que en compensación al otro lado se le aumente como mínimo 3 (tres) veces la reducción adoptada. En ningún caso el lado mayor podrá superar en 3 (tres) veces la dimensión del lado menor.-\nc) Se admitirán extensiones apendiculares siempre que la profundidad (P) sea igual al ancho (A), y su superficie no podrá considerarse para satisfacer la superficie mínima del patio auxiliar."
+    },
+    {
+      "articulo": 159,
+      "texto": "Los locales de 1º categoría podrán ventilar e iluminar a patios auxiliares y a sus extensiones apendiculares cuando el edificio que los contiene no supere la altura de basamento establecida para el distrito.-"
+    },
+    {
+      "articulo": 160,
+      "texto": "Cuando el edificio supere la altura de basamento sólo podrán ventilar e iluminar a patios auxiliares un local de primera categoría de cada unidad funcional, con excepción de los monoambientes que solo podrán ventilar a espacio urbano.-\nCAPITULO 6. PATIO DE SERVICIO."
+    },
+    {
+      "articulo": 161,
+      "texto": "Podrán iluminar y ventilar a patio de servicio los siguientes locales: cocinas, lavaderos, baños y núcleos de circulación vertical (escaleras y ascensores). La dimensión mínima no deberá ser inferior a la superficie determinada por una circunferencia de un diámetro de 3 (tres) metros, en toda su altura.-\nCAPITULO 7. DE LOS PATIOS PRINCIPALES."
+    },
+    {
+      "articulo": 162,
+      "texto": "Por constituir espacio urbano, podrán iluminar y ventilar a patio principal la totalidad de los locales.\nPodrán ser patios principales todos aquellos que constituyan espacio urbano y respeten los parámetros establecidos a tal efecto en el Título III del presente Código.\nCAPITULO 8. DE LAS AREAS DESCUBIERTAS."
+    },
+    {
+      "articulo": 163,
+      "texto": "FORMA DE MEDIR LAS AREAS DESCUBIERTAS. Las dimensiones de las áreas descubiertas se determinan con exclusión de la proyección horizontal de voladizos de salientes mayores a 0,10 (cero con diez) metros."
+    },
+    {
+      "articulo": 164,
+      "texto": "En el caso de que el área descubierta de una parcela resulte lindera a otra parcela, sus dimensiones se considerarán desde una paralela distante 0,15 (cero con quince) metros del eje divisorio entre parcelas."
+    },
+    {
+      "articulo": 165,
+      "texto": "ARRANQUE DE LAS AREAS DESCUBIERTAS: A los fines de calcular la separación (S) en relación a la altura (H) que se establece en la presente, se considerará como arranque de las áreas descubiertas el plano horizontal real o virtual a nivel de la cota en que dicho espacio se hiciera necesario a los efectos de proveer iluminación y ventilación a los locales que de él dependen. La cota del plano de arranque se consignará en el proyecto."
+    },
+    {
+      "articulo": 166,
+      "texto": "Prohibiciones relativas a las áreas descubiertas: Las áreas descubiertas que constituyen espacio urbano o patios auxiliares no podrán cubrirse con elementos fijos o móviles, opacos, traslúcidos o transparentes.\nCAPITULO 9. DE LAS AREAS DE INTERES PATRIMONIAL."
+    },
+    {
+      "articulo": 167,
+      "texto": "PROTECCIÓN PATRIMONIAL\n1- Espacios y bienes sujetos a Protección\nLos espacios y bienes sujetos a obligación de proteger serán declarados de interés e incluidos en el Programa de Preservación Cultural, Histórico, Monumental, Arquitectónico - Urbanístico y Ambiental. Cualquier propietario de un inmueble que posea valor patrimonial, previa declaración de interés, podrá solicitar suscribir un Convenio de Preservación, con el objetivo de salvaguardar dicho patrimonio.\n2-Alcances de Protección.\n2.1 Protección General: se establecen áreas homogéneas en cuanto a morfología y tejido urbano, a fin de consolidar los atributos que hacen valorable al conjunto, designándose como Area de Protección Patrimonial, A.P.P.\n2.2 Protección Especial.\n2.2.1 Protección Edilicia: se refiere a lo construido en las parcelas. Se establecen distintos niveles de protección.\n2.2.1.1. Protección integral: edificios de interés especial cuyo valor de orden histórico y/o arquitectónico los ha constituido en “hitos urbanos”. Protege la totalidad de cada edificio conservando todas sus características arquitectónicas y su forma de ocupación del espacio.\nLos edificios con Protección Integral podrán tener grados de intervención 1 y 2 (condicionada a estudio de la Comisión de Preservación) 2.2.1.2. Protección Estructural: edificios de carácter singular y tipológico, que por su valor histórico, arquitectónico, urbanístico o simbólico caracterizan su entorno o califican espacio urbano o son testimonio en la memoria de la comunidad.\nTotal: protege su tipología, permitiendo modificaciones que no alteren su volumen. Los edificios con protección estructural total podrán tener un grado de intervención 1, 2 y 3 (condicionada a estudio de la Comisión de Preservación)\nParcial: protege la imagen característica del área evitando intervenciones contradictorias en el tejido y la morfología. Los edificios con protección estructural parcial podrán tener un grado de intervención 1, 2, 3 y 4. (condicionada a estudio de la Comisión de Preservación)\nGrados de Intervención:\nGrado de intervención 1: comprende las obras y/o acciones dirigidas a restituir las condiciones originales del edificio.\na) Restitución de partes alteradas y restauración de elementos originales.\nb) Recuperación de elementos estructurales, espacios interiores cubiertas, cielorrasos, pisos, fachadas exteriores e interiores con sus revoques, ornamentos, pinturas, carpinterías en forma y dimensiones, con eliminación de todo elemento agregado que esté fuera de contexto.\nc) Reparación, sustitución e incorporación de instalaciones, sistemas de aislación hidrófuga y térmica que no alteren la fisonomía de los edificios.\nd) Reforma de locales sanitarios para adaptarlos en su totalidad a las necesidades actuales. No se permiten modificaciones en el volumen de la edificación, superficie construida, entrepisos, entrepisos existentes ni la ocupación de patios interiores con construcciones.\nGrado de intervención 2: comprende las obras o acciones dirigidas a adecuar el espacio interior de los edificios a condiciones de uso nuevas, respetando los elementos tipológicos, formales y estructurales de los mismos.\na) Ampliación de superficie por medio de entresuelos retirados de los muros y fachadas para permitir el accionar de las carpinterías, sin alterar la tipología del edificio.\nb) Consolidación y mantenimiento de las fachadas exteriores e interiores de los edificios, de sus revoques, revestimientos, ornamentos, pintura, carpintería y balcones, etc.\nc) El tratamiento de fachadas deberá ser realizado en forma integral, respetando el diseño original y teniendo como base la documentación existente o en su defecto, los elementos que se incorporen, no alterarán la composición de sus partes ni su esquema original, se integrarán armónicamente con el conjunto siendo deseable que se distingan sus partes originales. Si por razones de cambio de uso fuera necesario modificar aspectos de la fachada, se deben respetar las líneas rectoras de la misma. Esta propuesta será motivo de estudio del Organo de Aplicación. El tratamiento de las plantas bajas intervenidas será acorde al de las plantas altas a los efectos de la lectura integral de los edificios. En el caso de edificios con plantas que posteriormente fueran subdivididas, se aplicará un criterio unitario que permita conservar la unidad del edificio y la lectura integral del mismo. En el caso de instalaciones de acondicionadores de aire y/o instalaciones de servicios públicos serán dispuestos de manera que no alteren la composición básica de la fachada ni destruyan ornamentos ni molduras.\nGrado de intervención 3: comprende las obras y/o acciones dirigidas a la adecuación y mejora de las condiciones de habitabilidad del edificio mediante la reforma y/o transformación del espacio interior, que mantenga básicamente las fachadas y volumen edificado. Grado de intervención 4: propuesta de modificación por aumento de volumen de un edificio deberá\nser presentado previamente para su vis"
+    },
+    {
+      "articulo": 168,
+      "texto": "AREAS DE PROTECCIÓN PATRIMONIAL DE LOS PUERTOS\nA) AREA DE PROTECCIÓN PATRIMONIAL “ PUERTO VIEJO ”.\n1- DEFINICIÓN:\nZona de alto significado patrimonial, ya que comprende el área del antiguo puerto, donde se sustentaron las principales actividades económicas de la Ciudad en sus orígenes.-\n2- DELIMITACIÓN:\nEl Area de Protección Patrimonial, corresponde al sector delimitado por la poligonal definida por los límites posteriores de los inmuebles frentistas a calle Los Vascos desde la intersección de las calles Arnaldo Cruz y Enrique Berduc, continuando por calle Osinalde hasta Panamá, y siguiendo por esta Panamá hasta el arroyo Antoñico, lotes frentistas a calle A. Medina, continuando por Arroyo Antoñico hasta su desembocadura y desde allí por una línea imaginaria a la intersección de las calles Arnaldo Cruz y Enrique Berduc.\n3- TEJIDO URBANO:\n3.1 Protección edilicia\nSon aquellos inmuebles correspondientes a las partidas municipales comprendidos en los Decretos, Nº 1035/95 y el 1215/02 que por sus características tipológicas definen el entorno y son testimonio en la memoria de la comunidad.-\n3.2 Protección edilicia integral Son aquellos inmuebles cuyos valores de orden histórico, arquitectónico se han constituido en “hito urbano”, como la Iglesia del Carmen, Fabrica Coceramic, Aduana de la Confederación Argentina y Escuela Pueyrredón.\n3.3 Protección ambiental Las nuevas ampliaciones, refacciones y construcciones que se proyecten en las parcelas que no estén alcanzadas por la protección edilicia, deberán reunir las siguientes características:\na) Los proyectos que se realicen de obras nuevas deberán contemplar el impacto que generan en el entorno y el perfil general de la zona.-\nb) Se preservará el actual paisaje edilicio, caracterizado por edificaciones de orden continuo, permitiéndose nuevas construcciones con fachada sobre Línea Municipal, de medianera a medianera\ny con altura limitada.-\nc) La altura máxima de edificación será de 7 (siete) metros.\n4. ESPACIO PUBLICO\nDentro del Area considerada de protección histórica rigen las siguientes disposiciones para:\n4.1 Forestación:\nEl arbolado en el área será de reposición y los nuevos respetarán los tipos y disposición de las especies existentes.-\n4.2 Iluminación:\nLa Iluminación exterior deberá contar con la visación del órgano de contralor. La misma deberá potenciar y resaltar las características de los edificios.\n4.3 Aceras:\nSe mantendrán las dimensiones actuales, conservando, en el caso de preexistencia, el área verde entre la acera y calzada. A medida que se produzcan renovaciones en los materiales se propenderá a que los mismos sean de características rústicas y colores terrosos.\n4.4 Mobiliario Urbano:\nPara su emplazamiento, distancia entre si, relación con otro elemento, forma, dimensiones, color, se deberá dar intervención al Organo de Aplicación.-\n4.5 Toldos y Marquesinas:\nSe permitirán toldos de lonas siempre y cuando su diseño y color armonicen con la fachada y su contexto.\n4.6 Publicidad:\nEn la fachada solo se autorizará la colocación de anuncios frontales que cumplan con lo dispuesto en el Artículo 37° de la Ordenanza N°7977.-Se requerirá un estudio de fachada del edificio de manera tal, que su ubicación no perjudique la estética de la misma.-Queda prohibido el emplazamiento de anuncios en forma saliente, estructuras publicitarias y cualquier otro elemento sobre el techo de los edificios.-\n4.7 Actividad en la Vía Pública:\nSe permite el uso de las veredas como expansión de las actividades gastronómicas y culturales.\nB) AREA DE PROTECCION PATRIMONIAL “PUERTO NUEVO”\n1. CARACTER\nArea de valor histórico por su condición de “PUERTO” ya que fue el vínculo principal de la ciudad con el resto del territorio nacional. La actividad básica portuaria, para la cual fue equipada, generó construcciones que hoy poseen un valor patrimonial por lo cual se requiere de normas particularizadas que pauten una intervención respetuosa en dicho ámbito, por lo que la localización dentro del área de algunos usos la determinará por el organismo de aplicación.\n2. DELIMITACION\nÁrea de Protección Patrimonial comprendida dentro de los siguientes límites: río Paraná, límite este del inmueble del Estado Nacional – Ministerio de Obras Públicas, Bolívar hasta Av. Laurencena, Av. Laurencena hasta ex atracadero de Balsas.\n3. TEJIDO URBANO\n3.1.Protección edilicia\nSon todos aquellas construcciones del Ministerio de Obras Públicas localizadas dentro del predio del Estado Nacional Argentino, Plano de Mensura N° 113408 Partida N° l75820/86 y los inmuebles que por su valor histórico y simbólico caracterizan el entorno y son testimonio en la memoria de la comunidad.-\n3.2. Protección ambiental\nLas nuevas ampliaciones, refacciones y construcciones que se proyecten en las parcelas que no estén alcanzadas por protección edilicia, deberán reunir las siguientes características:\na) La fachada de frente deberá materializarse en Línea Municipal (L.M.) adecuando su composición a las fachadas preexistentes, armon"
+    },
+    {
+      "articulo": 169,
+      "texto": "AREA DE PROTECCIÓN PATRIMONIAL “ PLAZA DE MAYO ”\n1- DEFINICIÓN:\nPLAZA de MAYO, ámbito que posee una identidad reconocible por su carácter histórico ambiental por lo que será objeto de un ordenamiento especial mediante normas particularizadas con el fin de preservar dicho carácter.-\n2- DELIMITACION:\nÁrea de Protección Patrimonial delimitada por: calle Urquiza, desde Buenos Aires/Pellegrini hasta San Juan/ 9 de Julio, 9 de Julio desde Urquiza hasta 25 de Mayo, 25 de Mayo desde 9 de Julio hasta San Martín, San Martín desde 25 de Mayo/España hasta Urquiza. Quedan incorporados ambos frentes de las calles mencionadas así como las parcelas en esquina en las intersecciones de las mismas.\n3- TEJIDO URBANO:\nProtección edilicia\n3.1.1.Los inmuebles declarados Monumentos Históricos Nacionales que por su valor histórico y arquitectónico constituyen “hitos urbanos”.\nSalón de Actos Colegio del Huerto.- Part. Nº 11.156-2\nCatedral Metropolitana Part. Nº 9.205-5\n3.1.2 Los inmuebles declarados a preservar en su totalidad por el Decreto Nº 1035 son los siguientes:\n1- Banca del Lavoro Part. N° 1.591-6 2- Banco Hipotecario Part. N° 1.592-9 3- Hotel Plaza Part. N° 1.872-7 4- Banco BERSA Part. N° 14.721-7 5- Escuela Normal Part. N° 6.687-6 6 - Municipalidad Part. N° 15.361-8 7- Capilla del Huerto Part. N° 11.441-2 8- Palacio Arzobispal Part. N° 10.600-0 9- Correo Part. N° 6.688-0 10- Banco BERSA Part. N° 1.229-9 11- Cine Mayo y Centro Comercial Part. N° 5.834-1\n12- Banco Nación Part. N° 14.781-7 13- Club Social Part. N° 7.855-0\n3.1.3 Los inmuebles que sin estar comprendidos en el Decreto 1035, resulten de interés patrimonial como los siguientes:\ncalle 25 de Mayo 116 Part. N° 14.824-calle 25 de Mayo 120 Part. N° 10.082-8\n3.2. En la manzana comprendida por las calles Monte Caseros, Urquiza, 9 de Julio, 25 de Mayo es de aplicación la Ley Provincial. 6610 y complementarias.\n3.3. Protección ambiental Todos los inmuebles comprendidos en estos tramos y corredores urbanos y la totalidad de los lotes esquineros, se deberá preservar la altura existente.\n- calle Urquiza ( entre San Martín y Pellegrini- Buenos Aires, ambas aceras).\n- calle 9 de Julio ( entre Urquiza y 25 de Mayo, ambas aceras).\n- calle 25 de Mayo ( entre San Martín y Monte Caseros, acera par).\nLas nuevas ampliaciones, refacciones y construcciones que se proyecten en el resto del área, deberán reunir las siguientes características:\na) Las obras nuevas tomarán en cuenta al proyectarse el impacto visual sobre el medio que lo rodea y el perfil dominante en la zona.-\nb) Se preservará el actual paisaje edilicio, caracterizado por edificaciones de orden continuo. Las nuevas construcciones deberán materializar la fachada sobre Línea Municipal, de medianera a medianera y con altura limitada.-\nc) La altura de edificación no podrá sobrepasar la altura de los inmuebles linderos, admitiéndose 10 (diez) metros de altura máxima.-\n3.4. El deslinde de propiedades al interior del predio se efectuará bajo el régimen de propiedad horizontal. Los copropietarios deberán ponerse de acuerdo en el mantenimiento, restauración y tratamiento de las áreas comunes y fachadas.-\n4. ESPACIO PUBLICO\nDentro del Area de Protección Patrimonial rigen las siguientes disposiciones para:\n4.1 Forestación:\nEl arbolado en el área será de reposición y los nuevos respetarán los tipos y disposición de las\nespecies existentes.-\n4.2 Iluminación:\nLa Iluminación exterior deberá contar con la visación del órgano de contralor. La misma deberá potenciar y resaltar las características de los edificios.\n4.3 Toldos y Marquesinas:\nSe permitirán toldos de lonas siempre y cuando su diseño y color armonicen con la fachada y su contexto. Se permitirán marquesinas diseñadas en vidrios u otro material traslúcido y estructuras livianas de hierro.-Se requerirá un estudio de fachada del edificio de manera tal, que su ubicación no perjudique la estética de la misma.-\n4.4 Aceras:\nA medida que se produzcan renovaciones en los materiales se unificara el uso de mosaicos calcáreos y losetas de hormigón en calle 25 de Mayo, quedando prohibido el uso de otro tipo de material.-\n4.5 Publicidad:\nEn la fachada solo se autorizará la colocación de anuncios frontales que cumplan con lo dispuesto en el Artículo 37° de la Ordenanza N°7977.-Se requerirá un estudio de fachada del edificio de manera tal, que su ubicación no perjudique la estética de la misma.-No se permitirá el emplazamiento de anuncios en forma saliente, estructuras publicitarias y cualquier otro elemento sobre el techo de los edificios.-\n4.6 Instalaciones en fachada:\nLa instalación de aparatos de aire acondicionado visibles desde la vía pública, requerirá un estudio de fachada del edificio, en el cual se deberá contemplar la continuidad de molduras, pilastras, frisos y otros elementos ornamentales."
+    },
+    {
+      "articulo": 170,
+      "texto": "AREA DE PROTECCIÓN PATRIMONIAL “MERCADO CENTRAL LA PAZ ”\n1- CARÁCTER\nEl Mercado Central es un ámbito que posee una identidad reconocible, por su funcionalidad se constituyo en el pasado como símbolo de progreso comercial , proyectando su actividad al entorno circundante.\n2- DELIMITACIÓN\nArea delimitada por calle Bavio desde San Martín a Pellegrini, Pellegrini desde Bavio a Perú, Perú desde Pellegrini a San Martín y Chile desde Perú a Bavio.\n3- TEJIDO URBANO\n3.1- Protección edilicia.\nLas nuevas construcciones que se proyecten en el Área de Protección Patrimonial deberán cumplir:\n- Fachada obligatoria sobre línea municipal: altura 8 (ocho) metros.\n- retiro línea de edificación sobre basamento: mínimo 4 (cuatro) metros.\n- altura máxima de edificación: 12,50 (doce con cincuenta) metros a contar desde la cota de la parcela.\nTodas las parcelas frentistas a las calles señaladas como limites de esta área, se consideran comprendidas en esta A.P.P.\n3.2- Protección ambiental\nLas nuevas construcciones que se proyecten en las parcelas de Área de Protección Patrimonial que no estén alcanzadas por la protección edilicia, deberán reunir las siguientes características:\na) Se podrán utilizar materiales semejantes a los de los edificios declarados de interés.\nb) La fachada de frente deberá materializarse en Línea Municipal adecuando la composición de la fachada a las preexistentes, armonizando las líneas de referencia y las alturas(cornisas, dinteles, pilastras, zócalos, coronamientos, etc.)\n4- ESPACIO PÚBLICO\nDentro del Área de Protección Patrimonial rigen las siguientes disposiciones:\n4.1. Toldos y Marquesinas:\nSolo se autorizarán toldos móviles, de una sola tipología y color por edificio. No llevarán anuncios de ningún tipo, solo se permitirá la inscripción del nombre y/o razón social en los faldones de los mismos. Tendrán un vuelo máximo del ancho de la acera menos 0.20 (cero con veinte) metros y una altura mínima sobre el nivel de vereda de 2,30 (dos con treinta) metros. En caso de instalación de marquesinas las mismas tendrán un diseño acorde al estilo del edificio sobre el que se intervenga.\n4.2. Aceras:\nSe mantendrán las dimensiones actuales, procurando la continuidad del solado y unificando el uso de materiales.\n4.3. Publicidad:\nEn la fachada solo se autorizará la colocación de anuncios frontales que cumplan con lo dispuesto en el Artículo 37° de la Ordenanza N°7977.-Se requerirá un estudio de fachada del edificio de manera tal, que su ubicación no perjudique la estética de la misma.-No se permitirá el emplazamiento de anuncios en forma saliente, estructuras publicitarias y cualquier otro elemento sobre el techo de los edificios.-\n4.4. Instalaciones en fachada:\nNinguna instalación de refrigeración, acondicionamiento de aire, evacuación de humos o extractores, podrán sobresalir más de 0.30 (cero con treinta) metros del plano de fachada exterior.-\nLa instalación de aparatos de aire acondicionado visibles desde la vía pública, requerirá un estudio de fachada del edificio.-\nLos equipos de acondicionamiento o extractores de aire en locales, deberán tener salida a fachada a más de 3 (tres) metros. Sobre el nivel de vereda.-"
+    },
+    {
+      "articulo": 171,
+      "texto": "AREA DE PROTECCIÓN PATRIMONIAL “FERROCARRIL GRAL. URQUIZA”\n1- CARACTER:\nLa Estación del Ferrocarril, ámbito que posee una identidad reconocible por su carácter histórico, ambiental, será objeto de un ordenamiento especial mediante normas particularizadas con el fin de preservar dicho carácter.-\n2- DELIMITACION:\nTodas las parcelas frentista al Ferrocarril “Gral. Urquiza” que se encuentran sobre Bvard. Racedo comprendidas entre calle Monte Caseros y Pascual Palma.\n3- TEJIDO URBANO:\n3.1 Protección edilicia\nLos inmuebles con protección edilicia parcial, ubicados sobre Bvard. Racedo entre calle 9 de Julio y Gral. Belgrano, corresponden a las Partidas Municipales N°: 11039, 11328, 00933, 06420, 10681, 01808, 01437, 15175, 08215, 06945, 06941, 02370, 12923, 09918 y 9906 que por su valor histórico, simbólico caracterizan el entorno o son testimonio en la memoria de la comunidad.-\n3.2- Protección ambiental\nLas nuevas ampliaciones, refacciones y construcciones que se proyecten en las parcelas de Área de Protección Patrimonial que no estén alcanzadas por la protección edilicia, deberán reunir las siguientes características:\na) Los proyectos de obras nuevas tendrán en cuenta el impacto visual sobre el medio que lo rodea y el perfil dominante en la zona, la adecuación formal a la tipología del área y demás parámetros que definen su integración con el medio urbano.\nb)Se preservará el actual paisaje edilicio, caracterizado por edificaciones de orden continuo. Las nuevas construcciones deberán materializar la fachada sobre Línea Municipal, de medianera a medianera y con altura limitada.-\nc) La altura de fachada obligatoria será de 8 ( ocho ) metros.-\nd) La altura máxima de edificación: 12,50 (doce con cincuenta) metros a contar desde la cota de la parcela.\ne) Retiro línea de edificación sobre basamento: mínimo 4 (cuatro) metros.\n4. ESPACIO PUBLICO\nDentro del Area de Protección Patrimonial rigen las siguientes disposiciones para:\n4.1 Forestación:\nEl arbolado en el área será de reposición y los nuevos respetarán los tipos y disposición de las especies existentes, estando a cargo exclusivo de la Municipalidad a través de la Dirección de Parques y Paseos.\n4.2 Iluminación:\nLas columnas de alumbrado se usaran solamente para sus fines específicos y no para soportes de elementos ajenos, salvo situaciones circunstanciales.-Se podrá iluminar puntualmente las fachadas mediante la fijación de artefactos luminosos que estén sustentados en el muro.\n4.3 Aceras:\nSe mantendrán las dimensiones actuales, conservando, en el caso de preexistencia, el área verde entre acera y calzada. A medida que se produzcan renovaciones se procurará la continuidad del solado y la unificación en el uso de materiales. Se permite el embaldosado del área verde en los casos en que se desarrollen actividades gastronómicas y recreativas.\n4.4 Toldos y Marquesinas:\nSe permitirán toldos de lonas rebatibles en voladizos o fijos. Estos podrán construirse fijados en los muros o las carpinterías. En los locales gastronómicos que ocupan la vereda, los toldos cuando sean mantenidos por medio de soportes verticales, deberán ser desmontables y colocados a 0,50 (cero con cincuenta) metros del cordón.-Se permitirán marquesinas diseñadas en vidrios u otro material traslúcido y estructuras livianas de hierro en Bvard. Racedo.-Se requerirá un estudio de fachada del edificio de manera tal, que su ubicación no perjudique la estética de la misma.-\n4.5 Publicidad:\nEn la fachada solo se autorizará la colocación de anuncios frontales que cumplan con lo dispuesto en el Artículo 37° de la Ordenanza N°7977.-Se requerirá un estudio de fachada del edificio de manera tal, que su ubicación no perjudique la estética de la misma.-\nNo se permitirá el emplazamiento de anuncios en forma saliente, estructuras publicitarias y cualquier otro elemento sobre el techo de los edificios.-\n4.6 Instalaciones en fachada:\nNinguna instalación de refrigeración, acondicionamiento de aire, evacuación de humos o extractores, podrán sobresalir más de 0.30 (cero con treinta) metros del plano de fachada exterior.-\nLa instalación de aparatos de aire acondicionado visibles desde la vía pública, requerirá un estudio de fachada del edificio.-\nLos equipos de acondicionamiento o extractores de aire en locales, deberán tener salida a fachada a más de 3 ( tres) metros. Sobre el nivel de vereda.-\n4.7 Actividad en la Vía Pública:\nSe permite el uso de las veredas como expansión de confiterías, bares, cafés, heladerías, pizzerias y venta de artículos regionales, pudiéndose ocupar solamente con mesas, sillas y exhibidores, las aceras deberán ser desocupadas en los horarios que no haya actividad."
+    },
+    {
+      "articulo": 172,
+      "texto": "AREA DE PROTECCIÓN PATRIMONIAL “TUNEL SUB-FLUVIAL”\n1.CARÁCTER:\nArtículo 172º.- ÁREA DE PROTECCIÓN PATRIMONIAL \"TUNEL SUBFLUVIAL\" 1. CARÁCTER: El túnel amerita reconocimiento por su valor funcional y económico en razón de los recursos invertidos en esa infraestructura, pero también el valor social y cultural de los recursos edilicios y paisajísticos que constituyen su entorno y que deben preservar su carácter de puerta de acceso a la ciudad y enmarcar la obra. Este entorno se presenta hoy medianamente configurado con\nuna dominante de equipamientos públicos, privados y de organizaciones intermedias de uso público e instalación en grandes usos parcelarios que conforman un tejido particular de grandes contenedores (hospital Neuropsiquiátrico, Aéreas de Informes, Clubes, etc.).\n2. DELIMITACIÓN: Área delimitada al norte por el río Paraná y prolongación de Juan Jozami, al este por calle Ayacucho, E. Echeverría y Rondeau, al sur por Avda. Antonio Crespo y su prolongación ideal hasta el cauce del A° Las Viejas y el cauce del mismo.\n3. TEJIDO URBANO: 3.1. Protección edilicia: Son aquellos que pertenecen al ente Interprovincial del Túnel Subfluvial, los cuales se deben mantener sin alterar la esencia y protección edilicia del túnel, siempre preservando su durabilidad y el valor funcional, económico, social y cultural de los recursos edilicios y paisajísticos que constituyen su entorno y que hacen necesaria su conservación.\n3.2. Protección ambiental Las nuevas construcciones, ampliaciones, refacciones o modificaciones totales o parciales que se proyecten en las parcelas del área y que no estén alcanzadas por la protección edilicia deberán reunir las siguientes características: a) Se tenderá a reforzar los vínculos de la obra con el entorno, quedando sometida las nuevas construcciones y modificaciones totales para su aprobación, a la intervención de la Secretaría de Planeamiento y Desarrollo Territorial de la Municipalidad de Paraná u organismo que lo sustituya. b) Deberá existir un predominio del área verde superior al 40% (cuarenta por ciento). c) No se autorizan subdivisiones menores a 1000 (mil) m2 y de ancho menor a 30 (treinta) metros. d) Se autorizan usos recreativos, turísticos, deportivos, educativos, científicos y tecnológicos y toda instalación de eventos promocionales (ferias, exposiciones, muestras). e) Se deberá prever retiros de líneas de edificación y ejes medianeros de 5 (cinco) metros como mínimo.\n4. ESPACIO PÚBLICO Dentro del Área de Protección Patrimonial rigen las siguientes disposiciones para: 4.1 Forestación: El arbolado en las calles del área será proyectado por la Municipalidad a través de la Dirección de Parques y Paseos la que procederá a la plantación de los mismos. (Texto modificado según Ordenanza N° 9921)\n2. DELIMITACIÓN:\nArea delimitada al norte por el río Paraná y prolongación de Juan Jozami, al este por calle Ayacucho, E. Echeverría y Rondeau, al sur por Avda. A. Crespo y su prolongación ideal hasta el cauce del A° Las Viejas y el cauce del mismo.-\n3. TEJIDO URBANO:\n3.1. Protección edilicia:\nSon aquellos que pertenecen al ente Interprovincial del Túnel Subfluvial.\n3.2.Protección ambiental\nLas nuevas ampliaciones, refacciones que se proyecten en las parcelas del área y que no estén alcanzadas por la protección edilicia deberán reunir las siguientes características.\n3.3 Se tenderá a reforzar los vínculos de la obra con el entorno, quedando sometida las nuevas construcciones para su aprobación, a la intervención de la Subsecretaría de Planificación y Gestión del Desarrollo por su Dirección de Planeamiento y Diseño Urbano u organismo que lo sustituya.-\n3.4. Deberá existir un predominio del área verde superior al 40% (cuarenta por ciento)\n3.5. de la subdivisión del suelo: no se autorizan subdivisiones menores a 1000 ( mil) m2 y de ancho menor a 30 (treinta) metros.-\n3.6. de los usos: se autorizan usos recreativos, turísticos, deportivos y toda instalación de eventos promocionales (ferias, exposiciones, muestras).\n3.7 del agregado edilicio: se deberá prever retiros de líneas de edificación y ejes medianeros de 5 (cinco) metros como mínimo.\n4.ESPACIO PUBLICO\nDentro del Area de Protección Patrimonial rigen las siguientes disposiciones para:\n4.1 Forestación:\nEl arbolado en las calles del área será proyectado por la Municipalidad a través de la Dirección de Parques y Paseos la que procederá a la plantación de los mismos.\nSECCION IV. NORMAS GENERALES SOBRE USOS DEL SUELO.-\nTITULO 1.ALCANCES.-"
+    },
+    {
+      "articulo": 173,
+      "texto": "Para habilitar, cambiar de uso o destino, una parcela, edificio, estructura o instalación, total o parcialmente, con destino a una actividad industrial, comercial o de servicios, es obligación contar previamente con el Permiso de Uso (uso conforme) otorgado por la Dirección de Planeamiento y Diseño Urbano.-"
+    },
+    {
+      "articulo": 174,
+      "texto": "El permiso se otorgará cuando el uso esté permitido en el Distrito o Area de ubicación del predio, de acuerdo a la aplicación de las Planillas de Usos incorporadas como ANEXO III.-"
+    },
+    {
+      "articulo": 175,
+      "texto": "La exigencia de contar con el Permiso de Uso previo, se requerirá también en los casos de presentación de Anteproyectos o Proyecto de Obras.-"
+    },
+    {
+      "articulo": 176,
+      "texto": "En los casos de establecimiento comerciales, industriales o de servicios que estén habilitados por la Municipalidad antes de la fecha de vigencia de esta Ordenanza, cuando los mismos sean destinados a un uso no permitido, se aplicarán las siguientes normas:\na) Queda prohibido toda ampliación, refacción o modificación del edificio, de cualquier otra construcción o de las instalaciones.-\nb) En el plazo que fije el Departamento Ejecutivo, se deben cumplimentar las disposiciones que éste determine, en base a los informes de los organismos técnicos de la administración municipal, tendientes a evitar peligros derivados de la naturaleza de los elementos que se manipulen, elaboren o almacenen, del movimiento y circulación de vehículos, contaminación ambiental o ruidos o vibraciones molestas que puedan originar.-\nc) El Departamento Ejecutivo queda facultado para ordenar la remoción de dichos establecimientos en un plazo no menor de 6 (seis) meses, ni mayor de 3 (tres) años, cuando el funcionamiento de los mismos origine peligros ciertos y concretos para quienes trabajen en el establecimiento para los usuarios o para los vecinos o cuando el ordenamiento urbano lo justifique. En cada caso, de acuerdo al informe de los organismos técnicos, se determinarán las condiciones de funcionamiento durante el plazo que se otorgue.-"
+    },
+    {
+      "articulo": 177,
+      "texto": "En los casos de establecimientos comerciales, industriales o de servicios que a la fecha de esta Ordenanza estén en funcionamiento sin previo Permiso de Uso y Habilitación, el Departamento Ejecutivo por intermedio de los organismos de su dependencia, podrá proceder a su inmediata clausura, sin perjuicio del derecho de reapertura de aquellos que obtengan el correspondiente Permiso de Uso y Habilitación.-\nSECCION V. NORMAS PARTICULARES SOBRE PARCELAMIENTO Y TEJIDO URBANO.\nTITULO 1. DE LOS DISTRITOS.\nDenominase distrito a una porción de la trama urbana determinada especialmente por el presente Código a los efectos de regular para los mismos, magnitudes, usos, parcelamientos, etc, generando ciertas características de homogeneidad.\nPara el caso de aquellas solicitudes de permisos de uso en parcelas pertenecientes a distritos en los que no estuvieren contemplados o permitidos los mismos, pero que fueren frentistas a calles de límite, los organismos competentes podrán acceder a lo peticionado por los solicitantes."
+    },
+    {
+      "articulo": 178,
+      "texto": "DISTRITO URBANO CENTRAL COMERCIAL (U.C.C.) Subdistritos U.C.C.1 y U.C.C.2\n1. CARÁCTER\nCorresponde al sector central, comercial y administrativo.\nEn el distrito aún existen edificios y monumentos de valor histórico y testimonial que se encuentran en el listado de la Ordenanza Nº 7305, declarados de Interés mediante el Decreto Nº 1.035/95 y las Areas de Protección Patrimonial de Plaza de Mayo y Mercado La Paz. Se caracteriza por contar con calles de reducido ancho, con un eje peatonal, calle San Martín, que concentra la actividad comercial y financiera.\n2.DELIMITACIÓN:\nLímite Distrito U.R.1. (Avda. Rivadavia- Gardel), Colón, Salta- Belgrano, 25 de Mayo, Echagüe, Límite Distrito U.R.3. (Avda. Ramírez), Enrique Carbó- Paraguay, Libertad- Córdoba.\n3.SUBDIVISIÓN DEL SUELO.\nToda subdivisión nueva deberá ajustarse a las siguientes dimensiones mínimas:\n* Frente: 10 ( diez) metros.\n* Area: 300 ( trescientos) m2.\nSe admitirá la subdivisión en lotes internos, siempre que los lotes resultantes cumplan con las dimensiones establecidas para el Distrito y que el pasillo posea las medidas reglamentarias, de acuerdo a lo dispuesto en los Arts. 116º y 117º - Cap. 5º - Sección II.\n4.TEJIDO URBANO\nSe observarán las siguientes magnitudes para el Sub-Distrito U.C.C.1., delimitado por las siguientes calles:\nLímite Distrito U.R.1. (Avda. Rivadavia-Gardel), Colón, Salta-Belgrano, Enrique Carbó-Paraguay, Libertad-Córdoba.\n4.1.Se autoriza para el uso comercial un F.O.S. de 100% ( cien por ciento) hasta una altura de 12,50 (doce con cincuenta) metros de la cota de la parcela. Por sobre esta altura deberá ajustarse a los siguientes parámetros:\na) Edificios entre medianeras:\nR = h = 2,8 r\" = h\" = 1 d d\"\nb) Edificios de perímetro libre:\nR = h = 3.5 r' = h' = 6 r\" = h\" = 1 dd'd\"\nPara este subdistrito corresponde:\nFACHADA OBLIGATORIA SOBRE LÍNEA MUNICIPAL:\nRETIRO DE L.E. SOBRE FACHADA OBLIGATORIA: A = 4 (cuatro) metros.\nSe exime del retiro de L.E. sobre fachada obligatoria a los lotes en esquina cuyas calles concurrentes sean mayor o igual a 15 (quince) metros de ancho y hasta una distancia de 20 (veinte) metros de la intersección de las líneas municipales y a las parcelas frentistas a calles de ancho mayores o iguales a 20 (veinte) metros.-Los lotes en esquina cuyas calles concurrentes sean menor de 15 (quince) metros de ancho y hasta una distancia de 20 (veinte) metros de la intersección de las L.M., deberán retirarla L.E. sobre fachada obligatoria a una distancia igual o mayor a 7,50 (siete con cincuenta) metros tomada desde el eje de cada calle. En las construcciones a efectuar en la acera oeste de Calle Corrientes en lotes afectados al ensanche de la arteria, (Ordenanzas N°2.736 y N°3.265) quedan eximidos de cumplir con el retiro de edificación sobre fachada obligatoria y en el caso de donar a título gratuito a la Municipalidad el área correspondiente a la ampliación de la vía pública, se autorizará la construcción de dos plantas por encima del máximo de la altura resultante.\n4.2.En el sector de este Sub-Distrito U.C.C.1 comprendido por las parcelas frentistas a los tramos de calles:\n- José de San Martín, entre La Paz-Laprida y Bavio-Gualeguaychú.\n- Cervantes-Uruguay, entre Buenos Aires y Corrientes.\n- 25 de Junio-Andrés Pazos, entre Buenos Aires y Corrientes.\n- Urquiza, entre Buenos Aires-Pellegrini y Monte Caseros-Corrientes.\n- España-25 de Mayo, entre Pellegrini-Monte Caseros.\n- Perú-Alem, entre Pellegrini-Monte Caseros.\n- Bavio-Gualeguaychú, entre Pellegrini-Monte Caseros.\nSe excluyen de este sector las parcelas de esquina con frente a las calles Corrientes- Monte Caseros, Buenos Aires y Pellegrini.\nSe define el siguiente PERFIL DE EDIFICACIÓN: Las nuevas edificaciones no sobrepasarán el siguiente perfil 12,50 (doce con cincuenta) metros de altura máxima sobre línea municipal. Sobre esta altura un retiro de línea de edificación de 5 (cinco) metros y altura máxima total de 25 ( veinticinco) metros.-\nEn las calles peatonales y semipeatonales de este Sub-Distrito U.C.C.1., se prohibe la localización de nuevas playas de estacionamiento y nuevos garajes, cocheras y/o espacios guarda vehículos.-(Incorporado por Ordenanza Nº 9779)\n4.3. En la manzana delimitada por las calles Urquiza, 9 de Julio, 25 de Mayo y M. Caseros, es de aplicación la Ordenanza Nº 6.475 y Ley Provincial Nº 6.666, en lo que respecta a la ocupación edilicia de las parcelas.-\n4.4. Se observarán las siguientes magnitudes para el Sub-Distrito U.C.C.2., delimitado por las siguientes calles:\nCalles 25 de Mayo, Echagüe, Límite Distrito U.R.3. (Avda. Ramírez), E. Carbó, Belgrano-Salta. Las Calles Belgrano - Salta quedan incluidas dentro del Sub-Distrito U.C.C.1..-\na) Edificios entre medianeras:\nR = h = 2,8 r\" = h\" = 1 d d\"\nb) Edificios de perímetro libre:\nR = h = 4 r' = h' = 6 r\" = h\" = 1 d d' d\"\nc) Edificios de perímetro semi-libre:\nR = h = 3.5 r' = h' = 6 r\" = h\" = 1 d d' d\"\n5. USOS.-\nSe autoriza la localización de los usos previstos en el Anexo III de este Código para esto"
+    },
+    {
+      "articulo": 179,
+      "texto": "DISTRITO URBANO RESIDENCIAL ESPECIAL (U.R.E.1.).\n1.CARÁCTER.\nEs un área residencial por excelencia, en la que la presencia del Parque Urquiza y las visuales hacia el Río, le otorgan características muy singulares. Se mantiene la vivienda individual como dominante, con jardines al frente, constituyendo la fachada de la ciudad hacia la orilla opuesta.\n2.DELIMITACIÓN.\nBvard. Mitre, Dr. Etchevehere, Gregoria Matorras de San Martín, Manuel Alberti, Alvear y Avda. Laurencena, U.R.3(Güemes), Bvard. Moreno, Bvard. Mitre, Intendente Bertozzi (hasta Los Vascos), retomando Bvard. Mitre.\n3.SUBDIVISIÓN DEL SUELO.\nToda subdivisión nueva deberá ajustarse a las siguientes dimensiones mínimas:\n* Frente: 10 (diez) metros.\n* Area: 300 ( trescientos) m2.\n4.TEJIDO URBANO\na) Las edificaciones entre medianeras, perímetro libre o perímetro semi-libre no podrán sobrepasar una altura máxima de (+)9,50 mts. desde la cota de la parcela (no debiendo superar los(+) 12,50 mts. de la cota de la vereda); y un FOS= 0,60. Con las siguientes magnitudes:\n- En edificios de perímetro libre y semi-libre\nr´ = h´ = 5d > ó = 4 mts. d´ Con excepción de edificios entre medianeras y perímetro semi libre en parcelas frentistas a la acera sur de las calles Mitre y Moreno, entre Tucumán y Salta; incluidos los lotes de esquina, que no podrán superar los (+) 12,50 mts. de la cota de la parcela. Con las siguientes magnitudes:\n- En edificios de perímetro semi-libre\nr ´= h´ = 5d > ó = 4 mts. d´\nLos edificios de perímetro libre deberán observar las siguientes magnitudes:\n- En lotes de frente menor a 20 mts. se observará: FOS: 0,6 y FOT:1,8\nr´ = h´ = 5d > ó = 4 mts. d´\n- En lotes de frente mayor o igual a 20 mts. se observarán las siguientes magnitudes:\nr = h = 2r´= h´ = 5r´´ = h´´ = 1 d d´ d´´\nCon una altura máxima < ó = 30 mts.\nLos espacios necesarios para cocheras o espacios guarda vehículos deberán ubicarse por debajo de la cota de la parcela.-Por sobre la cota de la parcela (+ 0.00 ) y hasta la cota (+ 3.00 ) se podrá ocupar el predio solamente con elementos estructurales, accesos y circulación (escaleras - ascensores) exigiendo una transparencia del 50% del ancho de la parcela.-Para los casos particulares que surjan de la aplicación de lo antes enunciado, teniendo en cuenta la particular topografía que presenta esta zona, se deberá tender a lograr un volumen edificado erigido sobre una superficie liberada de construcciones y con predominio de verde, permitiendo incorporar solamente edificaciones para servicios tales como piscinas, accesos, etc. liberando las visuales\nlaterales.\nb) Línea de edificación: se deberá contemplar un retiro de 4,00 mts. (cuatro metros) medidos perpendicularmente a la línea Municipal. La edificación en su fachada de frente podrá materializarse en forma total o parcial sobre la línea de Edificación, pudiendo además, retirarse voluntariamente sin límites de dicha línea. En los lotes de esquina que estén en límites de distrito, el retiro deberá producirse según corresponda a cada distrito.\n5. USOS\nSe autorizarán los establecidos en el Anexo III de este Código para este Distrito.\n(Texto según Ordenanza Nº 8601)\nArtículo 180°.- DISTRITO URBANO RESIDENCIAL ESPECIAL 2 (U.R.E.2.).\n1.CARÁCTER.\nEsta zona es considerada residencial especial, a consolidar. Corresponde al sector del Balneario y Barrio Thompson. Por sus características paisajísticas se ha convertido en estos últimos años en un sector turístico por excelencia.\n2.DELIMITACIÓN.\nLímite Area de la Costa, Bravard y su prolongación ideal hasta Arroyo Las Viejas, Margen izquierdo Arroyo Las Viejas, Ambrosetti, Distrito U.R.3. (Avda. Ramírez).\n3.SUBDIVISIÓN DEL SUELO.\nToda subdivisión nueva deberá ajustarse a las siguientes dimensiones mínimas:\n* Frente: 10,00 m.\n* Area: 300,00 m2.\n4.TEJIDO URBANO.\na) Edificios entre medianeras y de perímetro semi-libre\nDeberán observar las siguientes magnitudes: altura máxima de 9,50 mts. y FOT: 0,60\nr = h = 5d > ó = 4 mts. d\nEdificios de Perímetro Libre\nDeberán observar las siguientes magnitudes: FOS: 0,60 y FOT: 1,8 En parcelas de dimensiones de frente mayor o igual a 20 mts. y de superficie mayor o igual a 600 m2 podrán adoptar las siguientes magnitudes:\nR= h = 2r= h = 5r = h = 1 d d d”\nPor sobre la cota de la parcela (+ 0,00) y hasta la cota (+ 3,00) se podrá ocupar el predio solamente con elementos estructurales, accesos y circulación (escaleras - ascensores) exigiendo una transparencia del 50 % del ancho de la parcela. Los espacios necesarios para cocheras o espacios guarda vehículos deberán ubicarse por debajo de la cota de la parcela. Para los casos particulares que surjan de la aplicación de lo antes enunciado, teniendo en cuenta la particular topografía que presenta esta zona, se deberá tender a lograr un volumen edificado erigido sobre una superficie liberada de construcciones y con predominio de verde, permitiendo incorporar solamente edificaciones para servicios tales como piscinas, accesos, etc., liberando las visuales laterales.\nb) Línea "
+    },
+    {
+      "articulo": 181,
+      "texto": "DISTRITO URBANO RESIDENCIAL UNO . (U. R. 1)..-\nSub distritos U.R.1.1. y U.R.1.2.\n1.CARÁCTER.\nSu ubicación inmediata al Parque Urquiza, y a la zona administrativa y comercial, lo convierten en un distrito residencial privilegiado. El arbolado de las calles y los centros de manzana, definen una particular homogeneidad morfológica. Este Distrito está compuesto por dos subdistritos: U.R.1.1. y U.R.1.2.\n2.DELIMITACIÓN.\nSubdistrito U.R.1.1.: límite Distrito U.R.E.1. (Mitre), Gral. José de San Martín, Gardel, Av. Rivadavia,\nSubdistrito U.R.1.2.: Distrito U.R.E.1. (Moreno), Salta, Distrito U.C.C. (Colón), Distrito U.R.1.1. (Gral. José de San Martín),\n3.SUBDIVISIÓN DEL SUELO.\nToda subdivisión nueva deberá ajustarse a las siguientes dimensiones mínimas:\n* Frente: 10,00 m.\n* Area: 300,00 m2.\n4.TEJIDO URBANO.\nSe observarán las siguientes magnitudes para los subdistritos U.R.1.1. y U.R.1.2.:\na) Edificios entre medianeras:\nR = h = 3 r\" = h\" = 1 d d\"\nb) Edificios de perímetro libre:\nR = h = 4,5 r' = h' = 6 r\" = h\" = 1 d d' d\"\nc) Edificios de perímetro semi-libre: R = h = 4 r' = h' = 6 r\" = h\" = 1 d d' d\"\n5. USOS.\nSe autorizan los establecidos en el Anexo III de este Código: para cada subdistrito."
+    },
+    {
+      "articulo": 182,
+      "texto": "DISTRITO URBANO RESIDENCIAL TRES (U.R.3.)..-\n1.CARÁCTER.\nEste sector de la ciudad se caracteriza por el uso residencial por excelencia y está casi por completo consolidado. Cuenta con todos los servicios de infraestructura, el equipamiento es acorde a las necesidades de la población, posee pavimento en todas sus calles, etc..\n2.DELIMITACIÓN.\nLos Vascos -Parque Urquiza, límite Distrito U.R.1. (Avda. Rivadavia), límite Distrito U.C.C. (Córdoba, Libertad, Paraguay y E. Carbó), Avenida Ramírez, límite Distritos U.C.C. (Alem, Echagüe, 25 de Mayo, Belgrano, Salta), U.R.1. (Salta) y Güemes, Laurencena, Bolívar, Martín Leiva, hasta Bravard, Avda. Ramírez desde Bravard, Distrito U.R.E.2. (Ambrosetti), Soler, Avda. Almafuerte, Distrito U.R.7.1. (J. Garrigó), Provincias Unidas, El Paracao, Vías del Ferrocarril hasta la prolongación ideal de Pascual\nPalma, Boulevard Racedo, Ituzaingó, margen derecha Arroyo Antoñico, Florencio Sánchez, Diamante, Perú, Gran Chaco, España, Boulevard Sarmiento, Línea de Barrancas, Sarmiento, Panamá, Osinalde.-\n3.SUBDIVISIÓN DEL SUELO.\nToda subdivisión nueva deberá ajustarse a las siguientes dimensiones mínimas:\n* Frente: 10,00 m.\n* Area: 300 m2.\n4.TEJIDO URBANO\nSe observarán las siguientes magnitudes:\na) Edificios entre medianeras:\nR = h = 2,4 r\" = h\" = 1 d d\"\nb) Edificios de perímetro libre:\nR = h = 3,5 r' = h' = 6 r\" = h\" = 1 d d' d\"\nc) Edificios de perímetro semi-libre:\nR = h = 3 r' = h' = 6 r\" = h\" = 1 d d' d\"\nEn el sector de este Distrito delimitado por las calles Belgrano (desde E. Carbó), Bvard. Racedo, Ituzaingó, Libertad, Montevideo, Concordia, S. del Estero, Distrito U.R1. (Rivadavia), Distrito U.C.C.(Córdoba, Libertad, Paraguay y E. Carbó), corresponderá aplicar FACHADA OBLIGATORIA SOBRE LÍNEA DE EDIFICACIÓN, y RETIRO DE L.E. SOBRE FACHADA OBLIGATORIA: A = 4,00 m..\n5. USOS.\nSe autorizan los establecidos en el Anexo III de este Código para este Distrito.-"
+    },
+    {
+      "articulo": 183,
+      "texto": "DISTRITO URBANO RESIDENCIAL 5 (U.R.5.).-\n1.CARÁCTER.\nEs este un sector de la ciudad donde se localizan barrios con fuerte presencia dentro de la misma, tales como: San Agustín, Anacleto Medina, Belgrano, Ejército, etc., y donde el accionar del Instituto de la Vivienda y la Municipalidad se ha concentrado en los últimos años: Barrios Paraná XIII, Paraná XVI y\nXVII, Gaucho Rivero, Giachino y Antártida Argentina entre otros.\n2.DELIMITACIÓN.\nEl Paracao, Gral. Espejo, Gral. Alvarado, Eva Perón, Virrey Vértiz, límite Distrito C.I.1 (Barranca de los Anegadizos), límite Distrito U.R.8 (Ameghino, Rca. de Siria, Los Chingolos y Vías del Ferrocarril), Ameghino, margen izquierda Arroyo Antoñico, y límite Distrito U.R.3 (Vías del Ferrocarril)\n3.SUBDIVISIÓN DEL SUELO.\nToda subdivisión nueva deberá ajustarse a las siguientes dimensiones mínimas:\n* Frente: 10,00 m.\n* Area: 300,00 m2.\nSe admitirá la subdivisión de lotes internos, de acuerdo a lo establecido en el Art. 116°, Cap. 5-Sección II, siempre que el predio cuente con servicio cloacal y además que descontando el ancho del pasillo, el frente de la parcela resultante sea igual o mayor que 10,00m y que los lotes cumplan con las dimensiones mínimas establecidas para el Distrito. La edificación en los lotes internos no podrá sobrepasar los 7,50 m. de altura y un F.O.S. máximo del 60%.-\n4 .TEJIDO URBANO\nSe observarán las siguientes magnitudes:\na) Edificios entre medianeras:\nR = h = 1,5 r\" = h\" = 1 d d\" b) Edificios de perímetro libre:\nR = h = 2,5 r’ = h’ = 5 r” = h” =1 d d’ d’’\nc) Edificios de perímetro semi-libre:\nR = h = 2,5 r' = h' = 5 r\" = h\" = 1 d d' d\"\n5.USOS\nSe autorizan los establecidos en el Anexo III de este Código para este Distrito.-"
+    },
+    {
+      "articulo": 184,
+      "texto": "DISTRITO URBANO RESIDENCIAL 6 (U.R.6).\n1.CARÁCTER.\nSector vacante, privilegiado dentro de la ciudad por su ubicación y su topografía, la ejecución del Nuevo Parque marca para todo el sector el punto de partida para revertir el uso y la forma de ocupación que hoy tiene. Gran oportunidad de incorporar toda esa tierra vacante a la planta urbana con un uso residencial exclusivo.\n2.DELIMITACIÓN.\nLímite Area de la Costa, Av. Estrada, calle 1395, de la Lastra y Gordillo, Margen izquierda del Aº Antoñico, límite Distrito U.R.8 (Av. Larramendi) Croacia.-\n3.SUBDIVISIÓN DEL SUELO.\nToda subdivisión nueva deberá ajustarse a las siguientes dimensiones mínimas:\n* Frente: 10,00 m.\n* Area: 300,00 m2.\n4.TEJIDO URBANO.\nSe observarán las siguientes magnitudes:\nEDIFICIOS ENTRE MEDIANERAS Y DE PERÍMETRO SEMI LIBRE\ndeberán observar las siguientes magnitudes: altura máxima de 9,50 m. y F.O.S. 0,60.-\nEDIFICIOS DE PERÍMETRO LIBRE\nDeberán observar las siguientes magnitudes: F.O.S. 0,60 y F.O.T. 1,8 en parcelas de dimensiones de frente mayor o igual a 20 m. y de superficie mayor o igual a 600 m2 podrán adoptar las siguientes magnitudes:\nR = h = 2 r' = h' = 5 r\" = h\" = 1 d d' d\"\nPor sobre la cota de la parcela (+ 0.00 ) y hasta la cota (+ 3.00 ) se podrá ocupar el predio solamente con elementos estructurales, accesos y circulación (escaleras - ascensores) exigiendo una transparencia del 50% del ancho de la parcela.-Los espacios necesarios para cocheras o espacios guarda vehículos deberán ubicarse por debajo de la cota de la parcela.-\nc) Línea de Edificación: Se deberá contemplar al frente un espacio para jardín de 4,00m (cuatro metros). La edificación en su fachada de frente podrá materializarse en forma total o parcial sobre la Línea de Edificación.-\n5.-USOS.\nSe autorizarán los establecidos en el Anexo III de este Código para este Distrito.-"
+    },
+    {
+      "articulo": 185,
+      "texto": "DISTRITO URBANO RESIDENCIAL 7 (U.R.7)\n1.CARÁCTER.\nEste sector Sur y Este de la ciudad ha quedado incorporado al área servida por los colectores cloacales. Al igual que el Distrito U.R.5., cuenta con la presencia de barrios de viviendas, con la diferencia que la obra del colector ya lo habilita para usos urbanos de allí la incorporación del área complementaria de ensanche urbano a este distrito.\n2.DELIMITACIÓN.\nGob. Crespo, Avda. Almafuerte, Gob. Mihura, Hernandarias, Gobernador Parera, Vías del Ferrocarril, Gral. Artigas, J. Newbery, J. Báez, Gral. Espejo,Distrito U.R.9 (Sarobe), Selvas de Montiel, límite Distrito U.R.5. (Virrey Vértiz, Eva Perón, Gral. Alvarado. Gral. Espejo, El Paracao), límite Distrito U.R.3 (Provincias Unidas), Juan Garrigó, Distrito U.R.3 (Avda. Almafuerte, F. Soler), Distrito U.R.E.2. (Ambrosetti, Sud-América), Distrito C.T. (Dr. R. Uranga, Avda. de Circunvalación “J. Hernández”.-\n3.SUBDIVISIÓN DEL SUELO.\nToda subdivisión nueva deberá ajustarse a las siguientes dimensiones mínimas:\n* Frente: 10,00 m.\n* Area: 300,00 m2.\nSe admitirá la subdivisión de lotes internos, de acuerdo a lo establecido en el Art. 116°, Cap. 5-Sección II, siempre que el predio cuente con servicio cloacal y además que descontando el ancho del pasillo, el frente de la parcela resultante sea igual o mayor que 10,00m y que los lotes cumplan con las dimensiones mínimas establecidas para el Distrito. La edificación en los lotes internos no podrá sobrepasar los 7,50 m. de altura y un F.O.S. máximo del 60%.-\n4.TEJIDO URBANO.\nSe observarán las siguientes magnitudes:\na) Edificios entre medianeras:\nR = h = 1,5 r\" = h\" = 1 d d\"\nb) Edificios de perímetro libre:\nR = h = 2,5 r' = h' = 5 r\" = h\" = 1 d d' d\"\nc) Edificios de perímetro semi-libre:\nR = h = 2 r' = h' = 5 r\" = h\" = 1 d d' d\"\n5. USOS.\nSe autorizan os establecidos en el Anexo III de este Código para este Distrito.-"
+    },
+    {
+      "articulo": 186,
+      "texto": "DISTRITO URBANO RESIDENCIAL 8 (U.R.8.).\n1.CARÁCTER.\nComprende básicamente el sector de la ciudad denominado Bajada Grande, así como toda la franja frentista a Avda. Larramendi. Aquí se intenta aprovechar al máximo el potencial paisajístico que brinda el sector, tratando de preservar las visuales hacia el río y definiendo pautas morfológicas que caracterizan un sector privilegiado, que por otro lado encierran el amplio sector compuesto por de los terrenos de la Fábrica de Cemento Portland y del Nuevo Parque, con grandes posibilidades de urbanización inmediata. También forma parte de este Distrito el Área de Protección Patrimonial Puerto Viejo.\n2.DELIMITACIÓN.\nLímite Área de la Costa, Av. Larramendi, Av. Estrada, Límite Distrito U.R.6, Croacia, Av. Larramendi, Margen izquierda Aº Antoñico, Av. Estrada, Los Vascos, Limite U.R.3(Osinalde, Panamá, Bv. Sarmiento, línea de barrancas, Bv. Sarmiento, España, Ameghino) Vías del Ferrocarril, Los Chingolos, Rca. De Siria, Ameghino, límite Área de la Costa, barranca de los anegadizos, Procesión Náutica, Av. Larramendi.-\n3.SUBDIVISIÓN DEL SUELO.\nToda subdivisión nueva deberá ajustarse a las siguientes dimensiones mínimas:\n* Frente: 10,00 m.\n* Area: 300,00 m2.\n4.TEJIDO URBANO.\nSe observarán las siguientes magnitudes:\na) Edificios entre medianeras:\nR = h = 1 r\" = h\" = 0,5 d d\"\nb) Edificios de perímetro libre:\nR = h = 1,5 r' = h' = 4 r\" = h\" = 0,5 d d' d\"\nc) Edificios de perímetro semi-libre:\nR = h = 1,2 r' = h' = 4 r\" = h\" = 0,5 d d' d\"\n5.USOS.\nSe autorizan los establecidos en el Anexo III de este Código para este Distrito."
+    },
+    {
+      "articulo": 187,
+      "texto": "DISTRITO URBANO RESIDENCIAL 9 (U.R.9.).\n1.CARÁCTER.\nEste es un sector amplio de la ciudad donde se localiza una gran cantidad de barrios FO.NA.VI. cuya implantación implicó la extensión indiscriminada de la ciudad quedando intersticios vacantes.\n2.DELIMITACIÓN.\nDistrito U.R.5. (Virrey Vértiz), Distrito U.R.7. (Selva de Montiel), Gral. Sarobe, Distrito U.R.7. (Gral. Espejo, J. Báez, J. Newbery, Artigas, Vías del F.C.G.U., Gob. F. Parera, Hernandarias, Gob. López Jordán, Avda. Almafuerte, Gob. M. Crespo),Distrito U.R.T.(Av. De Circunvalación J. Hernandez), Distrito C.E.U. (Avda. de Circunvalación José Hernández), Hernandarias, S. Caputto, Distrito C.E.U. (Larralde, Calle N°832), Avda. Ejército, Distrito C.E.U. (P. Crausaz), Área de la Costa (línea de barrancas de los Anegadizos).-\n3.SUBDIVISIÓN DEL SUELO.\nToda subdivisión nueva deberá ajustarse a las siguientes dimensiones mínimas:\n* Frente: 10,00 m.\n* Area: 300,00 m2.\n4.TEJIDO URBANO.\nSe observarán las siguientes magnitudes:\na) Edificios entre medianeras:\nR = h = 1 r\" = h\" = 0,5 d d\"\nb) Edificios de perímetro libre:\nR = h = 1,5 r' = h' = 4 r\" = h\" = 0,5 d d' d\"\nc) Edificios de perímetro semi-libre:\nR = h = 1,2 r' = h' = 3 r\" = h\" = 0,5 d d' d\"\n5.USOS.\nSe autorizan los establecidos en el Anexo III de este Código para este Distrito."
+    },
+    {
+      "articulo": 188,
+      "texto": "DISTRITO URBANO U.R.T.\n1.CARÁCTER.\nEl uso predominante en los sectores hoy urbanizados es residencial transitorio y permanente, con una implantación privilegiada para un destino turístico.\n2.DELIMITACIÓN.\nDistrito de la Costa, Gob. López Jordán, Ing.Agr. J. Jozami, Area Extra Urbana Rural (Mons. Bazán y Bustos), Don Bosco, Avda. de Circunvalación José Hernández, Intercambiador de tránsito Raúl Uranga, Distrito U.R.7(Sud América), Distrito U.R.E.2(Margen derecha Aº Las Viejas), Margen derecha A° Las Viejas, Área de la Costa.-\n3.SUBDIVISIÓN DEL SUELO.\nToda subdivisión nueva deberá ajustarse a las siguientes dimensiones mínimas:\n* Frente: 15,00 m.\n* Area: 450,00 m2.\n4.TEJIDO URBANO.\nSe observarán las siguientes magnitudes:\nF.O.S. : 0,4\nDensidad de viviendas: 45 viv./Ha.\nAltura máxima de edificación: 9,50 m.\nLínea de Edificación: La edificación en su fachada deberá retirarse a una distancia igual o mayor de 4 m. de la L.M..\n5.USOS.\nLos establecidos en el Anexo III de este Código para este Distrito.-"
+    },
+    {
+      "articulo": 189,
+      "texto": "AREA DE LA COSTA.-\n1.-CARÁCTER.\nEsta Área se identifica como integrante del Borde Costero del río y la intervención en él exige la realización de estudios particularizados para el desarrollo de los distintos sectores que la componen y para la implantación de usos. Para el Área Costera se prevé la idea futura de desarrollar una circulación que conecte todo el borde integrándolo y otorgándole continuidad a su estructura.\n2. DELIMITACIÓN.\nEl área comprendida desde el Arroyo Los Berros (zona de anegadizos) hasta los títulos frentistas al Río Paraná, la intersección de Avda. Larramendi, con Avda. Estrada, límite del distrito U.R.6, Laurencena, Límite distrito U.R.E.1, Avda. Laurencena, Simón Bolívar, límite de U.R.3, límite de U.R.E.2, cauce del Arroyo Las Viejas, hasta prolongación ideal de Echeverría, hasta Ayacucho; prolongación de Ayacucho hasta el Río Paraná, títulos frentistas y linderos al Borde Costero, entre Ayacucho y Avda. López Jordán, calle 736, calle 779, calle 734, calle 865 y calle 732 hasta el Arroyo las Tunas, Río Paraná hasta Puerto Bajada Grande.\n3.SUBDIVISIÓN DEL SUELO – TEJIDO URBANO – USOS.\nLas nuevas subdivisiones, construcciones e implantación de nuevos usos serán considerados por la Comisión Asesora del Código Urbano, previamente a la resolución del Departamento Ejecutivo Municipal.-Retiro de 35 metros (treinta y cinco) : En el caso de que una parcela a edificar sea colindante al Río Paraná, deberá retirarse 35 m., medidos de la línea de ribera y/o desde donde determinen los organismos técnicos competentes, dentro del cual se prohibe realizar cualquier tipo de construcción.-A partir de la promulgación del presente código deberán comenzarse los estudios para clasificar los diferentes tramos de este distrito de acuerdo con sus particularidades."
+    },
+    {
+      "articulo": 190,
+      "texto": "DISTRITO COMPLEMENTARIO TURISTICO 2 (C.T.2)\n1.CARÁCTER.\nEste es un sector de la ciudad que se ha abierto al uso público mediante\nel llamado \"Camino Costero\", con la intención de brindar nuevos sectores de esparcimiento por parte de los habitantes de la ciudad y turistas, con el que en un futuro se prevé lograr la conexión vehicular con Villa Urquiza.\n2. DELIMITACIÓN.\nÁrea de la Costa (límite Sur de las parcelas frentistas al Río Paraná), A° Las Tunas, Area Extra Urbana Rural (E.U.R.) (Calles 736, 861, 738, 767, 740), Distrito U.R.T. (Calle 740, Gob. López Jordán).-\n3. SUBDIVISIÓN DEL SUELO.\nToda subdivisión nueva deberá ajustarse a las siguientes dimensiones mínimas:\nFrente: 50 m.\nArea: 2.500 m2.\nNo se permitirá el desglose parcial de títulos sin la previa aprobación de un anteproyecto del total del predio. Los organismos técnicos exigirán las calles y espacios verdes correspondientes.-De las obras de infraestructura: solo se exigirá el abovedado, desagües y afirmado de calles, asegurando la transitabilidad permanente de las vías de acceso al inmueble a urbanizar y de las calles internas, de acuerdo a los requerimientos exigidos por la Dirección de Obras Viales.-\n4.TEJIDO URBANO.\nF.O.S. = 0,30\nAltura máxima de edificación: 9,50 m.\nRetiro de línea de edificación, de frente, laterales y fondo mayor o igual a 5 m..\n5.USOS.\nSe autorizan los establecidos en el Anexo III de este Código para este Distrito.-\nLa Municipalidad no está obligada a prestar servicios en las nuevas urbanizaciones de este Distrito-"
+    },
+    {
+      "articulo": 191,
+      "texto": "DISTRITO COMPLEMENTARIO TURISTICO 3 (C.T.3)\n1. CARÁCTER.\nAl ser esta un área ubicada sobre el Borde de los Anegadizos, con muy buenas visuales hacia los mismos y dotada de la mayoría de los servicios de infraestructura y equipamiento, se considera apta para la localización de Clubes de Campo y demás obras relacionadas con el esparcimiento, la recreación y casas quintas.-\n2. DELIMITACIÓN.\nPablo Crausaz, Distrito C.E.U. (Selva de Montiel), Distrito E.U.R. (Selva de Montiel hasta el A° Los Berros), margen derecha A° Los Berros, Área de la Costa (límite Este de las parcelas frentistas al Río Paraná-Paracao, desde el A° Los Berros hasta Calle 716 Pablo Crausaz).-\n3. SUBDIVISIÓN DEL SUELO.\nToda subdivisión nueva deberá ajustarse a las siguientes dimensiones mínimas:\nFrente: 50 m.\nArea: 2.500 m2.\nNo se permitirá el desglose parcial de títulos sin la previa aprobación de un proyecto del total del predio. Los organismos técnicos exigirán las calles correspondientes.-De las obras de infraestructura: solo se exigirá el abovedado, desagües y afirmado de calles, asegurando la transitabilidad permanente de las vías de acceso al inmueble a urbanizar y de las calles internas, de acuerdo a los requerimientos exigidos por la Dirección de Obras Viales.-\n4.TEJIDO URBANO.\nF.O.S. = 0,30\nAltura máxima de edificación: 9,50 m.\nRetiro de línea de edificación, de frente, laterales y fondo mayor o igual a 5 m..\n5.USOS.\nSe autorizan los establecidos en el Anexo III de este Código para este Distrito.-\nLa Municipalidad no está obligada a prestar servicios en las nuevas urbanizaciones de este Distrito-\n\"ARTÍCULO 192º.- DISTRITO COMPLEMENTARIO DE ENSANCHE URBANO (C.E.U.)\".\nl . CARÁCTER:\nEste distrito tiene el carácter de zona de reserva para fUtUras ampliaciones del área urbana, incorporándose a él urbanizaciones anteriores a la delimitación territorial, diseminadas en el Área Rural.\n2. DELIMITACIÓN:\nAl sur del área urbana: desde calle Gral. Artigas y arroyo Los Berros por Gral. Artigas, calle Lisandro de la Torre, Distrito EUR (División de los Andes, Juan B Justo, Gral. Alberto Nasta, Moises Lebensohn, Padre Pascual Uva), Selva de Montiel, Pablo Crausaz, Distrito UR 9 (Av. Ejército), Sub Mayor Antonio Mendez, Crisologo Larralde, Zanni, Crisologo Larralde, Salvador Caputto, Lisandro de la Torre, Distrito E.U.O.U (Distrito Militar 2da Brigada Aérea), calle 826, Arroyo Los Berros Hasta calle Artigas.\nAl este del área urbana: Distrito URT (Don Bosco), Gob. Abel Bazán y Bustos, Distrito E.U.R. (Acceso Norte República de Entre Ríos, Juan Marath)r Av. José Lino Churruarin, Distrito E.U.R (Cabo 1ro. Vicente Tomowski), Av. Almafuerte, Distrito E.U.E. (Antonio Salellas), Distrito E.U.P.I. (Limite Norte de las fracciones de terreno, propiedad de DNV que fueran destinadas a la construcción de la Ruta 18 - Tramo Paraná — empalme Ruta Nac 126, al norte de calle Hernandarias (desde Antonio Salellas hasta Antonio Bonell), Distrito E.U.R. (Ruta Nacional N O 12), J. Newbery, Ubach y Roca, calle 810, calle 849, calle 812 y calle Juan B. Mihura hasta el arroyo Las Tunas, J. Newberyr Ubach y Roca, calle 814, A. Salellas, J. Newbery, Distrito U.R. 9 (S. Caputto, Hernandarias), Av. de Circunvalación J. Hernández. En Concesión N O 268: las manzanas l , 2, 3 y 4.\n3. SUBDIVISIÓN DEL SUELO:\nToda subdivisión nueva deberá ajustarse a las siguientes dimensiones mínimas:a.\n- Frente: 20.00 m.\n- Área: 600.00 m2.\nb. En el caso de contar con servicio de agua y electricidad la autoridad competente podrá autorizar lotes al 50% (10 mtrs. de frente y 300 m2 de superficie).\n4. TEJIDO U RBANO:\nEn este Distrito se permite una altura máxima de 7,50 (siete con cincuenta) metros.\nDensidad de viviendas - 45 viv./Ha.\nLos conjuntos de viviendas serán tratados por la Comisión Asesora, previa resolución del D.E.M.\n5. USOS:\nSe autorizan los establecidos en el Anexo III de este Código para este Distrito.\nARTICULO 2º.- COMUNIQUESE.\n(MODIFICADO POR ORDENANZA Nº 10187)\nTITULO II. DE LOS SECTORES ESPECIALES."
+    },
+    {
+      "articulo": 193,
+      "texto": "DISTRITOS OTROS USOS (O.U.)..-\n1.CARÁCTER.\nSon aquellos sectores que en la actualidad tienen un destino específico, con posibilidades de contemplar su reubicación en el futuro, oportunidad en que requerirán el dictado de normativas particulares.-\n2.DELIMITACIÓN.\nU.O.U. (Urbano Otros Usos): Cementerio Municipal, Cementerio Israelita, Estación Ferrocarril General Urquiza, Hipódromo, Unidad Penitenciaria.-\nE.U.O.U. (Extra Urbana Otros Usos): Base Aérea, Vivero Municipal.-\n3.SUBDIVISIONES, TEJIDO URBANO Y USOS:\nLas nuevas subdivisiones, construcciones e implementación de nuevos usos, serán considerados por la Comisión Asesora del Código Urbano, previamente a la resolución del D.E.M..-"
+    },
+    {
+      "articulo": 194,
+      "texto": "DISTRITO EXTRA URBANO RURAL (E.U.R.).\n1.CARÁCTER.\nDefinida por el límite externo de las Areas Complementaria y Urbana y los límites de ejido. Es un área sumamente extensa, existiendo algunas quintas y granjas, ladrillerías y canteras.-\n2. DELIMITACIÓN:\nSector Sur: Límite Distrito C.T.3 Selva de Montiel, Padre. P. Uva, División de los Andes, Distrito C.E.U. (Calle 824, Calle 497 hasta A° Los Berros), A° Los Berros.-Sector Sureste: Límite Distrito C.E.U. R. Balbín, Av. Zanni, R. Balbin, Distrito C.E.U. (S. Caputto), Distrito U.R.9. (S. Caputto), Distrito C.E.U. (J. Newbery, Calle 823, Calle 814, Calle 839, J. Newbery), A° Las Tunas, Límite ejido, Calle 826, Vías del F.C.G.U.-Sector Este: Calle 740, Calle 767, Calle 738, Calle 861, Calle 736, A° Las Tunas, Avda. Almafuerte, Del Recado, Del Facón, Gob. Maya, Distrito C.E.U. (Avda. Almafuerte), Vías del F.C.G.U., Distrito C.E.U. (Los Gladiolos, Los Junquillos, Las Orquídeas, Avda. Almafuerte), Límite Distrito C.E.U. Gob. Bazán y Bustos, Límite Distrito U.R.T. Gob. Bazán y Bustos, Gob. Bazán y Bustos.-\n3.SUBDIVISIÓN:\nToda subdivisión nueva deberá ajustarse a las siguientes dimensiones mínimas:\nLote mínimo:\n* Frente: 100,00 m\n* Area: 10.000 m2.\n4. TEJIDO URBANO.\nSe observarán las siguientes magnitudes:\nAltura máxima: 9,50 m.\n5.USOS.\nLos usos permitidos en este Distrito se indican en el Anexo III de este Código."
+    },
+    {
+      "articulo": 195,
+      "texto": "DISTRITO EXTRA URBANO EQUIPAMIENTO (E.U.E.).\n1. CARÁCTER.\nEstos sectores colindantes al Parque Industrial “Gral. Belgrano” tienen una vinculación directa con el mismo, permitiéndose el desarrollo de actividades complementarias o compatibles con el uso industrial.-\n2. DELIMITACIÓN:\nSector Sur: Límite Distrito E.U.P.I. (J. Robinson), A° Las Tunas, Límite Distrito C.E.U. (Calle 857, Calle 812, Calle 849, Calle 810, Ubach y Roca), J. Newbery, Ruta Nac. N°12.-\nSector Norte: Límite Distrito C.E.U. (Avda. Almafuerte), Límite Distrito E.U.R. (Av. Almafuerte), Límite Distrito C.E.U. (Ubach y Roca, calle 788, calle 857), Límite Distrito E.U.R. (Av. Almafuerte), A° Las Tunas, Distrito E.U.P.I (Límite Norte de las fracciones de terreno, propiedad de DNV que fueran destinados a la construcción de la Ruta 18 –tramo Paraná- empalme Ruta Nacional 126, al Norte de calle Hernandarias, (desde Antonio Bonell hasta Arroyo Las Tunas). A. Salellas.-\n3. SUBDIVISIÓN:\nToda subdivisión nueva deberá ajustarse a las siguientes dimensiones mínimas:\nLote mínimo:\n* Frente: 50,00 m\n* Area: 2.500 m2.\n4. TEJIDO URBANO.\nSe observarán las siguientes magnitudes:\nAltura máxima: 9,50 m.\n5. USOS.\nLos usos permitidos en este Distrito se indican en el Anexo III de este Código.\n(Texto según Ordenanza Nº 10117)"
+    },
+    {
+      "articulo": 196,
+      "texto": "DISTRITO EXTRA URBANO PARQUE INDUSTRIAL (E.U.P.I.).\n1. CARÁCTER.\nEste sector de la ciudad está destinado a la radicación de industrias desde la década del ’70, siendo conveniente propiciar su mantenimiento y desarrollo ocupando algunos sectores vacantes.-\n2. DELIMITACIÓN:\nLímite Norte de las fracciones de terreno, propiedad de DNV que fueran destinados a la construcción de la Ruta 18 –tramo Paraná- empalme Ruta Nacional 126, al Norte de calle Hernandarias (desde Antonio Bonell hasta Arroyo Las Tunas), Arroyo Las Tunas, Distrito E.U.E (J Robinson) límite Distrito C.E.U (Ruta Nacional Nº 12, A. Bonell).\n3. SUBDIVISIÓN:\nToda subdivisión nueva deberá ajustarse a las siguientes dimensiones mínimas:\nLote mínimo:\n* Frente: 25,00 m\n* Area: 1.250 m2.\n4. TEJIDO URBANO.\nSe observarán las siguientes magnitudes:\nF.O.S. = Mayor o igual al 25% y menor o igual al 40%.-\nRetiro de línea de edificación de 5 m. de frente, fondo y ejes laterales.-\nSe deberá cumplimentar con las disposiciones establecidas por el Decreto Nº 254/78.-\n5. USOS.\nUsos industriales autorizados por el D.E.M.\n(Texto según Ordenanza Nº 10117)\nSECCION VI. TRAMITE."
+    },
+    {
+      "articulo": 197,
+      "texto": "El trámite referido a las materias comprendidas en el presente Código se regirá por las disposiciones comprendidas en esta Sección.-Para toda cuestión no expresamente prevista regirá en forma supletoria la Ordenanza de Trámite Administrativo Nº8.256.\nTITULO 1. DE LAS SUBDIVISIONES Y URBANIZACIONES.\nCAPITULO 1. DE LAS SUBDIVISIONES EN GENERAL."
+    },
+    {
+      "articulo": 198,
+      "texto": "Toda urbanización requiere aprobación municipal con el objeto de verificar si se ajusta a lo dispuesto en el presente Código. Si se trata de Loteos o Fraccionamientos en urbanizaciones existentes sólo se requerirá la visación de los planos de mensura de la oficina técnica correspondiente."
+    },
+    {
+      "articulo": 199,
+      "texto": "Cuando se trate de urbanizaciones, el trámite a realizar constará de tres etapas:\na) FACTIBILIDAD,\nb) APROBACIÓN y\nc) HABILITACION.-"
+    },
+    {
+      "articulo": 200,
+      "texto": "FACTIBILIDAD: Para solicitar la factibilidad se presentará ante Mesa General de Entradas una carpeta conteniendo:\n- Solicitud de declaración de factibilidad del anteproyecto de subdivisión del predio, acreditando la propiedad del bien a subdividir.\n- Plano de ubicación del terreno en escala 1:10.000, en donde se indicará el amanzanamiento e infraestructura real existente hasta cinco (5) cuadras a partir de su perímetro y en todo el entorno relacionado con el anteproyecto con mención del distrito de zonificación que corresponda.\n- Anteproyecto de amanzanamiento, loteo, infraestructura, localización del espacio de reserva municipal y forestación en escala conveniente.\n- Planos con cota de nivel del terreno, las correspondientes curvas de nivel con una equidistancia a determinar en cada caso, el que deberá relacionarse a desagües próximos existentes y por lo menos a dos puntos de la calle más cercana.\n- Memoria descriptiva del proyecto, la que incluirá certificaciones de los entes prestadores de los Servicios de Agua, Cloaca y Energía Eléctrica, sobre la posibilidad de dotación de los mismos; y, si el terreno bordea o comprende algún elemento del sistema fluvial-lacustre, certificación de la Dirección de Obras Viales e Hidráulica Municipal de no inundabilidad. En el caso de terrenos con pendientes pronunciadas, sobre laderas de barrancas u accidentes topográficos muy pronunciados, las oficinas\ntécnicas correspondientes podrán exigir la presentación de estudios específicos de estabilidad del suelo firmado por un profesional competente.\nLas oficinas técnicas competentes tendrán un plazo de treinta (30) días hábiles para efectuar las observaciones del caso."
+    },
+    {
+      "articulo": 201,
+      "texto": "Las reparticiones técnicas Municipales competentes podrán solicitar las aclaraciones y/o informes complementarios necesarios a los fines del mejor entendimiento y, si es del caso, los ajustes que deban realizarse tanto en orden de superficies, como de diseño de urbanización, ubicación del espacio para reserva y distribución de servicios."
+    },
+    {
+      "articulo": 202,
+      "texto": "Producidos los informes a que hace referencia el art. 200º y 201º, en su caso, el Departamento Ejecutivo en base a las recomendaciones de las oficinas técnicas competentes, se expedirá sobre la factibilidad del proyecto, cuando se ajusten a este Código y a las condiciones complementarias y reglamentarias del mismo.-"
+    },
+    {
+      "articulo": 203,
+      "texto": "La Resolución que otorgue Factibilidad deberá contener además de ello:\n- El plazo para la presentación de los proyectos definitivos de las obras de infraestructura y de forestación, el cual no podrá ser superior a 3 (tres) meses.\n- El plazo para la ejecución de las obras proyectadas a que se refiere el apartado anterior, el cual no debe ser mayor de 1 (uno) año a partir de la fecha aprobación de los mismos por los organismos competentes.\n- El apercibimiento de que dicha Resolución caducará automáticamente si no se cumplimentan en plazo las obligaciones de los apartados anteriores, que son a cargo exclusivo del propietario solicitante."
+    },
+    {
+      "articulo": 204,
+      "texto": "El Departamento Ejecutivo declarará no factible el proyecto cuando se presente alguna de las siguientes causas:\na- Se efectúe en zonas en las que no exista capacidad para absorber ampliaciones del servicio de agua corriente por parte del ente prestador y la realización de las obras necesarias no sean asumidas por el propietario.\nb- La zona donde esté ubicado el inmueble a fraccionar se considere no apta para la construcción de viviendas y/o insalubre para el asentamiento permanente del hombre.\nc- Cuando medie Interés Público que torne inconveniente la aprobación de una urbanización en la zona lo que deberá fundamentarlo. Dicha declaración deberá ratificarse por Ordenanza, dándose intervención al interesado.\nd- No se ajuste a lo preceptuado en las disposiciones del presente Código."
+    },
+    {
+      "articulo": 205,
+      "texto": "APROBACIÓN: Emitida la resolución de factibilidad, aprobados los proyectos definitivos\nde las obras de infraestructura y forestación, y ejecutada la obra de trama vial se está en condiciones de presentar la solicitud de Aprobación de la urbanización, incluyendo la siguiente documentación:\na) Certificado de libre deuda del terreno por tributos municipales.\nb) Acta por duplicado de cesión gratuita de tierras destinadas a calles, ochavas y reserva que corresponda, firmada por los propietarios y sus cónyuges, y certificada ante Escribano Público.\nc) Plano de Proyecto de urbanización y loteo georeferenciado y ajustado a la factibilidad otorgada que estará firmado por el propietario y por el profesional habilitado, y además visado por el Colegio Profesional Correspondiente.\nd) Los proyectos de agua corriente, energía eléctrica, alumbrado público, desagües y obras de arte, aprobados por los organismos competentes, deberán estar georeferenciados, a la red geodésica básica de la Provincia de Entre ríos.-\ne) Texto derogado por Decreto N° 1714/2010.-"
+    },
+    {
+      "articulo": 206,
+      "texto": "Los Organismos Técnicos competentes de la Municipalidad controlarán el cumplimiento de las exigencias de este Código, la calidad técnica de toda la documentación presentada y, en su caso, el plan de ejecución de obras de infraestructura, visando el mismo de ser satisfactorio."
+    },
+    {
+      "articulo": 207,
+      "texto": "Cumplimentados los trámites descriptos, el Departamento Ejecutivo elevará al Honorable Concejo Deliberante, el Proyecto de Ordenanza Aprobatoria."
+    },
+    {
+      "articulo": 208,
+      "texto": "Una vez promulgada y notificada la Ordenanza Aprobatoria de la urbanización, el propietario presentará los planos de mensura definitivos de calles, ochavas, manzanas y espacios de reserva. Dentro de los sesenta (60) días de la notificación, efectuando el amojonamiento de los vértices de las manzanas y espacios libres."
+    },
+    {
+      "articulo": 209,
+      "texto": "Dentro de los noventa (90) días a contar desde la notificación de la Ordenanza Aprobatoria los interesados deberán realizar todos los trámites y actos necesarios para que se concrete la toma de posesión y el perfeccionamiento del título municipal sobre las tierras ofrecidas en donación."
+    },
+    {
+      "articulo": 210,
+      "texto": "Las reparticiones Municipales no visarán planos de mensura, ni acordarán Permisos de Uso ni de edificación o Línea Municipal, hasta tanto se haya promulgado la Ordenanza Aprobatoria de la urbanización, se haya otorgado la habilitación y se hubiera cumplido con las obligaciones posteriores a ésta a cargo del propietario (presentación de planos de mensura definitivos de espacios públicos, ochavas y manzanas, amojonamiento y toma de posesión efectiva de las tierras ofrecidas), o notificación fehaciente."
+    },
+    {
+      "articulo": 211,
+      "texto": "HABILITACION: Promulgada la Ordenanza aprobatoria de la urbanización, realizadas las obras de infraestructura correspondiente a la trama vial y agua corriente con sus respectivos finales de obra y cumplimentadas las exigencias establecidas en los art. Nº208, 209 y 210, se dictará la\nresolución de habilitación por parte del D.E.M., autorizando a visar planos de mensura permitiéndose la subdivisión en lotes de dimensiones no inferiores al doble de las medidas mínimas permitidas en el Distrito.-Efectuadas las obras de infraestructura correspondientes al alumbrado público, energía eléctrica domiciliaria, servicio de cloaca (si correspondiera) y arbolado y parquizado de la superficie libre donada, presentando los certificados finales de obra correspondiente, se dictará la resolución de habilitación por parte del D.E.M., autorizando la subdivisión en lotes de acuerdo a las dimensiones mínimas establecidas para cada Distrito. La habilitación podrá ser total o parcial.-\nCAPITULO 2. DE LAS URBANIZACIONES ESPECIALES.-"
+    },
+    {
+      "articulo": 212,
+      "texto": "Para iniciar el trámite de aprobación de Proyectos Urbanísticos Residenciales y/o Clubes de Campo se deberá previamente obtener el Permiso de Uso correspondiente. Para ello el propietario debe presentar ante el organismo de aplicación la solicitud en la que especificará:\n1. Nombre completo, apellido, número de documento del solicitante si es persona física o razón social y tipo societario si se tratará de una persona jurídica.\n2. Ubicación, superficie y medidas de la parcela.\nMemoria descriptiva del proyecto.\nLa Resolución respectiva será adoptada por el Organismo de aplicación. En caso de hacerse lugar se extenderá un Permiso de Uso, el que automáticamente perderá validez si dentro de los 6 (seis) meses de su otorgamiento no es utilizado para promover el trámite de Factibilidad del proyecto."
+    },
+    {
+      "articulo": 213,
+      "texto": "FACTIBILIDAD. El trámite para obtener la Factibilidad deberá iniciarse con una solicitud firmada por el propietario y un profesional habilitado con incumbencia, a la que se deberá acompañar la siguiente documentación:\n1. Permiso de Uso.\n2. Plano reproducible del inmueble a utilizar donde constará además de la ubicación, la relación con las calles, caminos, y vías públicas existentes, distancias a las que se encuentran los servicios de luz, agua corriente y calles pavimentadas. También se debe demarcar el Area de Uso Común, el Area de Uso Particular, los servicios y equipamientos existentes y proyectados.\n3. Una copia del título de propiedad debidamente autenticada.\n4. Memoria descriptiva del proyecto, con indicación precisa y detallada de las obras de uso común, infraestructura de servicios y de equipamiento proyectadas.\n5. Plano a escala conveniente, con cotas de nivel de terreno y las correspondientes curvas con una equidistancia a determinar en cada caso, la que se deberá relacionar a desagües próximos de conformidad con las instrucciones que determinen los organismos técnicos municipales.-\n6. Plano a nivel de Anteproyecto de los servicios y equipamiento a ejecutar y de parcelamiento de unidades residenciales previstas en el área de uso particular y de trazado de calles y vías de circulación interna."
+    },
+    {
+      "articulo": 214,
+      "texto": "Con la totalidad de la documentación requerida por el artículo anterior se formará un expediente en el cuál informarán los distintos organismos técnicos competentes de la Administración Municipal. Producidos los mismos el Departamento Ejecutivo deberá expedirse sobre la Factibilidad del proyecto sometido a su consideración. La Factibilidad se otorgará cuando el proyecto se ajuste a las normas de este Código y disposiciones complementarias y reglamentarias. En este caso la Resolución que se dicte deberá establecer lo siguiente:\n1. El plazo para la presentación de los proyectos definitivos de las obras de los servicios de alumbrado, agua potable, desagües cloacales, desagües pluviales, calles y obras de equipamientos de uso común, demarcación de áreas, parcelamiento de unidades residenciales y trazado de vías de circulación interna y de parquización y forestación. Estos proyectos deberán ajustarse y respetar los anteproyectos presentados con anterioridad, previsto en el Art. 213° y las reglamentaciones vigentes aplicables. El plazo no podrá ser superior a tres meses.\n2. El plazo para la ejecución de las obras proyectadas a que se refiere el inciso anterior no debe ser mayor de dos años desde la fecha de aprobación de los mismos por los organismos competentes municipales. Cuando la importancia de las obras lo justifique el Departamento Ejecutivo podrá autorizar la ejecución en etapas y plazos parciales o ampliar el plazo a cuatro años.\n3. El apercibimiento de que dicha Resolución caducará automáticamente si no se cumplimentan en término las obligaciones de los incisos anteriores que son a cargo exclusivo del solicitante."
+    },
+    {
+      "articulo": 215,
+      "texto": "APROBACION. Cumplido con lo dispuesto en el inc. 1 del art. anterior, las reparticiones técnicas competentes emitirán su opinión sobre cada uno de los proyectos. Si hubiere informe favorable de todas ellas el Departamento Ejecutivo dictará la Resolución Aprobatoria correspondiente. Si el proyecto contempla la donación de calles perimetrales y/o espacios de uso público, el Departamento Ejecutivo elevará al Honorable Concejo Deliberante el Proyecto de Ordenanza aceptando la misma como requisito previo a la habilitación.-"
+    },
+    {
+      "articulo": 216,
+      "texto": "HABILITACION. Cuando se finalicen las obras de infraestructura de servicios y equipamientos cuyo plazo de ejecución se fijó de conformidad con el inc. 2 del art. 214º, se deberá solicitar la habilitación del conjunto construido. En todos los casos se deberá acompañar los certificados finales de obras expedidos por los organismos de aplicación."
+    },
+    {
+      "articulo": 217,
+      "texto": "Podrá solicitarse la habilitación parcial cuando se haya proyectado la ejecución por etapas de las obras de infraestructura y equipamiento. En estos casos el Departamento Ejecutivo podrá autorizar una habilitación parcial en proporción a lo ejecutado."
+    },
+    {
+      "articulo": 218,
+      "texto": "Las Reparticiones de la Municipalidad no expedirán, salvo resolución fundada y expresa en contrario del Departamento Ejecutivo y siempre que se garantice la continuidad del destino como Proyecto Urbanístico residencial o Club de Campo y la ejecución de las obras de infraestructura de\nservicios y equipamiento, ni se visarán planos de mensura, ni se acordarán permisos de edificación, ni se aprobarán otros proyectos de edificación hasta tanto se haya habilitado el mismo. Cuando la habilitación sea parcial el Departamento Ejecutivo determinará el sector de unidades residenciales parceladas para la construcción de viviendas que queda habilitado."
+    },
+    {
+      "articulo": 219,
+      "texto": "El propietario o responsable del Proyecto Urbanístico residencial o Club de Campo según el caso, debe hacer constar en todos los instrumentos que formalice para la trasferencia de parcelas y/o para la utilización de las mismas por cualquier otra forma jurídica, que las mismas se ejecutaron o ejecutarán, formando parte de un Proyecto Urbanístico residencial ó Club de Campo según el régimen de éste código y asimismo detalladamente la forma y modo como se realizará la gestión, prestación y administración de los servicios exigidos para cada tipo de conjunto proyectado. Deberá aclarar expresamente que la Municipalidad no es responsable de la prestación de los mismos, sin perjuicio de las atribuciones emergentes del poder de policía y demás que le corresponden a la misma como gobierno local.\nEn los casos en que el Departamento Ejecutivo ejercite la facultad de excepción conferida por el artículo anterior se dejará constancia en el certificado o en el plano correspondiente de las obras que falten terminar y además, que la Municipalidad no asume ningún compromiso en relación a la terminación de las mismas."
+    },
+    {
+      "articulo": 220,
+      "texto": "Tratándose de un Proyecto Urbanístico residencial, el propietario podrá ofrecer en donación las calles, ochavas, espacios de reserva y demás equipamiento comunitario, al momento en que el área o distrito en que esté ubicado cuente con la posibilidad de dotación de servicios por parte de la Municipalidad; siempre y cuando aquellos reúnan los requisitos exigidos por el presente Código para las urbanizaciones (Sección II - Título II ). En este caso regirán en lo pertinente las disposiciones de trámite fijadas para las SUBDIVISIONES y URBANIZACIONES.\nTITULO 2. DE LA EDIFICACION."
+    },
+    {
+      "articulo": 221,
+      "texto": "FACTIBILIDAD. El solicitante (en el caso de no ser el propietario deberá presentar la autorización escrita del mismo con la firma debidamente autenticada) conjuntamente con un profesional habilitado, podrá presentar la documentación que se detalla a continuación, la que será evaluada por el organismo competente a fin de pronunciarse sobre la factibilidad del volumen edificable proyectado de acuerdo a las disposiciones de este Código y demás normativas de la edificación vigentes:\na) Solicitud de Uso Conforme autorizado\nb) Plano de mensura\nc) Anteproyecto a escala conveniente visado por el Colegio Profesional correspondiente.\nd) En caso de edificios Declarados de Interés, documentación gráfica y fotográfica del estado del inmueble (art. N° 167).\nUna vez otorgada la factibilidad sobre el inmueble, el trámite se continuará según lo establecido en el Reglamento de Edificación. La misma tendrá una validez de 6 (seis) meses desde su notificación.\nTITULO 3. DE LOS USOS DEL SUELO."
+    },
+    {
+      "articulo": 222,
+      "texto": "Para habilitar, cambiar de uso o destino, una parcela, edificio, estructura o instalación, total o parcialmente, es obligación contar previamente con el Permiso de Uso (uso conforme) otorgado por la Dirección de Planeamiento Urbano. Este permiso se otorgará cuando el uso sea permitido en el distrito o zona de ubicación del predio."
+    },
+    {
+      "articulo": 223,
+      "texto": "La exigencia de contar con el permiso de uso previo se requerirá también en los casos de presentación de anteproyectos o proyectos de obra."
+    },
+    {
+      "articulo": 224,
+      "texto": "Para obtener el permiso de uso se debe presentar en la Dirección de Planeamiento y Diseño Urbano una solicitud en la que se especificará:\n1. nombre completo, apellido y Nº de Documento de Identidad del solicitante.\n2. Ubicación, medidas y superficie de la parcela.\n3. Superficie cubierta existente y/o proyectada.\n4. Especificación de la actividad a desarrollar con indicación de la cantidad de personas a emplear, fuerza motriz necesaria, materia prima a utilizar o cosas a depositar, cantidad y tipo de vehículos a utilizar incluyendo los de transporte de mercaderías o cosas para el establecimiento, movimiento estimado por día de personas, mercaderías y vehículos.\n5. Copia del plano de construcción o croquis de la edificación indicando distribución, medida y destino a dar a los locales."
+    },
+    {
+      "articulo": 225,
+      "texto": "El certificado de uso perderá su validez si dentro de los seis meses de su otorgamiento no es utilizado para los fines previstos en los art. Nº 223 y 224 de este Código.\nTITULO 4 . DE LAS RESPONSABILIDADES Y PENALIDADES.\nCAPITULO 1. DE LAS OBLIGACIONES EN GENERAL SOBRE LAS URBANIZACIONES."
+    },
+    {
+      "articulo": 226,
+      "texto": "El propietario del bien es personalmente responsable ante la Municipalidad por el cumplimiento total de las disposiciones de este Código hasta el momento de la inscripción de los títulos traslativos del inmueble. Todo acto de publicidad y/o promoción de la urbanización deberá contar con una resolución de la Factibilidad otorgada por el Departamento Ejecutivo Municipal. Los actos de venta no se podrán iniciar hasta obtener sus habilitaciones parcial o total."
+    },
+    {
+      "articulo": 227,
+      "texto": "Toda venta de fracciones deberá ajustarse a los planos de proyecto aprobados, con indicación del número de expediente por el cual se tramitó y N° de Ordenanza de aprobación y\nresolución de habilitación.-"
+    },
+    {
+      "articulo": 228,
+      "texto": "Todo gráfico deberá ajustarse exactamente al modelo que fuese aprobado por la Municipalidad y será obligación del agente de venta interviniente hacer conocer a los futuros compradores las normas de regulación de uso, restricciones y servicios de infraestructura a prestar en cada predio, debiendo constar en todo acto de publicidad o venta la designación del distrito de zonificación de acuerdo a este Código en que esté incluido el predio objeto de la transacción."
+    },
+    {
+      "articulo": 229,
+      "texto": "El trabajo de agrimensura, con o sin modificación del predio, debe ser ejecutado bajo la responsabilidad de un profesional con título habilitante.\nCAPITULO 2 PENALIDADES."
+    },
+    {
+      "articulo": 230,
+      "texto": "Quienes fueran responsables de actos de publicidad y/o promoción de urbanizaciones sin contar con una Resolución de Factibilidad , sin perjuicio de otras responsabilidades que pudieren corresponderle, se harán pasibles de una multa equivalente al 30 % del avalúo fiscal del total del inmueble a subdividir.-"
+    },
+    {
+      "articulo": 231,
+      "texto": "Quienes fueran responsables de ventas a terceros de lotes integrantes de subdivisiones que no cuenten con la habilitación municipal, sin perjuicio de otras responsabilidades que pudieren corresponderles, se harán pasibles de una multa equivalente al 30% del avalúo fiscal del inmueble a sub-dividir , por cada lote vendido.-"
+    },
+    {
+      "articulo": 232,
+      "texto": "Será sancionado con una multa igual a la determinada en el Artículo anterior, el comisionista de ventas o rematador que transgreda alguna de las obligaciones fijadas en este Código. Asimismo, si correspondiere, se hará la comunicación ante el Colegio de Corredores inmobiliarios u otro a los fines de la aplicación de la de las medidas correspondientes."
+    },
+    {
+      "articulo": 233,
+      "texto": "En todos los casos la Municipalidad se reserva el derecho de iniciar acciones judiciales y/o administrativas sin que el pago de las multas signifiquen la suspensión de las causas."
+    },
+    {
+      "articulo": 234,
+      "texto": "Todo propietario, profesional interviniente, comisionista de venta, rematador y en general cualquier responsable de venta a terceros de lotes integrantes de subdivisiones y urbanizaciones de “Hecho” no susceptibles de ser aprobadas conforme a este Código, y que no cuenten con habilitación municipal, sin perjuicio de otras responsabilidades que pudieren corresponderles, serán pasibles de una multa equivalente al 30% del avalúo fiscal del total del inmueble. Asimismo si correspondiera se hará la comunicación pertinente ante el Colegio Profesional, que ejerza el control de la matrícula del profesional penado, a los fines de la aplicación de las medidas correspondientes."
+    },
+    {
+      "articulo": 235,
+      "texto": "Toda transgresión a las disposiciones del presente Código, que no tenga fijada una penalidad especial, será pasible de las mismas sanciones previstas para las contravenciones del Código de Edificación, Código de Faltas Ordenanza N° 5421-\nSECCION VII. DISPOSICIONES TRANSITORIAS."
+    },
+    {
+      "articulo": 236,
+      "texto": "En los expedientes iniciados con anterioridad a la fecha de entrada en vigencia del presente, vinculado con las modificaciones que se hubieren realizado en éste, que no cuenten con resolución de factibilidad o aprobación municipal según corresponda al estado del trámite, el iniciador tendrá un plazo improrrogable de 4 (cuatro) meses a partir de la entrada en vigencia de este Código, para completar la documentación requerida con el objeto de obtener el dictado de la resolución correspondiente, según cada caso de conformidad con las disposiciones vigentes al tiempo de iniciación. Transcurrido dicho plazo se considerará abandonado por el interesado y caducará automáticamente debiendo ordenarse su archivo."
+    },
+    {
+      "articulo": 237,
+      "texto": "En los casos de expedientes en trámite en los que se hubiere dictado resolución de factibilidad conforme a las normas existentes al tiempo de su inicio y esta se encontrare vigente, las etapas posteriores de la tramitación podrán seguir rigiéndose por aquéllas disposiciones preexistentes si el interesado completa totalmente la documentación requerida para obtener la aprobación del proyecto dentro del plazo improrrogable de 6 (seis) meses a partir de la vigencia del presente."
+    },
+    {
+      "articulo": 238,
+      "texto": "La falta de cumplimiento de las condiciones exigidas por los artículos anteriores dentro del plazo fijado en ellos provocará la caducidad automática de los trámites, permisos o aprobaciones, debiendo ordenarse sin más el archivo de los expedientes en que fueron gestionados.\nLIMITE DE AREAS Y DISTRITOS\nDESCRIPCIÓN DE LIMITES:\nLa descripción de los límites de Areas y Distritos se ha realizado efectuando el recorrido en el sentido horario, iniciando los mismos desde el Noroeste de cada sector delimitado. La descripción de límites se ha realizado de forma que al nombrarse una arteria como límite de Área o Distrito, las parcelas frentistas a la calle mencionada pertenecen a ésta Área o Distrito que se ha definido y cuando se menciona como límite otra Área o Distrito mencionando entre paréntesis el nombre de las calles, las parcelas frentistas a estas calles pertenecen al Área o Distrito que se menciona previo al paréntesis y no al Area o Distrito que se está delimitando.\nAREA URBANA\nArea borde costero Río Paraná, desde Calle Gob. López Jordán, Ing. Jozami, Area E.U.R. (Mons. Bazán y Bustos), Don Bosco, Distrito C.E.U. (Avda. de Circunvalación José Hernández), Hernandarias, S. Caputto, Distrito C.E.U.(Larralde, Zanni, Larralde, calle N° 832) ,Av. Ejército, Distrito C.E.U. (P. Crausaz), Línea de Barranca de los Anegadizos, hasta el Area borde Costero Río Paraná.-\nDISTRITOS DEL AREA URBANA:\nU.C.C.: Límite Distrito U.R.1. (Avda. Rivadavia- Gardel), Colón, Salta- Belgrano, 25 de Mayo, Echagüe, Límite Distrito U.R.3. (Avda. Ramírez), Enrique Carbó- Paraguay, Libertad- Córdoba.\nSUB.DISTRITO U.C.C.1.: Límite Distrito U.R.1. (Avda. Rivadavia-Gardel), Colón, Salta-Belgrano, Enrique Carbó-Paraguay, Libertad-Córdoba. SUB-DISTRITO U.C.C.2.: Calles 25 de Mayo, Echagüe, Límite Distrito U.R.3. (Avda. Ramírez), E. Carbó, Belgrano-Salta. Las Calles Belgrano - Salta quedan incluidas dentro del Sub-Distrito U.C.C.1..-\nU.R.E.1.: Bvard. Mitre-Dr. Etchevehere, Gregoria Matorras de San Martín, Manuel Alberti, Alvear y Avda. Laurencena, U.R.3(Güemes), Bvard. Moreno, Bvard. Mitre, Intendente Bertozzi (hasta Los Vascos, retomando Bvard. Mitre.\nU.R.E.2.: Límite Area de la Costa, Bravard y su prolongación ideal hasta arroyo Las Viejas, Margen izquierda arroyo Las Viejas, Ambrosetti, Distrito U.R.3. (Avda. Ramírez).\nU.R.1.: Subdistrito U.R.1.1.: límite Distrito U.R.E.1. (Mitre), Gral. José de San Martín, Gardel, Av. Rivadavia, Subdistrito U.R.1.2.: Distrito U.R.E.1. (Moreno), Salta, Distrito U.C.C. (Colón), Distrito U.R.1.1. (Gral. José de San Martín),\nU.R.3.: Los Vascos- Parque Urquiza, límite Distrito U.R.1. (Avda. Rivadavia), límite Distrito U.C.C. (Córdoba, Libertad, Paraguay y E. Carbó), Avenida Ramírez, límite Distritos U.C.C. (Alem, Echagüe, 25 de Mayo, Belgrano, Salta), U.R.1. (Salta) y Güemes, Laurencena, Bolívar, Martín Leiva, hasta Bravard, Avda. Ramírez desde Bravard, Distrito U.R.E.2. (Ambrosetti), Soler, Avda. Almafuerte, Distrito U.R.7.1. (J. Garrigó), Provincias Unidas, El Paracao, Vías del Ferrocarril hasta la prolongación ideal de Pascual Palma, Boulevard Racedo, Ituzaingó, margen derecha Arroyo Antoñico, Florencio Sánchez, Diamante, Perú, Gran Chaco, España, Boulevard Sarmiento, Línea de Barrancas, Sarmiento, Panamá, Osinalde.-\nU.R.5.: El Paracao, Gral. Espejo, Gral. Alvarado, Eva Perón, Virrey Vértiz, límite Distrito C.I.1 (Barranca de los Anegadizos), límite Distrito U.R.8 (Ameghino, Rca. de Siria, Los Chingolos y Vías del Ferrocarril), Ameghino, margen izquierda Arroyo Antoñico, y límite Distrito U.R.3 (Vías del Ferrocarril)\nU.R.6.: Límite Area de la Costa, Av. Estrada, calle 1395, de la Lastra y Gordillo, Margen izquierda del Aº Antoñico, límite Distrito U.R.8 (Av. Larramendi) Croacia.-\nU.R.7.: Gob.M. Crespo, Avda. Almafuerte, Gob. Enrique Mihura, Hernandarias, Gobernador Parera, Vías del Ferrocarril, Gral Artigas, J. Newbery, J. Báez, Gral. Espejo, Distrito U.R.9 (Sarobe), Selvas de Montiel, límite Distrito U.R.5. (Virrey Vértiz, Eva Perón, Gral. Alvarado. Gral. Espejo, El Paracao), límite Distrito U.R.3 (Provincias Unidas), Juan Garrigó, Distrito U.R.3 (Avda. Almafuerte, F. Soler), Distrito U.R.E.2. (Ambrosetti, Sud-América), Distrito U.R.T. (Dr. R. Uranga, Avda.de Circunvalación “J. Hernández” hasta Gobernador M. Crespo.-\nU.R.8.: Límite Área de la Costa, Av. Larramendi, Av. Estrada, Límite Distrito U.R.6, Croacia, Av. Larramendi, Margen izquierda Aº Antoñico, Av. Estrada, Los Vascos, Limite U.R.3(Osinalde, Panamá, Bv. Sarmiento, línea de barrancas, Bv. Sarmiento, España, Ameghino) Vías del Ferrocarril, Los Chingolos, Rca. De Siria, Ameghino, límite Área de la Costa, barranca de los anegadizos, Procesión Náutica, Av. Larramendi.-\nU.R.9.: Distrito U.R.5. (Virrey Vértiz), Distrito U.R.7. (Selva de Montiel), Gral. Sarobe, Distrito U.R.7.\n(Gral. Espejo, J. Báez, J. Newbery, Artigas, Vías del F.C.G.U., Gob. F. Parera, Hernandarias, Gob. López Jordán, Avda. Almafuerte, Gob. M. Crespo),Distrito U.R.T.(Av. De Circunvalación "
+    },
+    {
+      "articulo": 116,
+      "texto": "Se podrán proyectar lotes internos, que den a pasillos o accesos vehiculares con salida a la vía pública en el área urbana, en los siguientes casos: a) En las manzanas en las que por lo menos tres de sus lados tengan una longitud superior a 100 (cien) metros. b) La profundidad de la parcela supere los 30 (treinta) metros. c) Las dimensiones de lotes sean las establecidas para el Distrito. Se admitirá que el lado mayor sea\nfrentista al pasillo o acceso vehicular. d) El pasillo o acceso vehicular se registre en forma independiente y el ancho cumpla con lo especificado en el artículo siguiente. Deberá hacerse constar en el plano de mensura y en la escritura traslativa de dominio, que el lote pasillo será transferido en condominio a los adquirentes de los lotes internos con acceso a través del mismo. e) La edificación en los lotes internos no podrá sobrepasar los 7,5 m de altura y F.O.S. máximo de 60%.\nARTICULO 3°.- Modificar a través del sistema de enmienda la Ordenanza N° 8563, Código Urbano, en el Artículo 117°, el que quedará redactado de la siguiente forma:"
+    },
+    {
+      "articulo": 117,
+      "texto": "El pasillo de acceso a los lotes internos tendrá el ancho mínimo libre que resulte de la aplicación de la siguiente fórmula: A = L x 0.02 + 2.50m., siendo L la longitud total del pasillo. El ancho mínimo será igual o mayor a 3.4 metros. El acceso vehicular que da salida a vía pública a lotes internos, tendrán un ancho mínimo libre que resulte de la aplicación de la siguiente fórmula: A=(L x 0,01 x N) m. + 3,50m; siendo L longitud total del acceso vehicular y N el número total de lotes internos a los que se da acceso a la vía pública. Se deberá garantizar la maniobrabilidad de los vehículos.\nARTICULO 4°.- Modificar a través del sistema de enmienda la Ordenanza N° 8563, Código Urbano, en el Artículo 194° punto 3), el que quedará redactado de la siguiente forma: Artículo 194°.- 3): SUBDIVISIÓN: Toda subdivisión nueva deberá ajustarse a las siguientes dimensiones mínimas: Lote mínimo: -* Frente: 50,00 m -* Área: 5.000 m². Podrán realizarse, por única vez, desglose con medidas y áreas inferiores a las establecidas a los siguientes destinos: d) Vivienda rural, con un frente mínimo de 15,00 m y una superficie mínima de 450,00 m². e) Comercio, con un frente de 30,00 m y una superficie mínima de 1500,00 m². f) Industria, con un frente mínimo de 50,00 m y una superficie de 2500,00 m². Siempre que la misma esté permitida.\nARTICULO 5°.- El presente Decreto será refrendado por el Sr. Secretario de Planificación, Infraestructura y Servicios.\nARTICULO 6°.- Regístrese, comuníquese y archívese\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nOrdenanza N° 10187\nMODIFICA EL ART. 192º DE LA ORDENANZA Nº 8563 (CODIGO URBANO)\nFecha de sanción: 03-09-2024 Fecha de promulgación: 20-09-2024 Fecha de publicación: 26-09-2024 Resumen: MODIFICA ART. 192 DEL NUEVO CODIGO URBANO --- PROMULAGADA POR DECRETO Nº 1852 DE FECHA: 20 DE SEPTIEMBRE DE 2024\nARTICULO 1º: Modifícase el artículo 192º de la Ordenanza Nº 8.563, el cual quedará redactado de la siguiente manera:\n\"ARTÍCULO 192º DISTRITO COMPLEMENTARIO DE ENSANCHE URBANO (C.E.U.)\".\nl . CARÁCTER:\nEste distrito tiene el carácter de zona de reserva para fUtUras ampliaciones del área urbana, incorporándose a él urbanizaciones anteriores a la delimitación territorial, diseminadas en el Área Rural.2.\n2. DELIMITACIÓN:\nAl sur del área urbana: desde calle Gral. Artigas y arroyo Los Berros por Gral. Artigas, calle Lisandro de la Torre, Distrito EUR (División de los Andes, Juan B Justo, Gral. Alberto Nasta, Moises Lebensohn, Padre Pascual Uva), Selva de Montiel, Pablo Crausaz, Distrito UR 9 (Av. Ejército), Sub Mayor Antonio Mendez, Crisologo Larralde, Zanni, Crisologo Larralde, Salvador Caputto, Lisandro de la Torre, Distrito E.U.O.U (Distrito Militar 2da Brigada Aérea), calle 826, Arroyo Los Berros Hasta calle Artigas.\nAl este del área urbana: Distrito URT (Don Bosco), Gob. Abel Bazán y Bustos, Distrito E.U.R. (Acceso Norte República de Entre Ríos, Juan Marath)r Av. José Lino Churruarin, Distrito E.U.R (Cabo 1ro. Vicente Tomowski), Av. Almafuerte, Distrito E.U.E. (Antonio Salellas), Distrito E.U.P.I. (Limite Norte de las fracciones de terreno, propiedad de DNV que fueran destinadas a la construcción de la Ruta 18 - Tramo Paraná — empalme Ruta Nac 126, al norte de calle Hernandarias (desde Antonio Salellas hasta Antonio Bonell), Distrito E.U.R. (Ruta Nacional N O 12), J. Newbery, Ubach y Roca, calle 810, calle 849, calle 812 y calle Juan B. Mihura hasta el arroyo Las Tunas, J. Newberyr Ubach y Roca, calle 814, A. Salellas, J.\nNewbery, Distrito U.R. 9 (S. Caputto, Hernandarias), Av. de Circunvalación J. Hernández. En Concesión N O 268: las manzanas l , 2, 3 y 4.\n3. SUBDIVISIÓN DEL SUELO:\na) Toda subdivisión nueva deberá ajustarse a las siguientes dimensiones mínimas:\n- Frente: 20.00 m.\n- Área: 600.00 m2.\nb) En el caso de contar con servicio de agua y electricidad la autoridad competente podrá autorizar lotes al 50% (10 mtrs. de frente y 300 m2 de superficie).\n4. TEJIDO U RBANO:\nEn este Distrito se permite una altura máxima de 7,50 (siete con cincuenta) metros.\nDensidad de viviendas - 45 viv./Ha.\nLos conjuntos de viviendas serán tratados por la Comisión Asesora, previa resolución del D.E.M.\n5. USOS:\nSe autorizan los establecidos en el Anexo III de este Código para este Distrito.\nARTICULO 2º.- COMUNIQUESE\n\n\n\nOrdenanza N° 8748\n3.5: ORDENANZA Nº 8748 - DESAFECTA EL PREDIO QUE OCUPA EL JOCKEY CLUB PARANÁ PARA LA SEDE DEL HIPÓDROMO\nALMAFUERTE, DENOMINÁNDOSE COMO NUEVO DISTRITO URBANO RECREACIONAL RESIDENCIAL COMERCIAL, URRC1.\nFecha de sanción: 05-06-2008 Fecha de publicación: 09-09-2008 Resumen: SANCIONADA EN SALA DE SESIONES DE FECHA:05 DE JUNIO DE 2008 --- PROMULGADA POR DECRETO Nº 803 DE FECHA:11 DE JUNIO DE 2008\nARTÍCULO 1°: Queda sujeto a la presente Ordenanza el inmueble que ocupa el Hipódromo Almafuerte, ubicado en la Sección 7ª, manzana 12, concesión 38, plano de mensura N°69.005, el que se define como un nuevo Distrito denominado DISTRITO URBANO RECREACIONAL RESIDENCIAL COMERCIAL, URRC1.\nARTÍCULO 2°: Urbano Recreacional Resid"
+    }
+  ]
+}
