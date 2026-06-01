@@ -53,7 +53,6 @@
             text-decoration: none; font-weight: bold; font-size: 10px;
         }
         
-        /* MODIFICACIÓN: Estilo para botón de consulta IA dentro de popup */
         .btn-analizar-ia {
             display: block; margin: 4px auto; padding: 6px; border-radius: 4px;
             background: #10b981; color: white !important; text-align: center;
@@ -186,14 +185,13 @@
         <button class="btn-google" onclick="buscarGoogle()">Google</button>
     </div>
 
-    <!-- MODIFICACIÓN: Botón para abrir el panel de consulta de IA manualmente -->
     <div style="height: 20px; width: 1px; background: #e2e8f0; margin: 0 4px;"></div>
     <button onclick="togglePanelIA()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-1 px-3 rounded-lg flex items-center gap-1 shadow-md transition-colors">
         <span>🤖</span> <span class="hidden sm:inline">Consultar IA</span>
     </button>
 </div>
 
-<!-- MODIFICACIÓN: Panel Lateral Colapsable para Asistente IA de Paraná -->
+<!-- Panel Lateral Colapsable para Asistente IA de Paraná -->
 <div id="panel-ia" class="fixed right-0 top-0 h-screen w-full sm:w-[420px] bg-slate-900 text-white shadow-2xl z-[1001] translate-x-full transition-transform duration-300 flex flex-col border-l border-slate-700">
     <!-- Cabecera del Panel -->
     <div class="p-4 bg-slate-950 flex items-center justify-between border-b border-slate-800">
@@ -207,11 +205,11 @@
         <button onclick="togglePanelIA()" class="text-slate-400 hover:text-white text-lg font-bold p-1">&times;</button>
     </div>
 
-    <!-- MODIFICACIÓN: Configuración de API Key para uso Local -->
+    <!-- Configuración de API Key para uso Local y Web -->
     <div class="bg-slate-950 px-4 py-3 border-b border-slate-800/80 flex flex-col gap-1.5">
         <div class="flex items-center justify-between">
-            <span class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Configuración de API Key (Uso Local)</span>
-            <span class="text-[9px] bg-emerald-900/40 text-emerald-300 border border-emerald-800/50 px-1.5 py-0.2 rounded font-mono">Google AI Studio</span>
+            <span class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">CONFIGURACIÓN DE API KEY (USO LOCAL)</span>
+            <span class="text-[9px] bg-emerald-900/40 text-emerald-300 border border-emerald-800/50 px-1.5 py-0.2 rounded font-mono">google ai studio</span>
         </div>
         <div class="relative flex gap-1.5">
             <input type="password" id="ia-api-key" placeholder="Pega tu API Key de Gemini aquí..." class="w-full bg-slate-900 text-slate-200 text-[11px] px-2.5 py-1.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-1 focus:ring-emerald-500">
@@ -263,7 +261,7 @@
     </div>
 </div>
 
-<!-- MODIFICACIÓN: Modal de notificaciones para evitar alerts() -->
+<!-- Modal de notificaciones para evitar alerts() -->
 <div id="ia-custom-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
     <div class="bg-slate-900 border border-slate-850 rounded-xl max-w-sm w-full p-5 space-y-4 shadow-2xl text-white">
         <h4 id="ia-modal-title" class="font-bold text-sm text-emerald-400">Notificación</h4>
@@ -292,9 +290,6 @@ var sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Worl
 var ref = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}', { maxZoom: 22, maxNativeZoom: 18 });
 var hibrido = L.layerGroup([sat, ref]).addTo(map);
 
-/* ========================================================
-   FUNCIÓN DINÁMICA DE CLASES DE ZOOM (Para Etiquetas)
-======================================================== */
 function actualizarClaseZoom() {
     const container = map.getContainer();
     const clasesLimpias = container.className.split(' ').filter(c => !c.startsWith('map-zoom-'));
@@ -303,9 +298,6 @@ function actualizarClaseZoom() {
 map.on('zoomend', actualizarClaseZoom);
 actualizarClaseZoom();
 
-/* ========================================================
-   FUNCIÓN DE VALIDACIÓN DE GEOMETRÍA (Evita error 'latlngs not passed')
-======================================================== */
 function esGeometriaValida(l) {
     try {
         if (typeof l.getBounds === 'function') {
@@ -322,9 +314,6 @@ function esGeometriaValida(l) {
     return false;
 }
 
-/* ========================================================
-   CAPAS BASES MANTENIDAS (Distritos, Calles, Parcelas)
-======================================================== */
 function getColorDistrito(d) {
     const colors = {
         'R1': '#e74c3c', 'R2': '#3498db', 'R3': '#2ecc71', 'R4': '#f1c40f', 'R5': '#9b59b6',
@@ -478,7 +467,6 @@ archivosCatastro.forEach(file => {
                     }
                     content += `<a href="${sv}" target="_blank" class="btn-streetview">📍 STREET VIEW</a>`;
                     
-                    // MODIFICACIÓN: Agregar botón para iniciar el análisis normativo con IA en el popup
                     const escapeUbicacion = String(p.ubicacion).replace(/'/g, "\\'");
                     const escapePartidas = String(p.partidas.join(', ')).replace(/'/g, "\\'");
                     content += `<button onclick="cargarParcelaEnIA('${escapePartidas}', '${escapeUbicacion}', '${dist}')" class="btn-analizar-ia">🤖 ANALIZAR CON IA</button>`;
@@ -495,9 +483,6 @@ archivosCatastro.forEach(file => {
     }).catch(e => console.log("Parcelas no cargadas o error: ", e));
 });
 
-/* ========================================================
-   FUNCIÓN COMÚN DE POPUP PARA CAPAS DE CATASTRO
-======================================================== */
 function abrirPopupComun(e, f, l, titulo) {
     let latlng = e.latlng || l.getBounds().getCenter();
     let c = `<div class="popup-custom"><div class="popup-header">${titulo}</div><table class="table-info">`;
@@ -510,9 +495,6 @@ function abrirPopupComun(e, f, l, titulo) {
     l.bindPopup(c, { autoPanPadding: L.point(10, 110) }).openPopup(latlng);
 }
 
-/* ========================================================
-   CONVERTIDOR HSL A HEX (Garantiza colores consistentes)
-======================================================== */
 function hslToHex(h, s, l) {
     l /= 100;
     const a = s * Math.min(l, 1 - l) / 100;
@@ -524,9 +506,6 @@ function hslToHex(h, s, l) {
     return `#${f(0)}${f(8)}${f(4)}`;
 }
 
-/* ========================================================
-   FUNCIÓN GENERADORA DE COLOR DETERMINISTA MEJORADA
-======================================================== */
 function obtenerColorZona(str) {
     if (!str) return '#95a5a6';
     const s = String(str).trim().toUpperCase();
@@ -538,9 +517,6 @@ function obtenerColorZona(str) {
     return hslToHex(hue, 75, 55); 
 }
 
-/* ========================================================
-   CARGA INDIVIDUAL DE CAPAS DE CATASTRO & ETIQUETADO
-======================================================== */
 var grupoSeccion = L.layerGroup();
 var grupoGrupo = L.layerGroup();
 var grupoManzana = L.layerGroup();
@@ -653,9 +629,6 @@ fetch(BASE_URL + "catastro/zona_valuacion_tributaria.geojson").then(r => r.json(
 }).catch(e => console.log("Error cargando zona valuación tributaria: ", e));
 
 
-/* ========================================================
-   UTILIDADES Y BUSCADORES DEL MAPA
-======================================================== */
 function buscarPM() {
     let val = document.getElementById('input-pm').value.trim();
     if (!val) return;
@@ -680,7 +653,6 @@ function buscarDireccion() {
     }
 }
 
-// Búsqueda de Sección, Grupo y Manzana
 function buscarCatastro() {
     let secVal = document.getElementById('input-sec').value.trim().toUpperCase();
     let gruVal = document.getElementById('input-gru').value.trim().toUpperCase();
@@ -801,14 +773,21 @@ L.control.layers(
 ).addTo(map);
 
 
-// ========================================================
-//   MODIFICACIÓN: LÓGICA Y CONFIGURACIÓN DEL PANEL DE IA
-// ========================================================
-
-const apiKey = ""; // La clave se asume provista por el entorno o vacía
+const apiKey = ""; // Clave provista por el entorno o vacía
 let ultimaRespuestaIA = "";
 
-// Función para abrir/cerrar el panel lateral
+// Al cargar el documento, recuperar API Key guardada de forma segura
+window.addEventListener('DOMContentLoaded', () => {
+    const savedKey = localStorage.getItem("parana_gemini_api_key");
+    if (savedKey) {
+        document.getElementById('ia-api-key').value = savedKey;
+    }
+    // Guardar automáticamente al cambiar
+    document.getElementById('ia-api-key').addEventListener('input', (e) => {
+        localStorage.setItem("parana_gemini_api_key", e.target.value.trim());
+    });
+});
+
 function togglePanelIA() {
     const panel = document.getElementById('panel-ia');
     if (panel.classList.contains('translate-x-full')) {
@@ -818,21 +797,17 @@ function togglePanelIA() {
     }
 }
 
-// Cargar los datos de la parcela clickeada en los campos del Asistente
 function cargarParcelaEnIA(partida, ubicacion, distrito) {
     document.getElementById('ia-ref-partida').innerText = partida || "Desconocida";
     document.getElementById('ia-ref-ubicacion').innerText = ubicacion || "-";
     document.getElementById('ia-ref-distrito').innerText = distrito || "No detectado";
     
-    // Auto-completar el cuadro de texto para incentivar una consulta contextual
     document.getElementById('ia-user-question').value = `Analiza la viabilidad de la parcela ubicada en ${ubicacion} que pertenece al distrito ${distrito}. ¿Cuáles son los principales indicadores y qué restricciones me impone el consolidado de normas de Paraná (Ordenanza Nº 8563)?`;
     
-    // Asegurarse de abrir el panel
     const panel = document.getElementById('panel-ia');
     panel.classList.remove('translate-x-full');
 }
 
-// Limpiar panel de IA
 function limpiarPanelIA() {
     document.getElementById('ia-user-question').value = "";
     document.getElementById('ia-response-text').innerText = "";
@@ -843,43 +818,64 @@ function limpiarPanelIA() {
     ultimaRespuestaIA = "";
 }
 
-// Llamada robusta a la API de Gemini (Exponential Backoff hasta 5 intentos)
+// MODIFICACIÓN: Función de llamada a Gemini con Fallback Chain de modelos y descarte de reintentos infinitos
 async function callGemini(userPrompt, systemPrompt) {
-    // MODIFICACIÓN: Leer la API Key ingresada en el input del panel lateral o usar la del entorno
     const localKey = document.getElementById('ia-api-key').value.trim();
     const apiKeyValue = localKey || apiKey;
     
-    // MODIFICACIÓN: Usar el modelo gemini-3-flash-preview que es el estándar compatible y soportado
-    const model = "gemini-3-flash-preview";
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKeyValue}`;
-    
-    const payload = {
-        contents: [{ parts: [{ text: userPrompt }] }],
-        systemInstruction: { parts: [{ text: systemPrompt }] }
-    };
-
-    let delay = 1000;
-    for (let attempt = 0; attempt < 5; attempt++) {
-        try {
-            const response = await fetch(url, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload)
-            });
-            if (response.ok) {
-                const data = await response.json();
-                return data.candidates?.[0]?.content?.parts?.[0]?.text;
-            }
-        } catch (err) {
-            // Reintentar en silencio según las directivas
-        }
-        await new Promise(resolve => setTimeout(resolve, delay));
-        delay *= 2;
+    if (!apiKeyValue) {
+        throw new Error("No has especificado ninguna clave. Pega tu API Key de Google AI Studio en la parte superior del panel lateral.");
     }
-    throw new Error("Error en conexión con el servidor de IA de Google. Si estás ejecutando este archivo localmente en tu PC, asegúrate de haber ingresado tu API Key en la parte superior del panel.");
+
+    // Listado jerárquico de modelos a probar. Si el primero falla por restricciones de clave, pasa al siguiente estable.
+    const models = ["gemini-3-flash-preview", "gemini-2.5-flash", "gemini-1.5-flash"];
+    let ultimoError = null;
+
+    for (const currentModel of models) {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${currentModel}:generateContent?key=${apiKeyValue}`;
+        const payload = {
+            contents: [{ parts: [{ text: userPrompt }] }],
+            systemInstruction: { parts: [{ text: systemPrompt }] }
+        };
+
+        let delay = 1000;
+        // Reintentos acotados por modelo para evitar bucles interminables
+        for (let attempt = 0; attempt < 3; attempt++) {
+            try {
+                const response = await fetch(url, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.candidates?.[0]?.content?.parts?.[0]?.text) {
+                        return data.candidates[0].content.parts[0].text;
+                    }
+                } else {
+                    const errPayload = await response.json().catch(() => ({}));
+                    const errorMsg = errPayload.error?.message || `Código ${response.status}`;
+                    ultimoError = new Error(`[Modelo ${currentModel}]: ${errorMsg}`);
+                    
+                    // Si el servidor de Google acusa expresamente error de autenticación/clave, detenemos la búsqueda
+                    if (response.status === 400 || response.status === 403) {
+                        if (errorMsg.toLowerCase().includes("key") || errorMsg.toLowerCase().includes("api key")) {
+                            throw new Error(`La API Key ingresada parece no ser válida o no estar activa: ${errorMsg}`);
+                        }
+                    }
+                }
+            } catch (err) {
+                ultimoError = err;
+            }
+            // Retardo exponencial
+            await new Promise(resolve => setTimeout(resolve, delay));
+            delay *= 2;
+        }
+    }
+    throw ultimoError || new Error("No se pudo establecer comunicación estable con Google AI.");
 }
 
-// Función principal para enviar consulta
 async function enviarConsultaIA() {
     const userText = document.getElementById('ia-user-question').value.trim();
     if (!userText) {
@@ -891,7 +887,6 @@ async function enviarConsultaIA() {
     const ubicacion = document.getElementById('ia-ref-ubicacion').innerText;
     const distrito = document.getElementById('ia-ref-distrito').innerText;
 
-    // Configurar estado de carga en la UI
     const responseBox = document.getElementById('ia-output-box');
     const responseText = document.getElementById('ia-response-text');
     responseBox.classList.remove('hidden');
@@ -900,10 +895,9 @@ async function enviarConsultaIA() {
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
         </svg>
-        <span>Analizando bases legales de Paraná...</span>
+        <span>Consultando bases legales de Paraná...</span>
     </span>`;
 
-    // System prompt rico en regulaciones de Paraná provenientes del archivo de transcripción consolidada
     const systemPrompt = `Eres un Ingeniero Urbanista especializado en Planeamiento de la Municipalidad de Paraná, Entre Ríos, Argentina. 
     Tu objetivo es responder consultas catastrales y de zonificación basándote en la "TRANSCRIPCIÓN CONSOLIDADA DE NORMAS" (Código Urbano de Paraná).
 
@@ -939,14 +933,14 @@ async function enviarConsultaIA() {
         ultimaRespuestaIA = text;
         responseText.innerText = text;
     } catch (err) {
+        // MODIFICACIÓN: El visor ahora te muestra el error técnico explícito enviado por Google
         responseText.innerHTML = `<span class="text-red-500 font-semibold flex flex-col gap-1">
             <span>⚠️ Error de procesamiento</span>
-            <span class="text-[10px] text-slate-400 font-normal">${err.message}</span>
+            <span class="text-[11px] text-slate-300 font-normal bg-red-950/40 p-2.5 rounded-lg border border-red-900/50 leading-relaxed">${err.message}</span>
         </span>`;
     }
 }
 
-// Copiar la respuesta de la IA (execCommand para compatibilidad con iframe/sandbox)
 function copiarRespuestaIA() {
     if (!ultimaRespuestaIA) return;
     const tempTextArea = document.createElement('textarea');
@@ -958,7 +952,6 @@ function copiarRespuestaIA() {
     showIaModal("¡Éxito!", "Dictamen normativo copiado al portapapeles.");
 }
 
-// Utilidad de Modal Custom
 function showIaModal(title, body) {
     document.getElementById('ia-modal-title').innerText = title;
     document.getElementById('ia-modal-body').innerText = body;
