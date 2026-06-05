@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Atlas PUA | Municipalidad de Paraná</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'muni-green': '#4C9D34',
+                        'bg-dark': '#0f172a',
+                        'card-dark': '#1e293b',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .tab-btn { transition: all 0.3s ease; }
+        /* MODIFICACIÓN: Estilos para modo oscuro */
+        .tab-btn.active { background-color: #4C9D34; color: white; box-shadow: 0 4px 6px -1px rgba(76, 157, 52, 0.3); }
+        .card-hover:hover { transform: translateY(-5px); border-color: #4C9D34; background-color: #2d3748; }
+        .card-disabled { opacity: 0.5; filter: grayscale(0.8); }
+    </style>
+</head>
+<body class="bg-bg-dark text-slate-200">
+
+    <div class="max-w-5xl mx-auto px-4 py-16">
+        <header class="mb-16 text-center space-y-6">
+            <div class="inline-block px-4 py-1.5 bg-muni-green/20 text-muni-green font-bold text-sm uppercase tracking-widest rounded-full">
+                Plan Urbano Ambiental
+            </div>
+            <h1 class="text-4xl md:text-5xl font-extrabold text-white tracking-tight">Atlas Territorial Interactivo</h1>
+            <p class="text-lg text-slate-400 max-w-3xl mx-auto leading-relaxed">
+                El <strong>Plan Urbano Ambiental (PUA)</strong> de Paraná trasciende la planificación técnica para constituirse en un <strong>espacio de participación ciudadana y construcción colectiva</strong>. Es nuestra herramienta de gestión estratégica para el desarrollo sostenible, forjada a través del diálogo entre la comunidad, profesionales e instituciones para proyectar un modelo territorial consensuado. Este Atlas Territorial Interactivo actúa como el repositorio geográfico donde transformamos ese conocimiento compartido en herramientas visuales, permitiendo a toda la ciudadanía comprender la dinámica de nuestro territorio y las proyecciones hacia una ciudad más inclusiva, resiliente y proyectada al futuro.
+            </p>
+        </header>
+
+        <div class="flex justify-center mb-12">
+            <div class="bg-card-dark p-1 rounded-xl shadow-lg border border-slate-700 inline-flex">
+                <button onclick="openTab(event, 'visores')" class="tab-btn active px-8 py-3 font-semibold rounded-lg text-slate-300 hover:text-white">Visores IDE PARANA</button>
+                <button onclick="openTab(event, 'atlas')" class="tab-btn px-8 py-3 font-semibold rounded-lg text-slate-300 hover:text-white">Atlas PUA (Interactivos)</button>
+            </div>
+        </div>
+
+        <div id="visores" class="tab-content active">
+            <div class="grid md:grid-cols-3 gap-6" id="ide-grid"></div>
+        </div>
+
+        <div id="atlas" class="tab-content">
+            <div class="grid md:grid-cols-3 gap-6" id="atlas-grid"></div>
+        </div>
+    </div>
+
+    <script>
+        const ideMaps = [
+            { title: "Catastro", desc: "Parcelario y zonificaciones.", link: "https://dcartografiayde.github.io/IDE-PARANA/catastro/" },
+            { title: "Mapa Base", desc: "Trama vial y urbana.", link: "https://dcartografiayde.github.io/IDE-PARANA/mapa base/" },
+            { title: "Obras Privadas", desc: "Permisos de construcción.", link: "https://dcartografiayde.github.io/IDE-PARANA/obras_privadas/" },
+            { title: "Preservación", desc: "Patrimonio histórico.", link: "https://dcartografiayde.github.io/IDE-PARANA/preservacion/" },
+            { title: "Censo 2022", desc: "Resultados poblacionales.", link: "https://dcartografiayde.github.io/IDE-PARANA/censo_2022/" },
+            { title: "Urbanizaciones", desc: "Monitoreo y desarrollo urbanístico.", link: "https://dcartografiayde.github.io/IDE-PARANA/backdoor/" },
+            { title: "Vecinales", desc: "Límites jurisdiccionales de comisiones vecinales.", link: "https://dcartografiayde.github.io/IDE-PARANA/backdoor/vecinales/" },
+            { title: "Servicios por Calle", desc: "Cobertura de servicios públicos por red vial.", link: "https://dcartografiayde.github.io/IDE-PARANA/servicios/" }
+        ];
+
+        const atlasMaps = [
+            { title: "Crecimiento Huella Urbana", desc: "Análisis histórico de expansión (1967-2023).", link: "https://dcartografiayde.github.io/IDE-PARANA/atlas_pua/crecimiento_huella_urbana/" },
+            { title: "Cuencas Hidrográficas", desc: "Delimitación de las 17 cuencas hídricas.", link: "https://dcartografiayde.github.io/IDE-PARANA/atlas_pua/cuencas_hidrograficas/" },
+            { title: "Área Metropolitana Paraná-Santa Fe", desc: "Conformación del conglomerado urbano y redes viales." },
+            { title: "Crecimiento Poblacional 2010-2022", desc: "Tasas de crecimiento anual y tamaño poblacional." },
+            { title: "Conexiones Territoriales Gran Paraná", desc: "Corredores estratégicos (San Benito, Oro Verde, Colonia Avellaneda)." },
+            { title: "Distrito Código Urbano", desc: "Zonificación normativa según Ordenanza N° 8.563." },
+            { title: "Densidad de Población", desc: "Distribución espacial por hectárea (2010 y 2022)." },
+            { title: "Curvas de Nivel e Hidrografía", desc: "Topografía del terreno y cursos de agua principales." },
+            { title: "Áreas Ecológicas", desc: "Valor ambiental, áreas degradadas y bosques nativos." },
+            { title: "Áreas Servidas - No Servidas", desc: "Cobertura de agua, gas, cloacas y alumbrado público." },
+            { title: "Redes de Servicios Individuales", desc: "Detalle técnico de redes por tipo de servicio." },
+            { title: "Red de Drenaje", desc: "Infraestructura pluvial noroeste y central (2020-2022)." },
+            { title: "Presupuesto Participativo 2023", desc: "Intervenciones comunitarias y proyectos lineales." },
+            { title: "Redes Institucionales", desc: "Protección de derechos (Niñez y Familia - COPNAF)." },
+            { title: "Equipamientos e Infraestructuras", desc: "Usos del suelo (Salud, Recreación, Comercio)." },
+            { title: "Asentamientos y Barrios Populares", desc: "Localización RENABAP 2023." },
+            { title: "Áreas de Influencia", desc: "Accesibilidad a equipamientos públicos y educativos." },
+            { title: "Barrios IAPV", desc: "Loteos construidos por el IAPV desde 1954." },
+            { title: "Protección Patrimonial", desc: "Edificios con declaratoria de protección." }
+        ];
+
+        function renderCards(data, containerId, icon) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = data.map(m => {
+                const isReady = !!m.link;
+                return `
+                <div class="bg-card-dark p-6 rounded-2xl border border-slate-700 shadow-sm card-hover transition-all group ${!isReady ? 'card-disabled' : ''}">
+                    <div class="w-12 h-12 ${isReady ? 'bg-muni-green/20 text-muni-green' : 'bg-slate-700 text-slate-400'} rounded-xl flex items-center justify-center mb-6 text-2xl group-hover:bg-muni-green group-hover:text-white transition-colors">
+                        ${icon}
+                    </div>
+                    <h3 class="font-bold text-lg text-white mb-2">${m.title}</h3>
+                    <p class="text-sm text-slate-400 mb-6 h-10">${m.desc}</p>
+                    ${isReady 
+                        ? `<a href="${m.link}" target="_blank" class="inline-flex items-center text-muni-green font-bold text-sm hover:underline">Explorar Mapa ↗</a>`
+                        : `<span class="inline-flex items-center text-slate-500 font-bold text-sm cursor-default">Mapa en desarrollo ⏳</span>`
+                    }
+                </div>
+            `}).join('');
+        }
+
+        renderCards(ideMaps, 'ide-grid', '🗺️');
+        renderCards(atlasMaps, 'atlas-grid', '📐');
+
+        function openTab(evt, tabName) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+            evt.currentTarget.classList.add('active');
+        }
+    </script>
+</body>
+</html>
