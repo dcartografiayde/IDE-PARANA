@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>POSICION GEOREFERENCIADA - MUNICIPALIDAD DE PARANA</title>
+    <title>VISOR URBANIZACIONES - MUNICIPALIDAD DE PARANA</title>
 
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -94,58 +94,77 @@
             border-radius: 8px !important;
         }
 
-        /* MODIFICACIÓN: Estilos avanzados para impresión física y generación de reporte catastral A4 Apaisado */
+        /* MODIFICACIÓN: Ajustes de impresión corregidos quirúrgicamente para eliminar la deformación de página y los bloques negros */
         @media print {
             @page {
                 size: A4 landscape;
-                margin: 0;
+                margin: 0mm; /* Forzar márgenes nulos a nivel de página física de impresión */
             }
-            body {
-                background: white !important;
-                color: black !important;
+            html, body {
+                background: #ffffff !important;
+                background-color: #ffffff !important;
+                color: #000000 !important;
+                width: 297mm !important;
+                height: auto !important; /* Permitir que fluya libremente el contenido de ambas páginas de reporte */
                 overflow: visible !important;
+                display: block !important; /* MODIFICACIÓN CLAVE: Destruir el display: flex del body que arruinaba la paginación física y deformaba el plano */
+                margin: 0 !important;
+                padding: 0 !important;
             }
-            #sidebar, .leaflet-control-container, .adv-distrito, #previa-print-bar {
+            /* Ocultar absolutamente todo excepto los dos contenedores de impresión físicos */
+            body > *:not(#print-container-p1):not(#print-container-p2):not(#map) {
                 display: none !important;
             }
-            /* Maquetación estricta A4 Landscape de página 1 (Plano de Manzana) */
-            #print-container-p1 {
+            #print-container-p1, #print-container-p2 {
                 display: block !important;
-                width: 297mm !important;
-                height: 210mm !important;
                 position: relative !important;
+                width: 297mm !important;
+                height: 210mm !important; /* Limitar estrictamente cada página al alto A4 físico apaisado */
+                background: #ffffff !important;
+                background-color: #ffffff !important;
+                color: #000000 !important;
+                margin: 0 !important;
+                padding: 8mm !important; /* Espaciado interno seguro para encuadre catastral perfecto */
                 box-sizing: border-box !important;
-                padding: 10mm !important;
-                background: white !important;
+                page-break-inside: avoid !important;
+                page-break-after: always !important;
+                break-after: page !important;
+                overflow: hidden !important;
+            }
+            #print-container-p1 {
                 page-break-after: always !important;
                 break-after: page !important;
             }
-            /* Maquetación estricta A4 Landscape de página 2 (Reporte Técnico) */
             #print-container-p2 {
-                display: block !important;
-                width: 297mm !important;
-                height: 210mm !important;
-                position: relative !important;
-                box-sizing: border-box !important;
                 padding: 15mm !important;
-                background: white !important;
-                color: #0f172a !important;
                 page-break-before: always !important;
                 break-before: page !important;
+                page-break-after: avoid !important;
+                break-after: avoid !important;
             }
             #map-print-container {
-                height: 142mm !important;
+                height: 155mm !important; /* Altura óptima para encajar perfectamente con el encabezado de página 1 sin generar desbordes */
                 width: 100% !important;
                 border: 2px solid #1e293b !important;
                 display: block !important;
+                background: #ffffff !important;
             }
             #map {
                 width: 100% !important;
                 height: 100% !important;
+                background: #ffffff !important;
+            }
+            .leaflet-control-container, .adv-distrito, #previa-print-bar {
+                display: none !important;
+            }
+            /* Forzar el modo de impresión con colores de fondo de alta fidelidad del navegador */
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
             }
         }
 
-        /* MODIFICACIÓN: Estilos de maquetación interactiva tipo PDF Reader para la previsualización del documento impreso */
+        /* MODIFICACIÓN: Estilos de maquetación interactiva tipo PDF Reader adaptados a la nueva altura de mapa */
         body.print-active {
             background: #0f172a !important;
             overflow-y: auto !important;
@@ -168,14 +187,14 @@
             border: 1px solid #334155 !important;
             box-shadow: 0 15px 30px rgba(0,0,0,0.5) !important;
             box-sizing: border-box !important;
-            padding: 10mm !important;
+            padding: 8mm !important; /* Sincronizado con estilos físicos */
             pointer-events: auto !important;
         }
         body.print-active #print-container-p2 {
             padding: 15mm !important;
         }
         body.print-active #map-print-container {
-            height: 142mm !important;
+            height: 155mm !important; /* Sincronizado con estilos físicos */
             width: 100% !important;
             border: 2px solid #1e293b !important;
             display: block !important;
@@ -191,6 +210,20 @@
         body.print-active .leaflet-control-layers,
         body.print-active .leaflet-control-measure {
             display: none !important;
+        }
+
+        /* Estilos personalizados para las etiquetas de dimensiones aproximadas de los lotes */
+        .dimension-label {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid #475569;
+            border-radius: 3px;
+            color: #1e293b;
+            font-size: 8px !important;
+            font-weight: 800 !important;
+            padding: 1px 3px;
+            text-align: center;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            pointer-events: none !important;
         }
     </style>
 </head>
@@ -239,7 +272,7 @@
             </div>
         </div>
 
-        <!-- MODIFICACIÓN: Bloque de utilidades de Impresión y Configuración de Escala -->
+        <!-- MODIFICACIÓN: Bloque de utilidades de Impresión y Configuración de Escala (Soporta las nuevas escalas integradas) -->
         <div class="space-y-4 bg-slate-950/20 p-3 rounded-lg border border-slate-800">
             <h2 class="text-xs font-extrabold uppercase tracking-widest text-yellow-500 border-b border-slate-800 pb-1.5 flex items-center gap-1.5">
                 <span>🖨️ Utilidad de Impresión A4</span>
@@ -248,17 +281,19 @@
                 <div class="space-y-1">
                     <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Escala del Mapa Impreso</label>
                     <select id="select-print-scale" class="w-full bg-slate-850 border border-slate-700 rounded-md px-2.5 py-1.5 text-xs text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="500">Escala 1:500 (Zoom 20)</option>
-                        <option value="1000" selected>Escala 1:1000 (Zoom 19)</option>
-                        <option value="2000">Escala 1:2000 (Zoom 18)</option>
-                        <option value="5000">Escala 1:5000 (Zoom 16)</option>
+                        <option value="500">Escala 1:500</option>
+                        <option value="750">Escala 1:750</option> <!-- Agregada escala 1:750 -->
+                        <option value="1000" selected>Escala 1:1000</option>
+                        <option value="1250">Escala 1:1250</option> <!-- Agregada escala 1:1250 -->
+                        <option value="2000">Escala 1:2000</option>
+                        <option value="5000">Escala 1:5000</option>
                     </select>
                 </div>
                 <div class="pt-1">
                     <button class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs py-2 rounded-md transition shadow flex items-center justify-center gap-2" onclick="prepararImpresion()">
                         <span>🔍 Generar Previa de Impresión</span>
                     </button>
-                    <p class="text-[9px] text-slate-400 mt-2 text-center">Requiere haber buscado previamente una Partida Municipal (PM).</p>
+                    <p class="text-[9px] text-slate-400 mt-2 text-center">La impresión se generará sobre fondo claro para optimizar la legibilidad y el ahorro de tinta.</p>
                 </div>
             </div>
         </div>
@@ -272,16 +307,12 @@
                 <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide">Mapa Base</span>
                 <div class="space-y-1.5">
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
-                        <input type="radio" name="basemap" value="dark" checked onchange="cambiarBaseMap('dark')" class="bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
-                        <span>Mapa Oscuro</span>
+                        <input type="radio" name="basemap" value="osm" checked onchange="cambiarBaseMap('osm')" class="bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
+                        <span>OpenStreetMap</span>
                     </label>
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
                         <input type="radio" name="basemap" value="hibrido" onchange="cambiarBaseMap('hibrido')" class="bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
                         <span>Híbrido (Satelital)</span>
-                    </label>
-                    <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
-                        <input type="radio" name="basemap" value="osm" onchange="cambiarBaseMap('osm')" class="bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
-                        <span>OpenStreetMap</span>
                     </label>
                 </div>
             </div>
@@ -307,7 +338,7 @@
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
                         <input type="checkbox" id="chk-parcelas" checked onchange="toggleOverlay('parcelas')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
                         <span class="flex items-center gap-2">
-                            <span class="w-3.5 h-3.5 rounded bg-[#2980b9] inline-block"></span>
+                            <span class="w-3.5 h-3.5 rounded bg-[#0284c7] inline-block"></span>
                             <span>Parcelas Catastrales</span>
                         </span>
                     </label>
@@ -340,7 +371,7 @@
         <div class="font-extrabold text-sm text-yellow-400 flex items-center gap-1.5 justify-center sm:justify-start">
             <span>⚙️ MODO PREVIA DE IMPRESIÓN (A4 APAISADO)</span>
         </div>
-        <p class="text-[11px] text-slate-400 mt-0.5">El plano se encuentra centrado en la Manzana contenedora. Puede arrastrar el mapa para ajustar el encuadre final.</p>
+        <p class="text-[11px] text-slate-400 mt-0.5">El plano está centrado en la Manzana. Los datos tabulares de la parcela han sido desplazados a la Página 2 para liberar el plano.</p>
     </div>
     <div class="flex gap-2">
         <button class="bg-blue-600 hover:bg-blue-500 font-bold text-xs py-2 px-4 rounded-lg transition-colors flex items-center gap-1" onclick="ejecutarImpresion()">
@@ -353,31 +384,31 @@
 </div>
 
 <!-- MODIFICACIÓN: Capa física y estructurada del marco de impresión de la Página 1 (Visible únicamente en Impresión / Previa) -->
-<div id="print-container-p1" class="hidden absolute top-0 left-0 w-[297mm] h-[210mm] bg-white border border-slate-300 pointer-events-none z-[500] p-[10mm]">
+<div id="print-container-p1" class="hidden absolute top-0 left-0 w-[297mm] h-[210mm] bg-white border border-slate-300 pointer-events-none z-[500] p-[6mm]"> <!-- Reducido padding para maximizar dibujo -->
     <!-- Encabezado Oficial -->
-    <div class="flex justify-between items-center border-b-2 border-slate-900 pb-3 mb-2">
+    <div class="flex justify-between items-center border-b-2 border-slate-900 pb-1.5 mb-1.5"> <!-- Espaciado vertical optimizado -->
         <div>
-            <h1 class="font-black text-slate-900 text-lg uppercase tracking-wide">POSICIÓN GEOREFERENCIADA</h1>
-            <p class="text-[11px] text-slate-600 font-bold uppercase">MUNICIPALIDAD DE PARANÁ — DIRECCIÓN DE CARTOGRAFÍA Y DATOS ESPACIALES</p>
+            <h1 class="font-black text-slate-900 text-base uppercase tracking-wide">POSICIÓN GEOREFERENCIADA</h1>
+            <p class="text-[10px] text-slate-600 font-bold uppercase">MUNICIPALIDAD DE PARANÁ — DIRECCIÓN DE CARTOGRAFÍA Y DATOS ESPACIALES</p>
         </div>
         <div class="text-right">
-            <div class="bg-slate-900 text-white font-black text-xs px-3 py-1.5 rounded uppercase tracking-wider">
+            <div class="bg-slate-900 text-white font-black text-xs px-3 py-1 rounded uppercase tracking-wider">
                 Partida Nº: <span id="print-partida-val">000000</span>
             </div>
-            <p class="text-[9px] text-slate-500 mt-1 font-semibold">Plano de Manzana — Centro de Manzanas</p>
+            <p class="text-[8px] text-slate-500 mt-0.5 font-semibold">Plano de Manzana — Centro de Manzanas</p>
         </div>
     </div>
 
-    <!-- MODIFICACIÓN: Contenedor del mapa integrado físicamente en el flujo del documento para garantizar una correcta escala y renderizado -->
-    <div id="map-print-container" class="relative w-full h-[142mm] border-2 border-slate-900 my-2 pointer-events-auto bg-slate-100">
+    <!-- Contenedor del mapa integrado físicamente con mayor altura útil (155mm óptimo para A4 vertical) -->
+    <div id="map-print-container" class="relative w-full h-[155mm] border-2 border-slate-900 my-1 pointer-events-auto bg-slate-100">
         <!-- El div #map se moverá dinámicamente aquí en modo impresión/previsualización -->
     </div>
 
     <!-- Elementos técnicos del plano: Norte, Escala Gráfica y Escala Numérica -->
-    <div class="absolute bottom-[15mm] left-[15mm] z-[50] flex items-center gap-5 bg-white/90 backdrop-blur p-3.5 border border-slate-900 rounded shadow-md pointer-events-auto">
+    <div class="absolute bottom-[10mm] left-[10mm] z-[50] flex items-center gap-4 bg-white/95 backdrop-blur p-2.5 border border-slate-900 rounded shadow-md pointer-events-auto"> <!-- Reposicionado para optimizar el dibujo expandido -->
         <!-- Rosa de los vientos / Norte Vectorial Elegante -->
         <div class="flex flex-col items-center">
-            <svg class="w-10 h-10 text-slate-900" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg class="w-8 h-8 text-slate-900" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="50" cy="50" r="45" stroke="currentColor" stroke-width="2"/>
                 <path d="M50 5 L55 45 L50 40 L45 45 Z" fill="currentColor"/>
                 <path d="M50 95 L55 55 L50 60 L45 55 Z" fill="#94a3b8"/>
@@ -388,8 +419,8 @@
         </div>
         
         <!-- Escala Numérica y Gráfica Dinámica -->
-        <div class="flex flex-col justify-center border-l border-slate-300 pl-4 h-full">
-            <div class="text-[11px] font-black text-slate-900 tracking-wider mb-1 uppercase">
+        <div class="flex flex-col justify-center border-l border-slate-300 pl-3 h-full">
+            <div class="text-[10px] font-black text-slate-900 tracking-wider mb-0.5 uppercase">
                 Escala <span id="print-escala-numerica">1:1000</span>
             </div>
             <!-- Escala Gráfica Estilizada -->
@@ -400,7 +431,7 @@
                         <span id="print-escala-mid">25m</span>
                         <span id="print-escala-max">50m</span>
                     </div>
-                    <div class="flex h-2 border border-slate-900" style="width: 140px;">
+                    <div class="flex h-1.5 border border-slate-900" style="width: 130px;">
                         <div class="w-1/2 bg-slate-900"></div>
                         <div class="w-1/2 bg-white"></div>
                     </div>
@@ -410,7 +441,7 @@
     </div>
 
     <!-- Pie de página con advertencia legal -->
-    <div class="absolute bottom-[10mm] right-[10mm] text-right text-[8px] text-slate-500 max-w-[120mm] leading-tight border-t border-slate-300 pt-2 pointer-events-auto">
+    <div class="absolute bottom-[6mm] right-[6mm] text-right text-[7px] text-slate-500 max-w-[120mm] leading-tight border-t border-slate-300 pt-1 pointer-events-auto">
         Límites y trazados indicativos (Ord. 8563). La información espacial presentada no constituye certificado de mensura ni título de propiedad.
     </div>
 </div>
@@ -466,6 +497,13 @@
     <div class="text-[9px] text-slate-500">IDE Paraná - Límites indicativos (Ord. 8563). Zoom Máx: 22.</div>
     <div class="text-[8px] text-slate-400 font-semibold mt-0.5">Elaborado por Dirección de Cartografía y Datos Espaciales</div>
 </div>
+
+<!-- MODIFICACIÓN: Toast de Notificaciones estilizado e integrado para evitar el uso de alert() nativos -->
+<div id="custom-toast" class="hidden fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-slate-900/95 border border-slate-700 text-slate-100 px-4 py-3 rounded-xl shadow-2xl z-[9999] flex items-center gap-3 transition-all duration-300 opacity-0">
+    <span id="toast-icon" class="text-base">⚠️</span>
+    <span id="toast-message" class="text-xs font-bold leading-none"></span>
+</div>
+
 <div id="map"></div>
 
 <script>
@@ -537,22 +575,24 @@ async function fetchGeoJSON(url) {
     return JSON.parse(text);
 }
 
-// Inicio del mapa en Zoom 12 (vista completa de la ciudad)
+// MODIFICACIÓN: Configurado Leaflet con zoomSnap: 0.1 para permitir zooms e intervalos de escala fraccionales exactos
 var map = L.map('map', { 
     center: [-31.745, -60.51], 
     zoom: 12, 
     zoomControl: true,
-    maxZoom: 22
+    maxZoom: 22,
+    zoomSnap: 0.1,
+    zoomDelta: 0.5
 });
 
-// Creación explícita de paneles ordenados por Z-Index
+// Creación de paneles
 map.createPane('manzanasPane');
-map.getPane('manzanasPane').style.zIndex = 300; // Capa inferior de fondo
-map.getPane('manzanasPane').style.pointerEvents = 'none'; // Clics pasan de largo
+map.getPane('manzanasPane').style.zIndex = 300;
+map.getPane('manzanasPane').style.pointerEvents = 'none';
 
 map.createPane('parcelasPane');
-map.getPane('parcelasPane').style.zIndex = 350; // Capa superior
-map.getPane('parcelasPane').style.pointerEvents = 'auto'; // Captura clics
+map.getPane('parcelasPane').style.zIndex = 350;
+map.getPane('parcelasPane').style.pointerEvents = 'auto';
 
 var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 22, maxNativeZoom: 19 });
 var dark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 22, maxNativeZoom: 20 });
@@ -560,7 +600,33 @@ var sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Worl
 var ref = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}', { maxZoom: 22, maxNativeZoom: 18 });
 var hibrido = L.layerGroup([sat, ref]);
 
-dark.addTo(map);
+// Establecer OpenStreetMap por defecto
+osm.addTo(map);
+
+// MODIFICACIÓN: Función de notificación Toast no obstructiva para reemplazar alert() en iFrames
+function mostrarNotificacion(mensaje, icono = "⚠️") {
+    const toast = document.getElementById('custom-toast');
+    const toastMsg = document.getElementById('toast-message');
+    const toastIcon = document.getElementById('toast-icon');
+    
+    toastMsg.innerText = mensaje;
+    toastIcon.innerText = icono;
+    
+    toast.classList.remove('hidden');
+    // Forzar reflow para animación Tailwind
+    toast.offsetHeight;
+    
+    toast.classList.remove('opacity-0');
+    toast.classList.add('opacity-100');
+    
+    setTimeout(() => {
+        toast.classList.remove('opacity-100');
+        toast.classList.add('opacity-0');
+        setTimeout(() => {
+            toast.classList.add('hidden');
+        }, 300);
+    }, 4500);
+}
 
 // Calles cargadas asíncronamente
 var grupoCalles = L.layerGroup();
@@ -588,8 +654,6 @@ function activarEtiquetasCalles() {
     const renderLabels = () => {
         let z = map.getZoom();
         const activeOnMap = map.hasLayer(grupoCalles);
-
-        // Registro local para de-duplicación espacial de nombres de calle idénticos en el viewport
         let etiquetasColocadas = {}; 
 
         grupoCalles.eachLayer(geoJsonGroup => {
@@ -603,8 +667,6 @@ function activarEtiquetasCalles() {
                         try {
                             if (map.getBounds().intersects(ly.getBounds())) {
                                 let nombreCalle = decodificarTexto(ly.feature.properties.nombre).toUpperCase();
-
-                                // Cálculo de longitud real de segmento en metros para descartar polilíneas enanas
                                 let latlngs = ly.getLatLngs();
                                 if (Array.isArray(latlngs[0])) latlngs = latlngs.flat(2);
                                 
@@ -615,12 +677,9 @@ function activarEtiquetasCalles() {
                                     }
                                 }
 
-                                // Ignorar tramos menores a 70 metros para evitar acumulación redundante en las esquinas
                                 if (largoMetros < 70) return;
-
                                 let centro = ly.getBounds().getCenter();
 
-                                // Validación espacial de proximidad. No dibuja si hay otra etiqueta igual a menos de 200 metros
                                 let duplicadoCercano = false;
                                 if (etiquetasColocadas[nombreCalle]) {
                                     for (let pt of etiquetasColocadas[nombreCalle]) {
@@ -643,10 +702,10 @@ function activarEtiquetasCalles() {
                                         orientation: 'flip',
                                         offset: 0,
                                         attributes: { 
-                                            fill: '#FFFF00', 
+                                            fill: '#F59E0B', 
                                             'font-weight': 'bold', 
                                             'font-size': z >= 18 ? '13' : '10',
-                                            'stroke': 'black', 
+                                            'stroke': 'white', 
                                             'stroke-width': '2px', 
                                             'paint-order': 'stroke'
                                         }
@@ -673,7 +732,6 @@ function activarEtiquetasCalles() {
 // Capa de Manzanas
 var grupoManzanas = L.layerGroup().addTo(map);
 var grupoEtiquetasManzanas = L.layerGroup(); 
-// MODIFICACIÓN: Almacén de objetos de Manzanas para indexación geométrica espacial rápida
 var manzanasLayers = [];
 
 fetchGeoJSON(BASE_URL + "catastro/manzana.geojson").then(data => {
@@ -690,7 +748,6 @@ fetchGeoJSON(BASE_URL + "catastro/manzana.geojson").then(data => {
             interactive: false 
         },
         onEachFeature: (f, l) => {
-            // MODIFICACIÓN: Almacenar quirúrgicamente la manzana en nuestro array global
             manzanasLayers.push(l);
 
             let propNum = "";
@@ -727,20 +784,17 @@ fetchGeoJSON(BASE_URL + "catastro/manzana.geojson").then(data => {
     console.error("Error al cargar la capa de manzanas:", err);
 });
 
-// Capa de Parcelas (Totalmente Restituida)
+// Capa de Parcelas
 var grupoParcelas = L.layerGroup();
 var parcelasLayers = [];
-
-// MODIFICACIÓN: Lista global e indexada para la búsqueda predictiva case-insensitive de ubicaciones (UBIPAR1 / calle y altura)
 var listaParcelasUbicacion = [];
-
-// MODIFICACIÓN: Variables globales de impresión para no interferir en las variables de control estándar
 var partidaSeleccionadaImpresion = null;
 var propiedadesUltimaParcelaBuscada = null;
 var highlightLayer = null;
-var centroManzanaActual = null; // Almacenador del baricentro de manzana para la escala de impresión
+var centroManzanaActual = null; 
+var parcelLabelLayer = null; 
+var dimensionLabelsGroup = null; 
 
-// MODIFICACIÓN: Función de aplanamiento recursivo robusta para geometrías anidadas de polígonos/multipolígonos
 function obtenerLatLngsPlanos(latlngs) {
     if (!Array.isArray(latlngs)) return [];
     if (latlngs[0] && typeof latlngs[0].lat === 'number') {
@@ -791,9 +845,16 @@ archivosCatastro.forEach(file => {
 
         let ly = L.geoJSON(featuresProcesadas, {
             pane: 'parcelasPane', 
-            style: f => ({ color: f.properties.esPH ? "#8e44ad" : "#2980b9", weight: 0.7, fillOpacity: 0.12 }),
+            style: f => ({ 
+                color: f.properties.esPH ? "#7c3aed" : "#0284c7", 
+                weight: 1.2, 
+                fillColor: f.properties.esPH ? "#7c3aed" : "#0284c7", 
+                fillOpacity: 0.15 
+            }),
             onEachFeature: (f, l) => {
                 l.on('click', e => {
+                    if (document.body.classList.contains('print-active')) return;
+
                     let latlng = e.latlng || l.getBounds().getCenter();
                     let p = f.properties;
                     let sv = `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${latlng.lat},${latlng.lng}`;
@@ -816,7 +877,6 @@ archivosCatastro.forEach(file => {
                     l.bindPopup(content, { autoPanPadding: L.point(10, 110) }).openPopup(latlng);
                 });
 
-                // MODIFICACIÓN: Alimentamos quirúrgicamente la lista global para búsqueda predictiva por UBIPAR1
                 if (f.properties.ubicacion && f.properties.ubicacion !== "-" && f.properties.ubicacion.trim() !== "") {
                     let ubiClean = decodificarTexto(f.properties.ubicacion).toUpperCase().trim();
                     listaParcelasUbicacion.push({
@@ -833,13 +893,10 @@ archivosCatastro.forEach(file => {
     });
 });
 
-// MODIFICACIÓN: Gestión unificada de visibilidad dinámica sincronizada con el nuevo panel de capas del menú lateral
 function controlarVisibilidadDinamica() {
     let zoomActual = map.getZoom();
-    
-    document.getElementById('zoom-indicator').innerText = zoomActual;
+    document.getElementById('zoom-indicator').innerText = zoomActual.toFixed(1);
 
-    // 1. Visibilidad de Manzanas y etiquetas
     const chkManzanas = document.getElementById('chk-manzanas').checked;
     if (chkManzanas) {
         if (!map.hasLayer(grupoManzanas)) {
@@ -859,7 +916,6 @@ function controlarVisibilidadDinamica() {
         if (map.hasLayer(grupoEtiquetasManzanas)) map.removeLayer(grupoEtiquetasManzanas);
     }
 
-    // 2. Visibilidad de Calles (Zoom >= 15)
     const chkCalles = document.getElementById('chk-calles').checked;
     if (chkCalles && zoomActual >= 15) {
         if (!map.hasLayer(grupoCalles)) {
@@ -871,7 +927,6 @@ function controlarVisibilidadDinamica() {
         }
     }
 
-    // 3. Visibilidad de Parcelas Catastrales (Zoom >= 16)
     const chkParcelas = document.getElementById('chk-parcelas').checked;
     if (chkParcelas && zoomActual >= 16) {
         if (!map.hasLayer(grupoParcelas)) {
@@ -887,39 +942,30 @@ function controlarVisibilidadDinamica() {
 map.on('zoomend', controlarVisibilidadDinamica);
 map.on('layeradd layerremove', controlarVisibilidadDinamica); 
 
-/* ================= CONTROLES Y BÚSQUEDA DEL MENÚ LATERAL ================= */
-
-// MODIFICACIÓN: Alternar visualización del menú lateral con transiciones fluidas de Tailwind CSS
-function toggleSidebar() {
-    const sidebar = document.getElementById('sidebar');
-    const toggleIcon = document.getElementById('toggle-icon');
-
-    if (sidebar.classList.contains('-translate-x-full')) {
-        sidebar.classList.remove('-translate-x-full');
-        toggleIcon.classList.remove('rotate-180');
-    } else {
-        sidebar.classList.add('-translate-x-full');
-        toggleIcon.classList.add('rotate-180');
-    }
-}
-
-// MODIFICACIÓN: Gestión dinámica de mapas base mediante los radios del menú lateral
 function cambiarBaseMap(tipo) {
     map.removeLayer(dark);
     map.removeLayer(hibrido);
     map.removeLayer(osm);
     
-    if (tipo === 'dark') dark.addTo(map);
     if (tipo === 'hibrido') hibrido.addTo(map);
     if (tipo === 'osm') osm.addTo(map);
 }
 
-// MODIFICACIÓN: Alternador para el control manual de checkboxes de las capas vectoriales
 function toggleOverlay(capa) {
     controlarVisibilidadDinamica();
 }
 
-// MODIFICACIÓN: Búsqueda de Partida Municipal con destacado de parcela y centrado estricto de la Manzana contenedora
+function obtenerPuntosContorno(geom) {
+    let pts = [];
+    if (!geom) return pts;
+    if (geom.type === "Polygon") {
+        pts = geom.coordinates[0].map(c => L.latLng(c[1], c[0]));
+    } else if (geom.type === "MultiPolygon") {
+        pts = geom.coordinates[0][0].map(c => L.latLng(c[1], c[0]));
+    }
+    return pts;
+}
+
 function buscarPM(dispararPopup = true) {
     let val = document.getElementById('input-pm').value.trim();
     if (!val) return;
@@ -932,32 +978,68 @@ function buscarPM(dispararPopup = true) {
                 partidaSeleccionadaImpresion = val;
                 propiedadesUltimaParcelaBuscada = l.feature.properties;
 
-                // Destacar quirúrgicamente la parcela con una capa de destacado dinámico
                 if (highlightLayer) {
                     map.removeLayer(highlightLayer);
                 }
                 highlightLayer = L.geoJSON(l.feature, {
                     style: {
-                        color: "#fbbf24", // Amarillo vivo
-                        weight: 4.5,
-                        dashArray: "4, 6",
-                        fillColor: "#3b82f6",
-                        fillOpacity: 0.35
+                        color: "#d97706", 
+                        weight: 4,
+                        dashArray: "1, 5",
+                        fillColor: "#0284c7",
+                        fillOpacity: 0.25
                     },
                     interactive: false
                 }).addTo(map);
 
-                // Forzar que la capa de parcelas esté visible
+                if (parcelLabelLayer) {
+                    map.removeLayer(parcelLabelLayer);
+                }
+                let centroParcela = l.getBounds().getCenter();
+                let labelIcon = L.divIcon({
+                    className: 'custom-parcel-label-icon',
+                    html: `<div class="bg-amber-600 text-white font-extrabold text-[10px] px-2 py-0.5 rounded shadow-md border border-white whitespace-nowrap uppercase tracking-wider">Partida: ${val}</div>`,
+                    iconSize: [0, 0],
+                    iconAnchor: [45, 25] 
+                });
+                parcelLabelLayer = L.marker(centroParcela, { icon: labelIcon, interactive: false }).addTo(map);
+
+                if (dimensionLabelsGroup) {
+                    map.removeLayer(dimensionLabelsGroup);
+                }
+                dimensionLabelsGroup = L.layerGroup().addTo(map);
+                
+                let contornoPts = obtenerPuntosContorno(l.feature.geometry);
+                if (contornoPts.length > 2) {
+                    for (let i = 0; i < contornoPts.length - 1; i++) {
+                        let p1 = contornoPts[i];
+                        let p2 = contornoPts[i+1];
+                        let distSegmento = p1.distanceTo(p2);
+                        
+                        if (distSegmento > 1.5) {
+                            let midLat = (p1.lat + p2.lat) / 2;
+                            let midLng = (p1.lng + p2.lng) / 2;
+                            
+                            let dimIcon = L.divIcon({
+                                className: 'dimension-label-container',
+                                html: `<div class="dimension-label">${distSegmento.toFixed(1)}m</div>`,
+                                iconSize: [0, 0],
+                                iconAnchor: [15, 6]
+                            });
+                            
+                            L.marker([midLat, midLng], { icon: dimIcon, interactive: false }).addTo(dimensionLabelsGroup);
+                        }
+                    }
+                }
+
                 document.getElementById('chk-parcelas').checked = true;
                 controlarVisibilidadDinamica();
 
-                // Buscar la Manzana que encierra o está más próxima geométricamente al centro de la parcela
                 let centerPoint = l.getBounds().getCenter();
                 let manzanaContenedora = null;
 
                 for (let mza of manzanasLayers) {
                     let latlngs = mza.getLatLngs();
-                    // MODIFICACIÓN: Utilizar función robusta de aplanado de coordenadas para evitar errores de tipo
                     let pts = obtenerLatLngsPlanos(latlngs);
                     if (pts.length === 0) continue;
                     
@@ -968,7 +1050,6 @@ function buscarPM(dispararPopup = true) {
                     }
                 }
 
-                // Fallback: Si no intersecta exactamente, busca la manzana con centro más cercano
                 if (!manzanaContenedora && manzanasLayers.length > 0) {
                     let minDist = Infinity;
                     manzanasLayers.forEach(mza => {
@@ -980,7 +1061,6 @@ function buscarPM(dispararPopup = true) {
                     });
                 }
 
-                // Centrar la pantalla estrictamente en la Manzana contenedora para el cálculo de centro de manzanas
                 if (manzanaContenedora) {
                     centroManzanaActual = manzanaContenedora.getBounds().getCenter();
                     map.fitBounds(manzanaContenedora.getBounds(), { padding: [40, 40] });
@@ -989,7 +1069,7 @@ function buscarPM(dispararPopup = true) {
                     map.fitBounds(l.getBounds(), { maxZoom: 19 });
                 }
 
-                if (dispararPopup) {
+                if (dispararPopup && !document.body.classList.contains('print-active')) {
                     l.fire('click');
                 }
             }
@@ -997,26 +1077,24 @@ function buscarPM(dispararPopup = true) {
     });
 
     if (!encontrado) {
-        alert("La partida municipal ingresada no pudo ser localizada.");
+        // MODIFICACIÓN: Reemplazo de alerta del navegador por notificación integrada no intrusiva
+        mostrarNotificacion("La partida municipal ingresada no pudo ser localizada.");
     }
 }
 
-// MODIFICACIÓN: Buscador predictivo case-insensitive y basado en prefijos/subcadenas para UBIPAR1
 function buscarPredictivoUbicacion(query) {
     if (!query || query.length < 3) return [];
     let cleanQuery = query.toUpperCase().trim();
     let matches = [];
 
-    // Priorizamos coincidencias de prefijo
     for (let i = 0; i < listaParcelasUbicacion.length; i++) {
         let item = listaParcelasUbicacion[i];
         if (item.texto.startsWith(cleanQuery)) {
             matches.push(item);
-            if (matches.length >= 10) break; // Límite sugerencias
+            if (matches.length >= 10) break; 
         }
     }
 
-    // Si aún hay espacio, rellenamos con coincidencias de subcadena
     if (matches.length < 10) {
         for (let i = 0; i < listaParcelasUbicacion.length; i++) {
             let item = listaParcelasUbicacion[i];
@@ -1029,7 +1107,6 @@ function buscarPredictivoUbicacion(query) {
     return matches;
 }
 
-// MODIFICACIÓN: Vinculador de interacciones de autocompletado con el campo de entrada
 function configurarBuscadorUbicaciones() {
     const input = document.getElementById('input-ubicacion');
     const sug = document.getElementById('sugerencias-ubicacion');
@@ -1046,8 +1123,6 @@ function configurarBuscadorUbicaciones() {
 
         if (matches.length > 0) {
             sug.style.display = 'block';
-            
-            // Eliminar duplicados textuales de sugerencia para mejor UI/UX
             let textosAgregados = new Set();
 
             matches.forEach(m => {
@@ -1061,7 +1136,6 @@ function configurarBuscadorUbicaciones() {
                         sug.style.display = 'none';
                         
                         if (m.layer) {
-                            // Extraer partidas de la capa para vincularlas directamente a la lógica de impresión
                             let pms = m.layer.feature.properties.partidas;
                             if (pms && pms.length > 0) {
                                 document.getElementById('input-pm').value = pms[0];
@@ -1080,7 +1154,6 @@ function configurarBuscadorUbicaciones() {
         }
     });
 
-    // Cerrar sugerencias al cliquear afuera
     document.addEventListener('click', (e) => {
         if (e.target !== input && e.target !== sug) {
             sug.style.display = 'none';
@@ -1102,28 +1175,37 @@ function buscarGoogle() {
         });
 }
 
-/* ================= MODIFICACIÓN: UTILIDADES DEL SISTEMA DE IMPRESIÓN SINCRO-A4 ================= */
+/* ================= UTILIDADES DEL SISTEMA DE IMPRESIÓN SINCRO-A4 ================= */
 
-// MODIFICACIÓN: Prepara la UI para impresión catastral, aplicando la escala seleccionada y maquetando las páginas
 function prepararImpresion() {
     if (!partidaSeleccionadaImpresion || !propiedadesUltimaParcelaBuscada) {
-        alert("Debe realizar primero la búsqueda de una Partida Municipal (PM) para generar el plano de manzana.");
+        // MODIFICACIÓN: Reemplazo de alerta del navegador por notificación integrada no intrusiva
+        mostrarNotificacion("Realice la búsqueda de una Partida Municipal (PM) antes de imprimir.", "ℹ️");
         return;
     }
 
-    // Configuración estricta de la escala métrica normalizada elegida en el combo
+    map.closePopup();
+
     const escalaValue = document.getElementById('select-print-scale').value;
-    let targetZoom = 19; // Default 1:1000
+    let targetZoom = 19; 
     let textMid = "25m", textMax = "50m";
 
     if (escalaValue === "500") {
         targetZoom = 20;
         textMid = "12.5m";
         textMax = "25m";
+    } else if (escalaValue === "750") {
+        targetZoom = 19.4;
+        textMid = "18.75m";
+        textMax = "37.5m";
     } else if (escalaValue === "1000") {
         targetZoom = 19;
         textMid = "25m";
         textMax = "50m";
+    } else if (escalaValue === "1250") {
+        targetZoom = 18.65;
+        textMid = "31.25m";
+        textMax = "62.5m";
     } else if (escalaValue === "2000") {
         targetZoom = 18;
         textMid = "50m";
@@ -1134,24 +1216,20 @@ function prepararImpresion() {
         textMax = "250m";
     }
 
-    // Aseguramos que la capa de parcelas esté visible para renderizarse en el plano impreso
     document.getElementById('chk-parcelas').checked = true;
     document.getElementById('chk-manzanas').checked = true;
     document.getElementById('chk-calles').checked = true;
     controlarVisibilidadDinamica();
 
-    // Actualizar leyendas e indicadores de escala de la Página 1 de Impresión
     document.getElementById('print-partida-val').innerText = partidaSeleccionadaImpresion;
     document.getElementById('print-escala-numerica').innerText = `1:${escalaValue}`;
     document.getElementById('print-escala-mid').innerText = textMid;
     document.getElementById('print-escala-max').innerText = textMax;
 
-    // Actualizar Página 2 de Impresión: Grilla de Atributos catastrales de la parcela
     document.getElementById('print-partida-val-p2').innerText = partidaSeleccionadaImpresion;
     const gridContainer = document.getElementById('print-report-grid');
     gridContainer.innerHTML = '';
 
-    // Extraer y formatear quirúrgicamente todas las propiedades de la parcela
     const fullProps = propiedadesUltimaParcelaBuscada.full || {};
     let fieldsCount = 0;
 
@@ -1168,7 +1246,6 @@ function prepararImpresion() {
         }
     }
 
-    // Si es PH catastral, agregar un aviso de PH con sus partidas vinculadas
     if (propiedadesUltimaParcelaBuscada.esPH) {
         let phDiv = document.createElement('div');
         phDiv.className = "col-span-2 bg-purple-50 border border-purple-200 text-purple-900 p-3 rounded mt-2 font-bold";
@@ -1176,18 +1253,15 @@ function prepararImpresion() {
         gridContainer.appendChild(phDiv);
     }
 
-    // MODIFICACIÓN: Mover de forma segura el nodo del mapa al contenedor de impresión para evitar desalineaciones de viewport
     const mapElement = document.getElementById('map');
     const printContainer = document.getElementById('map-print-container');
     printContainer.appendChild(mapElement);
 
-    // Activar los contenedores del marco de impresión
     document.body.classList.add('print-active');
     document.getElementById('print-container-p1').classList.remove('hidden');
     document.getElementById('print-container-p2').classList.remove('hidden');
     document.getElementById('previa-print-bar').classList.remove('hidden');
 
-    // Forzar redibujado instantáneo de Leaflet y centrar en la manzana con el zoom de escala correspondiente
     setTimeout(() => {
         map.invalidateSize();
         if (centroManzanaActual) {
@@ -1196,12 +1270,10 @@ function prepararImpresion() {
     }, 100);
 }
 
-// MODIFICACIÓN: Lanza el comando de impresión del navegador para las páginas maquetadas
 function ejecutarImpresion() {
     window.print();
 }
 
-// MODIFICACIÓN: Desactiva el modo previa de impresión y restaura el estado natural del visor (devolviendo el mapa al body)
 function cancelarImpresion() {
     const mapElement = document.getElementById('map');
     document.body.appendChild(mapElement);
