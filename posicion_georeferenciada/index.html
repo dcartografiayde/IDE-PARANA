@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VISOR URBANIZACIONES - MUNICIPALIDAD DE PARANA</title>
 
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <link class="leaflet-css" rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/leaflet-textpath@1.2.3/leaflet.textpath.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -212,17 +212,16 @@
             display: none !important;
         }
 
-        /* Estilos personalizados para las etiquetas de dimensiones aproximadas de los lotes */
+        /* MODIFICACIÓN: Estilos personalizados optimizados para eliminar los cuadros blancos de las dimensiones del lote, dejando texto limpio y legible */
         .dimension-label {
-            background: rgba(255, 255, 255, 0.9);
-            border: 1px solid #475569;
-            border-radius: 3px;
+            background: transparent !important;
+            border: none !important;
             color: #1e293b;
-            font-size: 8px !important;
+            font-size: 8.5px !important;
             font-weight: 800 !important;
-            padding: 1px 3px;
-            text-align: center;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff; /* Borde blanco sutil para excelente legibilidad */
+            padding: 0px !important;
+            box-shadow: none !important;
             pointer-events: none !important;
         }
     </style>
@@ -342,6 +341,14 @@
                             <span>Parcelas Catastrales</span>
                         </span>
                     </label>
+                    <!-- MODIFICACIÓN: Agregado control interactivo para habilitar/deshabilitar la Línea de Frente Interno de forma manual en el visor -->
+                    <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
+                        <input type="checkbox" id="chk-lfi" checked onchange="toggleOverlay('lfi')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
+                        <span class="flex items-center gap-2">
+                            <span class="w-3.5 h-1 border-b-2 border-dashed border-[#dc2626] inline-block"></span>
+                            <span>Líneas de Frente Interno (Ord. 8563)</span>
+                        </span>
+                    </label>
                 </div>
             </div>
         </div>
@@ -440,15 +447,15 @@
         </div>
     </div>
 
-    <!-- Pie de página con advertencia legal -->
-    <div class="absolute bottom-[6mm] right-[6mm] text-right text-[7px] text-slate-500 max-w-[120mm] leading-tight border-t border-slate-300 pt-1 pointer-events-auto">
-        Límites y trazados indicativos (Ord. 8563). La información espacial presentada no constituye certificado de mensura ni título de propiedad.
+    <!-- MODIFICACIÓN: Leyenda catastral y aviso legal corregido que contiene el texto de advertencia obligatorio solicitado -->
+    <div class="absolute bottom-[6mm] right-[6mm] text-right text-[6.5px] text-slate-500 max-w-[155mm] leading-tight border-t border-slate-300 pt-1 pointer-events-auto">
+        Límites y trazados indicativos (Ord. 8563). Las medidas del lote son aproximadas y calculadas según la representación gráfica de la parcela, no representan las medidas de la mensura del lote y no pueden usarse para el cálculo exacto del centro de manzana.
     </div>
 </div>
 
 <!-- MODIFICACIÓN: Capa física del Reporte de la Página 2 (Visible únicamente en Impresión / Previa) -->
 <div id="print-container-p2" class="hidden absolute top-[210mm] left-0 w-[297mm] h-[210mm] bg-white border border-slate-300 z-[500] p-[15mm]">
-    <div class="flex justify-between items-center border-b-2 border-slate-900 pb-3 mb-6">
+    <div class="flex justify-between items-center border-b-2 border-slate-900 pb-3 mb-4">
         <div>
             <h1 class="font-black text-slate-900 text-lg uppercase tracking-wide">REPORTE CATASTRAL DE PARCELA</h1>
             <p class="text-[11px] text-slate-600 font-bold uppercase">MUNICIPALIDAD DE PARANÁ — DIRECCIÓN DE CARTOGRAFÍA Y DATOS ESPACIALES</p>
@@ -460,12 +467,26 @@
         </div>
     </div>
 
-    <div class="mb-6">
-        <h3 class="text-xs font-black text-slate-800 uppercase tracking-widest border-b border-slate-300 pb-1 mb-3">Atributos y datos parcelarios</h3>
-        
-        <!-- Tabla Dinámica en Grilla limpia de 2 columnas para el reporte catastral de la parcela -->
-        <div id="print-report-grid" class="grid grid-cols-2 gap-x-6 gap-y-2 text-[10px] text-slate-800">
-            <!-- Rellenado dinámicamente mediante javascript -->
+    <!-- Contenido Técnico del Reporte -->
+    <div class="grid grid-cols-5 gap-6">
+        <!-- Columna de Atributos (Ancho: 3/5) -->
+        <div class="col-span-3">
+            <h3 class="text-xs font-black text-slate-800 uppercase tracking-widest border-b border-slate-300 pb-1 mb-2">Atributos y datos parcelarios</h3>
+            <div id="print-report-grid" class="grid grid-cols-2 gap-x-4 gap-y-1.5 text-[9px] text-slate-800">
+                <!-- Rellenado dinámicamente mediante javascript -->
+            </div>
+        </div>
+
+        <!-- MODIFICACIÓN: Marco de Interpretación Técnica del Artículo 139° de la Ordenanza 8563 sobre Centro de Manzana (Ancho: 2/5) -->
+        <div class="col-span-2 bg-slate-50 border-l-4 border-red-500 p-3 rounded shadow-sm">
+            <h3 class="text-[10px] font-black text-red-700 uppercase tracking-widest mb-1.5 flex items-center gap-1">
+                <span>📋 DELIMITACIÓN DE CENTRO DE MANZANA</span>
+            </h3>
+            <p class="text-[8px] text-slate-700 leading-relaxed space-y-1">
+                <span class="block"><strong>Línea de Frente Interno (Art. 139° Ord. 8563):</strong> La delimitación técnica del centro de manzana se realiza a través de la Línea de Frente Interno (L.F.I.), que actúa como traza del plano que limita la edificación permitida para preservar el espacio libre de manzana.</span>
+                <span class="block mt-1"><strong>Método de Trazado:</strong> Esta línea se traza técnicamente uniendo los tercios centrales de los lados opuestos de la manzana. La superficie comprendida por estas líneas delimita el centro de la manzana.</span>
+                <span class="block mt-1"><strong>Casos Particulares:</strong> Si las manzanas poseen más o menos de cuatro lados, poseen lados curvos o alguno supera los 200 metros de longitud, la delimitación debe ser analizada de forma particular por la Comisión Asesora.</span>
+            </p>
         </div>
     </div>
 
@@ -794,6 +815,8 @@ var highlightLayer = null;
 var centroManzanaActual = null; 
 var parcelLabelLayer = null; 
 var dimensionLabelsGroup = null; 
+// MODIFICACIÓN: Declaración global de la capa interactiva L.F.I. para trazado automático
+var grupoLFI = L.layerGroup().addTo(map);
 
 function obtenerLatLngsPlanos(latlngs) {
     if (!Array.isArray(latlngs)) return [];
@@ -937,6 +960,18 @@ function controlarVisibilidadDinamica() {
             map.removeLayer(grupoParcelas);
         }
     }
+
+    // MODIFICACIÓN: Control de visibilidad dinámica sincronizado para la Línea de Frente Interno (L.F.I.)
+    const chkLFI = document.getElementById('chk-lfi').checked;
+    if (chkLFI) {
+        if (!map.hasLayer(grupoLFI)) {
+            map.addLayer(grupoLFI);
+        }
+    } else {
+        if (map.hasLayer(grupoLFI)) {
+            map.removeLayer(grupoLFI);
+        }
+    }
 }
 
 map.on('zoomend', controlarVisibilidadDinamica);
@@ -966,6 +1001,111 @@ function obtenerPuntosContorno(geom) {
     return pts;
 }
 
+// MODIFICACIÓN: Algoritmo geográfico avanzado para encontrar y ordenar de forma horaria las 4 esquinas principales de cualquier manzana
+function encontrar4Esquinas(latlngs) {
+    if (latlngs.length <= 4) return latlngs;
+    
+    let minLat = Infinity, maxLat = -Infinity, minLng = Infinity, maxLng = -Infinity;
+    latlngs.forEach(p => {
+        if (p.lat < minLat) minLat = p.lat;
+        if (p.lat > maxLat) maxLat = p.lat;
+        if (p.lng < minLng) minLng = p.lng;
+        if (p.lng > maxLng) maxLng = p.lng;
+    });
+
+    let targets = [
+        L.latLng(minLat, minLng),
+        L.latLng(maxLat, minLng),
+        L.latLng(maxLat, maxLng),
+        L.latLng(minLat, maxLng)
+    ];
+
+    let corners = [];
+    targets.forEach(t => {
+        let closest = null;
+        let minDist = Infinity;
+        latlngs.forEach(p => {
+            let d = p.distanceTo(t);
+            if (d < minDist) {
+                minDist = d;
+                closest = p;
+            }
+        });
+        if (closest && !corners.includes(closest)) {
+            corners.push(closest);
+        }
+    });
+
+    if (corners.length < 4) {
+        return latlngs.slice(0, 4);
+    }
+    return corners;
+}
+
+// MODIFICACIÓN: Función matemática de trazado automático de Líneas de Frente Interno (L.F.I.) sobre la manzana delimitadora
+function trazarLFI(manzanaLayer) {
+    grupoLFI.clearLayers();
+    if (!manzanaLayer) return;
+
+    try {
+        let latlngs = manzanaLayer.getLatLngs();
+        let pts = obtenerLatLngsPlanos(latlngs);
+        if (pts.length < 3) return;
+
+        let corners = encontrar4Esquinas(pts);
+        if (corners.length < 4) return;
+
+        // Ordenar las esquinas en sentido horario desde su baricentro para evitar entrecruzamientos de líneas opuestas
+        let sumLat = 0, sumLng = 0;
+        corners.forEach(p => { sumLat += p.lat; sumLng += p.lng; });
+        let center = L.latLng(sumLat / 4, sumLng / 4);
+        corners.sort((a, b) => {
+            let angleA = Math.atan2(a.lat - center.lat, a.lng - center.lng);
+            let angleB = Math.atan2(b.lat - center.lat, b.lng - center.lng);
+            return angleA - angleB;
+        });
+
+        // Interpolar tercios en los 4 lados de la manzana
+        function interpolate(p1, p2, fraction) {
+            return L.latLng(
+                p1.lat + (p2.lat - p1.lat) * fraction,
+                p1.lng + (p2.lng - p1.lng) * fraction
+            );
+        }
+
+        let ab1 = interpolate(corners[0], corners[1], 1/3);
+        let ab2 = interpolate(corners[0], corners[1], 2/3);
+
+        let bc1 = interpolate(corners[1], corners[2], 1/3);
+        let bc2 = interpolate(corners[1], corners[2], 2/3);
+
+        let cd1 = interpolate(corners[2], corners[3], 1/3);
+        let cd2 = interpolate(corners[2], corners[3], 2/3);
+
+        let da1 = interpolate(corners[3], corners[0], 1/3);
+        let da2 = interpolate(corners[3], corners[0], 2/3);
+
+        // Crear polilíneas L.F.I. cruzando tercios opuestos (Líneas de Frente Interno de manzanas)
+        L.polyline([ab1, cd2], { color: '#dc2626', weight: 1.5, dashArray: '6, 6' }).addTo(grupoLFI);
+        L.polyline([ab2, cd1], { color: '#dc2626', weight: 1.5, dashArray: '6, 6' }).addTo(grupoLFI);
+        L.polyline([bc1, da2], { color: '#dc2626', weight: 1.5, dashArray: '6, 6' }).addTo(grupoLFI);
+        L.polyline([bc2, da1], { color: '#dc2626', weight: 1.5, dashArray: '6, 6' }).addTo(grupoLFI);
+
+        // Agregar una etiqueta flotante para identificar el trazo de la L.F.I. en el plano
+        let mid1 = interpolate(ab1, cd2, 0.5);
+        let lfiLabelIcon = L.divIcon({
+            className: 'lfi-label-container',
+            html: `<div class="text-[#dc2626] font-black text-[7.5px] bg-white/95 border border-red-200 px-1 rounded shadow-sm whitespace-nowrap uppercase tracking-wider">L.F.I. (Art. 139)</div>`,
+            iconSize: [0, 0],
+            iconAnchor: [30, 5]
+        });
+        L.marker(mid1, { icon: lfiLabelIcon, interactive: false }).addTo(grupoLFI);
+
+    } catch (e) {
+        console.error("Error al trazar las Líneas de Frente Interno automáticas:", e);
+    }
+}
+
 function buscarPM(dispararPopup = true) {
     let val = document.getElementById('input-pm').value.trim();
     if (!val) return;
@@ -983,7 +1123,7 @@ function buscarPM(dispararPopup = true) {
                 }
                 highlightLayer = L.geoJSON(l.feature, {
                     style: {
-                        color: "#d97706", 
+                        color: "#0284c7", // Ajustado para máxima coherencia con las parcelas claro-azul
                         weight: 4,
                         dashArray: "1, 5",
                         fillColor: "#0284c7",
@@ -992,17 +1132,20 @@ function buscarPM(dispararPopup = true) {
                     interactive: false
                 }).addTo(map);
 
+                // MODIFICACIÓN: Eliminada la insignia naranja ("cuadrado naranja") y reubicada la etiqueta de Partida fuera del lote (NW bounds offset)
                 if (parcelLabelLayer) {
                     map.removeLayer(parcelLabelLayer);
                 }
-                let centroParcela = l.getBounds().getCenter();
+                let bounds = l.getBounds();
+                let exteriorPoint = L.latLng(bounds.getNorth() + 0.00008, bounds.getWest() - 0.00008); // Coordenada desplazada al exterior NW
+                
                 let labelIcon = L.divIcon({
                     className: 'custom-parcel-label-icon',
-                    html: `<div class="bg-amber-600 text-white font-extrabold text-[10px] px-2 py-0.5 rounded shadow-md border border-white whitespace-nowrap uppercase tracking-wider">Partida: ${val}</div>`,
+                    html: `<div class="text-[#0284c7] font-black text-[9.5px] whitespace-nowrap uppercase tracking-wider" style="text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;">📌 PARTIDA: ${val}</div>`,
                     iconSize: [0, 0],
-                    iconAnchor: [45, 25] 
+                    iconAnchor: [0, 0] 
                 });
-                parcelLabelLayer = L.marker(centroParcela, { icon: labelIcon, interactive: false }).addTo(map);
+                parcelLabelLayer = L.marker(exteriorPoint, { icon: labelIcon, interactive: false }).addTo(map);
 
                 if (dimensionLabelsGroup) {
                     map.removeLayer(dimensionLabelsGroup);
@@ -1064,9 +1207,12 @@ function buscarPM(dispararPopup = true) {
                 if (manzanaContenedora) {
                     centroManzanaActual = manzanaContenedora.getBounds().getCenter();
                     map.fitBounds(manzanaContenedora.getBounds(), { padding: [40, 40] });
+                    // MODIFICACIÓN: Trazar las líneas de frente interno de forma totalmente automatizada sobre la manzana seleccionada
+                    trazarLFI(manzanaContenedora);
                 } else {
                     centroManzanaActual = l.getBounds().getCenter();
                     map.fitBounds(l.getBounds(), { maxZoom: 19 });
+                    grupoLFI.clearLayers(); // Limpiar si no se detectó una manzana
                 }
 
                 if (dispararPopup && !document.body.classList.contains('print-active')) {
@@ -1077,7 +1223,6 @@ function buscarPM(dispararPopup = true) {
     });
 
     if (!encontrado) {
-        // MODIFICACIÓN: Reemplazo de alerta del navegador por notificación integrada no intrusiva
         mostrarNotificacion("La partida municipal ingresada no pudo ser localizada.");
     }
 }
@@ -1179,7 +1324,6 @@ function buscarGoogle() {
 
 function prepararImpresion() {
     if (!partidaSeleccionadaImpresion || !propiedadesUltimaParcelaBuscada) {
-        // MODIFICACIÓN: Reemplazo de alerta del navegador por notificación integrada no intrusiva
         mostrarNotificacion("Realice la búsqueda de una Partida Municipal (PM) antes de imprimir.", "ℹ️");
         return;
     }
@@ -1219,6 +1363,7 @@ function prepararImpresion() {
     document.getElementById('chk-parcelas').checked = true;
     document.getElementById('chk-manzanas').checked = true;
     document.getElementById('chk-calles').checked = true;
+    document.getElementById('chk-lfi').checked = true; // Asegurar que LFI se dibuje en la previa de impresión
     controlarVisibilidadDinamica();
 
     document.getElementById('print-partida-val').innerText = partidaSeleccionadaImpresion;
