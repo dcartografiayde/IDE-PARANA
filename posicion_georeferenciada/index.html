@@ -1,1 +1,1243 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VISOR URBANIZACIONES - MUNICIPALIDAD DE PARANA</title>
 
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet-textpath@1.2.3/leaflet.textpath.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- MODIFICACIÓN: Agregado CSS de Leaflet Measure para las herramientas de medición -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-measure@3.1.0/dist/leaflet-measure.css"/>
+    <!-- MODIFICACIÓN: Agregado JS de Leaflet Measure para habilitar los cálculos de longitud y superficie -->
+    <script src="https://cdn.jsdelivr.net/npm/leaflet-measure@3.1.0/dist/leaflet-measure.js"></script>
+
+    <style>
+        body { margin:0; padding:0; font-family: 'Inter', sans-serif; background: #0f172a; overflow: hidden; }
+        #map { height: 100vh; width: 100%; z-index: 1; }
+
+        /* MODIFICACIÓN: Estilos personalizados para el scrollbar del menú lateral */
+        .scrollbar-custom::-webkit-scrollbar {
+            width: 6px;
+        }
+        .scrollbar-custom::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        .scrollbar-custom::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 4px;
+        }
+        .scrollbar-custom::-webkit-scrollbar-thumb:hover {
+            background: #334155;
+        }
+
+        .popup-custom { font-size: 10px; line-height: 1.1; min-width: 240px; max-height: 280px; overflow-y: auto; padding: 2px; }
+        .popup-header { 
+            text-align: center; font-weight: 800; border-bottom: 1px solid #eee; 
+            padding-bottom: 2px; margin-bottom: 3px; color: #1a202c; text-transform: uppercase;
+        }
+        .table-info { width: 100%; border-collapse: collapse; margin-bottom: 4px; }
+        .table-info td { border-bottom: 1px solid #edf2f7; padding: 1px 0; font-size: 9px; vertical-align: top; }
+        .table-info tr td:first-child { font-weight: 700; color: #4a5568; width: 35%; text-transform: uppercase; }
+
+        .btn-streetview {
+            display: block; margin: 8px auto 4px; padding: 6px; border-radius: 4px;
+            background: #4285F4; color: white !important; text-align: center;
+            text-decoration: none; font-weight: bold; font-size: 10px;
+        }
+        
+        .adv-sv { font-size: 9px; color: #718096; text-align: center; font-style: italic; margin-top: 4px; line-height: 1.2; }
+        .adv-legal { font-size: 8px; color: #a0aec0; margin-top: 6px; border-top: 1px dashed #cbd5e0; padding-top: 4px; line-height: 1.1; }
+        
+        .adv-distrito { position: absolute; bottom: 25px; right: 10px; z-index: 1000; background: rgba(255,255,255,0.8); padding: 6px 10px; border-radius: 6px; font-size: 9px; color: #4a5568; pointer-events: none; border: 1px solid rgba(0,0,0,0.1); }
+        
+        .layer-legend-icon { 
+            display: inline-block; 
+            width: 14px; 
+            height: 14px; 
+            margin-right: 8px; 
+            border: 1px solid #333; 
+            vertical-align: middle; 
+            border-radius: 3px; 
+        }
+
+        .etiqueta-manzana {
+            background: rgba(255, 255, 255, 0.95) !important;
+            border: 2px solid #ff6b6b !important;
+            color: #1e293b !important;
+            font-weight: 800 !important;
+            font-size: 10px !important;
+            border-radius: 50% !important; 
+            width: 28px !important;
+            height: 28px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            pointer-events: none !important; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
+        }
+
+        /* MODIFICACIÓN: Ajustes de diseño premium para adaptar la interfaz de Leaflet Measure al visor oscuro */
+        .leaflet-control-measure {
+            border: none !important;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+            border-radius: 8px !important;
+            font-family: 'Inter', sans-serif !important;
+        }
+        .leaflet-control-measure a.has-measurements {
+            background-color: #2980b9 !important;
+        }
+        .leaflet-control-measure .js-toggle {
+            border-radius: 8px !important;
+        }
+
+        /* MODIFICACIÓN: Estilos avanzados para impresión física y generación de reporte catastral A4 Apaisado */
+        @media print {
+            @page {
+                size: A4 landscape;
+                margin: 0;
+            }
+            body {
+                background: white !important;
+                color: black !important;
+                overflow: visible !important;
+            }
+            #sidebar, .leaflet-control-container, .adv-distrito, #previa-print-bar {
+                display: none !important;
+            }
+            /* Maquetación estricta A4 Landscape de página 1 (Plano de Manzana) */
+            #print-container-p1 {
+                display: block !important;
+                width: 297mm !important;
+                height: 210mm !important;
+                position: relative !important;
+                box-sizing: border-box !important;
+                padding: 10mm !important;
+                background: white !important;
+                page-break-after: always !important;
+                break-after: page !important;
+            }
+            /* Maquetación estricta A4 Landscape de página 2 (Reporte Técnico) */
+            #print-container-p2 {
+                display: block !important;
+                width: 297mm !important;
+                height: 210mm !important;
+                position: relative !important;
+                box-sizing: border-box !important;
+                padding: 15mm !important;
+                background: white !important;
+                color: #0f172a !important;
+                page-break-before: always !important;
+                break-before: page !important;
+            }
+            #map-print-container {
+                height: 142mm !important;
+                width: 100% !important;
+                border: 2px solid #1e293b !important;
+                display: block !important;
+            }
+            #map {
+                width: 100% !important;
+                height: 100% !important;
+            }
+        }
+
+        /* MODIFICACIÓN: Estilos de maquetación interactiva tipo PDF Reader para la previsualización del documento impreso */
+        body.print-active {
+            background: #0f172a !important;
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            padding-top: 85px !important;
+            padding-bottom: 50px !important;
+            gap: 25px !important;
+        }
+        body.print-active #print-container-p1,
+        body.print-active #print-container-p2 {
+            display: block !important;
+            position: relative !important;
+            width: 297mm !important;
+            height: 210mm !important;
+            background: white !important;
+            color: black !important;
+            border: 1px solid #334155 !important;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.5) !important;
+            box-sizing: border-box !important;
+            padding: 10mm !important;
+            pointer-events: auto !important;
+        }
+        body.print-active #print-container-p2 {
+            padding: 15mm !important;
+        }
+        body.print-active #map-print-container {
+            height: 142mm !important;
+            width: 100% !important;
+            border: 2px solid #1e293b !important;
+            display: block !important;
+        }
+        body.print-active #map {
+            width: 100% !important;
+            height: 100% !important;
+        }
+        body.print-active #sidebar {
+            display: none !important;
+        }
+        body.print-active .leaflet-control-zoom,
+        body.print-active .leaflet-control-layers,
+        body.print-active .leaflet-control-measure {
+            display: none !important;
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- MODIFICACIÓN: Menú lateral premium colapsable en tonos oscuros con todas las búsquedas y capa controladas quirúrgicamente -->
+<div id="sidebar" class="fixed top-0 left-0 h-full w-[360px] max-w-[85vw] bg-slate-900 border-r border-slate-800 text-slate-100 flex flex-col z-[1000] shadow-2xl transition-transform duration-300 ease-in-out transform">
+    
+    <!-- Encabezado del visor -->
+    <div class="p-5 border-b border-slate-800 bg-slate-950/40">
+        <h1 class="text-xs font-black text-blue-400 tracking-wider uppercase text-center">Visor Urbano Municipal</h1>
+        <p class="text-[10px] text-slate-400 text-center font-bold mt-1">DIRECCIÓN DE CARTOGRAFÍA Y DATOS ESPACIALES</p>
+    </div>
+
+    <!-- Contenido Scrollable -->
+    <div class="flex-1 overflow-y-auto p-5 space-y-6 scrollbar-custom">
+        
+        <!-- Bloque de Búsquedas -->
+        <div class="space-y-4">
+            <h2 class="text-xs font-extrabold uppercase tracking-widest text-slate-400 border-b border-slate-800 pb-1.5">Búsquedas catastrales</h2>
+            
+            <!-- Búsqueda por Partida (PM) -->
+            <div class="space-y-1">
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Buscar por Partida (PM)</label>
+                <div class="flex gap-2">
+                    <input type="text" id="input-pm" placeholder="Partida (p. ej. 13245)" class="flex-1 bg-slate-850 border border-slate-700 rounded-md px-3 py-1.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                    <button class="bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs px-4 rounded-md transition shadow" onclick="buscarPM(true)">Buscar</button>
+                </div>
+            </div>
+
+            <!-- Búsqueda por Dirección Predictiva (Por UBIPAR1 de las parcelas catastrales) -->
+            <div class="space-y-1 relative">
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Dirección (Calle y Altura - Predictivo)</label>
+                <input type="text" id="input-ubicacion" placeholder="Buscar dirección (p. ej. San Martín 123)..." class="w-full bg-slate-850 border border-slate-700 rounded-md px-3 py-1.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition" autocomplete="off">
+                <div id="sugerencias-ubicacion" class="absolute left-0 right-0 bg-slate-800 border border-slate-700 rounded-md max-h-52 overflow-y-auto mt-1 hidden z-[2000] shadow-2xl scrollbar-custom"></div>
+            </div>
+
+            <!-- Búsqueda de Lugares en Google / Nominatim -->
+            <div class="space-y-1">
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Buscar Lugares o Puntos de interés</label>
+                <div class="flex gap-2">
+                    <input type="text" id="input-google" placeholder="Lugar (p. ej. Plaza de Mayo)..." class="flex-1 bg-slate-850 border border-slate-700 rounded-md px-3 py-1.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                    <button class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs px-4 rounded-md transition shadow" onclick="buscarGoogle()">Google</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODIFICACIÓN: Bloque de utilidades de Impresión y Configuración de Escala -->
+        <div class="space-y-4 bg-slate-950/20 p-3 rounded-lg border border-slate-800">
+            <h2 class="text-xs font-extrabold uppercase tracking-widest text-yellow-500 border-b border-slate-800 pb-1.5 flex items-center gap-1.5">
+                <span>🖨️ Utilidad de Impresión A4</span>
+            </h2>
+            <div class="space-y-3">
+                <div class="space-y-1">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Escala del Mapa Impreso</label>
+                    <select id="select-print-scale" class="w-full bg-slate-850 border border-slate-700 rounded-md px-2.5 py-1.5 text-xs text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="500">Escala 1:500 (Zoom 20)</option>
+                        <option value="1000" selected>Escala 1:1000 (Zoom 19)</option>
+                        <option value="2000">Escala 1:2000 (Zoom 18)</option>
+                        <option value="5000">Escala 1:5000 (Zoom 16)</option>
+                    </select>
+                </div>
+                <div class="pt-1">
+                    <button class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs py-2 rounded-md transition shadow flex items-center justify-center gap-2" onclick="prepararImpresion()">
+                        <span>🔍 Generar Previa de Impresión</span>
+                    </button>
+                    <p class="text-[9px] text-slate-400 mt-2 text-center">Requiere haber buscado previamente una Partida Municipal (PM).</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bloque de Capas -->
+        <div class="space-y-4">
+            <h2 class="text-xs font-extrabold uppercase tracking-widest text-slate-400 border-b border-slate-800 pb-1.5">Control de capas</h2>
+            
+            <!-- Selector de Mapas Base -->
+            <div class="space-y-2">
+                <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide">Mapa Base</span>
+                <div class="space-y-1.5">
+                    <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
+                        <input type="radio" name="basemap" value="dark" checked onchange="cambiarBaseMap('dark')" class="bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
+                        <span>Mapa Oscuro</span>
+                    </label>
+                    <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
+                        <input type="radio" name="basemap" value="hibrido" onchange="cambiarBaseMap('hibrido')" class="bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
+                        <span>Híbrido (Satelital)</span>
+                    </label>
+                    <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
+                        <input type="radio" name="basemap" value="osm" onchange="cambiarBaseMap('osm')" class="bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
+                        <span>OpenStreetMap</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Toggles de Capas de Información -->
+            <div class="space-y-2 pt-2">
+                <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide">Capas vectoriales</span>
+                <div class="space-y-2">
+                    <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
+                        <input type="checkbox" id="chk-manzanas" checked onchange="toggleOverlay('manzanas')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
+                        <span class="flex items-center gap-2">
+                            <span class="w-3.5 h-3.5 rounded border border-[#ff6b6b] bg-[rgba(255,107,107,0.15)] inline-block"></span>
+                            <span>Manzanas</span>
+                        </span>
+                    </label>
+                    <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
+                        <input type="checkbox" id="chk-calles" checked onchange="toggleOverlay('calles')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
+                        <span class="flex items-center gap-2">
+                            <span class="w-3.5 h-1 bg-[#FFFF00] inline-block"></span>
+                            <span>Nombres de Calles</span>
+                        </span>
+                    </label>
+                    <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
+                        <input type="checkbox" id="chk-parcelas" checked onchange="toggleOverlay('parcelas')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
+                        <span class="flex items-center gap-2">
+                            <span class="w-3.5 h-3.5 rounded bg-[#2980b9] inline-block"></span>
+                            <span>Parcelas Catastrales</span>
+                        </span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Leyenda / Información del Visor -->
+        <div class="space-y-3 pt-2">
+            <h2 class="text-xs font-extrabold uppercase tracking-widest text-slate-400 border-b border-slate-800 pb-1.5">Información útil</h2>
+            <div class="text-[11px] text-slate-400 space-y-1.5 leading-relaxed bg-slate-950/20 p-3 rounded-lg border border-slate-850">
+                <p>📏 Use la regla en el margen superior derecho para realizar mediciones de longitud y área.</p>
+                <p>⚡ Las parcelas catastrales y los nombres de las calles se visualizan automáticamente a niveles de zoom cercanos (Zoom >= 15/16).</p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- BOTÓN DE COLAPSO: Flota pegado al borde del panel lateral de manera responsive y dinámica -->
+    <button onclick="toggleSidebar()" class="absolute top-3 left-full ml-3 bg-slate-900 border border-slate-800 text-slate-300 p-2.5 rounded-lg shadow-xl hover:text-white hover:bg-slate-800 transition-colors focus:outline-none z-[1010]" title="Mostrar/Ocultar Menú">
+        <svg id="toggle-icon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transform transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg>
+    </button>
+</div>
+
+<!-- MODIFICACIÓN: Panel de control exclusivo para la Previa de Impresión (invisible en impresión física) -->
+<div id="previa-print-bar" class="hidden fixed top-0 left-0 w-full bg-slate-950/95 text-slate-100 p-4 z-[2500] border-b border-slate-800 shadow-2xl flex flex-col sm:flex-row justify-between items-center gap-3">
+    <div class="text-center sm:text-left">
+        <div class="font-extrabold text-sm text-yellow-400 flex items-center gap-1.5 justify-center sm:justify-start">
+            <span>⚙️ MODO PREVIA DE IMPRESIÓN (A4 APAISADO)</span>
+        </div>
+        <p class="text-[11px] text-slate-400 mt-0.5">El plano se encuentra centrado en la Manzana contenedora. Puede arrastrar el mapa para ajustar el encuadre final.</p>
+    </div>
+    <div class="flex gap-2">
+        <button class="bg-blue-600 hover:bg-blue-500 font-bold text-xs py-2 px-4 rounded-lg transition-colors flex items-center gap-1" onclick="ejecutarImpresion()">
+            <span>🖨️ Mandar a Imprimir / Guardar PDF</span>
+        </button>
+        <button class="bg-slate-800 hover:bg-slate-700 font-bold text-xs py-2 px-4 rounded-lg transition-colors" onclick="cancelarImpresion()">
+            <span>Salir</span>
+        </button>
+    </div>
+</div>
+
+<!-- MODIFICACIÓN: Capa física y estructurada del marco de impresión de la Página 1 (Visible únicamente en Impresión / Previa) -->
+<div id="print-container-p1" class="hidden absolute top-0 left-0 w-[297mm] h-[210mm] bg-white border border-slate-300 pointer-events-none z-[500] p-[10mm]">
+    <!-- Encabezado Oficial -->
+    <div class="flex justify-between items-center border-b-2 border-slate-900 pb-3 mb-2">
+        <div>
+            <h1 class="font-black text-slate-900 text-lg uppercase tracking-wide">POSICIÓN GEOREFERENCIADA</h1>
+            <p class="text-[11px] text-slate-600 font-bold uppercase">MUNICIPALIDAD DE PARANÁ — DIRECCIÓN DE CARTOGRAFÍA Y DATOS ESPACIALES</p>
+        </div>
+        <div class="text-right">
+            <div class="bg-slate-900 text-white font-black text-xs px-3 py-1.5 rounded uppercase tracking-wider">
+                Partida Nº: <span id="print-partida-val">000000</span>
+            </div>
+            <p class="text-[9px] text-slate-500 mt-1 font-semibold">Plano de Manzana — Centro de Manzanas</p>
+        </div>
+    </div>
+
+    <!-- MODIFICACIÓN: Contenedor del mapa integrado físicamente en el flujo del documento para garantizar una correcta escala y renderizado -->
+    <div id="map-print-container" class="relative w-full h-[142mm] border-2 border-slate-900 my-2 pointer-events-auto bg-slate-100">
+        <!-- El div #map se moverá dinámicamente aquí en modo impresión/previsualización -->
+    </div>
+
+    <!-- Elementos técnicos del plano: Norte, Escala Gráfica y Escala Numérica -->
+    <div class="absolute bottom-[15mm] left-[15mm] z-[50] flex items-center gap-5 bg-white/90 backdrop-blur p-3.5 border border-slate-900 rounded shadow-md pointer-events-auto">
+        <!-- Rosa de los vientos / Norte Vectorial Elegante -->
+        <div class="flex flex-col items-center">
+            <svg class="w-10 h-10 text-slate-900" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="50" cy="50" r="45" stroke="currentColor" stroke-width="2"/>
+                <path d="M50 5 L55 45 L50 40 L45 45 Z" fill="currentColor"/>
+                <path d="M50 95 L55 55 L50 60 L45 55 Z" fill="#94a3b8"/>
+                <path d="M5 50 L45 45 L40 50 L45 55 Z" fill="#94a3b8"/>
+                <path d="M95 50 L55 45 L60 50 L55 55 Z" fill="currentColor"/>
+                <text x="46" y="22" font-family="Inter" font-size="14" font-weight="900" fill="currentColor">N</text>
+            </svg>
+        </div>
+        
+        <!-- Escala Numérica y Gráfica Dinámica -->
+        <div class="flex flex-col justify-center border-l border-slate-300 pl-4 h-full">
+            <div class="text-[11px] font-black text-slate-900 tracking-wider mb-1 uppercase">
+                Escala <span id="print-escala-numerica">1:1000</span>
+            </div>
+            <!-- Escala Gráfica Estilizada -->
+            <div class="flex items-end">
+                <div class="flex flex-col">
+                    <div class="flex justify-between text-[8px] font-black text-slate-900 px-0.5">
+                        <span>0</span>
+                        <span id="print-escala-mid">25m</span>
+                        <span id="print-escala-max">50m</span>
+                    </div>
+                    <div class="flex h-2 border border-slate-900" style="width: 140px;">
+                        <div class="w-1/2 bg-slate-900"></div>
+                        <div class="w-1/2 bg-white"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pie de página con advertencia legal -->
+    <div class="absolute bottom-[10mm] right-[10mm] text-right text-[8px] text-slate-500 max-w-[120mm] leading-tight border-t border-slate-300 pt-2 pointer-events-auto">
+        Límites y trazados indicativos (Ord. 8563). La información espacial presentada no constituye certificado de mensura ni título de propiedad.
+    </div>
+</div>
+
+<!-- MODIFICACIÓN: Capa física del Reporte de la Página 2 (Visible únicamente en Impresión / Previa) -->
+<div id="print-container-p2" class="hidden absolute top-[210mm] left-0 w-[297mm] h-[210mm] bg-white border border-slate-300 z-[500] p-[15mm]">
+    <div class="flex justify-between items-center border-b-2 border-slate-900 pb-3 mb-6">
+        <div>
+            <h1 class="font-black text-slate-900 text-lg uppercase tracking-wide">REPORTE CATASTRAL DE PARCELA</h1>
+            <p class="text-[11px] text-slate-600 font-bold uppercase">MUNICIPALIDAD DE PARANÁ — DIRECCIÓN DE CARTOGRAFÍA Y DATOS ESPACIALES</p>
+        </div>
+        <div class="text-right">
+            <div class="bg-slate-900 text-white font-black text-xs px-3 py-1.5 rounded uppercase tracking-wider">
+                Partida Nº: <span id="print-partida-val-p2">000000</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="mb-6">
+        <h3 class="text-xs font-black text-slate-800 uppercase tracking-widest border-b border-slate-300 pb-1 mb-3">Atributos y datos parcelarios</h3>
+        
+        <!-- Tabla Dinámica en Grilla limpia de 2 columnas para el reporte catastral de la parcela -->
+        <div id="print-report-grid" class="grid grid-cols-2 gap-x-6 gap-y-2 text-[10px] text-slate-800">
+            <!-- Rellenado dinámicamente mediante javascript -->
+        </div>
+    </div>
+
+    <!-- Espacio Técnico de Firmas e Informes -->
+    <div class="absolute bottom-[20mm] left-[15mm] right-[15mm] grid grid-cols-3 gap-10 border-t border-slate-300 pt-6">
+        <div class="text-center">
+            <div class="h-12"></div>
+            <p class="text-[9px] font-bold text-slate-600 uppercase">Firma del Profesional</p>
+        </div>
+        <div class="text-center border-x border-slate-200">
+            <div class="h-12"></div>
+            <p class="text-[9px] font-bold text-slate-600 uppercase">Sello de Área Técnico</p>
+        </div>
+        <div class="text-center">
+            <div class="h-12"></div>
+            <p class="text-[9px] font-bold text-slate-600 uppercase">Fecha de Expedición</p>
+        </div>
+    </div>
+
+    <!-- Pie de página catastral -->
+    <div class="absolute bottom-[10mm] left-[15mm] right-[15mm] text-center text-[8px] text-slate-400">
+        Elaborado dinámicamente por el Visor Urbano de la Municipalidad de Paraná. Dirección de Cartografía y Datos Espaciales.
+    </div>
+</div>
+
+<!-- Cuadro Informativo de Distritos con indicador de Zoom -->
+<div class="adv-distrito text-right bg-white/90 backdrop-blur border border-slate-200 shadow-xl rounded-lg px-4 py-2">
+    <div class="font-bold text-slate-700 text-xs">Zoom Vista: <span id="zoom-indicator" class="text-blue-600">12</span></div>
+    <div class="text-[9px] text-slate-500">IDE Paraná - Límites indicativos (Ord. 8563). Zoom Máx: 22.</div>
+    <div class="text-[8px] text-slate-400 font-semibold mt-0.5">Elaborado por Dirección de Cartografía y Datos Espaciales</div>
+</div>
+<div id="map"></div>
+
+<script>
+const BASE_URL = "https://raw.githubusercontent.com/dcartografiayde/IDE-PARANA/main/";
+
+/* ================= FUNCIONES DE LIMPIEZA Y DECODIFICACIÓN DE TEXTO ================= */
+function decodificarTexto(str) {
+    if (!str || typeof str !== 'string') return str;
+    try {
+        const correcciones = {
+            'Ã¡': 'á', 'Ã©': 'é', 'Ã­': 'í', 'Ã³': 'ó', 'Ãº': 'ú',
+            'Ã ': 'Á', 'Ã‰': 'É', 'Ã ': 'Í', 'Ã“': 'Ó', 'Ãš': 'Ú',
+            'Ãñ': 'ñ', 'Ã‘': 'Ñ', 'Â°': '°', 'Ã¼': 'ü', 'Â¿': '¿'
+        };
+        let textoCorregido = str;
+        for (let mal in correcciones) {
+            textoCorregido = textoCorregido.split(mal).join(correcciones[mal]);
+        }
+
+        const reemplazosClave = [
+            { mal: /TORRE[ïÏ]¿½N/gi, bien: 'TORREÓN' },
+            { mal: /Torre[ïÏ]¿½n/gi, bien: 'Torreón' },
+            { mal: /APROBACI[ïÏ]¿½N/gi, bien: 'APROBACIÓN' },
+            { mal: /Aprobaci[ïÏ]¿½n/gi, bien: 'Aprobación' },
+            { mal: /ASOCIACI[ïÏ]¿½N/gi, bien: 'ASOCIACIÓN' },
+            { mal: /Asociaci[ïÏ]¿½n/gi, bien: 'Asociación' },
+            { mal: /CONSTITUCI[ïÏ]¿½N/gi, bien: 'CONSTITUCIÓN' },
+            { mal: /Constituci[ïÏ]¿½n/gi, bien: 'Constitución' },
+            { mal: /DECLARACI[ïÏ]¿½N/gi, bien: 'DECLARACIÓN' },
+            { mal: /Declaraci[ïÏ]¿½n/gi, bien: 'Declaración' },
+            { mal: /URBANIZACI[ïÏ]¿½N/gi, bien: 'URBANIZACIÓN' },
+            { mal: /Urbanizaci[ïÏ]¿½n/gi, bien: 'Urbanización' },
+            { mal: /PROLONGACI[ïÏ]¿½N/gi, bien: 'PROLONGACIÓN' },
+            { mal: /Prolongaci[ïÏ]¿½n/gi, bien: 'Prolongación' },
+            { mal: /SECCI[ïÏ]¿½N/gi, bien: 'SECCIÓN' },
+            { mal: /Secci[ïÏ]¿½n/gi, bien: 'Sección' },
+            { mal: /ESTACI[ïÏ]¿½N/gi, bien: 'ESTACIÓN' },
+            { mal: /Estaci[ïÏ]¿½n/gi, bien: 'Estación' },
+            { mal: /REVOLUCI[ïÏ]¿½N/gi, bien: 'REVOLUCIÓN' },
+            { mal: /Revoluci[ïÏ]¿½n/gi, bien: 'Revolución' },
+            { mal: /N[ïÏ]¿½/g, bien: 'Nº' },
+            { mal: /n[ïÏ]¿½/g, bien: 'nº' },
+            { mal: /PARAN[ïÏ]¿½/gi, bien: 'PARANÁ' },
+            { mal: /Paran[ïÏ]¿½/gi, bien: 'Paraná' },
+            { mal: /CI[ïÏ]¿½N/g, bien: 'CIÓN' },
+            { mal: /ci[ïÏ]¿½n/g, bien: 'ción' }
+        ];
+
+        for (let r of reemplazosClave) {
+            textoCorregido = textoCorregido.replace(r.mal, r.bien);
+        }
+
+        return textoCorregido;
+    } catch (e) { return str; }
+}
+
+async function fetchGeoJSON(url) {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    const arrayBuffer = await response.arrayBuffer();
+    
+    const decoderUTF8 = new TextDecoder('utf-8');
+    let text = decoderUTF8.decode(arrayBuffer);
+    
+    if (text.includes('\uFFFD')) {
+        const decoderANSI = new TextDecoder('windows-1252');
+        text = decoderANSI.decode(arrayBuffer);
+    }
+    return JSON.parse(text);
+}
+
+// Inicio del mapa en Zoom 12 (vista completa de la ciudad)
+var map = L.map('map', { 
+    center: [-31.745, -60.51], 
+    zoom: 12, 
+    zoomControl: true,
+    maxZoom: 22
+});
+
+// Creación explícita de paneles ordenados por Z-Index
+map.createPane('manzanasPane');
+map.getPane('manzanasPane').style.zIndex = 300; // Capa inferior de fondo
+map.getPane('manzanasPane').style.pointerEvents = 'none'; // Clics pasan de largo
+
+map.createPane('parcelasPane');
+map.getPane('parcelasPane').style.zIndex = 350; // Capa superior
+map.getPane('parcelasPane').style.pointerEvents = 'auto'; // Captura clics
+
+var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 22, maxNativeZoom: 19 });
+var dark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 22, maxNativeZoom: 20 });
+var sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 22, maxNativeZoom: 18 });
+var ref = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}', { maxZoom: 22, maxNativeZoom: 18 });
+var hibrido = L.layerGroup([sat, ref]);
+
+dark.addTo(map);
+
+// Calles cargadas asíncronamente
+var grupoCalles = L.layerGroup();
+var listaCallesParaBusqueda = [];
+
+fetchGeoJSON(BASE_URL + "calles.geojson").then(data => {
+    L.geoJSON(data, {
+        style: { color: "#FFFF00", weight: 6, opacity: 0.01 },
+        onEachFeature: (f, l) => {
+            if (f.properties.nombre) {
+                let nombreCalle = decodificarTexto(f.properties.nombre);
+                listaCallesParaBusqueda.push({ nombre: nombreCalle.toUpperCase(), layer: l });
+                l.on('click', (e) => {
+                    let latlng = e.latlng || l.getBounds().getCenter();
+                    let sv = `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${latlng.lat},${latlng.lng}`;
+                    l.bindPopup(`<b>Calle:</b> ${nombreCalle.toUpperCase()}<br><a href="${sv}" target="_blank" class="btn-streetview">📍 STREET VIEW</a>`).openPopup();
+                });
+            }
+        }
+    }).addTo(grupoCalles);
+    activarEtiquetasCalles();
+});
+
+function activarEtiquetasCalles() {
+    const renderLabels = () => {
+        let z = map.getZoom();
+        const activeOnMap = map.hasLayer(grupoCalles);
+
+        // Registro local para de-duplicación espacial de nombres de calle idénticos en el viewport
+        let etiquetasColocadas = {}; 
+
+        grupoCalles.eachLayer(geoJsonGroup => {
+            geoJsonGroup.eachLayer(ly => {
+                if (ly.setText) {
+                    try {
+                        ly.setText(null);
+                    } catch (e) {}
+
+                    if (activeOnMap && z >= 16 && ly._map && ly._renderer && ly.feature && ly.feature.properties.nombre) {
+                        try {
+                            if (map.getBounds().intersects(ly.getBounds())) {
+                                let nombreCalle = decodificarTexto(ly.feature.properties.nombre).toUpperCase();
+
+                                // Cálculo de longitud real de segmento en metros para descartar polilíneas enanas
+                                let latlngs = ly.getLatLngs();
+                                if (Array.isArray(latlngs[0])) latlngs = latlngs.flat(2);
+                                
+                                let largoMetros = 0;
+                                for (let i = 0; i < latlngs.length - 1; i++) {
+                                    if (latlngs[i] && latlngs[i+1]) {
+                                        largoMetros += latlngs[i].distanceTo(latlngs[i+1]);
+                                    }
+                                }
+
+                                // Ignorar tramos menores a 70 metros para evitar acumulación redundante en las esquinas
+                                if (largoMetros < 70) return;
+
+                                let centro = ly.getBounds().getCenter();
+
+                                // Validación espacial de proximidad. No dibuja si hay otra etiqueta igual a menos de 200 metros
+                                let duplicadoCercano = false;
+                                if (etiquetasColocadas[nombreCalle]) {
+                                    for (let pt of etiquetasColocadas[nombreCalle]) {
+                                        if (centro.distanceTo(pt) < 200) {
+                                            duplicadoCercano = true;
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                if (!duplicadoCercano) {
+                                    if (!etiquetasColocadas[nombreCalle]) {
+                                        etiquetasColocadas[nombreCalle] = [];
+                                    }
+                                    etiquetasColocadas[nombreCalle].push(centro);
+
+                                    ly.setText(nombreCalle, {
+                                        repeat: false,
+                                        center: true, 
+                                        orientation: 'flip',
+                                        offset: 0,
+                                        attributes: { 
+                                            fill: '#FFFF00', 
+                                            'font-weight': 'bold', 
+                                            'font-size': z >= 18 ? '13' : '10',
+                                            'stroke': 'black', 
+                                            'stroke-width': '2px', 
+                                            'paint-order': 'stroke'
+                                        }
+                                    });
+                                }
+                            }
+                        } catch (err) {}
+                    }
+                }
+            });
+        });
+    };
+
+    map.on('zoomend moveend', renderLabels);
+    map.on('layeradd layerremove', (e) => {
+        if (e.layer === grupoCalles) {
+            renderLabels();
+        }
+    });
+
+    renderLabels();
+}
+
+// Capa de Manzanas
+var grupoManzanas = L.layerGroup().addTo(map);
+var grupoEtiquetasManzanas = L.layerGroup(); 
+// MODIFICACIÓN: Almacén de objetos de Manzanas para indexación geométrica espacial rápida
+var manzanasLayers = [];
+
+fetchGeoJSON(BASE_URL + "catastro/manzana.geojson").then(data => {
+    const manzanasEtiquetadas = new Set();
+
+    L.geoJSON(data, {
+        pane: 'manzanasPane', 
+        filter: (f) => f && f.geometry && f.geometry.coordinates && f.geometry.coordinates.length > 0,
+        style: {
+            color: "#ff6b6b", 
+            weight: 3,         
+            fillColor: "transparent",
+            fillOpacity: 0,
+            interactive: false 
+        },
+        onEachFeature: (f, l) => {
+            // MODIFICACIÓN: Almacenar quirúrgicamente la manzana en nuestro array global
+            manzanasLayers.push(l);
+
+            let propNum = "";
+            for (let k in f.properties) {
+                let kLower = k.toLowerCase();
+                if (kLower.includes("manz") || kLower === "nro" || kLower === "num" || kLower.includes("mza")) {
+                    propNum = f.properties[k];
+                    break;
+                }
+            }
+            if (!propNum && f.properties.nropasd) propNum = f.properties.nropasd; 
+
+            if (propNum) {
+                const numStr = String(propNum).trim();
+                if (!manzanasEtiquetadas.has(numStr)) {
+                    manzanasEtiquetadas.add(numStr);
+                    try {
+                        let center = l.getBounds().getCenter();
+                        L.marker(center, {
+                            icon: L.divIcon({
+                                className: 'etiqueta-manzana',
+                                html: `<div>${decodificarTexto(numStr)}</div>`,
+                                iconSize: [28, 28]
+                            }),
+                            interactive: false 
+                        }).addTo(grupoEtiquetasManzanas); 
+                    } catch(e) {}
+                }
+            }
+        }
+    }).addTo(grupoManzanas);
+    controlarVisibilidadDinamica(); 
+}).catch(err => {
+    console.error("Error al cargar la capa de manzanas:", err);
+});
+
+// Capa de Parcelas (Totalmente Restituida)
+var grupoParcelas = L.layerGroup();
+var parcelasLayers = [];
+
+// MODIFICACIÓN: Lista global e indexada para la búsqueda predictiva case-insensitive de ubicaciones (UBIPAR1 / calle y altura)
+var listaParcelasUbicacion = [];
+
+// MODIFICACIÓN: Variables globales de impresión para no interferir en las variables de control estándar
+var partidaSeleccionadaImpresion = null;
+var propiedadesUltimaParcelaBuscada = null;
+var highlightLayer = null;
+var centroManzanaActual = null; // Almacenador del baricentro de manzana para la escala de impresión
+
+// MODIFICACIÓN: Función de aplanamiento recursivo robusta para geometrías anidadas de polígonos/multipolígonos
+function obtenerLatLngsPlanos(latlngs) {
+    if (!Array.isArray(latlngs)) return [];
+    if (latlngs[0] && typeof latlngs[0].lat === 'number') {
+        return latlngs;
+    }
+    let flat = [];
+    for (let item of latlngs) {
+        flat = flat.concat(obtenerLatLngsPlanos(item));
+    }
+    return flat;
+}
+
+function pointInPoly(point, vs) {
+    var x = point[0], y = point[1];
+    var inside = false;
+    for (var i = 0, j = vs.length - 1; i < vs.length; j = i++) {
+        var xi = vs[i][0], yi = vs[i][1];
+        var xj = vs[j][0], yj = vs[j][1];
+        var intersect = ((yi > y) != (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+        if (intersect) inside = !inside;
+    }
+    return inside;
+}
+
+const archivosCatastro = ["parcela1_4.geojson", "parcela5_7.geojson", "parcela8_15.geojson"];
+archivosCatastro.forEach(file => {
+    fetchGeoJSON(BASE_URL + "catastro/" + file).then(data => {
+        let grupos = {};
+        data.features.forEach(f => {
+            if (!f.geometry || !f.geometry.coordinates) return;
+            let key = JSON.stringify(f.geometry.coordinates);
+            if (!grupos[key]) grupos[key] = [];
+            grupos[key].push(f);
+        });
+
+        let featuresProcesadas = Object.values(grupos).map(g => {
+            let base = g[0];
+            return {
+                type: "Feature", geometry: base.geometry,
+                properties: {
+                    esPH: g.length > 1,
+                    partidas: g.map(x => String(x.properties.nropasd || x.properties.nropas || "").trim()),
+                    ubicacion: base.properties.ubipar1 || "-",
+                    full: base.properties
+                }
+            };
+        });
+
+        let ly = L.geoJSON(featuresProcesadas, {
+            pane: 'parcelasPane', 
+            style: f => ({ color: f.properties.esPH ? "#8e44ad" : "#2980b9", weight: 0.7, fillOpacity: 0.12 }),
+            onEachFeature: (f, l) => {
+                l.on('click', e => {
+                    let latlng = e.latlng || l.getBounds().getCenter();
+                    let p = f.properties;
+                    let sv = `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${latlng.lat},${latlng.lng}`;
+
+                    let content = `<div class="popup-custom"><div class="popup-header">DATOS DE LA PARCELA</div>`;
+                    
+                    if (p.esPH) {
+                        content += `<div style="padding:2px; font-size:9px;"><b>PH DETECTADA</b><br><b>PARTIDAS:</b> ${p.partidas.join(", ")}<br><b>UBICACIÓN:</b> ${decodificarTexto(p.ubicacion)}</div>`;
+                    } else {
+                        content += `<table class="table-info">`;
+                        for (let [k, v] of Object.entries(p.full)) { 
+                            if (v && v !== "0") content += `<tr><td>${decodificarTexto(k).toUpperCase()}</td><td>${decodificarTexto(String(v))}</td></tr>`; 
+                        }
+                        content += `</table>`;
+                    }
+                    content += `<a href="${sv}" target="_blank" class="btn-streetview">📍 STREET VIEW</a>`;
+                    content += `<div class="adv-sv">Para mejor orientación, haga clic en el frente de la parcela.</div>`;
+                    content += `</div>`;
+                    
+                    l.bindPopup(content, { autoPanPadding: L.point(10, 110) }).openPopup(latlng);
+                });
+
+                // MODIFICACIÓN: Alimentamos quirúrgicamente la lista global para búsqueda predictiva por UBIPAR1
+                if (f.properties.ubicacion && f.properties.ubicacion !== "-" && f.properties.ubicacion.trim() !== "") {
+                    let ubiClean = decodificarTexto(f.properties.ubicacion).toUpperCase().trim();
+                    listaParcelasUbicacion.push({
+                        texto: ubiClean,
+                        layer: l
+                    });
+                }
+            }
+        });
+        parcelasLayers.push(ly);
+        grupoParcelas.addLayer(ly);
+    }).catch(err => {
+        console.error("Error al cargar archivo de catastro: " + file, err);
+    });
+});
+
+// MODIFICACIÓN: Gestión unificada de visibilidad dinámica sincronizada con el nuevo panel de capas del menú lateral
+function controlarVisibilidadDinamica() {
+    let zoomActual = map.getZoom();
+    
+    document.getElementById('zoom-indicator').innerText = zoomActual;
+
+    // 1. Visibilidad de Manzanas y etiquetas
+    const chkManzanas = document.getElementById('chk-manzanas').checked;
+    if (chkManzanas) {
+        if (!map.hasLayer(grupoManzanas)) {
+            map.addLayer(grupoManzanas);
+        }
+        if (zoomActual >= 15) {
+            if (!map.hasLayer(grupoEtiquetasManzanas)) {
+                map.addLayer(grupoEtiquetasManzanas);
+            }
+        } else {
+            if (map.hasLayer(grupoEtiquetasManzanas)) {
+                map.removeLayer(grupoEtiquetasManzanas);
+            }
+        }
+    } else {
+        if (map.hasLayer(grupoManzanas)) map.removeLayer(grupoManzanas);
+        if (map.hasLayer(grupoEtiquetasManzanas)) map.removeLayer(grupoEtiquetasManzanas);
+    }
+
+    // 2. Visibilidad de Calles (Zoom >= 15)
+    const chkCalles = document.getElementById('chk-calles').checked;
+    if (chkCalles && zoomActual >= 15) {
+        if (!map.hasLayer(grupoCalles)) {
+            map.addLayer(grupoCalles);
+        }
+    } else {
+        if (map.hasLayer(grupoCalles)) {
+            map.removeLayer(grupoCalles);
+        }
+    }
+
+    // 3. Visibilidad de Parcelas Catastrales (Zoom >= 16)
+    const chkParcelas = document.getElementById('chk-parcelas').checked;
+    if (chkParcelas && zoomActual >= 16) {
+        if (!map.hasLayer(grupoParcelas)) {
+            map.addLayer(grupoParcelas);
+        }
+    } else {
+        if (map.hasLayer(grupoParcelas)) {
+            map.removeLayer(grupoParcelas);
+        }
+    }
+}
+
+map.on('zoomend', controlarVisibilidadDinamica);
+map.on('layeradd layerremove', controlarVisibilidadDinamica); 
+
+/* ================= CONTROLES Y BÚSQUEDA DEL MENÚ LATERAL ================= */
+
+// MODIFICACIÓN: Alternar visualización del menú lateral con transiciones fluidas de Tailwind CSS
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const toggleIcon = document.getElementById('toggle-icon');
+
+    if (sidebar.classList.contains('-translate-x-full')) {
+        sidebar.classList.remove('-translate-x-full');
+        toggleIcon.classList.remove('rotate-180');
+    } else {
+        sidebar.classList.add('-translate-x-full');
+        toggleIcon.classList.add('rotate-180');
+    }
+}
+
+// MODIFICACIÓN: Gestión dinámica de mapas base mediante los radios del menú lateral
+function cambiarBaseMap(tipo) {
+    map.removeLayer(dark);
+    map.removeLayer(hibrido);
+    map.removeLayer(osm);
+    
+    if (tipo === 'dark') dark.addTo(map);
+    if (tipo === 'hibrido') hibrido.addTo(map);
+    if (tipo === 'osm') osm.addTo(map);
+}
+
+// MODIFICACIÓN: Alternador para el control manual de checkboxes de las capas vectoriales
+function toggleOverlay(capa) {
+    controlarVisibilidadDinamica();
+}
+
+// MODIFICACIÓN: Búsqueda de Partida Municipal con destacado de parcela y centrado estricto de la Manzana contenedora
+function buscarPM(dispararPopup = true) {
+    let val = document.getElementById('input-pm').value.trim();
+    if (!val) return;
+    let encontrado = false;
+    
+    parcelasLayers.forEach(ly => {
+        ly.eachLayer(l => {
+            if (l.feature.properties.partidas.includes(val)) {
+                encontrado = true;
+                partidaSeleccionadaImpresion = val;
+                propiedadesUltimaParcelaBuscada = l.feature.properties;
+
+                // Destacar quirúrgicamente la parcela con una capa de destacado dinámico
+                if (highlightLayer) {
+                    map.removeLayer(highlightLayer);
+                }
+                highlightLayer = L.geoJSON(l.feature, {
+                    style: {
+                        color: "#fbbf24", // Amarillo vivo
+                        weight: 4.5,
+                        dashArray: "4, 6",
+                        fillColor: "#3b82f6",
+                        fillOpacity: 0.35
+                    },
+                    interactive: false
+                }).addTo(map);
+
+                // Forzar que la capa de parcelas esté visible
+                document.getElementById('chk-parcelas').checked = true;
+                controlarVisibilidadDinamica();
+
+                // Buscar la Manzana que encierra o está más próxima geométricamente al centro de la parcela
+                let centerPoint = l.getBounds().getCenter();
+                let manzanaContenedora = null;
+
+                for (let mza of manzanasLayers) {
+                    let latlngs = mza.getLatLngs();
+                    // MODIFICACIÓN: Utilizar función robusta de aplanado de coordenadas para evitar errores de tipo
+                    let pts = obtenerLatLngsPlanos(latlngs);
+                    if (pts.length === 0) continue;
+                    
+                    let coords = pts.map(p => [p.lng, p.lat]);
+                    if (pointInPoly([centerPoint.lng, centerPoint.lat], coords)) {
+                        manzanaContenedora = mza;
+                        break;
+                    }
+                }
+
+                // Fallback: Si no intersecta exactamente, busca la manzana con centro más cercano
+                if (!manzanaContenedora && manzanasLayers.length > 0) {
+                    let minDist = Infinity;
+                    manzanasLayers.forEach(mza => {
+                        let dist = centerPoint.distanceTo(mza.getBounds().getCenter());
+                        if (dist < minDist) {
+                            minDist = dist;
+                            manzanaContenedora = mza;
+                        }
+                    });
+                }
+
+                // Centrar la pantalla estrictamente en la Manzana contenedora para el cálculo de centro de manzanas
+                if (manzanaContenedora) {
+                    centroManzanaActual = manzanaContenedora.getBounds().getCenter();
+                    map.fitBounds(manzanaContenedora.getBounds(), { padding: [40, 40] });
+                } else {
+                    centroManzanaActual = l.getBounds().getCenter();
+                    map.fitBounds(l.getBounds(), { maxZoom: 19 });
+                }
+
+                if (dispararPopup) {
+                    l.fire('click');
+                }
+            }
+        });
+    });
+
+    if (!encontrado) {
+        alert("La partida municipal ingresada no pudo ser localizada.");
+    }
+}
+
+// MODIFICACIÓN: Buscador predictivo case-insensitive y basado en prefijos/subcadenas para UBIPAR1
+function buscarPredictivoUbicacion(query) {
+    if (!query || query.length < 3) return [];
+    let cleanQuery = query.toUpperCase().trim();
+    let matches = [];
+
+    // Priorizamos coincidencias de prefijo
+    for (let i = 0; i < listaParcelasUbicacion.length; i++) {
+        let item = listaParcelasUbicacion[i];
+        if (item.texto.startsWith(cleanQuery)) {
+            matches.push(item);
+            if (matches.length >= 10) break; // Límite sugerencias
+        }
+    }
+
+    // Si aún hay espacio, rellenamos con coincidencias de subcadena
+    if (matches.length < 10) {
+        for (let i = 0; i < listaParcelasUbicacion.length; i++) {
+            let item = listaParcelasUbicacion[i];
+            if (!item.texto.startsWith(cleanQuery) && item.texto.includes(cleanQuery)) {
+                matches.push(item);
+                if (matches.length >= 12) break;
+            }
+        }
+    }
+    return matches;
+}
+
+// MODIFICACIÓN: Vinculador de interacciones de autocompletado con el campo de entrada
+function configurarBuscadorUbicaciones() {
+    const input = document.getElementById('input-ubicacion');
+    const sug = document.getElementById('sugerencias-ubicacion');
+
+    input.addEventListener('input', () => {
+        let val = input.value;
+        sug.innerHTML = '';
+        if (val.length < 3) {
+            sug.style.display = 'none';
+            return;
+        }
+
+        let matches = buscarPredictivoUbicacion(val);
+
+        if (matches.length > 0) {
+            sug.style.display = 'block';
+            
+            // Eliminar duplicados textuales de sugerencia para mejor UI/UX
+            let textosAgregados = new Set();
+
+            matches.forEach(m => {
+                if (!textosAgregados.has(m.texto)) {
+                    textosAgregados.add(m.texto);
+                    let d = document.createElement('div');
+                    d.className = 'px-3 py-1.5 cursor-pointer text-xs text-slate-300 hover:bg-blue-600 hover:text-white border-b border-slate-800 last:border-none transition duration-150';
+                    d.innerText = m.texto;
+                    d.onclick = () => {
+                        input.value = m.texto;
+                        sug.style.display = 'none';
+                        
+                        if (m.layer) {
+                            // Extraer partidas de la capa para vincularlas directamente a la lógica de impresión
+                            let pms = m.layer.feature.properties.partidas;
+                            if (pms && pms.length > 0) {
+                                document.getElementById('input-pm').value = pms[0];
+                                buscarPM(true);
+                            } else {
+                                map.fitBounds(m.layer.getBounds(), { maxZoom: 19 });
+                                m.layer.fire('click');
+                            }
+                        }
+                    };
+                    sug.appendChild(d);
+                }
+            });
+        } else {
+            sug.style.display = 'none';
+        }
+    });
+
+    // Cerrar sugerencias al cliquear afuera
+    document.addEventListener('click', (e) => {
+        if (e.target !== input && e.target !== sug) {
+            sug.style.display = 'none';
+        }
+    });
+}
+
+function buscarGoogle() {
+    let val = document.getElementById('input-google').value.trim();
+    if (!val) return;
+    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(val + ", Paraná, Entre Ríos")}`)
+        .then(r => r.json()).then(data => {
+            if (data && data.length > 0) {
+                const lat = parseFloat(data[0].lat);
+                const lon = parseFloat(data[0].lon);
+                map.setView([lat, lon], 18);
+                L.marker([lat, lon]).addTo(map).bindPopup(`<b>Resultado Google:</b><br>${val}`).openPopup();
+            }
+        });
+}
+
+/* ================= MODIFICACIÓN: UTILIDADES DEL SISTEMA DE IMPRESIÓN SINCRO-A4 ================= */
+
+// MODIFICACIÓN: Prepara la UI para impresión catastral, aplicando la escala seleccionada y maquetando las páginas
+function prepararImpresion() {
+    if (!partidaSeleccionadaImpresion || !propiedadesUltimaParcelaBuscada) {
+        alert("Debe realizar primero la búsqueda de una Partida Municipal (PM) para generar el plano de manzana.");
+        return;
+    }
+
+    // Configuración estricta de la escala métrica normalizada elegida en el combo
+    const escalaValue = document.getElementById('select-print-scale').value;
+    let targetZoom = 19; // Default 1:1000
+    let textMid = "25m", textMax = "50m";
+
+    if (escalaValue === "500") {
+        targetZoom = 20;
+        textMid = "12.5m";
+        textMax = "25m";
+    } else if (escalaValue === "1000") {
+        targetZoom = 19;
+        textMid = "25m";
+        textMax = "50m";
+    } else if (escalaValue === "2000") {
+        targetZoom = 18;
+        textMid = "50m";
+        textMax = "100m";
+    } else if (escalaValue === "5000") {
+        targetZoom = 16;
+        textMid = "125m";
+        textMax = "250m";
+    }
+
+    // Aseguramos que la capa de parcelas esté visible para renderizarse en el plano impreso
+    document.getElementById('chk-parcelas').checked = true;
+    document.getElementById('chk-manzanas').checked = true;
+    document.getElementById('chk-calles').checked = true;
+    controlarVisibilidadDinamica();
+
+    // Actualizar leyendas e indicadores de escala de la Página 1 de Impresión
+    document.getElementById('print-partida-val').innerText = partidaSeleccionadaImpresion;
+    document.getElementById('print-escala-numerica').innerText = `1:${escalaValue}`;
+    document.getElementById('print-escala-mid').innerText = textMid;
+    document.getElementById('print-escala-max').innerText = textMax;
+
+    // Actualizar Página 2 de Impresión: Grilla de Atributos catastrales de la parcela
+    document.getElementById('print-partida-val-p2').innerText = partidaSeleccionadaImpresion;
+    const gridContainer = document.getElementById('print-report-grid');
+    gridContainer.innerHTML = '';
+
+    // Extraer y formatear quirúrgicamente todas las propiedades de la parcela
+    const fullProps = propiedadesUltimaParcelaBuscada.full || {};
+    let fieldsCount = 0;
+
+    for (let [key, val] of Object.entries(fullProps)) {
+        if (val && val !== "0" && val !== "-") {
+            fieldsCount++;
+            let itemDiv = document.createElement('div');
+            itemDiv.className = "flex justify-between border-b border-slate-200 pb-1";
+            itemDiv.innerHTML = `
+                <span class="font-extrabold text-slate-700 uppercase pr-2">${decodificarTexto(key)}:</span>
+                <span class="text-slate-900 font-semibold text-right">${decodificarTexto(String(val))}</span>
+            `;
+            gridContainer.appendChild(itemDiv);
+        }
+    }
+
+    // Si es PH catastral, agregar un aviso de PH con sus partidas vinculadas
+    if (propiedadesUltimaParcelaBuscada.esPH) {
+        let phDiv = document.createElement('div');
+        phDiv.className = "col-span-2 bg-purple-50 border border-purple-200 text-purple-900 p-3 rounded mt-2 font-bold";
+        phDiv.innerHTML = `PROPIDAD HORIZONTAL (PH DETECTADA) — Partidas asociadas: ${propiedadesUltimaParcelaBuscada.partidas.join(', ')}`;
+        gridContainer.appendChild(phDiv);
+    }
+
+    // MODIFICACIÓN: Mover de forma segura el nodo del mapa al contenedor de impresión para evitar desalineaciones de viewport
+    const mapElement = document.getElementById('map');
+    const printContainer = document.getElementById('map-print-container');
+    printContainer.appendChild(mapElement);
+
+    // Activar los contenedores del marco de impresión
+    document.body.classList.add('print-active');
+    document.getElementById('print-container-p1').classList.remove('hidden');
+    document.getElementById('print-container-p2').classList.remove('hidden');
+    document.getElementById('previa-print-bar').classList.remove('hidden');
+
+    // Forzar redibujado instantáneo de Leaflet y centrar en la manzana con el zoom de escala correspondiente
+    setTimeout(() => {
+        map.invalidateSize();
+        if (centroManzanaActual) {
+            map.setView(centroManzanaActual, targetZoom);
+        }
+    }, 100);
+}
+
+// MODIFICACIÓN: Lanza el comando de impresión del navegador para las páginas maquetadas
+function ejecutarImpresion() {
+    window.print();
+}
+
+// MODIFICACIÓN: Desactiva el modo previa de impresión y restaura el estado natural del visor (devolviendo el mapa al body)
+function cancelarImpresion() {
+    const mapElement = document.getElementById('map');
+    document.body.appendChild(mapElement);
+
+    document.body.classList.remove('print-active');
+    document.getElementById('print-container-p1').classList.add('hidden');
+    document.getElementById('print-container-p2').classList.add('hidden');
+    document.getElementById('previa-print-bar').classList.add('hidden');
+    
+    setTimeout(() => {
+        map.invalidateSize();
+        if (centroManzanaActual) {
+            map.setView(centroManzanaActual, 17);
+        }
+    }, 100);
+}
+
+// Inicialización de la herramienta de medición (longitud y superficie) en español
+var measureControl = new L.Control.Measure({
+    primaryLengthUnit: 'meters',
+    secondaryLengthUnit: 'kilometers',
+    primaryAreaUnit: 'sqmeters',
+    secondaryAreaUnit: 'hectares',
+    activeColor: '#ff6b6b',
+    completedColor: '#2980b9',
+    localization: 'es',
+    popupOptions: {
+        className: 'leaflet-measure-popup',
+        autoPanPadding: [80, 80]
+    }
+});
+measureControl.addTo(map);
+
+// Inicializar el buscador predictivo al cargar el script
+configurarBuscadorUbicaciones();
+controlarVisibilidadDinamica();
+</script>
+</body>
+</html>
