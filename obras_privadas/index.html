@@ -9,35 +9,56 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/leaflet-textpath@1.2.3/leaflet.textpath.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- MODIFICACIÓN: Agregar FontAwesome para iconos modernos del menú lateral -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
 
     <style>
         body { margin:0; padding:0; font-family: 'Inter', sans-serif; background: #0f172a; overflow: hidden; }
         #map { height: 100vh; width: 100%; z-index: 1; }
 
-        .panel-superior {
-            position:absolute; top:12px; left:55px; z-index:900;
-            background: rgba(255, 255, 255, 0.95); padding:8px; border-radius:10px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-            display:flex; gap:6px; align-items: center; flex-wrap: wrap;
-            backdrop-filter: blur(5px); border: 1px solid rgba(0,0,0,0.1);
-            max-width: calc(100% - 70px);
+        /* MODIFICACIÓN: Nuevos estilos mejorados para la barra lateral interactiva */
+        .sidebar {
+            position: absolute; top: 0; left: 0; height: 100vh; width: 360px;
+            z-index: 999; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(8px);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 4px 0 25px rgba(0,0,0,0.5);
+            display: flex; flex-direction: column;
+        }
+        .sidebar.collapsed { transform: translateX(-360px); }
+        .sidebar-toggle {
+            position: absolute; top: 20px; left: 360px; z-index: 999;
+            background: #1e293b; color: white; border: 1px solid rgba(255,255,255,0.1);
+            border-left: none; border-radius: 0 8px 8px 0; width: 40px; height: 48px;
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
+            box-shadow: 4px 0 10px rgba(0,0,0,0.2); transition: 0.3s;
+        }
+        .sidebar-toggle:hover { background: #3b82f6; }
+
+        /* Estilización de scrollbars dentro del menú lateral */
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 3px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.4); }
+
+        /* MODIFICACIÓN: Sugerencias predictivas de direcciones */
+        #sugerencias-direccion {
+            position: absolute; left: 0; right: 0; background: #1e293b; 
+            border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 6px; 
+            max-height: 200px; overflow-y: auto; z-index: 2000;
+            display: none; margin-top: 2px; box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+        }
+        
+        /* MODIFICACIÓN: Añadir estilos de contenedor para sugerencias de expediente */
+        #sugerencias-expediente {
+            position: absolute; left: 0; right: 0; background: #1e293b; 
+            border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 6px; 
+            max-height: 200px; overflow-y: auto; z-index: 2000;
+            display: none; margin-top: 2px; box-shadow: 0 8px 16px rgba(0,0,0,0.4);
         }
 
-        input { padding: 4px 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 12px; outline: none; transition: 0.2s; }
-        input:focus { border-color: #2980b9; box-shadow: 0 0 0 2px rgba(41,128,185,0.2); }
-        .btn-buscar { background: #2980b9; color: white; padding: 4px 10px; cursor: pointer; border-radius: 6px; font-weight: 600; font-size: 12px; border: none; }
-        .btn-buscar:hover { background: #1f6391; }
-        
-        .btn-google { background: #4285F4; color: white; padding: 4px 10px; cursor: pointer; border-radius: 6px; font-weight: 600; font-size: 12px; border: none; }
-
-        #sugerencias-calles {
-            position: absolute; background: white; border: 1px solid #ccc;
-            border-radius: 6px; max-height: 150px; overflow-y: auto; z-index: 2000;
-            width: 180px; display: none; margin-top: 34px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        }
-        
-        .sugerencia-item { padding: 6px 10px; cursor: pointer; font-size: 11px; border-bottom: 1px solid #f0f0f0; }
-        .sugerencia-item:hover { background: #f8f9fa; color: #2980b9; }
+        .sugerencia-item { padding: 8px 12px; cursor: pointer; font-size: 11px; color: #cbd5e1; border-bottom: 1px solid rgba(255,255,255,0.05); transition: 0.2s; }
+        .sugerencia-item:hover { background: #3b82f6; color: white; }
 
         .popup-custom { font-size: 10px; line-height: 1.1; min-width: 240px; max-height: 280px; overflow-y: auto; padding: 2px; }
         .popup-header { 
@@ -57,7 +78,7 @@
         .adv-sv { font-size: 9px; color: #718096; text-align: center; font-style: italic; margin-top: 4px; line-height: 1.2; }
         .adv-legal { font-size: 8px; color: #a0aec0; margin-top: 6px; border-top: 1px dashed #cbd5e0; padding-top: 4px; line-height: 1.1; }
         
-        .adv-distrito { position: absolute; bottom: 25px; right: 10px; z-index: 1000; background: rgba(255,255,255,0.8); padding: 6px 10px; border-radius: 6px; font-size: 9px; color: #4a5568; pointer-events: none; border: 1px solid rgba(0,0,0,0.1); }
+        .adv-distrito { position: absolute; bottom: 25px; right: 10px; z-index: 1000; background: rgba(15,23,42,0.85); padding: 8px 12px; border-radius: 8px; font-size: 9px; color: #94a3b8; pointer-events: none; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(4px); }
         
         .layer-legend-icon { 
             display: inline-block; 
@@ -78,35 +99,171 @@
 
 <body>
 
-<div class="panel-superior">
-    <!-- Título del Visor Actualizado -->
-    <div class="w-full text-center text-[10px] font-extrabold text-slate-800 tracking-wider border-b border-slate-200 pb-1.5 mb-1.5 uppercase">
-        MAPA DE CATASTRO Y OBRAS PRIVADAS - PARANA
+<!-- MODIFICACIÓN: Estructura de barra lateral premium que unifica todo de manera intuitiva -->
+<div class="sidebar-toggle" id="btn-toggle-sidebar" onclick="toggleSidebar()">
+    <i class="fa-solid fa-chevron-left text-sm" id="toggle-icon"></i>
+</div>
+
+<div class="sidebar custom-scrollbar" id="sidebar">
+    <!-- Header del Visor -->
+    <div class="p-4 border-b border-slate-800 bg-slate-950/50">
+        <div class="flex items-center gap-3">
+            <div class="bg-blue-600 p-2 rounded-lg text-white">
+                <i class="fa-solid fa-map-location-dot text-lg"></i>
+            </div>
+            <div>
+                <h1 class="text-xs font-black tracking-wider text-white uppercase">Catastro y Obras</h1>
+                <p class="text-[9px] font-semibold text-blue-400 uppercase tracking-widest">Municipalidad de Paraná</p>
+            </div>
+        </div>
     </div>
 
-    <input type="text" id="input-pm" placeholder="Partida" style="width:80px;">
-    <button class="btn-buscar" onclick="buscarPM()">Buscar PM</button>
-    
-    <div style="height: 20px; width: 1px; background: #e2e8f0; margin: 0 4px;"></div>
+    <!-- Contenido Scrollable -->
+    <div class="flex-1 overflow-y-auto p-4 space-y-5 custom-scrollbar">
+        
+        <!-- SECCIÓN 1: PANEL DE BÚSQUEDAS -->
+        <div class="space-y-3">
+            <h2 class="text-[10px] font-bold text-slate-400 tracking-wider uppercase border-b border-slate-800 pb-1">
+                <i class="fa-solid fa-magnifying-glass mr-1 text-blue-500"></i> Herramientas de Búsqueda
+            </h2>
 
-    <div style="position:relative; display: flex; gap: 4px;">
-        <input type="text" id="input-calle" placeholder="Calle..." style="width:120px;" autocomplete="off">
-        <input type="number" id="input-altura" placeholder="Alt." style="width:50px;">
-        <button class="btn-buscar" onclick="buscarDireccion()">Ir</button>
-        <div id="sugerencias-calles"></div>
+            <!-- Búsqueda por Partida (PM) -->
+            <div class="bg-slate-900/50 p-2.5 rounded-lg border border-slate-800 space-y-1.5">
+                <label class="text-[9px] font-bold text-slate-300 uppercase block">Partida Municipal (PM)</label>
+                <div class="flex gap-1.5">
+                    <input type="text" id="input-pm" placeholder="Ej: 134200" class="flex-1 bg-slate-950 border border-slate-800 text-white rounded px-2.5 py-1 text-xs outline-none focus:border-blue-500">
+                    <button class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-[10px] px-3 py-1 rounded transition-colors" onclick="buscarPM()">Buscar</button>
+                </div>
+            </div>
+
+            <!-- MODIFICACIÓN: Búsqueda Predictiva por Expediente (Multi-capa de obras) -->
+            <div class="bg-slate-900/50 p-2.5 rounded-lg border border-slate-800 space-y-1.5 relative">
+                <label class="text-[9px] font-bold text-slate-300 uppercase block">Expediente de Obra</label>
+                <div class="flex gap-1.5">
+                    <div class="relative flex-1">
+                        <input type="text" id="input-expediente" placeholder="Ej: 10452 o año..." autocomplete="off" class="w-full bg-slate-950 border border-slate-800 text-white rounded px-2.5 py-1 text-xs outline-none focus:border-blue-500">
+                        <div id="sugerencias-expediente" class="custom-scrollbar"></div>
+                    </div>
+                    <button class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-[10px] px-3 py-1 rounded transition-colors" onclick="buscarExpedienteManual()">Ir</button>
+                </div>
+                <p class="text-[8px] text-slate-500 mt-1">Busca predictivamente en todas las capas de obras registradas simultáneamente.</p>
+            </div>
+
+            <!-- Búsqueda Predictiva por Dirección (Calle y Altura / UBIPAR1) -->
+            <div class="bg-slate-900/50 p-2.5 rounded-lg border border-slate-800 space-y-1.5 relative">
+                <label class="text-[9px] font-bold text-slate-300 uppercase block">Calle y Altura (Catastro)</label>
+                <div class="flex gap-1.5">
+                    <div class="relative flex-1">
+                        <input type="text" id="input-direccion-predictiva" placeholder="Escriba calle o dirección..." autocomplete="off" class="w-full bg-slate-950 border border-slate-800 text-white rounded px-2.5 py-1 text-xs outline-none focus:border-blue-500">
+                        <div id="sugerencias-direccion"></div>
+                    </div>
+                    <button class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-[10px] px-3 py-1 rounded transition-colors" onclick="buscarDireccionPredictiva()">Ir</button>
+                </div>
+                <p class="text-[8px] text-slate-500 mt-1">Busca predictivamente sobre el campo de dirección catastral real (UBIPAR1).</p>
+            </div>
+
+            <!-- Búsqueda por Google / Lugares -->
+            <div class="bg-slate-900/50 p-2.5 rounded-lg border border-slate-800 space-y-1.5">
+                <label class="text-[9px] font-bold text-slate-300 uppercase block">Lugares de Paraná (Google/OSM)</label>
+                <div class="flex gap-1.5">
+                    <input type="text" id="input-google" placeholder="Ej: Plaza de Mayo" class="flex-1 bg-slate-950 border border-slate-800 text-white rounded px-2.5 py-1 text-xs outline-none focus:border-blue-500">
+                    <button class="bg-[#4285F4] hover:bg-[#357ae8] text-white font-bold text-[10px] px-3 py-1 rounded transition-colors" onclick="buscarGoogle()">Google</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECCIÓN 2: CONTROL DE CAPAS PERSONALIZADO -->
+        <div class="space-y-3">
+            <h2 class="text-[10px] font-bold text-slate-400 tracking-wider uppercase border-b border-slate-800 pb-1">
+                <i class="fa-solid fa-layer-group mr-1 text-blue-500"></i> Capas de Información
+            </h2>
+
+            <!-- Mapas Base -->
+            <div class="bg-slate-900/50 p-2.5 rounded-lg border border-slate-800 space-y-1.5">
+                <label class="text-[9px] font-bold text-slate-300 uppercase block mb-1">Mapa de Fondo</label>
+                <div class="grid grid-cols-3 gap-1">
+                    <button id="btn-base-dark" class="bg-blue-600 hover:bg-blue-700 text-white text-[9px] font-semibold py-1 px-1.5 rounded transition-colors" onclick="cambiarMapaBase('dark')">Oscuro</button>
+                    <button id="btn-base-hibrido" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-[9px] font-semibold py-1 px-1.5 rounded transition-colors" onclick="cambiarMapaBase('hibrido')">Híbrido</button>
+                    <button id="btn-base-osm" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-[9px] font-semibold py-1 px-1.5 rounded transition-colors" onclick="cambiarMapaBase('osm')">Callejero</button>
+                </div>
+            </div>
+
+            <!-- Capas Base GIS -->
+            <div class="bg-slate-900/50 p-2.5 rounded-lg border border-slate-800 space-y-2">
+                <label class="text-[9px] font-bold text-slate-300 uppercase block border-b border-slate-800 pb-1">Capas Catastrales</label>
+                
+                <label class="flex items-center gap-2 cursor-pointer text-xs text-slate-300">
+                    <!-- MODIFICACIÓN: Atributos checked inicializados según el nivel de zoom inicial (13 -> distritos encendido, parcelas/calles apagados) -->
+                    <input type="checkbox" id="chk-capa-distritos" checked class="rounded border-slate-800 bg-slate-950 text-blue-600 focus:ring-blue-500" onchange="toggleCapaPersonalizada('distritos', this.checked)">
+                    <span class="layer-legend-icon" style="background:rgba(255,255,255,0.1); border:1px dashed white;"></span>
+                    <span>Distritos (Trazos Ord. 8563)</span>
+                </label>
+
+                <label class="flex items-center gap-2 cursor-pointer text-xs text-slate-300">
+                    <input type="checkbox" id="chk-capa-calles" class="rounded border-slate-800 bg-slate-950 text-blue-600 focus:ring-blue-500" onchange="toggleCapaPersonalizada('calles', this.checked)">
+                    <span class="layer-legend-icon" style="background:#FFFF00; height:4px; border:1px solid #000;"></span>
+                    <span>Nombres de Calles</span>
+                </label>
+
+                <label class="flex items-center gap-2 cursor-pointer text-xs text-slate-300">
+                    <input type="checkbox" id="chk-capa-parcelas" class="rounded border-slate-800 bg-slate-950 text-blue-600 focus:ring-blue-500" onchange="toggleCapaPersonalizada('parcelas', this.checked)">
+                    <span class="layer-legend-icon" style="background:#2980b9"></span>
+                    <span>Parcelas Catastrales</span>
+                </label>
+            </div>
+
+            <!-- Capas de Obras Privadas -->
+            <div class="bg-slate-900/50 p-2.5 rounded-lg border border-slate-800 space-y-2">
+                <label class="text-[9px] font-bold text-slate-300 uppercase block border-b border-slate-800 pb-1">Obras Registradas</label>
+                
+                <label class="flex items-center gap-2 cursor-pointer text-xs text-slate-300">
+                    <input type="checkbox" id="chk-capa-historico" class="rounded border-slate-800 bg-slate-950 text-blue-600 focus:ring-blue-500" onchange="toggleCapaPersonalizada('historico', this.checked)">
+                    <span class="layer-legend-icon" style="background:#64748b; border-radius: 50%;"></span>
+                    <span>Histórico hasta 2004</span>
+                </label>
+
+                <label class="flex items-center gap-2 cursor-pointer text-xs text-slate-300">
+                    <input type="checkbox" id="chk-capa-edificios" class="rounded border-slate-800 bg-slate-950 text-blue-600 focus:ring-blue-500" onchange="toggleCapaPersonalizada('edificios', this.checked)">
+                    <span class="layer-legend-icon" style="background:#ef4444; border-radius: 50%;"></span>
+                    <span>Edificios de más de 3 Plantas</span>
+                </label>
+
+                <label class="flex items-center gap-2 cursor-pointer text-xs text-slate-300">
+                    <input type="checkbox" id="chk-capa-nuevas" class="rounded border-slate-800 bg-slate-950 text-blue-600 focus:ring-blue-500" onchange="toggleCapaPersonalizada('nuevas', this.checked)">
+                    <span class="layer-legend-icon" style="background:#3b82f6; border-radius: 50%;"></span>
+                    <span>Obra nueva desde 2019</span>
+                </label>
+
+                <label class="flex items-center gap-2 cursor-pointer text-xs text-slate-300">
+                    <input type="checkbox" id="chk-capa-particulares" class="rounded border-slate-800 bg-slate-950 text-blue-600 focus:ring-blue-500" onchange="toggleCapaPersonalizada('particulares', this.checked)">
+                    <span class="layer-legend-icon" style="background:#f59e0b; border-radius: 50%;"></span>
+                    <span>Particulares 2004-2019</span>
+                </label>
+
+                <label class="flex items-center gap-2 cursor-pointer text-xs text-slate-300">
+                    <input type="checkbox" id="chk-capa-digitales" class="rounded border-slate-800 bg-slate-950 text-blue-600 focus:ring-blue-500" onchange="toggleCapaPersonalizada('digitales', this.checked)">
+                    <span class="layer-legend-icon" style="background:#8b5cf6; border-radius: 50%;"></span>
+                    <span>Trámite Digital</span>
+                </label>
+
+                <label class="flex items-center gap-2 cursor-pointer text-xs text-slate-300">
+                    <input type="checkbox" id="chk-capa-relevamientos" class="rounded border-slate-800 bg-slate-950 text-blue-600 focus:ring-blue-500" onchange="toggleCapaPersonalizada('relevamientos', this.checked)">
+                    <span class="layer-legend-icon" style="background:#10b981; border-radius: 50%;"></span>
+                    <span>Relevamientos desde 2019</span>
+                </label>
+            </div>
+        </div>
     </div>
 
-    <div style="height: 20px; width: 1px; background: #e2e8f0; margin: 0 4px;"></div>
-
-    <div style="display: flex; gap: 4px;">
-        <input type="text" id="input-google" placeholder="Lugar/Google..." style="width:110px;">
-        <button class="btn-google" onclick="buscarGoogle()">Google</button>
+    <!-- Footer del menú lateral -->
+    <div class="p-3 border-t border-slate-800 bg-slate-950 text-[8px] text-slate-500 text-center uppercase tracking-wider">
+        Sistemas IDE Paraná | Municipalidad de Paraná
     </div>
 </div>
 
 <div class="adv-distrito text-right">
     <div>IDE Paraná - Límites indicativos (Ord. 8563). Zoom Máx: 22.</div>
-    <div class="text-[8px] text-slate-500 font-semibold mt-0.5">Elaborado por Dirección de Cartografía y Datos Espaciales</div>
+    <div class="text-[8px] text-slate-400 font-semibold mt-0.5">Elaborado por Dirección de Cartografía y Datos Espaciales</div>
 </div>
 <div id="map"></div>
 
@@ -114,6 +271,9 @@
 const BASE_URL = "https://raw.githubusercontent.com/dcartografiayde/IDE-PARANA/main/";
 const CARPETA_OBRAS_NUEVA = "obras_privadas/";
 const CARPETA_OBRAS_ANTIGUA = "obras%20privadas/";
+
+// MODIFICACIÓN: Listado para indexación predictiva global de parcelas catastrales (UBIPAR1)
+var listaParcelasDirecciones = [];
 
 /* ================= FUNCIONES DE LIMPIEZA Y DECODIFICACIÓN DE TEXTO ================= */
 function decodificarTexto(str) {
@@ -153,6 +313,9 @@ var map = L.map('map', {
     zoomControl: true,
     maxZoom: 22
 });
+
+// MODIFICACIÓN: Desplazar controles por defecto para que no los tape la barra lateral
+map.zoomControl.setPosition('topright');
 
 map.createPane('parcelasPane');
 map.getPane('parcelasPane').style.zIndex = 350; 
@@ -200,7 +363,8 @@ fetchGeoJSON(BASE_URL + "distritos.geojson").then(data => {
     }).addTo(grupoDistritos);
 });
 
-var grupoCalles = L.layerGroup().addTo(map);
+// MODIFICACIÓN: grupoCalles no se añade al mapa inmediatamente para que zoom < 14 empiece optimizado y apagado
+var grupoCalles = L.layerGroup();
 var listaCallesParaBusqueda = [];
 
 fetchGeoJSON(BASE_URL + "calles.geojson").then(data => {
@@ -218,7 +382,8 @@ fetchGeoJSON(BASE_URL + "calles.geojson").then(data => {
             }
         }
     }).addTo(grupoCalles);
-    configurarBuscadorCalles();
+    // Configura el autocompletado en el cargador
+    configurarBuscadorDireccionesPredictivas();
     activarEtiquetasCalles();
 });
 
@@ -323,26 +488,31 @@ window.mostrarInfoParcelaDesdePopup = function(lat, lng) {
         setTimeout(() => {
             resultado.layer.fire('click', { latlng: latlng });
         }, 100);
+    } else {
+        // MODIFICACIÓN: Mensaje amigable alternativo por si las capas aún se están cargando
+        console.warn("La parcela aún no está cargada o no se intersecta.");
     }
 };
 
 /* ================= GLOBAL HELPER PARA CENTRAR Y ACTIVAR OBRA DESDE LA PARCELA ================= */
-// PROTOCOLO NO REGRESIÓN: Permite encender de forma dinámica y automática la capa si estaba apagada
 window.centrarYVerObra = function(capaNombre, lat, lng) {
     const grupo = gruposObras[capaNombre];
     if (grupo) {
         if (!map.hasLayer(grupo)) {
             map.addLayer(grupo);
-            // Actualizar visualmente la leyenda (Checkbox)
-            let controlLayers = document.querySelector('.leaflet-control-layers');
-            if (controlLayers) {
-                let labels = controlLayers.querySelectorAll('label');
-                labels.forEach(label => {
-                    if (label.textContent.includes(capaNombre)) {
-                        let cb = label.querySelector('input[type="checkbox"]');
-                        if (cb) cb.checked = true;
-                    }
-                });
+            // MODIFICACIÓN: Actualizar visualmente la leyenda personalizada de la barra lateral
+            const idCapaMap = {
+                "ARCHIVO HISTORICO HASTA 2004": "chk-capa-historico",
+                "EDIFICIOS DE MAS DE 3 PLANTAS": "chk-capa-edificios",
+                "OBRA NUEVA DESDE 2019": "chk-capa-nuevas",
+                "OBRAS PARTICULARES 2004-2019": "chk-capa-particulares",
+                "OBRAS CIVILES TRAMITE DIGITAL": "chk-capa-digitales",
+                "RELEVAMIENTOS DESDE 2019": "chk-capa-relevamientos"
+            };
+            const chkId = idCapaMap[capaNombre];
+            if (chkId) {
+                const cb = document.getElementById(chkId);
+                if (cb) cb.checked = true;
             }
         }
         map.setView([lat, lng], 19);
@@ -360,7 +530,6 @@ window.centrarYVerObra = function(capaNombre, lat, lng) {
 };
 
 /* ================= BUSCADOR ESPACIAL DE OBRAS EN PARCELA ================= */
-// Compara las coordenadas de los puntos cargados en memoria con los límites poligonales de la parcela seleccionada
 function buscarObrasEnParcela(geomParcela) {
     const obrasDetectadas = [];
     if (!geomParcela) return obrasDetectadas;
@@ -430,6 +599,17 @@ archivosCatastro.forEach(file => {
             pane: 'parcelasPane',
             style: f => ({ color: f.properties.esPH ? "#8e44ad" : "#2980b9", weight: 0.7, fillOpacity: 0.12 }),
             onEachFeature: (f, l) => {
+                // MODIFICACIÓN: Alimentar índice predictivo de direcciones con la información de UBIPAR1 de manera única
+                if (f.properties.ubicacion && f.properties.ubicacion !== "-") {
+                    let dirNormalizada = decodificarTexto(f.properties.ubicacion).trim().toUpperCase();
+                    if (dirNormalizada) {
+                        listaParcelasDirecciones.push({
+                            direccion: dirNormalizada,
+                            layer: l
+                        });
+                    }
+                }
+
                 l.on('click', e => {
                     let latlng = e.latlng || l.getBounds().getCenter();
                     let p = f.properties;
@@ -460,7 +640,6 @@ archivosCatastro.forEach(file => {
                         content += `</table>`;
                     }
 
-                    /* --- NUEVO DETECTOR ESPACIAL DE OBRAS EN ESTA PARCELA --- */
                     const obrasEncontradas = buscarObrasEnParcela(f.geometry);
                     if (obrasEncontradas.length > 0) {
                         content += `<div style="margin-top: 6px; padding-top: 6px; border-top: 1px dashed #cbd5e1;">`;
@@ -468,7 +647,6 @@ archivosCatastro.forEach(file => {
                         content += `<div style="max-height: 80px; overflow-y: auto; display: flex; flex-direction: column; gap: 3px;">`;
                         
                         obrasEncontradas.forEach(o => {
-                            // Se genera un identificador rápido (ej. nro de expediente o dirección) para mostrar en la fila
                             let identificador = o.properties.expediente || o.properties.nro_exp || o.properties.ubipar1 || "Ver detalles";
                             content += `
                                 <div style="display: flex; align-items: center; justify-content: space-between; background: #f8fafc; padding: 3px; border-radius: 4px; border-left: 3px solid ${o.color}; gap: 4px;">
@@ -496,19 +674,52 @@ archivosCatastro.forEach(file => {
     });
 });
 
-function controlarVisibilidadParcelas() {
+// MODIFICACIÓN: Se unifica la lógica de visibilidad de las parcelas, calles y distritos por zoom para garantizar excelente rendimiento
+function controlarVisibilidadCapasPorZoom() {
     let zoomActual = map.getZoom();
+    const chkDistritos = document.getElementById('chk-capa-distritos');
+    const chkCalles = document.getElementById('chk-capa-calles');
+    const chkParcelas = document.getElementById('chk-capa-parcelas');
+
     if (zoomActual >= 14) {
+        // En zoom >= 14 se encienden las parcelas y nombres de calles
         if (!map.hasLayer(grupoParcelas)) {
             map.addLayer(grupoParcelas);
         }
+        if (chkParcelas) chkParcelas.checked = true;
+
+        if (!map.hasLayer(grupoCalles)) {
+            map.addLayer(grupoCalles);
+            map.fire('moveend'); // Forzar renderizado de los nombres de las calles
+        }
+        if (chkCalles) chkCalles.checked = true;
+
+        // Se apaga la capa de distritos para óptimo rendimiento gráfico
+        if (map.hasLayer(grupoDistritos)) {
+            map.removeLayer(grupoDistritos);
+        }
+        if (chkDistritos) chkDistritos.checked = false;
     } else {
+        // En zoom < 14 se apagan las parcelas y calles
         if (map.hasLayer(grupoParcelas)) {
             map.removeLayer(grupoParcelas);
         }
+        if (chkParcelas) chkParcelas.checked = false;
+
+        if (map.hasLayer(grupoCalles)) {
+            map.removeLayer(grupoCalles);
+        }
+        if (chkCalles) chkCalles.checked = false;
+
+        // Se enciende únicamente la capa de distritos
+        if (!map.hasLayer(grupoDistritos)) {
+            map.addLayer(grupoDistritos);
+        }
+        if (chkDistritos) chkDistritos.checked = true;
     }
 }
-map.on('zoomend', controlarVisibilidadParcelas);
+// MODIFICACIÓN: Vinculación del evento zoomend a la nueva función optimizada de visibilidad por zoom
+map.on('zoomend', controlarVisibilidadCapasPorZoom);
 
 /* ================= CAPAS DE OBRAS PRIVADAS ================= */
 const capasObrasConfig = [
@@ -551,23 +762,17 @@ const capasObrasConfig = [
 ];
 
 const gruposObras = {};
-const cachedObrasData = {}; // Guarda en memoria los GeoJSON cargados para indexación poligonal en tiempo real
+const cachedObrasData = {}; 
 
-// Cargador robusto con sistema de tolerancia y fallbacks de ruta/nombre
 async function cargarCapaObraConResiliencia(cfg) {
     let data = null;
-    
-    // Intentos de rutas posibles (nueva carpeta vs antigua carpeta)
     const carpetasAProbar = [CARPETA_OBRAS_NUEVA, CARPETA_OBRAS_ANTIGUA];
     
     for (const carpeta of carpetasAProbar) {
         if (data) break;
-        
-        // 1. Intentar el nombre de archivo sugerido
         const urlOriginal = BASE_URL + carpeta + cfg.file;
         data = await fetchGeoJSON(urlOriginal).catch(() => null);
         
-        // 2. Si falla, probar cada fallback alternativo registrado
         if (!data && cfg.fallbacks) {
             for (const fallbackFile of cfg.fallbacks) {
                 const urlFallback = BASE_URL + carpeta + fallbackFile;
@@ -578,30 +783,38 @@ async function cargarCapaObraConResiliencia(cfg) {
     }
 
     if (data) {
-        cachedObrasData[cfg.nombre] = data; // Almacenamos el buffer de datos para el motor de detección de parcelas
+        cachedObrasData[cfg.nombre] = data; 
 
         L.geoJSON(data, {
             pointToLayer: (f, latlng) => {
                 return L.circleMarker(latlng, { radius: 6, fillColor: cfg.color, color: "#fff", weight: 1.5, fillOpacity: 0.9 });
             },
+            // MODIFICACIÓN: Crear el popup dinámicamente al abrirlo para evitar el problema de carga asíncrona de parcelas catastrales
             onEachFeature: (f, l) => {
-                let latlng = l.getLatLng ? l.getLatLng() : l.getBounds().getCenter();
-                let sv = `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${latlng.lat},${latlng.lng}`;
-                
-                let content = `<div class="popup-custom"><div class="popup-header" style="color:${cfg.color}">${cfg.nombre}</div><table class="table-info">`;
-                for (let [k, v] of Object.entries(f.properties)) { 
-                    if (v && v !== "0") content += `<tr><td>${decodificarTexto(k).toUpperCase()}</td><td>${decodificarTexto(String(v))}</td></tr>`; 
-                }
-                content += `</table>`;
-                
-                let parcelaEncontrada = obtenerInfoParcelaEnPunto(latlng);
-                if (parcelaEncontrada) {
-                    content += `<hr style="margin: 6px 0; border-style: dashed; border-color: #cbd5e1;">`;
-                    content += `<div class="text-[8px] text-slate-500 italic text-center mb-1">Hay una parcela catastral debajo.</div>`;
-                    content += `<button onclick="mostrarInfoParcelaDesdePopup(${latlng.lat}, ${latlng.lng})" class="w-full text-center py-1 bg-blue-600 hover:bg-blue-700 text-white rounded font-bold text-[9px] uppercase transition-colors">👉 Ver Parcela Catastral debajo</button>`;
-                }
-                content += `<a href="${sv}" target="_blank" class="btn-streetview">📍 STREET VIEW</a></div>`;
-                l.bindPopup(content, { autoPanPadding: L.point(10, 110) });
+                l.bindPopup((layer) => {
+                    let latlng = layer.getLatLng ? layer.getLatLng() : layer.getBounds().getCenter();
+                    let sv = `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${latlng.lat},${latlng.lng}`;
+                    
+                    let content = `<div class="popup-custom"><div class="popup-header" style="color:${cfg.color}">${cfg.nombre}</div><table class="table-info">`;
+                    for (let [k, v] of Object.entries(f.properties)) { 
+                        if (v && v !== "0") content += `<tr><td>${decodificarTexto(k).toUpperCase()}</td><td>${decodificarTexto(String(v))}</td></tr>`; 
+                    }
+                    content += `</table>`;
+                    
+                    // REQUISITO 2: Consultar la capa de parcelas catastrales dinámicamente sobre el punto de la obra privada
+                    let parcelaEncontrada = obtenerInfoParcelaEnPunto(latlng);
+                    if (parcelaEncontrada) {
+                        content += `<hr style="margin: 6px 0; border-style: dashed; border-color: #cbd5e1;">`;
+                        content += `<div class="text-[8px] text-slate-500 italic text-center mb-1">Hay una parcela catastral debajo.</div>`;
+                        content += `<button onclick="window.mostrarInfoParcelaDesdePopup(${latlng.lat}, ${latlng.lng})" class="w-full text-center py-1 bg-blue-600 hover:bg-blue-700 text-white rounded font-bold text-[9px] uppercase transition-colors">👉 Ver Parcela Catastral debajo</button>`;
+                    } else {
+                        // MODIFICACIÓN: Si las parcelas aún se están procesando u ocurre latencia, ofrece disparador espacial asíncrono
+                        content += `<hr style="margin: 6px 0; border-style: dashed; border-color: #cbd5e1;">`;
+                        content += `<button onclick="window.mostrarInfoParcelaDesdePopup(${latlng.lat}, ${latlng.lng})" class="w-full text-center py-1 bg-slate-600 hover:bg-slate-700 text-white rounded font-bold text-[9px] uppercase transition-colors">🔍 Forzar consulta de parcela debajo</button>`;
+                    }
+                    content += `<a href="${sv}" target="_blank" class="btn-streetview">📍 STREET VIEW</a></div>`;
+                    return content;
+                }, { autoPanPadding: L.point(10, 110) });
             }
         }).addTo(gruposObras[cfg.nombre]);
     } else {
@@ -609,9 +822,7 @@ async function cargarCapaObraConResiliencia(cfg) {
     }
 }
 
-// Inicializar grupos de capas y arrancar la carga resiliente
 capasObrasConfig.forEach(cfg => {
-    // PROTOCOLO DE NO REGRESIÓN: Modificamos para iniciar apagadas removiendo .addTo(map)
     gruposObras[cfg.nombre] = L.layerGroup(); 
     cargarCapaObraConResiliencia(cfg);
 });
@@ -631,36 +842,259 @@ function buscarPM() {
             }
         });
     });
-}
-
-function buscarDireccion() {
-    let nom = document.getElementById('input-calle').value.toUpperCase();
-    let match = listaCallesParaBusqueda.find(c => c.nombre === nom);
-    if (match) {
-        map.fitBounds(match.layer.getBounds(), { maxZoom: 16 });
-        match.layer.fire('click');
+    if (!encontrado) {
+        let input = document.getElementById('input-pm');
+        input.classList.add('border-red-500');
+        setTimeout(() => input.classList.remove('border-red-500'), 2000);
     }
 }
 
-function configurarBuscadorCalles() {
-    const input = document.getElementById('input-calle');
-    const sug = document.getElementById('sugerencias-calles');
+// MODIFICACIÓN: Buscador predictivo inteligente por campo de dirección catastral UBIPAR1
+function configurarBuscadorDireccionesPredictivas() {
+    const input = document.getElementById('input-direccion-predictiva');
+    const sugerenciasDiv = document.getElementById('sugerencias-direccion');
+    
     input.addEventListener('input', () => {
-        let val = input.value.toUpperCase();
-        sug.innerHTML = '';
-        if (val.length < 2) { sug.style.display = 'none'; return; }
-        let matches = [...new Set(listaCallesParaBusqueda.map(c => c.nombre))]
-            .filter(n => n.includes(val)).slice(0, 6);
-        if (matches.length > 0) {
-            sug.style.display = 'block';
-            matches.forEach(m => {
-                let d = document.createElement('div');
-                d.className = 'sugerencia-item'; d.innerText = m;
-                d.onclick = () => { input.value = m; sug.style.display = 'none'; };
-                sug.appendChild(d);
+        let val = input.value.toUpperCase().trim();
+        sugerenciasDiv.innerHTML = '';
+        
+        if (val.length < 3) { 
+            sugerenciasDiv.style.display = 'none'; 
+            return; 
+        }
+        
+        let coincidencias = listaParcelasDirecciones.filter(item => {
+            return item.direccion.includes(val);
+        });
+        
+        coincidencias.sort((a, b) => {
+            let aStarts = a.direccion.startsWith(val);
+            let bStarts = b.direccion.startsWith(val);
+            if (aStarts && !bStarts) return -1;
+            if (!aStarts && bStarts) return 1;
+            return a.direccion.localeCompare(b.direccion);
+        });
+
+        let yaAgregadas = new Set();
+        let sugerenciasFiltradas = [];
+        
+        for (let item of coincidencias) {
+            if (!yaAgregadas.has(item.direccion)) {
+                yaAgregadas.add(item.direccion);
+                sugerenciasFiltradas.push(item);
+                if (sugerenciasFiltradas.length >= 8) break;
+            }
+        }
+
+        if (sugerenciasFiltradas.length > 0) {
+            sugerenciasDiv.style.display = 'block';
+            sugerenciasFiltradas.forEach(item => {
+                let div = document.createElement('div');
+                div.className = 'sugerencia-item';
+                div.innerText = item.direccion;
+                div.onclick = () => {
+                    input.value = item.direccion;
+                    sugerenciasDiv.style.display = 'none';
+                    map.fitBounds(item.layer.getBounds(), { maxZoom: 19 });
+                    item.layer.fire('click');
+                };
+                sugerenciasDiv.appendChild(div);
             });
-        } else { sug.style.display = 'none'; }
+        } else {
+            sugerenciasDiv.style.display = 'none';
+        }
     });
+
+    document.addEventListener('click', (e) => {
+        if (e.target !== input) {
+            sugerenciasDiv.style.display = 'none';
+        }
+    });
+}
+
+function buscarDireccionPredictiva() {
+    let inputVal = document.getElementById('input-direccion-predictiva').value.toUpperCase().trim();
+    if (!inputVal) return;
+    
+    let coincidencia = listaParcelasDirecciones.find(item => item.direccion === inputVal) ||
+                       listaParcelasDirecciones.find(item => item.direccion.includes(inputVal));
+                       
+    if (coincidencia) {
+        map.fitBounds(coincidencia.layer.getBounds(), { maxZoom: 19 });
+        coincidencia.layer.fire('click');
+    } else {
+        let input = document.getElementById('input-direccion-predictiva');
+        input.classList.add('border-red-500');
+        setTimeout(() => input.classList.remove('border-red-500'), 2000);
+    }
+}
+
+// MODIFICACIÓN: Extraer de forma resiliente el centro/coordenadas de cualquier tipo de geometría (Puntos, Polígonos, etc.)
+function obtenerCentroGeometry(geometry) {
+    if (!geometry) return null;
+    if (geometry.type === "Point") {
+        return geometry.coordinates; // [lng, lat]
+    } else if (geometry.type === "Polygon") {
+        if (geometry.coordinates && geometry.coordinates[0] && geometry.coordinates[0][0]) {
+            return geometry.coordinates[0][0]; // Usa el primer vértice como fallback aproximado
+        }
+    } else if (geometry.type === "MultiPolygon") {
+        if (geometry.coordinates && geometry.coordinates[0] && geometry.coordinates[0][0] && geometry.coordinates[0][0][0]) {
+            return geometry.coordinates[0][0][0];
+        }
+    }
+    return null;
+}
+
+// MODIFICACIÓN: Detector y normalizador de campos de expediente robusto (Soporta EXPE_NRO, EXPT., EXPTE_NO y EXPTE)
+function obtenerValorExpediente(properties) {
+    if (!properties) return null;
+    // MODIFICACIÓN: Se añaden las nuevas variaciones del campo de expediente
+    const keys = ['expe_nro', 'expt.', 'expte_no', 'expte', 'expediente', 'nro_exp', 'nroexp', 'exp', 'nro_expediente', 'nro_registro', 'registro'];
+    // Convertir todas las claves de propiedades a minúsculas para comparar resilientemente
+    const propLower = {};
+    for (let k in properties) {
+        if (properties[k] !== undefined && properties[k] !== null) {
+            propLower[k.toLowerCase()] = properties[k];
+        }
+    }
+    for (let key of keys) {
+        let val = propLower[key];
+        if (val !== undefined && val !== null && String(val).trim() !== "" && String(val).trim() !== "0") {
+            return String(val).trim();
+        }
+    }
+    return null;
+}
+
+// MODIFICACIÓN: Buscador predictivo simultáneo de expedientes corregido y robustecido
+function configurarBuscadorExpedientes() {
+    const input = document.getElementById('input-expediente');
+    const sugerenciasDiv = document.getElementById('sugerencias-expediente');
+    
+    input.addEventListener('input', () => {
+        let val = input.value.toUpperCase().trim();
+        sugerenciasDiv.innerHTML = '';
+        
+        if (val.length < 2) { 
+            sugerenciasDiv.style.display = 'none'; 
+            return; 
+        }
+        
+        let coincidencias = [];
+        
+        // Buscar simultáneamente en todos los buffers GeoJSON de obras en memoria
+        for (let [capaNombre, data] of Object.entries(cachedObrasData)) {
+            if (data && data.features) {
+                data.features.forEach(f => {
+                    let exp = obtenerValorExpediente(f.properties);
+                    if (exp) {
+                        let expUpper = exp.toUpperCase();
+                        if (expUpper.includes(val)) {
+                            // MODIFICACIÓN: Obtención de coordenadas segura usando obtenerCentroGeometry
+                            let coords = obtenerCentroGeometry(f.geometry);
+                            if (coords && coords.length >= 2) {
+                                coincidencias.push({
+                                    expediente: exp,
+                                    capa: capaNombre,
+                                    lat: coords[1],
+                                    lng: coords[0]
+                                });
+                            }
+                        }
+                    }
+                });
+            }
+        }
+        
+        // Priorizar coincidencia basada en prefijos de manera case-insensitive
+        coincidencias.sort((a, b) => {
+            let aStarts = a.expediente.toUpperCase().startsWith(val);
+            let bStarts = b.expediente.toUpperCase().startsWith(val);
+            if (aStarts && !bStarts) return -1;
+            if (!aStarts && bStarts) return 1;
+            return a.expediente.localeCompare(b.expediente);
+        });
+        
+        // Limitar a sugerencias únicas (máximo 10) para evitar duplicados inter-capa
+        let yaAgregadas = new Set();
+        let sugerenciasFiltradas = [];
+        for (let item of coincidencias) {
+            let keyUnique = `${item.expediente}-${item.capa}`;
+            if (!yaAgregadas.has(keyUnique)) {
+                yaAgregadas.add(keyUnique);
+                sugerenciasFiltradas.push(item);
+                if (sugerenciasFiltradas.length >= 10) break;
+            }
+        }
+        
+        if (sugerenciasFiltradas.length > 0) {
+            sugerenciasDiv.style.display = 'block';
+            sugerenciasFiltradas.forEach(item => {
+                let div = document.createElement('div');
+                div.className = 'sugerencia-item flex justify-between items-center gap-2 border-b border-slate-800/50';
+                div.innerHTML = `
+                    <span class="font-bold text-white text-[10px]">${decodificarTexto(item.expediente)}</span>
+                    <span class="text-[8px] text-slate-400 bg-slate-800 px-1.5 py-0.5 rounded uppercase max-w-[150px] overflow-hidden text-ellipsis whitespace-nowrap">${item.capa}</span>
+                `;
+                div.onclick = () => {
+                    input.value = item.expediente;
+                    sugerenciasDiv.style.display = 'none';
+                    // Activa automáticamente la capa si está apagada, enfoca e interactúa
+                    window.centrarYVerObra(item.capa, item.lat, item.lng);
+                };
+                sugerenciasDiv.appendChild(div);
+            });
+        } else {
+            sugerenciasDiv.style.display = 'none';
+        }
+    });
+    
+    // MODIFICACIÓN: Impedir que se oculten las sugerencias al hacer clic dentro de la caja o scrollbar del buscador
+    document.addEventListener('click', (e) => {
+        if (e.target !== input && !sugerenciasDiv.contains(e.target)) {
+            sugerenciasDiv.style.display = 'none';
+        }
+    });
+}
+
+// MODIFICACIÓN: Búsqueda manual / Tecla "Ir" para número de expediente en todas las capas de obras
+function buscarExpedienteManual() {
+    let inputVal = document.getElementById('input-expediente').value.toUpperCase().trim();
+    if (!inputVal) return;
+    
+    let coincidencia = null;
+    for (let [capaNombre, data] of Object.entries(cachedObrasData)) {
+        if (data && data.features) {
+            let fMatch = data.features.find(f => {
+                let exp = obtenerValorExpediente(f.properties);
+                return exp && exp.toUpperCase() === inputVal;
+            }) || data.features.find(f => {
+                let exp = obtenerValorExpediente(f.properties);
+                return exp && exp.toUpperCase().includes(inputVal);
+            });
+            
+            if (fMatch) {
+                let coords = obtenerCentroGeometry(fMatch.geometry);
+                if (coords && coords.length >= 2) {
+                    coincidencia = {
+                        capa: capaNombre,
+                        lat: coords[1],
+                        lng: coords[0]
+                    };
+                    break;
+                }
+            }
+        }
+    }
+    
+    if (coincidencia) {
+        window.centrarYVerObra(coincidencia.capa, coincidencia.lat, coincidencia.lng);
+    } else {
+        let input = document.getElementById('input-expediente');
+        input.classList.add('border-red-500');
+        setTimeout(() => input.classList.remove('border-red-500'), 2000);
+    }
 }
 
 function buscarGoogle() {
@@ -677,29 +1111,82 @@ function buscarGoogle() {
         });
 }
 
-/* ================= LEYENDAS Y CONTROL DE CAPAS ================= */
-const overlays = {
-    "<span class='layer-legend-icon' style='background:rgba(255,255,255,0.1); border:2px dashed white;'></span> Distritos (Trazos)": grupoDistritos,
-    "<span class='layer-legend-icon' style='background:#FFFF00; height:4px; border:1px solid #000;'></span> Nombres de Calles": grupoCalles,
-    "<span class='layer-legend-icon' style='background:#2980b9'></span> Parcelas Catastrales": grupoParcelas,
+/* ================= CONTROL DE VISIBILIDAD DE CAPAS DESDE SIDEBAR ================= */
+function toggleCapaPersonalizada(idNombre, activado) {
+    switch (idNombre) {
+        case 'distritos':
+            activado ? map.addLayer(grupoDistritos) : map.removeLayer(grupoDistritos);
+            break;
+        case 'calles':
+            activado ? map.addLayer(grupoCalles) : map.removeLayer(grupoCalles);
+            break;
+        case 'parcelas':
+            activado ? map.addLayer(grupoParcelas) : map.removeLayer(grupoParcelas);
+            break;
+        case 'historico':
+            activado ? map.addLayer(gruposObras["ARCHIVO HISTORICO HASTA 2004"]) : map.removeLayer(gruposObras["ARCHIVO HISTORICO HASTA 2004"]);
+            break;
+        case 'edificios':
+            activado ? map.addLayer(gruposObras["EDIFICIOS DE MAS DE 3 PLANTAS"]) : map.removeLayer(gruposObras["EDIFICIOS DE MAS DE 3 PLANTAS"]);
+            break;
+        case 'nuevas':
+            activado ? map.addLayer(gruposObras["OBRA NUEVA DESDE 2019"]) : map.removeLayer(gruposObras["OBRA NUEVA DESDE 2019"]);
+            break;
+        case 'particulares':
+            activado ? map.addLayer(gruposObras["OBRAS PARTICULARES 2004-2019"]) : map.removeLayer(gruposObras["OBRAS PARTICULARES 2004-2019"]);
+            break;
+        case 'digitales':
+            activado ? map.addLayer(gruposObras["OBRAS CIVILES TRAMITE DIGITAL"]) : map.removeLayer(gruposObras["OBRAS CIVILES TRAMITE DIGITAL"]);
+            break;
+        case 'relevamientos':
+            activado ? map.addLayer(gruposObras["RELEVAMIENTOS DESDE 2019"]) : map.removeLayer(gruposObras["RELEVAMIENTOS DESDE 2019"]);
+            break;
+    }
+}
+
+function cambiarMapaBase(tipo) {
+    map.removeLayer(dark);
+    map.removeLayer(hibrido);
+    map.removeLayer(osm);
     
-    // Separador de Obras Privadas
-    "<b>Obras Privadas</b>": L.layerGroup(),
-    "<span class='layer-legend-icon' style='background:#64748b; border-radius: 50%;'></span> Archivo Histórico hasta 2004": gruposObras["ARCHIVO HISTORICO HASTA 2004"],
-    "<span class='layer-legend-icon' style='background:#ef4444; border-radius: 50%;'></span> Edificios más de 3 plantas": gruposObras["EDIFICIOS DE MAS DE 3 PLANTAS"],
-    "<span class='layer-legend-icon' style='background:#3b82f6; border-radius: 50%;'></span> Obra nueva desde 2019": gruposObras["OBRA NUEVA DESDE 2019"],
-    "<span class='layer-legend-icon' style='background:#f59e0b; border-radius: 50%;'></span> Obras particulares 2004-2019": gruposObras["OBRAS PARTICULARES 2004-2019"],
-    "<span class='layer-legend-icon' style='background:#8b5cf6; border-radius: 50%;'></span> Obras civiles trámite digital": gruposObras["OBRAS CIVILES TRAMITE DIGITAL"],
-    "<span class='layer-legend-icon' style='background:#10b981; border-radius: 50%;'></span> Relevamientos desde 2019": gruposObras["RELEVAMIENTOS DESDE 2019"]
-};
+    document.getElementById('btn-base-dark').className = 'bg-slate-800 hover:bg-slate-700 text-slate-300 text-[9px] font-semibold py-1 px-1.5 rounded transition-colors';
+    document.getElementById('btn-base-hibrido').className = 'bg-slate-800 hover:bg-slate-700 text-slate-300 text-[9px] font-semibold py-1 px-1.5 rounded transition-colors';
+    document.getElementById('btn-base-osm').className = 'bg-slate-800 hover:bg-slate-700 text-slate-300 text-[9px] font-semibold py-1 px-1.5 rounded transition-colors';
 
-L.control.layers(
-    { "Mapa Oscuro": dark, "Híbrido": hibrido, "OpenStreetMap": osm }, 
-    overlays, 
-    { collapsed: false }
-).addTo(map);
+    if (tipo === 'dark') {
+        dark.addTo(map);
+        document.getElementById('btn-base-dark').className = 'bg-blue-600 hover:bg-blue-700 text-white text-[9px] font-semibold py-1 px-1.5 rounded transition-colors';
+    } else if (tipo === 'hibrido') {
+        hibrido.addTo(map);
+        document.getElementById('btn-base-hibrido').className = 'bg-blue-600 hover:bg-blue-700 text-white text-[9px] font-semibold py-1 px-1.5 rounded transition-colors';
+    } else if (tipo === 'osm') {
+        osm.addTo(map);
+        document.getElementById('btn-base-osm').className = 'bg-blue-600 hover:bg-blue-700 text-white text-[9px] font-semibold py-1 px-1.5 rounded transition-colors';
+    }
+}
 
-controlarVisibilidadParcelas();
+/* ================= MANEJO INTERACTIVO DEL SIDEBAR (ABRIR/CERRAR) ================= */
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const toggleBtn = document.getElementById('btn-toggle-sidebar');
+    const toggleIcon = document.getElementById('toggle-icon');
+    
+    if (sidebar.classList.contains('collapsed')) {
+        sidebar.classList.remove('collapsed');
+        toggleBtn.style.left = '360px';
+        toggleIcon.className = 'fa-solid fa-chevron-left text-sm';
+    } else {
+        sidebar.classList.add('collapsed');
+        toggleBtn.style.left = '0px';
+        toggleIcon.className = 'fa-solid fa-chevron-right text-sm';
+    }
+}
+
+// MODIFICACIÓN: Inicialización de la indexación de expedientes
+configurarBuscadorExpedientes();
+
+// MODIFICACIÓN: Ejecutar el optimizador de capas y zoom por primera vez para inicializar correctamente el mapa
+controlarVisibilidadCapasPorZoom();
 </script>
 </body>
 </html>
