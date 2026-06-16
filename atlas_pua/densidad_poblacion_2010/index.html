@@ -188,6 +188,17 @@
                             <span>Parcelas Catastrales</span>
                         </span>
                     </label>
+                    <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
+                        <input type="checkbox"
+                               id="chk-densidad2010"
+                               onchange="toggleOverlay('densidad2010')"
+                               class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
+
+                       <span class="flex items-center gap-2">
+                          <span style="width:14px;height:14px;background:#b30000;border:1px solid #fff;display:inline-block;"></span>
+                          <span>Densidad poblacional 2010</span>
+                      </span>
+                    </label>
                 </div>
             </div>
         </div>
@@ -304,6 +315,9 @@ map.getPane('manzanasPane').style.pointerEvents = 'none'; // Clics pasan de larg
 map.createPane('parcelasPane');
 map.getPane('parcelasPane').style.zIndex = 350; // Capa superior
 map.getPane('parcelasPane').style.pointerEvents = 'auto'; // Captura clics
+
+map.createPane('densidadPane');
+map.getPane('densidadPane').style.zIndex = 250;
 
 var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 22, maxNativeZoom: 19 });
 var dark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 22, maxNativeZoom: 20 });
@@ -475,6 +489,7 @@ fetchGeoJSON(BASE_URL + "catastro/manzana.geojson").then(data => {
 
 // Capa de Parcelas (Totalmente Restituida)
 var grupoParcelas = L.layerGroup();
+var grupoDensidad2010 = L.layerGroup();
 var parcelasLayers = [];
 
 // MODIFICACIÓN: Lista global e indexada para la búsqueda predictiva case-insensitive de ubicaciones (UBIPAR1 / calle y altura)
@@ -560,6 +575,91 @@ archivosCatastro.forEach(file => {
     });
 });
 
+/* ================= DENSIDAD POBLACIONAL 2010 ================= */
+
+function getColorDensidad(valor) {
+
+    return valor > 100 ? '#b30000' :
+           valor > 80  ? '#d7301f' :
+           valor > 70  ? '#ef6548' :
+           valor > 60  ? '#fc8d59' :
+           valor > 50  ? '#fdbb84' :
+           valor > 40  ? '#fdd49e' :
+           valor > 30  ? '#fee391' :
+           valor > 20  ? '#fec44f' :
+           valor > 10  ? '#fff7bc' :
+                         '#ffffff';
+}
+
+fetchGeoJSON(BASE_URL + "densidad_poblacional_2010.geojson")
+.then(data => {
+
+    L.geoJSON(data, {
+
+        pane: 'densidadPane',
+
+        style: function(feature) {
+
+            const valor =
+                Number(feature.properties.poblacion_ha) || 0;
+
+            return {
+            color: "#333333",
+            weight: 0.8,
+            opacity: 0.7,
+            fillColor: getColorDensidad(valor),
+            fillOpacity: 0.85
+            };
+        },
+
+        onEachFeature: function(feature, layer) {
+
+            const poblacion =
+                feature.properties.poblacion || "-";
+
+            const poblacionHa =
+                feature.properties.poblacion_ha || "-";
+
+            layer.bindPopup(`
+
+<div class="popup-custom">
+
+    <div class="popup-header">
+        DENSIDAD POBLACIONAL 2010
+    </div>
+
+    <table class="table-info">
+
+        <tr>
+            <td>Población censada</td>
+            <td>${poblacion}</td>
+        </tr>
+
+        <tr>
+            <td>Población por hectárea</td>
+            <td>${Number(poblacionHa).toFixed(1)}</td>
+        </tr>
+
+    </table>
+
+</div>
+
+`);
+
+        }
+
+    }).addTo(grupoDensidad2010);
+
+})
+.catch(err => {
+
+    console.error(
+        "Error cargando densidad_poblacional_2010:",
+        err
+    );
+
+});
+
 // MODIFICACIÓN: Gestión unificada de visibilidad dinámica sincronizada con el nuevo panel de capas del menú lateral
 function controlarVisibilidadDinamica() {
     let zoomActual = map.getZoom();
@@ -609,6 +709,25 @@ function controlarVisibilidadDinamica() {
             map.removeLayer(grupoParcelas);
         }
     }
+}
+
+// 4. Densidad Poblacional 2010
+
+const chkDensidad =
+    document.getElementById('chk-densidad2010').checked;
+
+if (chkDensidad) {
+
+    if (!map.hasLayer(grupoDensidad2010)) {
+        map.addLayer(grupoDensidad2010);
+    }
+
+} else {
+
+    if (map.hasLayer(grupoDensidad2010)) {
+        map.removeLayer(grupoDensidad2010);
+    }
+
 }
 
 map.on('zoomend', controlarVisibilidadDinamica);
