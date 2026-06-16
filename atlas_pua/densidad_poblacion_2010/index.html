@@ -592,7 +592,10 @@ function getColorDensidad(valor) {
                          '#ffffff';
 }
 
-fetchGeoJSON(BASE_URL + "densidad_poblacional_2010.geojson")
+fetchGeoJSON(
+    BASE_URL +
+    "atlas_pua/densidad_poblacion_2010/densidad_poblacional_2010.geojson"
+)
 .then(data => {
 
     L.geoJSON(data, {
@@ -734,7 +737,7 @@ if (chkDensidad) {
 
 
 map.on('zoomend', controlarVisibilidadDinamica);
-map.on('layeradd layerremove', controlarVisibilidadDinamica); 
+map.on('layeradd layerremove', controlarVisibilidadDinamica);
 
 /* ================= CONTROLES Y BÚSQUEDA DEL MENÚ LATERAL ================= */
 
