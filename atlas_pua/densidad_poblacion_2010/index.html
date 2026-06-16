@@ -190,9 +190,10 @@
                     </label>
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
                         <input type="checkbox"
-                               id="chk-densidad2010"
-                               onchange="toggleOverlay('densidad2010')"
-                               class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
+                        id="chk-densidad2010"
+                        checked
+                        onchange="toggleOverlay('densidad2010')"
+                        class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
 
                        <span class="flex items-center gap-2">
                           <span style="width:14px;height:14px;background:#b30000;border:1px solid #fff;display:inline-block;"></span>
@@ -648,8 +649,9 @@ fetchGeoJSON(BASE_URL + "densidad_poblacional_2010.geojson")
 
         }
 
-    }).addTo(grupoDensidad2010);
+   }).addTo(grupoDensidad2010);
 
+    grupoDensidad2010.addTo(map);
 })
 .catch(err => {
 
@@ -709,9 +711,7 @@ function controlarVisibilidadDinamica() {
             map.removeLayer(grupoParcelas);
         }
     }
-}
-
-// 4. Densidad Poblacional 2010
+    // 4. Densidad Poblacional 2010
 
 const chkDensidad =
     document.getElementById('chk-densidad2010').checked;
@@ -729,6 +729,9 @@ if (chkDensidad) {
     }
 
 }
+}
+
+
 
 map.on('zoomend', controlarVisibilidadDinamica);
 map.on('layeradd layerremove', controlarVisibilidadDinamica); 
