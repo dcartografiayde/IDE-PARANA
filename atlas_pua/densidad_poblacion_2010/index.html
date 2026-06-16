@@ -675,6 +675,7 @@ fetchGeoJSON(
             fillColor: getColorDensidad(valor),
             fillOpacity: 0.20
         };
+            },
 
         onEachFeature: function(feature, layer) {
 
@@ -715,6 +716,7 @@ fetchGeoJSON(
    }).addTo(grupoDensidad2010);
 
     grupoDensidad2010.addTo(map);
+    
 })
 .catch(err => {
 
@@ -794,7 +796,6 @@ if (chkDensidad) {
 }
 
 }
-
 
 
 map.on('zoomend', controlarVisibilidadDinamica);
