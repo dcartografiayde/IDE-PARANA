@@ -10,40 +10,55 @@
     <script src="https://cdn.jsdelivr.net/npm/leaflet-textpath@1.2.3/leaflet.textpath.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
 
+    <!-- MODIFICACIÓN: Fuente Inter y estilos mejorados para el Sidebar y elementos interactivos -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
     <style>
         body { margin:0; padding:0; font-family: 'Inter', sans-serif; background: #0f172a; overflow: hidden; }
         #map { height: 100vh; width: 100%; z-index: 1; }
 
-        .panel-superior {
-            position:absolute; top:12px; left:55px; z-index:900;
-            background: rgba(255, 255, 255, 0.95); padding:8px; border-radius:10px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-            display:flex; gap:6px; align-items: center; flex-wrap: wrap;
-            backdrop-filter: blur(5px); border: 1px solid rgba(0,0,0,0.1);
-            max-width: calc(100% - 70px);
+        /* MODIFICACIÓN: Estilos premium para barra de desplazamiento en el sidebar */
+        .sidebar-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        .sidebar-scroll::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.3);
+        }
+        .sidebar-scroll::-webkit-scrollbar-thumb {
+            background: rgba(148, 163, 184, 0.3);
+            border-radius: 4px;
+        }
+        .sidebar-scroll::-webkit-scrollbar-thumb:hover {
+            background: rgba(148, 163, 184, 0.5);
         }
 
-        input { padding: 4px 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 12px; outline: none; transition: 0.2s; }
-        input:focus { border-color: #2980b9; box-shadow: 0 0 0 2px rgba(41,128,185,0.2); }
-        .btn-buscar { background: #2980b9; color: white; padding: 4px 10px; cursor: pointer; border-radius: 6px; font-weight: 600; font-size: 12px; border: none; }
-        .btn-buscar:hover { background: #1f6391; }
-        
-        .btn-google { background: #4285F4; color: white; padding: 4px 10px; cursor: pointer; border-radius: 6px; font-weight: 600; font-size: 12px; border: none; }
-
-        #sugerencias-calles {
-            position: absolute; background: white; border: 1px solid #ccc;
-            border-radius: 6px; max-height: 150px; overflow-y: auto; z-index: 2000;
-            width: 180px; display: none; margin-top: 34px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        /* Sugerencias integradas en el Sidebar */
+        .sugerencias-sidebar {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            position: absolute;
+            width: 100%;
+            z-index: 2000;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+            display: none;
+            margin-top: 2px;
         }
         
-        #sugerencias-loteos, #sugerencias-ordenanzas, #sugerencias-expedientes {
-            position: absolute; background: white; border: 1px solid #ccc;
-            border-radius: 6px; max-height: 200px; overflow-y: auto; z-index: 2000;
-            width: 280px; display: none; margin-top: 34px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        .sugerencia-item { 
+            padding: 8px 12px; 
+            cursor: pointer; 
+            font-size: 11px; 
+            border-bottom: 1px solid #334155;
+            color: #cbd5e1;
+            transition: all 0.2s;
         }
-        
-        .sugerencia-item { padding: 6px 10px; cursor: pointer; font-size: 11px; border-bottom: 1px solid #f0f0f0; }
-        .sugerencia-item:hover { background: #f8f9fa; color: #2980b9; }
+        .sugerencia-item:hover { 
+            background: #334155; 
+            color: #38bdf8; 
+        }
 
         .popup-custom { font-size: 10px; line-height: 1.1; min-width: 240px; max-height: 280px; overflow-y: auto; padding: 2px; }
         .popup-header { 
@@ -63,7 +78,7 @@
         .adv-sv { font-size: 9px; color: #718096; text-align: center; font-style: italic; margin-top: 4px; line-height: 1.2; }
         .adv-legal { font-size: 8px; color: #a0aec0; margin-top: 6px; border-top: 1px dashed #cbd5e0; padding-top: 4px; line-height: 1.1; }
         
-        .adv-distrito { position: absolute; bottom: 25px; right: 10px; z-index: 1000; background: rgba(255,255,255,0.8); padding: 6px 10px; border-radius: 6px; font-size: 9px; color: #4a5568; pointer-events: none; border: 1px solid rgba(0,0,0,0.1); }
+        .adv-distrito { position: absolute; bottom: 25px; right: 10px; z-index: 1000; background: rgba(15, 23, 42, 0.9); padding: 8px 12px; border-radius: 8px; font-size: 9px; color: #cbd5e1; pointer-events: none; border: 1px solid rgba(255,255,255,0.1); }
         
         .layer-legend-icon { 
             display: inline-block; 
@@ -110,51 +125,271 @@
 
 <body>
 
-<div class="panel-superior">
-    <!-- Título Visual del Mapa -->
-    <div class="w-full text-center text-[10px] font-extrabold text-slate-800 tracking-wider border-b border-slate-200 pb-1.5 mb-1.5 uppercase">
-        VISOR URBANIZACIONES - MUNICIPALIDAD DE PARANA
-    </div>
+<!-- MODIFICACIÓN: Botón de Toggle del Menú Lateral en móviles y desktop -->
+<button id="btn-toggle-sidebar" onclick="toggleSidebar()" class="absolute top-3 left-3 z-[1100] bg-slate-900/95 hover:bg-slate-800 text-sky-400 p-2.5 rounded-lg shadow-xl border border-slate-700/50 transition-all flex items-center justify-center gap-1">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+    </svg>
+</button>
 
-    <input type="text" id="input-pm" placeholder="Partida" style="width:80px;">
-    <button class="btn-buscar" onclick="buscarPM()">Buscar PM</button>
+<!-- MODIFICACIÓN: Contenedor del Menú Lateral (Sidebar) con Glassmorphism -->
+<div id="sidebar" class="fixed top-0 left-0 h-full w-[360px] bg-slate-950/95 border-r border-slate-800/80 text-slate-200 z-[1000] shadow-2xl flex flex-col transition-transform duration-300 transform -translate-x-full md:translate-x-0 pt-16">
     
-    <div style="height: 20px; width: 1px; background: #e2e8f0; margin: 0 4px;"></div>
-
-    <div style="position:relative; display: flex; gap: 4px;">
-        <input type="text" id="input-calle" placeholder="Calle..." style="width:110px;" autocomplete="off">
-        <input type="number" id="input-altura" placeholder="Alt." style="width:40px;">
-        <button class="btn-buscar" onclick="buscarDireccion()">Ir</button>
-        <div id="sugerencias-calles"></div>
+    <!-- Cabecera del Panel -->
+    <div class="px-6 pb-4 border-b border-slate-800/80">
+        <h1 class="text-xs font-black tracking-widest text-sky-400 uppercase">Visor de Urbanizaciones</h1>
+        <p class="text-[9px] text-slate-400 font-semibold tracking-wider uppercase mt-0.5">Municipalidad de Paraná</p>
     </div>
 
-    <div style="height: 20px; width: 1px; background: #e2e8f0; margin: 0 4px;"></div>
-
-    <div style="position:relative; display: flex; gap: 4px;">
-        <input type="text" id="input-loteo" placeholder="Buscar Loteo..." style="width:110px;" autocomplete="off">
-        <div id="sugerencias-loteos"></div>
+    <!-- Pestañas de Navegación del Panel -->
+    <div class="flex border-b border-slate-800/80 text-xs font-bold text-center">
+        <button id="tab-btn-busquedas" onclick="switchTab('busquedas')" class="w-1/2 py-3 text-sky-400 border-b-2 border-sky-400 bg-slate-900/30 transition-all">🔍 BÚSQUEDAS</button>
+        <button id="tab-btn-capas" onclick="switchTab('capas')" class="w-1/2 py-3 text-slate-400 hover:text-slate-200 transition-all">🗺️ CAPAS Y LEYENDA</button>
     </div>
 
-    <div style="height: 20px; width: 1px; background: #e2e8f0; margin: 0 4px;"></div>
+    <!-- Contenido de las Pestañas -->
+    <div class="flex-1 overflow-y-auto sidebar-scroll p-5 space-y-5">
+        
+        <!-- PESTAÑA: BÚSQUEDAS -->
+        <div id="tab-busquedas" class="space-y-4">
+            
+            <!-- Búsqueda por Partida -->
+            <div class="bg-slate-900/40 p-3.5 rounded-xl border border-slate-800/50">
+                <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1.5 tracking-wider">Partida Municipal (PM)</label>
+                <div class="flex gap-2">
+                    <input type="text" id="input-pm-sidebar" placeholder="Ej: 145620" class="w-full bg-slate-950 border border-slate-800 focus:border-sky-500 rounded-lg px-3 py-1.5 text-xs text-slate-200 placeholder-slate-600 outline-none transition-all">
+                    <button onclick="buscarPMSidebar()" class="bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs px-4 py-1.5 rounded-lg transition-colors whitespace-nowrap">Buscar</button>
+                </div>
+            </div>
 
-    <div style="position:relative; display: flex; gap: 4px;">
-        <input type="text" id="input-ordenanza" placeholder="Buscar Ord..." style="width:100px;" autocomplete="off">
-        <div id="sugerencias-ordenanzas"></div>
+            <!-- Búsqueda por Dirección (Predictiva por UBIPAR1 de parcelas) -->
+            <div class="bg-slate-900/40 p-3.5 rounded-xl border border-slate-800/50 relative">
+                <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1.5 tracking-wider">Dirección Catastral (UBIPAR1)</label>
+                <div class="flex gap-2">
+                    <input type="text" id="input-calle-sidebar" placeholder="Calle..." autocomplete="off" class="w-full bg-slate-950 border border-slate-800 focus:border-sky-500 rounded-lg px-3 py-1.5 text-xs text-slate-200 placeholder-slate-600 outline-none transition-all">
+                    <input type="number" id="input-altura-sidebar" placeholder="Alt." class="w-[70px] bg-slate-950 border border-slate-800 focus:border-sky-500 rounded-lg px-2 py-1.5 text-xs text-slate-200 placeholder-slate-600 outline-none transition-all">
+                    <button onclick="buscarDireccionCatastral()" class="bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs px-3 py-1.5 rounded-lg transition-colors">Ir</button>
+                </div>
+                <div id="sugerencias-calles-sidebar" class="sugerencias-sidebar"></div>
+            </div>
+
+            <!-- Búsqueda por Loteo -->
+            <div class="bg-slate-900/40 p-3.5 rounded-xl border border-slate-800/50 relative">
+                <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1.5 tracking-wider">Buscar Loteo</label>
+                <input type="text" id="input-loteo-sidebar" placeholder="Nombre, Propietario..." autocomplete="off" class="w-full bg-slate-950 border border-slate-800 focus:border-sky-500 rounded-lg px-3 py-1.5 text-xs text-slate-200 placeholder-slate-600 outline-none transition-all">
+                <div id="sugerencias-loteos-sidebar" class="sugerencias-sidebar"></div>
+            </div>
+
+            <!-- Búsqueda por Ordenanza -->
+            <div class="bg-slate-900/40 p-3.5 rounded-xl border border-slate-800/50 relative">
+                <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1.5 tracking-wider">Buscar Ordenanza</label>
+                <input type="text" id="input-ordenanza-sidebar" placeholder="Ej: 9845..." autocomplete="off" class="w-full bg-slate-950 border border-slate-800 focus:border-sky-500 rounded-lg px-3 py-1.5 text-xs text-slate-200 placeholder-slate-600 outline-none transition-all">
+                <div id="sugerencias-ordenanzas-sidebar" class="sugerencias-sidebar"></div>
+            </div>
+
+            <!-- Búsqueda por Expediente -->
+            <div class="bg-slate-900/40 p-3.5 rounded-xl border border-slate-800/50 relative">
+                <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1.5 tracking-wider">Buscar Expediente</label>
+                <input type="text" id="input-expediente-sidebar" placeholder="Ej: 22104..." autocomplete="off" class="w-full bg-slate-950 border border-slate-800 focus:border-sky-500 rounded-lg px-3 py-1.5 text-xs text-slate-200 placeholder-slate-600 outline-none transition-all">
+                <div id="sugerencias-expedientes-sidebar" class="sugerencias-sidebar"></div>
+            </div>
+
+            <!-- Búsqueda Google -->
+            <div class="bg-slate-900/40 p-3.5 rounded-xl border border-slate-800/50">
+                <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1.5 tracking-wider">Lugar / Google Maps</label>
+                <div class="flex gap-2">
+                    <input type="text" id="input-google-sidebar" placeholder="Ej: Plaza de Mayo..." class="w-full bg-slate-950 border border-slate-800 focus:border-sky-500 rounded-lg px-3 py-1.5 text-xs text-slate-200 placeholder-slate-600 outline-none transition-all">
+                    <button onclick="buscarGoogleSidebar()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs px-4 py-1.5 rounded-lg transition-colors">Buscar</button>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- PESTAÑA: CAPAS Y LEYENDA -->
+        <div id="tab-capas" class="hidden space-y-4">
+            
+            <!-- Mapas Base -->
+            <div class="bg-slate-900/40 p-3.5 rounded-xl border border-slate-800/50 space-y-2">
+                <span class="block text-[10px] font-bold text-sky-400 uppercase tracking-wider mb-2">Mapas Base</span>
+                
+                <label class="flex items-center gap-2.5 text-xs cursor-pointer text-slate-300 hover:text-white py-1">
+                    <input type="radio" name="basemap" value="dark" checked onclick="switchBaseMap('dark')" class="accent-sky-500">
+                    <span>Mapa Oscuro</span>
+                </label>
+                <label class="flex items-center gap-2.5 text-xs cursor-pointer text-slate-300 hover:text-white py-1">
+                    <input type="radio" name="basemap" value="hibrido" onclick="switchBaseMap('hibrido')" class="accent-sky-500">
+                    <span>Satélite / Híbrido</span>
+                </label>
+                <label class="flex items-center gap-2.5 text-xs cursor-pointer text-slate-300 hover:text-white py-1">
+                    <input type="radio" name="basemap" value="osm" onclick="switchBaseMap('osm')" class="accent-sky-500">
+                    <span>OpenStreetMap</span>
+                </label>
+            </div>
+
+            <!-- Capas Temáticas -->
+            <div class="bg-slate-900/40 p-3.5 rounded-xl border border-slate-800/50 space-y-3">
+                <span class="block text-[10px] font-bold text-sky-400 uppercase tracking-wider mb-2">Capas Temáticas</span>
+                
+                <!-- Capas con Leyenda Estilizada -->
+                <div class="space-y-2">
+                    <label class="flex items-center justify-between text-xs cursor-pointer text-slate-300 hover:text-white py-1">
+                        <span class="flex items-center">
+                            <span class="layer-legend-icon" style="background:rgba(255,255,255,0.1); border:2px dashed white;"></span>
+                            Distritos (Trazos)
+                        </span>
+                        <input type="checkbox" id="chk-distritos" checked onclick="toggleCapaSidebar(grupoDistritos, 'chk-distritos')" class="accent-sky-500 w-4 h-4">
+                    </label>
+
+                    <label class="flex items-center justify-between text-xs cursor-pointer text-slate-300 hover:text-white py-1">
+                        <span class="flex items-center">
+                            <span class="layer-legend-icon" style="background:#FFFF00; height:4px; border:1px solid #000;"></span>
+                            Nombres de Calles
+                        </span>
+                        <input type="checkbox" id="chk-calles" checked onclick="toggleCapaSidebar(grupoCalles, 'chk-calles')" class="accent-sky-500 w-4 h-4">
+                    </label>
+
+                    <label class="flex items-center justify-between text-xs cursor-pointer text-slate-300 hover:text-white py-1">
+                        <span class="flex items-center">
+                            <span class="layer-legend-icon" style="background:#2980b9"></span>
+                            Parcelas Catastrales
+                        </span>
+                        <input type="checkbox" id="chk-parcelas" checked onclick="toggleCapaSidebar(grupoParcelas, 'chk-parcelas')" class="accent-sky-500 w-4 h-4">
+                    </label>
+
+                    <label class="flex items-center justify-between text-xs cursor-pointer text-slate-300 hover:text-white py-1">
+                        <span class="flex items-center">
+                            <span class="layer-legend-icon" style="background:#7b1fa2"></span>
+                            Zonificación Cocheras
+                        </span>
+                        <input type="checkbox" id="chk-cocheras" onclick="toggleCapaSidebar(grupoCocheras, 'chk-cocheras')" class="accent-sky-500 w-4 h-4">
+                    </label>
+
+                    <label class="flex items-center justify-between text-xs cursor-pointer text-slate-300 hover:text-white py-1">
+                        <span class="flex items-center">
+                            <span class="layer-legend-icon" style="background:#e91e63; height:3px; border:none"></span>
+                            Corredores Cocheras
+                        </span>
+                        <input type="checkbox" id="chk-corredores" onclick="toggleCapaSidebar(grupoCorredores, 'chk-corredores')" class="accent-sky-500 w-4 h-4">
+                    </label>
+
+                    <label class="flex items-center justify-between text-xs cursor-pointer text-slate-300 hover:text-white py-1">
+                        <span class="flex items-center">
+                            <span class="layer-legend-icon" style="background:#39FF14"></span>
+                            Loteos Habilitados
+                        </span>
+                        <input type="checkbox" id="chk-loteos-habilitados" checked onclick="toggleCapaSidebar(grupoLoteosHabilitados, 'chk-loteos-habilitados')" class="accent-sky-500 w-4 h-4">
+                    </label>
+
+                    <label class="flex items-center justify-between text-xs cursor-pointer text-slate-300 hover:text-white py-1">
+                        <span class="flex items-center">
+                            <span class="layer-legend-icon" style="background:#FFFF33"></span>
+                            Loteos con Ordenanza
+                        </span>
+                        <input type="checkbox" id="chk-loteos-ordenanza" onclick="toggleCapaSidebar(grupoLoteosConOrdenanza, 'chk-loteos-ordenanza')" class="accent-sky-500 w-4 h-4">
+                    </label>
+
+                    <label class="flex items-center justify-between text-xs cursor-pointer text-slate-300 hover:text-white py-1">
+                        <span class="flex items-center">
+                            <span class="layer-legend-icon" style="background:#FF00FF"></span>
+                            Loteos Proyecto Aprob.
+                        </span>
+                        <input type="checkbox" id="chk-loteos-proyecto" onclick="toggleCapaSidebar(grupoLoteosConAprobacionProyecto, 'chk-loteos-proyecto')" class="accent-sky-500 w-4 h-4">
+                    </label>
+
+                    <label class="flex items-center justify-between text-xs cursor-pointer text-slate-300 hover:text-white py-1">
+                        <span class="flex items-center">
+                            <span class="layer-legend-icon" style="background:#00FFFF"></span>
+                            Loteos Ord. Antiguos
+                        </span>
+                        <input type="checkbox" id="chk-loteos-antiguos" onclick="toggleCapaSidebar(grupoLoteosConOrdenanzaAntiguos, 'chk-loteos-antiguos')" class="accent-sky-500 w-4 h-4">
+                    </label>
+
+                    <label class="flex items-center justify-between text-xs cursor-pointer text-slate-300 hover:text-white py-1">
+                        <span class="flex items-center">
+                            <span class="layer-legend-icon" style="background:#FF8C00"></span>
+                            Barrios Privados
+                        </span>
+                        <input type="checkbox" id="chk-barrios-privados" onclick="toggleCapaSidebar(grupoBarriosPrivados, 'chk-barrios-privados')" class="accent-sky-500 w-4 h-4">
+                    </label>
+                </div>
+            </div>
+
+            <!-- Patrimonio y Preservación -->
+            <div class="bg-slate-900/40 p-3.5 rounded-xl border border-slate-800/50 space-y-2">
+                <span class="block text-[10px] font-bold text-sky-400 uppercase tracking-wider mb-2">Preservación de Patrimonio</span>
+                
+                <div class="space-y-2">
+                    <label class="flex items-center justify-between text-xs cursor-pointer text-slate-300 hover:text-white py-1">
+                        <span class="flex items-center">
+                            <span class="layer-legend-icon" style="background:#e63946"></span>
+                            Preservación Total
+                        </span>
+                        <input type="checkbox" id="chk-preserv-total" onclick="toggleCapaSidebar(grupoPreservacion.total, 'chk-preserv-total')" class="accent-sky-500 w-4 h-4">
+                    </label>
+
+                    <label class="flex items-center justify-between text-xs cursor-pointer text-slate-300 hover:text-white py-1">
+                        <span class="flex items-center">
+                            <span class="layer-legend-icon" style="background:#f4a261"></span>
+                            Preservación Fachadas
+                        </span>
+                        <input type="checkbox" id="chk-preserv-fachadas" onclick="toggleCapaSidebar(grupoPreservacion.fachadas, 'chk-preserv-fachadas')" class="accent-sky-500 w-4 h-4">
+                    </label>
+
+                    <label class="flex items-center justify-between text-xs cursor-pointer text-slate-300 hover:text-white py-1">
+                        <span class="flex items-center">
+                            <span class="layer-legend-icon" style="background:#bc6c25"></span>
+                            Protección Patrimonial
+                        </span>
+                        <input type="checkbox" id="chk-preserv-patrimonial" onclick="toggleCapaSidebar(grupoPreservacion.patrimonial, 'chk-preserv-patrimonial')" class="accent-sky-500 w-4 h-4">
+                    </label>
+
+                    <label class="flex items-center justify-between text-xs cursor-pointer text-slate-300 hover:text-white py-1">
+                        <span class="flex items-center">
+                            <span class="layer-legend-icon" style="background:#2a9d8f"></span>
+                            Áreas Naturales
+                        </span>
+                        <input type="checkbox" id="chk-preserv-naturales" onclick="toggleCapaSidebar(grupoPreservacion.naturales, 'chk-preserv-naturales')" class="accent-sky-500 w-4 h-4">
+                    </label>
+
+                    <label class="flex items-center justify-between text-xs cursor-pointer text-slate-300 hover:text-white py-1">
+                        <span class="flex items-center">
+                            <span class="layer-legend-icon" style="background:#8ab17d"></span>
+                            Áreas de Interés
+                        </span>
+                        <input type="checkbox" id="chk-preserv-interes" onclick="toggleCapaSidebar(grupoPreservacion.interes, 'chk-preserv-interes')" class="accent-sky-500 w-4 h-4">
+                    </label>
+
+                    <label class="flex items-center justify-between text-xs cursor-pointer text-slate-300 hover:text-white py-1">
+                        <span class="flex items-center">
+                            <span class="layer-legend-icon" style="background:#e9c46a"></span>
+                            Valor Histórico/Cult.
+                        </span>
+                        <input type="checkbox" id="chk-preserv-sitios" onclick="toggleCapaSidebar(grupoPreservacion.sitios, 'chk-preserv-sitios')" class="accent-sky-500 w-4 h-4">
+                    </label>
+
+                    <label class="flex items-center justify-between text-xs cursor-pointer text-slate-300 hover:text-white py-1">
+                        <span class="flex items-center">
+                            <span class="layer-legend-icon" style="background:#a2d2ff"></span>
+                            Corredores Altura
+                        </span>
+                        <input type="checkbox" id="chk-preserv-corredores" onclick="toggleCapaSidebar(grupoPreservacion.corredores, 'chk-preserv-corredores')" class="accent-sky-500 w-4 h-4">
+                    </label>
+                </div>
+            </div>
+
+        </div>
+
     </div>
 
-    <div style="height: 20px; width: 1px; background: #e2e8f0; margin: 0 4px;"></div>
-
-    <div style="position:relative; display: flex; gap: 4px;">
-        <input type="text" id="input-expediente" placeholder="Buscar Expte..." style="width:110px;" autocomplete="off">
-        <div id="sugerencias-expedientes"></div>
+    <!-- Banner inferior de Autoría -->
+    <div class="p-4 border-t border-slate-800/80 bg-slate-900/10 text-center">
+        <p class="text-[8px] text-slate-500 font-bold tracking-wider uppercase">Elaborado por Dirección de Cartografía y Datos Espaciales</p>
     </div>
+</div>
 
-    <div style="height: 20px; width: 1px; background: #e2e8f0; margin: 0 4px;"></div>
-
-    <div style="display: flex; gap: 4px;">
-        <input type="text" id="input-google" placeholder="Lugar/Google..." style="width:90px;">
-        <button class="btn-google" onclick="buscarGoogle()">Google</button>
-    </div>
+<!-- MODIFICACIÓN: Contenedor para Notificaciones/Alertas Estilizadas sin usar alert() -->
+<div id="notificacion-visor" class="fixed top-4 right-4 z-[2000] transform translate-y-[-20px] opacity-0 pointer-events-none transition-all duration-300 bg-slate-900/95 border border-amber-500/50 text-amber-300 text-xs px-4 py-3 rounded-lg shadow-2xl flex items-center gap-2 max-w-sm">
+    <span id="notificacion-mensaje">Mensaje</span>
 </div>
 
 <!-- Cuadro Informativo de Distritos + Nueva Leyenda de Elaboración -->
@@ -168,11 +403,92 @@
 const BASE_URL = "https://raw.githubusercontent.com/dcartografiayde/IDE-PARANA/main/";
 const PRESERV_URL = BASE_URL + "preservacion/";
 
+// MODIFICACIÓN: Listas de indexación catastral para la búsqueda predictiva por dirección (UBIPAR1)
+var listaDireccionesParcelas = [];
+
+// MODIFICACIÓN: Función de notificación en pantalla en lugar de usar alert() tradicional
+function mostrarNotificacion(mensaje, duracion = 4000) {
+    const el = document.getElementById('notificacion-visor');
+    const msg = document.getElementById('notificacion-mensaje');
+    msg.innerText = mensaje;
+    el.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-[-20px]');
+    el.classList.add('opacity-100', 'translate-y-0');
+    setTimeout(() => {
+        el.classList.add('opacity-0', 'pointer-events-none', 'translate-y-[-20px]');
+        el.classList.remove('opacity-100', 'translate-y-0');
+    }, duracion);
+}
+
+// MODIFICACIÓN: Controladores del Menú Lateral / Sidebar
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const btn = document.getElementById('btn-toggle-sidebar');
+    const isOpen = !sidebar.classList.contains('-translate-x-full');
+    
+    if (isOpen) {
+        sidebar.classList.add('-translate-x-full');
+        btn.style.left = '12px';
+    } else {
+        sidebar.classList.remove('-translate-x-full');
+        btn.style.left = '372px'; // Mover el botón al costado del sidebar cuando está abierto
+    }
+}
+
+function switchTab(tab) {
+    const tabBusquedas = document.getElementById('tab-busquedas');
+    const tabCapas = document.getElementById('tab-capas');
+    const btnBusquedas = document.getElementById('tab-btn-busquedas');
+    const btnCapas = document.getElementById('tab-btn-capas');
+
+    if (tab === 'busquedas') {
+        tabBusquedas.classList.remove('hidden');
+        tabCapas.classList.add('hidden');
+        btnBusquedas.classList.add('text-sky-400', 'border-b-2', 'border-sky-400', 'bg-slate-900/30');
+        btnBusquedas.classList.remove('text-slate-400');
+        btnCapas.classList.remove('text-sky-400', 'border-b-2', 'border-sky-400', 'bg-slate-900/30');
+        btnCapas.classList.add('text-slate-400');
+    } else {
+        tabCapas.classList.remove('hidden');
+        tabBusquedas.classList.add('hidden');
+        btnCapas.classList.add('text-sky-400', 'border-b-2', 'border-sky-400', 'bg-slate-900/30');
+        btnCapas.classList.remove('text-slate-400');
+        btnBusquedas.classList.remove('text-sky-400', 'border-b-2', 'border-sky-400', 'bg-slate-900/30');
+        btnBusquedas.classList.add('text-slate-400');
+    }
+}
+
+// MODIFICACIÓN: Gestión de Capas desde el Menú Lateral
+function toggleCapaSidebar(layerGroup, elementId) {
+    const checkbox = document.getElementById(elementId);
+    if (checkbox.checked) {
+        if (layerGroup === grupoParcelas) {
+            controlarVisibilidadParcelas();
+        } else {
+            map.addLayer(layerGroup);
+        }
+    } else {
+        map.removeLayer(layerGroup);
+    }
+}
+
+function switchBaseMap(style) {
+    map.removeLayer(dark);
+    map.removeLayer(osm);
+    map.removeLayer(hibrido);
+
+    if (style === 'dark') {
+        dark.addTo(map);
+    } else if (style === 'hibrido') {
+        hibrido.addTo(map);
+    } else if (style === 'osm') {
+        osm.addTo(map);
+    }
+}
+
 /* ================= FUNCIONES DE LIMPIEZA Y DECODIFICACIÓN DE TEXTO ================= */
 function decodificarTexto(str) {
     if (!str || typeof str !== 'string') return str;
     try {
-        // 1. Correcciones de mojibake UTF-8 directo
         const correcciones = {
             'Ã¡': 'á', 'Ã©': 'é', 'Ã­': 'í', 'Ã³': 'ó', 'Ãº': 'ú',
             'Ã ': 'Á', 'Ã‰': 'É', 'Ã ': 'Í', 'Ã“': 'Ó', 'Ãš': 'Ú',
@@ -183,7 +499,6 @@ function decodificarTexto(str) {
             textoCorregido = textoCorregido.split(mal).join(correcciones[mal]);
         }
 
-        // 2. Mapeador inteligente para secuencias de caracteres corruptas (ï¿½ o Ï¿½) en el dataset
         const reemplazosClave = [
             { mal: /TORRE[ïÏ]¿½N/gi, bien: 'TORREÓN' },
             { mal: /Torre[ïÏ]¿½n/gi, bien: 'Torreón' },
@@ -221,17 +536,14 @@ function decodificarTexto(str) {
     } catch (e) { return str; }
 }
 
-// Carga inteligente de archivos GeoJSON detectando problemas de codificación (UTF-8 vs Windows-1252)
 async function fetchGeoJSON(url) {
     const response = await fetch(url);
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     const arrayBuffer = await response.arrayBuffer();
     
-    // Intentar decodificar como UTF-8
     const decoderUTF8 = new TextDecoder('utf-8');
     let text = decoderUTF8.decode(arrayBuffer);
     
-    // Si contiene caracteres de reemplazo, volvemos a decodificar usando Windows-1252 (ANSI)
     if (text.includes('\uFFFD')) {
         const decoderANSI = new TextDecoder('windows-1252');
         text = decoderANSI.decode(arrayBuffer);
@@ -239,17 +551,18 @@ async function fetchGeoJSON(url) {
     return JSON.parse(text);
 }
 
+// MODIFICACIÓN: Ajuste de posición del zoom para no interferir con el menú lateral
 var map = L.map('map', { 
     center: [-31.745, -60.51], 
-    zoom: 13, // Iniciamos en un nivel de zoom más general para la vista total de la ciudad
-    zoomControl: true,
+    zoom: 13, 
+    zoomControl: false,
     maxZoom: 22
 });
+L.control.zoom({ position: 'topright' }).addTo(map);
 
-// CREACIÓN DE PANEL PERSONALIZADO PARA QUE LAS PARCELAS SE RENDERIZEN ABAJO DE OTRAS CAPAS VECTORIALES
 map.createPane('parcelasPane');
-map.getPane('parcelasPane').style.zIndex = 350; // Inferior a overlayPane (400)
-map.getPane('parcelasPane').style.pointerEvents = 'auto'; // Permitir clics seguros
+map.getPane('parcelasPane').style.zIndex = 350; 
+map.getPane('parcelasPane').style.pointerEvents = 'auto'; 
 
 var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 22, maxNativeZoom: 19 });
 var dark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 22, maxNativeZoom: 20 });
@@ -257,7 +570,6 @@ var sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Worl
 var ref = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}', { maxZoom: 22, maxNativeZoom: 18 });
 var hibrido = L.layerGroup([sat, ref]);
 
-// Arrancamos el visor exclusivamente con el mapa oscuro activo
 dark.addTo(map);
 
 function getColorDistrito(d) {
@@ -269,7 +581,6 @@ function getColorDistrito(d) {
     return colors[d] || '#' + Math.floor(Math.random()*16777215).toString(16);
 }
 
-// Distrito arranca encendido por defecto
 var grupoDistritos = L.layerGroup().addTo(map);
 var geojsonDistritos;
 
@@ -295,7 +606,6 @@ fetchGeoJSON(BASE_URL + "distritos.geojson").then(data => {
     }).addTo(grupoDistritos);
 });
 
-// Calles arranca encendido por defecto
 var grupoCalles = L.layerGroup().addTo(map);
 var listaCallesParaBusqueda = [];
 
@@ -314,7 +624,6 @@ fetchGeoJSON(BASE_URL + "calles.geojson").then(data => {
             }
         }
     }).addTo(grupoCalles);
-    configurarBuscadorCalles();
     activarEtiquetasCalles();
 });
 
@@ -365,7 +674,6 @@ function activarEtiquetasCalles() {
     renderLabels();
 }
 
-// Las parcelas no se agregan al mapa de inicio (se manejan dinámicamente con el zoom >= 14)
 var grupoParcelas = L.layerGroup();
 var parcelasLayers = [];
 
@@ -381,7 +689,6 @@ function pointInPoly(point, vs) {
     return inside;
 }
 
-// Consulta de forma inteligente si existe alguna parcela cargada en memoria bajo las coordenadas especificadas
 function obtenerInfoParcelaEnPunto(latlng) {
     let resultado = null;
     if (!latlng) return resultado;
@@ -413,7 +720,6 @@ function obtenerInfoParcelaEnPunto(latlng) {
     return resultado;
 }
 
-// Función global para cerrar el popup actual de la capa superior y simular clic en la parcela catastral subyacente
 window.mostrarInfoParcelaDesdePopup = function(lat, lng) {
     const latlng = L.latLng(lat, lng);
     const resultado = obtenerInfoParcelaEnPunto(latlng);
@@ -448,11 +754,29 @@ archivosCatastro.forEach(file => {
             };
         });
 
-        // Configurado para renderizarse en el panel 'parcelasPane' por debajo del resto de capas geográficas
         let ly = L.geoJSON(featuresProcesadas, {
             pane: 'parcelasPane',
             style: f => ({ color: f.properties.esPH ? "#8e44ad" : "#2980b9", weight: 0.7, fillOpacity: 0.12 }),
             onEachFeature: (f, l) => {
+                // MODIFICACIÓN: Almacenar en índice predictivo para búsqueda por UBIPAR1
+                let ubipar = f.properties.ubicacion ? String(f.properties.ubicacion).trim().toUpperCase() : "";
+                if (ubipar && ubipar !== "-" && ubipar !== "0") {
+                    let matches = ubipar.match(/^(.*?)\s+(\d+)$/);
+                    let nombreCalle = ubipar;
+                    let altura = "";
+                    if (matches) {
+                        nombreCalle = matches[1].trim();
+                        altura = matches[2].trim();
+                    }
+                    listaDireccionesParcelas.push({
+                        full: ubipar,
+                        calle: nombreCalle,
+                        altura: altura,
+                        layer: l,
+                        bounds: l.getBounds()
+                    });
+                }
+
                 l.on('click', e => {
                     let latlng = e.latlng || l.getBounds().getCenter();
                     let p = f.properties;
@@ -495,11 +819,12 @@ archivosCatastro.forEach(file => {
     });
 });
 
-// Controlar de forma dinámica la visibilidad de parcelas basándose en el zoom
 function controlarVisibilidadParcelas() {
     let zoomActual = map.getZoom();
-    // Solo mostramos parcelas si el zoom es mayor o igual a 14
-    if (zoomActual >= 14) {
+    const chkParcelas = document.getElementById('chk-parcelas');
+    
+    // MODIFICACIÓN: Respetar la lógica de visibilidad catastral si está activo en el checkbox lateral
+    if (zoomActual >= 14 && chkParcelas && chkParcelas.checked) {
         if (!map.hasLayer(grupoParcelas)) {
             map.addLayer(grupoParcelas);
         }
@@ -514,7 +839,6 @@ map.on('zoomend', controlarVisibilidadParcelas);
 var grupoCocheras = L.layerGroup();
 var grupoCorredores = L.layerGroup();
 
-// CARGA DE CAPAS DE COCHERAS (Zonificación y Corredores cocheras cargados de forma asíncrona)
 fetchGeoJSON(BASE_URL + "cocheras_porcentaje_zona.geojson").then(data => {
     L.geoJSON(data, {
         style: { color: "#7b1fa2", weight: 2, fillColor: "#7b1fa2", fillOpacity: 0.25 },
@@ -527,14 +851,13 @@ fetchGeoJSON(BASE_URL + "cocheras_porcentaje_zona.geojson").then(data => {
                 }
                 html += `</table>`;
                 
-                // Opción para acceder a la info de la parcela subyacente de forma ágil
                 let parcelaEncontrada = obtenerInfoParcelaEnPunto(latlng);
                 if (parcelaEncontrada) {
                     html += `<hr style="margin: 6px 0; border-style: dashed; border-color: #cbd5e1;">`;
                     html += `<div class="text-[8px] text-slate-500 italic text-center mb-1">Hay una parcela catastral debajo.</div>`;
                     html += `<button onclick="mostrarInfoParcelaDesdePopup(${latlng.lat}, ${latlng.lng})" class="w-full text-center py-1 bg-blue-600 hover:bg-blue-700 text-white rounded font-bold text-[9px] uppercase transition-colors">👉 Ver Parcela Catastral debajo</button>`;
                 } else {
-                    html += `<div class="text-[8px] text-slate-400 italic text-center mt-1">Para ver la parcela debajo, desactive esta capa de cocheras en el panel de control de la derecha.</div>`;
+                    html += `<div class="text-[8px] text-slate-400 italic text-center mt-1">Para ver la parcela debajo, active la capa de parcelas en el panel izquierdo.</div>`;
                 }
                 html += `</div>`;
                 l.bindPopup(html).openPopup(latlng);
@@ -555,14 +878,13 @@ fetchGeoJSON(BASE_URL + "cocheras_corredores.geojson").then(data => {
                 }
                 html += `</table>`;
                 
-                // Opción para acceder a la info de la parcela subyacente de forma ágil
                 let parcelaEncontrada = obtenerInfoParcelaEnPunto(latlng);
                 if (parcelaEncontrada) {
                     html += `<hr style="margin: 6px 0; border-style: dashed; border-color: #cbd5e1;">`;
                     html += `<div class="text-[8px] text-slate-500 italic text-center mb-1">Hay una parcela catastral debajo.</div>`;
                     html += `<button onclick="mostrarInfoParcelaDesdePopup(${latlng.lat}, ${latlng.lng})" class="w-full text-center py-1 bg-blue-600 hover:bg-blue-700 text-white rounded font-bold text-[9px] uppercase transition-colors">👉 Ver Parcela Catastral debajo</button>`;
                 } else {
-                    html += `<div class="text-[8px] text-slate-400 italic text-center mt-1">Para ver la parcela debajo, desactive esta capa de corredores en el panel de control de la derecha.</div>`;
+                    html += `<div class="text-[8px] text-slate-400 italic text-center mt-1">Para ver la parcela debajo, active la capa de parcelas en el panel izquierdo.</div>`;
                 }
                 html += `</div>`;
                 l.bindPopup(html).openPopup(latlng);
@@ -571,8 +893,8 @@ fetchGeoJSON(BASE_URL + "cocheras_corredores.geojson").then(data => {
     }).addTo(grupoCorredores);
 });
 
-var listaLoteosParaBusqueda = []; // Array para almacenar los loteos indexados de forma predictiva
-var grupoLoteosHabilitados = L.layerGroup().addTo(map); // Loteos Habilitados arranca encendido por defecto
+var listaLoteosParaBusqueda = []; 
+var grupoLoteosHabilitados = L.layerGroup().addTo(map); 
 var grupoLoteosConOrdenanza = L.layerGroup();
 var grupoLoteosConAprobacionProyecto = L.layerGroup();
 var grupoLoteosConOrdenanzaAntiguos = L.layerGroup();
@@ -586,7 +908,6 @@ const setupLoteo = (file, grupo, color, titulo) => {
                 let nro = f.properties.nro || f.properties.nro_ref || "";
                 if(nro) l.bindTooltip(String(nro), { permanent: true, className: 'etiqueta-loteo-nro', direction: 'center' });
                 
-                // POPUP SIN STREET VIEW EXCLUSIVO PARA CAPAS DE LOTEOS
                 l.on('click', (e) => {
                     let latlng = e.latlng || l.getBounds().getCenter();
                     let c = `<div class="popup-custom"><div class="popup-header">LOTEO ${titulo}</div><table class="table-info">`;
@@ -595,20 +916,18 @@ const setupLoteo = (file, grupo, color, titulo) => {
                     }
                     c += `</table>`;
                     
-                    // Comprobación espacial: Si existe parcela catastral debajo, ofrece acceso directo alternativo
                     let parcelaEncontrada = obtenerInfoParcelaEnPunto(latlng);
                     if (parcelaEncontrada) {
                         c += `<hr style="margin: 6px 0; border-style: dashed; border-color: #cbd5e1;">`;
                         c += `<div class="text-[8px] text-slate-500 italic text-center mb-1">Hay una parcela catastral debajo.</div>`;
                         c += `<button onclick="mostrarInfoParcelaDesdePopup(${latlng.lat}, ${latlng.lng})" class="w-full text-center py-1 bg-blue-600 hover:bg-blue-700 text-white rounded font-bold text-[9px] uppercase transition-colors">👉 Ver Parcela Catastral debajo</button>`;
                     } else {
-                        c += `<div class="text-[8px] text-slate-400 italic text-center mt-1">Para ver la parcela debajo, desactive la capa de Loteos desde el menú de la derecha.</div>`;
+                        c += `<div class="text-[8px] text-slate-400 italic text-center mt-1">Para ver la parcela debajo, active la capa de parcelas en el panel izquierdo.</div>`;
                     }
                     c += `</div>`;
                     l.bindPopup(c, { autoPanPadding: L.point(10, 110) }).openPopup(latlng);
                 });
 
-                // INDEXACIÓN PARA LA BÚSQUEDA PREDICTIVA Decodificada para evitar fallos de búsqueda con caracteres especiales
                 let props = f.properties;
                 let nombre = "";
                 let propietario = "";
@@ -620,7 +939,6 @@ const setupLoteo = (file, grupo, color, titulo) => {
                     if (keyLower.includes("propietario") || keyLower.includes("firma") || keyLower.includes("solicitan") || keyLower.includes("titular")) propietario = decodificarTexto(String(v));
                     if (keyLower.includes("ordenanza") || keyLower === "ord" || keyLower.includes("nro_ord")) ordenanza = decodificarTexto(String(v));
                     
-                    // Indexamos cualquier expediente de aprobación, factibilidad o trámite administrativo
                     if (keyLower.includes("exp") || keyLower.includes("expediente") || keyLower.includes("expte")) {
                         let expVal = decodificarTexto(String(v)).trim();
                         if (expVal && expVal !== "0" && expVal !== "NULL" && expVal !== "-") {
@@ -706,14 +1024,13 @@ function loadPreserv(file, grupo, color, titulo, op = 0.5) {
                     
                     html += getSVHTML(latlng.lat, latlng.lng);
                     
-                    // Comprobación espacial: Si existe parcela catastral debajo, ofrece acceso directo alternativo
                     let parcelaEncontrada = obtenerInfoParcelaEnPunto(latlng);
                     if (parcelaEncontrada) {
                         html += `<hr style="margin: 8px 0; border-color: #e2e8f0;">`;
                         html += `<div class="text-[8px] text-slate-500 italic text-center mb-1">Hay una parcela catastral debajo.</div>`;
                         html += `<button onclick="mostrarInfoParcelaDesdePopup(${latlng.lat}, ${latlng.lng})" class="w-full text-center py-1 bg-blue-600 hover:bg-blue-700 text-white rounded font-bold text-[9px] uppercase transition-colors">👉 Ver Parcela Catastral debajo</button>`;
                     } else {
-                        html += `<div class="text-[8px] text-slate-400 italic text-center mt-1">Para ver la parcela debajo, desactive esta capa de preservación en el panel de control de la derecha.</div>`;
+                        html += `<div class="text-[8px] text-slate-400 italic text-center mt-1">Para ver la parcela debajo, active la capa de parcelas en el panel izquierdo.</div>`;
                     }
                     html += `</div>`;
                     
@@ -724,7 +1041,6 @@ function loadPreserv(file, grupo, color, titulo, op = 0.5) {
     });
 }
 
-// Inicializar la carga de archivos de preservación respetando el mismo estilo, color y opacidad de preservacion.html
 loadPreserv("preservacion_total2.geojson", grupoPreservacion.total, "#e63946", "Preservación Total", 0.7);
 loadPreserv("preservacion_fachadas2.geojson", grupoPreservacion.fachadas, "#f4a261", "Preservación Fachadas", 0.6);
 loadPreserv("areas_proteccion_patrimonial.geojson", grupoPreservacion.patrimonial, "#bc6c25", "Protección Patrimonial", 0.5);
@@ -734,68 +1050,144 @@ loadPreserv("sitios_de_valor_historico_cultural.geojson", grupoPreservacion.siti
 loadPreserv("corredores_urbanos_preservacion_altura.geojson", grupoPreservacion.corredores, "#a2d2ff", "Corredores Urbanos", 0.5);
 
 
-/* ================= CONTROLES Y BÚSQUEDA ================= */
+/* ================= MODIFICACIÓN: CONTROLADORES DE BÚSQUEDA DEL MENU LATERAL ================= */
 
-function buscarPM() {
-    let val = document.getElementById('input-pm').value.trim();
-    if (!val) return;
+// Filtro de prioridad por prefijo, insensible a mayúsculas/minúsculas
+function filtrarConPrioridadDePrefijo(lista, busqueda, selectorClave) {
+    const b = busqueda.toUpperCase().trim();
+    let prefijos = [];
+    let intermedios = [];
+
+    lista.forEach(item => {
+        let valor = selectorClave(item).toUpperCase();
+        if (valor.startsWith(b)) {
+            prefijos.push(item);
+        } else if (valor.includes(b)) {
+            intermedios.push(item);
+        }
+    });
+    return [...prefijos, ...intermedios];
+}
+
+// Búsqueda por Partida Municipal
+function buscarPMSidebar() {
+    let val = document.getElementById('input-pm-sidebar').value.trim();
+    if (!val) {
+        mostrarNotificacion("Por favor ingrese una partida municipal.");
+        return;
+    }
     let encontrado = false;
     parcelasLayers.forEach(ly => {
         ly.eachLayer(l => {
             if (l.feature.properties.partidas.includes(val)) {
-                // Al buscar, forzamos el zoom a 19, lo que activará automáticamente la visibilidad de las parcelas
+                // Asegurar que la capa parcelas esté activa al buscar
+                document.getElementById('chk-parcelas').checked = true;
+                if (!map.hasLayer(grupoParcelas)) {
+                    map.addLayer(grupoParcelas);
+                }
                 map.fitBounds(l.getBounds(), { maxZoom: 19 });
                 l.fire('click');
                 encontrado = true;
             }
         });
     });
-}
-
-function buscarDireccion() {
-    let nom = document.getElementById('input-calle').value.toUpperCase();
-    let match = listaCallesParaBusqueda.find(c => c.nombre === nom);
-    if (match) {
-        map.fitBounds(match.layer.getBounds(), { maxZoom: 16 });
-        match.layer.fire('click');
+    if (!encontrado) {
+        mostrarNotificacion("No se encontró ninguna parcela con la partida: " + val);
     }
 }
 
-function configurarBuscadorCalles() {
-    const input = document.getElementById('input-calle');
-    const sug = document.getElementById('sugerencias-calles');
+// Configuración de autocompletado y búsqueda predictiva de direcciones catastrales (UBIPAR1)
+function configurarBuscadorDirecciones() {
+    const input = document.getElementById('input-calle-sidebar');
+    const sug = document.getElementById('sugerencias-calles-sidebar');
+
     input.addEventListener('input', () => {
         let val = input.value.toUpperCase();
         sug.innerHTML = '';
         if (val.length < 2) { sug.style.display = 'none'; return; }
-        let matches = [...new Set(listaCallesParaBusqueda.map(c => c.nombre))]
-            .filter(n => n.includes(val)).slice(0, 6);
+
+        // Extraer nombres de calles únicos de las parcelas catastrales indexadas
+        let callesUnicas = [...new Set(listaDireccionesParcelas.map(d => d.calle))];
+        let matches = filtrarConPrioridadDePrefijo(callesUnicas, val, x => x).slice(0, 8);
+
         if (matches.length > 0) {
             sug.style.display = 'block';
             matches.forEach(m => {
                 let d = document.createElement('div');
-                d.className = 'sugerencia-item'; d.innerText = m;
-                d.onclick = () => { input.value = m; sug.style.display = 'none'; };
+                d.className = 'sugerencia-item'; 
+                d.innerText = decodificarTexto(m);
+                d.onclick = () => { 
+                    input.value = decodificarTexto(m); 
+                    sug.style.display = 'none'; 
+                };
                 sug.appendChild(d);
             });
         } else { sug.style.display = 'none'; }
     });
+
+    document.addEventListener('click', (e) => {
+        if (e.target !== input) { sug.style.display = 'none'; }
+    });
 }
 
+function buscarDireccionCatastral() {
+    let calle = document.getElementById('input-calle-sidebar').value.toUpperCase().trim();
+    let altura = document.getElementById('input-altura-sidebar').value.trim();
+
+    if (!calle) {
+        mostrarNotificacion("Por favor, ingrese el nombre de la calle.");
+        return;
+    }
+
+    // Asegurarse de que la capa de catastro esté visible
+    document.getElementById('chk-parcelas').checked = true;
+    if (!map.hasLayer(grupoParcelas)) {
+        map.addLayer(grupoParcelas);
+    }
+
+    let coincidencias = listaDireccionesParcelas.filter(item => item.calle === calle);
+
+    if (coincidencias.length === 0) {
+        // Buscar coincidencia aproximada
+        let busquedaAprox = filtrarConPrioridadDePrefijo(listaDireccionesParcelas, calle, x => x.calle);
+        if (busquedaAprox.length > 0) {
+            coincidencias = listaDireccionesParcelas.filter(item => item.calle === busquedaAprox[0].calle);
+            calle = busquedaAprox[0].calle;
+            document.getElementById('input-calle-sidebar').value = decodificarTexto(calle);
+        }
+    }
+
+    if (coincidencias.length > 0) {
+        let matchPerfecto = coincidencias.find(item => item.altura === altura);
+        if (matchPerfecto) {
+            map.fitBounds(matchPerfecto.bounds, { maxZoom: 19 });
+            matchPerfecto.layer.fire('click');
+        } else {
+            // Si no hay altura exacta, buscar la más cercana o ir al centro de la calle
+            let primerMatch = coincidencias[Math.floor(coincidencias.length / 2)];
+            map.fitBounds(primerMatch.bounds, { maxZoom: 17 });
+            primerMatch.layer.fire('click');
+            if (altura) {
+                mostrarNotificacion("Altura catastral aproximada. No se halló el número " + altura + " en " + decodificarTexto(calle));
+            }
+        }
+    } else {
+        mostrarNotificacion("No se encontraron registros de parcelas en la calle especificada.");
+    }
+}
+
+// Autocompletado y búsqueda de Loteos
 function configurarBuscadorLoteos() {
-    const input = document.getElementById('input-loteo');
-    const sug = document.getElementById('sugerencias-loteos');
+    const input = document.getElementById('input-loteo-sidebar');
+    const sug = document.getElementById('sugerencias-loteos-sidebar');
     
     input.addEventListener('input', () => {
         let val = input.value.toUpperCase().trim();
         sug.innerHTML = '';
         if (val.length < 2) { sug.style.display = 'none'; return; }
         
-        // Búsqueda predictiva comparando campos Nombre, Propietario u Ordenanza
-        let matches = listaLoteosParaBusqueda.filter(item => {
-            return item.nombre.includes(val) || 
-                   item.propietario.includes(val) || 
-                   item.ordenanza.includes(val);
+        let matches = filtrarConPrioridadDePrefijo(listaLoteosParaBusqueda, val, item => {
+            return `${item.nombre} ${item.propietario} ${item.ordenanza}`;
         }).slice(0, 8);
         
         if (matches.length > 0) {
@@ -808,12 +1200,12 @@ function configurarBuscadorLoteos() {
                     input.value = decodificarTexto(item.nombre || item.propietario || item.ordenanza || "");
                     sug.style.display = 'none';
                     
-                    // Activar la capa de loteos correspondiente si se encuentra desactivada en la leyenda
+                    // Sincronizar UI de leyenda y agregar capa si está apagada
+                    sincronizarCheckboxLoteo(item.grupo);
                     if (!map.hasLayer(item.grupo)) {
                         map.addLayer(item.grupo);
                     }
                     
-                    // Zoom dinámico a los límites de la entidad seleccionada
                     map.fitBounds(item.layer.getBounds(), { maxZoom: 18 });
                     item.layer.fire('click');
                 };
@@ -824,26 +1216,31 @@ function configurarBuscadorLoteos() {
         }
     });
 
-    // Cerrar sugerencias al hacer clic fuera del buscador
     document.addEventListener('click', (e) => {
-        if (e.target !== input) {
-            sug.style.display = 'none';
-        }
+        if (e.target !== input) { sug.style.display = 'none'; }
     });
 }
 
+// Sincronizar checkboxes de loteos al buscar predictivamente
+function sincronizarCheckboxLoteo(grupo) {
+    if (grupo === grupoLoteosHabilitados) document.getElementById('chk-loteos-habilitados').checked = true;
+    if (grupo === grupoLoteosConOrdenanza) document.getElementById('chk-loteos-ordenanza').checked = true;
+    if (grupo === grupoLoteosConAprobacionProyecto) document.getElementById('chk-loteos-proyecto').checked = true;
+    if (grupo === grupoLoteosConOrdenanzaAntiguos) document.getElementById('chk-loteos-antiguos').checked = true;
+    if (grupo === grupoBarriosPrivados) document.getElementById('chk-barrios-privados').checked = true;
+}
+
+// Autocompletado y búsqueda de Ordenanzas
 function configurarBuscadorOrdenanzas() {
-    const input = document.getElementById('input-ordenanza');
-    const sug = document.getElementById('sugerencias-ordenanzas');
+    const input = document.getElementById('input-ordenanza-sidebar');
+    const sug = document.getElementById('sugerencias-ordenanzas-sidebar');
     
     input.addEventListener('input', () => {
         let val = input.value.toUpperCase().trim();
         sug.innerHTML = '';
         if (val.length < 1) { sug.style.display = 'none'; return; }
         
-        let matches = listaLoteosParaBusqueda.filter(item => {
-            return item.ordenanza.includes(val);
-        }).slice(0, 8);
+        let matches = filtrarConPrioridadDePrefijo(listaLoteosParaBusqueda, val, item => item.ordenanza).slice(0, 8);
         
         if (matches.length > 0) {
             sug.style.display = 'block';
@@ -855,6 +1252,7 @@ function configurarBuscadorOrdenanzas() {
                     input.value = decodificarTexto(item.ordenanza);
                     sug.style.display = 'none';
                     
+                    sincronizarCheckboxLoteo(item.grupo);
                     if (!map.hasLayer(item.grupo)) {
                         map.addLayer(item.grupo);
                     }
@@ -870,24 +1268,21 @@ function configurarBuscadorOrdenanzas() {
     });
 
     document.addEventListener('click', (e) => {
-        if (e.target !== input) {
-            sug.style.display = 'none';
-        }
+        if (e.target !== input) { sug.style.display = 'none'; }
     });
 }
 
+// Autocompletado y búsqueda de Expedientes
 function configurarBuscadorExpedientes() {
-    const input = document.getElementById('input-expediente');
-    const sug = document.getElementById('sugerencias-expedientes');
+    const input = document.getElementById('input-expediente-sidebar');
+    const sug = document.getElementById('sugerencias-expedientes-sidebar');
     
     input.addEventListener('input', () => {
         let val = input.value.toUpperCase().trim();
         sug.innerHTML = '';
         if (val.length < 1) { sug.style.display = 'none'; return; }
         
-        let matches = listaLoteosParaBusqueda.filter(item => {
-            return item.expediente.includes(val);
-        }).slice(0, 8);
+        let matches = filtrarConPrioridadDePrefijo(listaLoteosParaBusqueda, val, item => item.expediente).slice(0, 8);
         
         if (matches.length > 0) {
             sug.style.display = 'block';
@@ -899,6 +1294,7 @@ function configurarBuscadorExpedientes() {
                     input.value = decodificarTexto(item.expediente);
                     sug.style.display = 'none';
                     
+                    sincronizarCheckboxLoteo(item.grupo);
                     if (!map.hasLayer(item.grupo)) {
                         map.addLayer(item.grupo);
                     }
@@ -914,63 +1310,47 @@ function configurarBuscadorExpedientes() {
     });
 
     document.addEventListener('click', (e) => {
-        if (e.target !== input) {
-            sug.style.display = 'none';
-        }
+        if (e.target !== input) { sug.style.display = 'none'; }
     });
 }
 
-// Inicializar buscadores predictivos
-configurarBuscadorLoteos();
-configurarBuscadorOrdenanzas();
-configurarBuscadorExpedientes();
-
-function buscarGoogle() {
-    let val = document.getElementById('input-google').value.trim();
-    if (!val) return;
+// Búsqueda en Google Geocoder (Nominatim)
+function buscarGoogleSidebar() {
+    let val = document.getElementById('input-google-sidebar').value.trim();
+    if (!val) {
+        mostrarNotificacion("Por favor ingrese una dirección o lugar.");
+        return;
+    }
     fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(val + ", Paraná, Entre Ríos")}`)
         .then(r => r.json()).then(data => {
             if (data && data.length > 0) {
                 const lat = parseFloat(data[0].lat);
                 const lon = parseFloat(data[0].lon);
                 map.setView([lat, lon], 18);
-                L.marker([lat, lon]).addTo(map).bindPopup(`<b>Resultado Google:</b><br>${val}`).openPopup();
+                L.marker([lat, lon]).addTo(map).bindPopup(`<b>Resultado de Google:</b><br>${val}`).openPopup();
+                
+                // Cerrar menú lateral en móviles al hallar un punto
+                if (window.innerWidth < 768) {
+                    toggleSidebar();
+                }
+            } else {
+                mostrarNotificacion("No se encontraron resultados para: " + val);
             }
+        }).catch(err => {
+            mostrarNotificacion("Error al conectar con el servicio de geocodificación.");
         });
 }
 
-/* ================= LEYENDAS Y CONTROL DE CAPAS ================= */
-const overlays = {
-    "<span class='layer-legend-icon' style='background:rgba(255,255,255,0.1); border:2px dashed white;'></span> Distritos (Trazos)": grupoDistritos,
-    "<span class='layer-legend-icon' style='background:#FFFF00; height:4px; border:1px solid #000;'></span> Nombres de Calles": grupoCalles,
-    "<span class='layer-legend-icon' style='background:#2980b9'></span> Parcelas Catastrales": grupoParcelas,
-    "<span class='layer-legend-icon' style='background:#7b1fa2'></span> Zonificación Cocheras": grupoCocheras,
-    "<span class='layer-legend-icon' style='background:#e91e63; height:3px; border:none'></span> Corredores Cocheras": grupoCorredores,
-    "<span class='layer-legend-icon' style='background:#39FF14'></span> Loteos Habilitados": grupoLoteosHabilitados,
-    "<span class='layer-legend-icon' style='background:#FFFF33'></span> Loteos con Ordenanza": grupoLoteosConOrdenanza,
-    "<span class='layer-legend-icon' style='background:#FF00FF'></span> Loteos con Aprobacion de Proyecto": grupoLoteosConAprobacionProyecto,
-    "<span class='layer-legend-icon' style='background:#00FFFF'></span> Loteos con Ordenanza Antiguos": grupoLoteosConOrdenanzaAntiguos,
-    "<span class='layer-legend-icon' style='background:#FF8C00'></span> Barrios Privados": grupoBarriosPrivados,
-    
-    // Submenú de Preservación de Patrimonio (Agregado de forma exacta respetando estilos del mapa original de preservación)
-    "<b>Preservación de Patrimonio</b>": grupoPreservacion.total,
-    "<span class='layer-legend-icon' style='background:#e63946'></span> Preservación Total": grupoPreservacion.total,
-    "<span class='layer-legend-icon' style='background:#f4a261'></span> Preservación Fachadas": grupoPreservacion.fachadas,
-    "<span class='layer-legend-icon' style='background:#bc6c25'></span> Protección Patrimonial": grupoPreservacion.patrimonial,
-    "<span class='layer-legend-icon' style='background:#2a9d8f'></span> Áreas Naturales": grupoPreservacion.naturales,
-    "<span class='layer-legend-icon' style='background:#8ab17d'></span> Áreas de Interés": grupoPreservacion.interes,
-    "<span class='layer-legend-icon' style='background:#e9c46a'></span> Valor Histórico/Cult.": grupoPreservacion.sitios,
-    "<span class='layer-legend-icon' style='background:#a2d2ff'></span> Corredores Altura": grupoPreservacion.corredores
-};
+// Inicializar buscadores predictivos
+configurarBuscadorDirecciones();
+configurarBuscadorLoteos();
+configurarBuscadorOrdenanzas();
+configurarBuscadorExpedientes();
 
-L.control.layers(
-    { "Mapa Oscuro": dark, "Híbrido": hibrido, "OpenStreetMap": osm }, 
-    overlays, 
-    { collapsed: false }
-).addTo(map);
-
-// Forzamos el control de visibilidad de parcelas inicial al cargar la página
-controlarVisibilidadParcelas();
+// Controlar visibilidad catastral inicial
+setTimeout(() => {
+    controlarVisibilidadParcelas();
+}, 1000);
 </script>
 </body>
 </html>
