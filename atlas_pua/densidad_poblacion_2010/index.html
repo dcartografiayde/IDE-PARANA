@@ -289,57 +289,7 @@
     <div class="text-[9px] text-slate-500">IDE Paraná - Límites indicativos (Ord. 8563). Zoom Máx: 22.</div>
     <div class="text-[8px] text-slate-400 font-semibold mt-0.5">Elaborado por Dirección de Cartografía y Datos Espaciales</div>
 </div>
-    <div id="leyenda-densidad" style="
-position:absolute;
-bottom:90px;
-left:10px;
-z-index:1000;
-background:white;
-padding:8px;
-border-radius:6px;
-box-shadow:0 2px 6px rgba(0,0,0,0.3);
-font-size:11px;
-max-width:220px;
-">
-
-    <div style="
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    cursor:pointer;
-    font-weight:bold;"
-    onclick="toggleLeyendaDensidad()">
-
-        <span>Densidad Poblacional 2010</span>
-        <span id="btn-leyenda">−</span>
-
-    </div>
-
-    <div id="contenido-leyenda" style="margin-top:6px;">
-
-        <div><span style="background:#b30000;width:15px;height:15px;display:inline-block;"></span> > 100 hab/ha</div>
-
-        <div><span style="background:#d7301f;width:15px;height:15px;display:inline-block;"></span> 81 - 100</div>
-
-        <div><span style="background:#ef6548;width:15px;height:15px;display:inline-block;"></span> 71 - 80</div>
-
-        <div><span style="background:#fc8d59;width:15px;height:15px;display:inline-block;"></span> 61 - 70</div>
-
-        <div><span style="background:#fdbb84;width:15px;height:15px;display:inline-block;"></span> 51 - 60</div>
-
-        <div><span style="background:#fdd49e;width:15px;height:15px;display:inline-block;"></span> 41 - 50</div>
-
-        <div><span style="background:#fee391;width:15px;height:15px;display:inline-block;"></span> 31 - 40</div>
-
-        <div><span style="background:#fec44f;width:15px;height:15px;display:inline-block;"></span> 21 - 30</div>
-
-        <div><span style="background:#fff7bc;width:15px;height:15px;display:inline-block;"></span> 11 - 20</div>
-
-        <div><span style="background:#ffffff;border:1px solid #999;width:15px;height:15px;display:inline-block;"></span> 0 - 10</div>
-
-    </div>
-
-</div>
+    
 <div id="map"></div>
 
 <script>
@@ -826,8 +776,8 @@ function controlarVisibilidadDinamica() {
     }
     // 4. Densidad Poblacional 2010
 
-const leyenda =
-    document.getElementById('leyenda-densidad');
+const chkDensidad =
+    document.getElementById('chk-densidad2010').checked;
 
 if (chkDensidad) {
 
@@ -835,17 +785,12 @@ if (chkDensidad) {
         map.addLayer(grupoDensidad2010);
     }
 
-    leyenda.style.display = 'block';
-
 } else {
 
     if (map.hasLayer(grupoDensidad2010)) {
         map.removeLayer(grupoDensidad2010);
     }
 
-    leyenda.style.display = 'none';
-
-}
 }
 
 
@@ -1019,27 +964,6 @@ var measureControl = new L.Control.Measure({
     }
 });
 measureControl.addTo(map);
-
-    function toggleLeyendaDensidad() {
-
-    const contenido =
-        document.getElementById('contenido-leyenda');
-
-    const boton =
-        document.getElementById('btn-leyenda');
-
-    if (contenido.style.display === 'none') {
-
-        contenido.style.display = 'block';
-        boton.innerHTML = '−';
-
-    } else {
-
-        contenido.style.display = 'none';
-        boton.innerHTML = '+';
-
-    }
-}
 
 // Inicializar el buscador predictivo al cargar el script
 configurarBuscadorUbicaciones();
