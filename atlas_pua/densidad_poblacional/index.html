@@ -943,6 +943,33 @@ function cambiarBaseMap(tipo) {
 
 // MODIFICACIÓN: Alternador para el control manual de checkboxes de las capas vectoriales
 function toggleOverlay(capa) {
+
+    if (capa === 'densidad2010') {
+
+        const chk2010 =
+            document.getElementById('chk-densidad2010');
+
+        const chk2022 =
+            document.getElementById('chk-densidad2022');
+
+        if (chk2010.checked) {
+            chk2022.checked = false;
+        }
+    }
+
+    if (capa === 'densidad2022') {
+
+        const chk2010 =
+            document.getElementById('chk-densidad2010');
+
+        const chk2022 =
+            document.getElementById('chk-densidad2022');
+
+        if (chk2022.checked) {
+            chk2010.checked = false;
+        }
+    }
+
     controlarVisibilidadDinamica();
 }
 
