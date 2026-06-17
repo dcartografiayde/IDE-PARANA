@@ -683,7 +683,7 @@ fetchGeoJSON(
                 feature.properties.poblacion || "-";
 
             const poblacionHa =
-                feature.properties.poblacion_ha || "-";
+                Number(feature.properties.poblacion_ha) || 0;
 
             layer.bindPopup(`
 
@@ -702,7 +702,7 @@ fetchGeoJSON(
 
         <tr>
             <td>Población por hectárea</td>
-            <td>${Number(poblacionHa).toFixed(1)}</td>
+            <td>${poblacionHa.toFixed(1)}</td>
         </tr>
 
     </table>
