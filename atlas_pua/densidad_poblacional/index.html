@@ -201,6 +201,19 @@
     </span>
 </label>
 
+<label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
+    <input type="checkbox"
+           id="chk-densidad2022"
+           checked
+           onchange="toggleOverlay('densidad2022')"
+           class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
+
+    <span class="flex items-center gap-2">
+        <span style="width:14px;height:14px;background:#b30000;border:1px solid #fff;display:inline-block;"></span>
+        <span>Densidad poblacional 2022</span>
+    </span>
+</label>
+
 <details class="ml-6 mt-1 text-[10px] text-slate-300 border border-slate-700 rounded bg-slate-800">
     <summary class="cursor-pointer px-2 py-1 font-bold">
         Ver intervalos
@@ -378,9 +391,12 @@ map.createPane('parcelasPane');
 map.getPane('parcelasPane').style.zIndex = 350; // Capa superior
 map.getPane('parcelasPane').style.pointerEvents = 'auto'; // Captura clics
 
-map.createPane('densidadPane');
-map.getPane('densidadPane').style.zIndex = 250;
+map.createPane('densidad2010Pane');
+map.createPane('densidad2022Pane');
 
+map.getPane('densidad2010Pane').style.zIndex = 250;
+map.getPane('densidad2022Pane').style.zIndex = 251;
+    
 var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 22, maxNativeZoom: 19 });
 var dark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 22, maxNativeZoom: 20 });
 var sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 22, maxNativeZoom: 18 });
@@ -552,8 +568,9 @@ fetchGeoJSON(BASE_URL + "catastro/manzana.geojson").then(data => {
 // Capa de Parcelas (Totalmente Restituida)
 var grupoParcelas = L.layerGroup();
 var grupoDensidad2010 = L.layerGroup();
+var grupoDensidad2022 = L.layerGroup();
 var parcelasLayers = [];
-
+    
 // MODIFICACIÓN: Lista global e indexada para la búsqueda predictiva case-insensitive de ubicaciones (UBIPAR1 / calle y altura)
 var listaParcelasUbicacion = [];
 
@@ -727,6 +744,84 @@ fetchGeoJSON(
 
 });
 
+    /* ================= DENSIDAD POBLACIONAL 2022 ================= */
+
+fetchGeoJSON(
+    BASE_URL +
+    "atlas_pua/densidad_poblacional/densidad_poblacional_2022.geojson"
+)
+.then(data => {
+
+    L.geoJSON(data, {
+
+        pane: 'densidadPane',
+
+        style: function(feature) {
+
+            const valor =
+                Number(feature.properties.poblacion_ha) || 0;
+
+            return {
+                color: "#333333",
+                weight: 0.8,
+                opacity: 0.7,
+                fillColor: getColorDensidad(valor),
+                fillOpacity: 0.40
+            };
+        },
+
+        onEachFeature: function(feature, layer) {
+
+            const poblacion =
+                feature.properties.poblacion || 0;
+
+            const poblacionHa =
+                Number(feature.properties.poblacion_ha);
+
+            const densidadMostrar =
+                isNaN(poblacionHa) ? 0 : poblacionHa.toFixed(1);
+
+            layer.bindPopup(`
+
+<div class="popup-custom">
+
+    <div class="popup-header">
+        DENSIDAD POBLACIONAL 2022
+    </div>
+
+    <table class="table-info">
+
+        <tr>
+            <td>Población censada</td>
+            <td>${poblacion}</td>
+        </tr>
+
+        <tr>
+            <td>Población por hectárea</td>
+            <td>${densidadMostrar}</td>
+        </tr>
+
+    </table>
+
+</div>
+
+`);
+        }
+
+   }).addTo(grupoDensidad2022);
+
+    grupoDensidad2022.addTo(map);
+
+})
+.catch(err => {
+
+    console.error(
+        "Error cargando densidad_poblacional_2022:",
+        err
+    );
+
+});
+
 // MODIFICACIÓN: Gestión unificada de visibilidad dinámica sincronizada con el nuevo panel de capas del menú lateral
 function controlarVisibilidadDinamica() {
     let zoomActual = map.getZoom();
@@ -791,6 +886,25 @@ if (chkDensidad) {
 
     if (map.hasLayer(grupoDensidad2010)) {
         map.removeLayer(grupoDensidad2010);
+    }
+
+}
+
+    // 5. Densidad Poblacional 2022
+
+const chkDensidad2022 =
+    document.getElementById('chk-densidad2022').checked;
+
+if (chkDensidad2022) {
+
+    if (!map.hasLayer(grupoDensidad2022)) {
+        map.addLayer(grupoDensidad2022);
+    }
+
+} else {
+
+    if (map.hasLayer(grupoDensidad2022)) {
+        map.removeLayer(grupoDensidad2022);
     }
 
 }
