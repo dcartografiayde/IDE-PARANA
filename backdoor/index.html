@@ -434,6 +434,7 @@ function toggleSidebar() {
     }
 }
 
+// MODIFICACIÓN: Preservar la pestaña activa actual en las vistas
 function switchTab(tab) {
     const tabBusquedas = document.getElementById('tab-busquedas');
     const tabCapas = document.getElementById('tab-capas');
@@ -485,14 +486,27 @@ function switchBaseMap(style) {
     }
 }
 
-/* ================= FUNCIONES DE LIMPIEZA Y DECODIFICACIÓN DE TEXTO ================= */
+/* ================= FUNCIONES DE LIMPIEZA Y DECODIFICACIÓN DE TEXTO (UNICODE CORREGIDO) ================= */
 function decodificarTexto(str) {
     if (!str || typeof str !== 'string') return str;
     try {
+        // Secuencias seguras Unicode para prevenir problemas de codificación y errores de sintaxis
         const correcciones = {
-            'Ã¡': 'á', 'Ã©': 'é', 'Ã­': 'í', 'Ã³': 'ó', 'Ãº': 'ú',
-            'Ã ': 'Á', 'Ã‰': 'É', 'Ã ': 'Í', 'Ã“': 'Ó', 'Ãš': 'Ú',
-            'Ã±': 'ñ', 'Ã‘': 'Ñ', 'Â°': '°', 'Ã¼': 'ü', 'Â¿': '¿'
+            '\u00c3\u00a1': '\u00e1', // á
+            '\u00c3\u00a9': '\u00e9', // é
+            '\u00c3\u00ad': '\u00ed', // í
+            '\u00c3\u00b3': '\u00f3', // ó
+            '\u00c3\u00ba': '\u00fa', // ú
+            '\u00c3\u0081': '\u00c1', // Á
+            '\u00c3\u0089': '\u00c9', // É
+            '\u00c3\u008d': '\u00cd', // Í
+            '\u00c3\u0093': '\u00d3', // Ó
+            '\u00c3\u009a': '\u00da', // Ú
+            '\u00c3\u00b1': '\u00f1', // ñ
+            '\u00c3\u0091': '\u00d1', // Ñ
+            '\u00c2\u00b0': '\u00b0', // °
+            '\u00c3\u00bc': '\u00fc', // ü
+            '\u00c2\u00bf': '\u00bf'  // ¿
         };
         let textoCorregido = str;
         for (let mal in correcciones) {
@@ -500,32 +514,32 @@ function decodificarTexto(str) {
         }
 
         const reemplazosClave = [
-            { mal: /TORRE[ïÏ]¿½N/gi, bien: 'TORREÓN' },
-            { mal: /Torre[ïÏ]¿½n/gi, bien: 'Torreón' },
-            { mal: /APROBACI[ïÏ]¿½N/gi, bien: 'APROBACIÓN' },
-            { mal: /Aprobaci[ïÏ]¿½n/gi, bien: 'Aprobación' },
-            { mal: /ASOCIACI[ïÏ]¿½N/gi, bien: 'ASOCIACIÓN' },
-            { mal: /Asociaci[ïÏ]¿½n/gi, bien: 'Asociación' },
-            { mal: /CONSTITUCI[ïÏ]¿½N/gi, bien: 'CONSTITUCIÓN' },
-            { mal: /Constituci[ïÏ]¿½n/gi, bien: 'Constitución' },
-            { mal: /DECLARACI[ïÏ]¿½N/gi, bien: 'DECLARACIÓN' },
-            { mal: /Declaraci[ïÏ]¿½n/gi, bien: 'Declaración' },
-            { mal: /URBANIZACI[ïÏ]¿½N/gi, bien: 'URBANIZACIÓN' },
-            { mal: /Urbanizaci[ïÏ]¿½n/gi, bien: 'Urbanización' },
-            { mal: /PROLONGACI[ïÏ]¿½N/gi, bien: 'PROLONGACIÓN' },
-            { mal: /Prolongaci[ïÏ]¿½n/gi, bien: 'Prolongación' },
-            { mal: /SECCI[ïÏ]¿½N/gi, bien: 'SECCIÓN' },
-            { mal: /Secci[ïÏ]¿½n/gi, bien: 'Sección' },
-            { mal: /ESTACI[ïÏ]¿½N/gi, bien: 'ESTACIÓN' },
-            { mal: /Estaci[ïÏ]¿½n/gi, bien: 'Estación' },
-            { mal: /REVOLUCI[ïÏ]¿½N/gi, bien: 'REVOLUCIÓN' },
-            { mal: /Revoluci[ïÏ]¿½n/gi, bien: 'Revolución' },
-            { mal: /N[ïÏ]¿½/g, bien: 'Nº' },
-            { mal: /n[ïÏ]¿½/g, bien: 'nº' },
-            { mal: /PARAN[ïÏ]¿½/gi, bien: 'PARANÁ' },
-            { mal: /Paran[ïÏ]¿½/gi, bien: 'Paraná' },
-            { mal: /CI[ïÏ]¿½N/g, bien: 'CIÓN' },
-            { mal: /ci[ïÏ]¿½n/g, bien: 'ción' }
+            { mal: /TORRE[\u00ef\u00cf]\u00bf\u00bdN/gi, bien: 'TORREÓN' },
+            { mal: /Torre[\u00ef\u00cf]\u00bf\u00bdn/gi, bien: 'Torreón' },
+            { mal: /APROBACI[\u00ef\u00cf]\u00bf\u00bdN/gi, bien: 'APROBACIÓN' },
+            { mal: /Aprobaci[\u00ef\u00cf]\u00bf\u00bdn/gi, bien: 'Aprobación' },
+            { mal: /ASOCIACI[\u00ef\u00cf]\u00bf\u00bdN/gi, bien: 'ASOCIACIÓN' },
+            { mal: /Asociaci[\u00ef\u00cf]\u00bf\u00bdn/gi, bien: 'Asociación' },
+            { mal: /CONSTITUCI[\u00ef\u00cf]\u00bf\u00bdN/gi, bien: 'CONSTITUCIÓN' },
+            { mal: /Constituci[\u00ef\u00cf]\u00bf\u00bdn/gi, bien: 'Constitución' },
+            { mal: /DECLARACI[\u00ef\u00cf]\u00bf\u00bdN/gi, bien: 'DECLARACIÓN' },
+            { mal: /Declaraci[\u00ef\u00cf]\u00bf\u00bdn/gi, bien: 'Declaración' },
+            { mal: /URBANIZACI[\u00ef\u00cf]\u00bf\u00bdN/gi, bien: 'URBANIZACIÓN' },
+            { mal: /Urbanizaci[\u00ef\u00cf]\u00bf\u00bdn/gi, bien: 'Urbanización' },
+            { mal: /PROLONGACI[\u00ef\u00cf]\u00bf\u00bdN/gi, bien: 'PROLONGACIÓN' },
+            { mal: /Prolongaci[\u00ef\u00cf]\u00bf\u00bdn/gi, bien: 'Prolongación' },
+            { mal: /SECCI[\u00ef\u00cf]\u00bf\u00bdN/gi, bien: 'SECCIÓN' },
+            { mal: /Secci[\u00ef\u00cf]\u00bf\u00bdn/gi, bien: 'Sección' },
+            { mal: /ESTACI[\u00ef\u00cf]\u00bf\u00bdN/gi, bien: 'ESTACIÓN' },
+            { mal: /Estaci[\u00ef\u00cf]\u00bf\u00bdn/gi, bien: 'Estación' },
+            { mal: /REVOLUCI[\u00ef\u00cf]\u00bf\u00bdN/gi, bien: 'REVOLUCIÓN' },
+            { mal: /Revoluci[\u00ef\u00cf]\u00bf\u00bdn/gi, bien: 'Revolución' },
+            { mal: /N[\u00ef\u00cf]\u00bf\u00bd/g, bien: 'Nº' },
+            { mal: /n[\u00ef\u00cf]\u00bf\u00bd/g, bien: 'nº' },
+            { mal: /PARAN[\u00ef\u00cf]\u00bf\u00bd/gi, bien: 'PARANÁ' },
+            { mal: /Paran[\u00ef\u00cf]\u00bf\u00bd/gi, bien: 'Paraná' },
+            { mal: /CI[\u00ef\u00cf]\u00bf\u00bdN/g, bien: 'CIÓN' },
+            { mal: /ci[\u00ef\u00cf]\u00bf\u00bdn/g, bien: 'ción' }
         ];
 
         for (let r of reemplazosClave) {
@@ -934,10 +948,14 @@ const setupLoteo = (file, grupo, color, titulo) => {
                 let ordenanza = "";
                 let expediente = "";
                 for (let [k, v] of Object.entries(props)) {
-                    let keyLower = k.toLowerCase();
+                    let keyLower = k.toLowerCase().trim();
                     if (keyLower.includes("nombre") || keyLower.includes("denominac")) nombre = decodificarTexto(String(v));
                     if (keyLower.includes("propietario") || keyLower.includes("firma") || keyLower.includes("solicitan") || keyLower.includes("titular")) propietario = decodificarTexto(String(v));
-                    if (keyLower.includes("ordenanza") || keyLower === "ord" || keyLower.includes("nro_ord")) ordenanza = decodificarTexto(String(v));
+                    
+                    // MODIFICACIÓN: Se amplió la detección de Ordenanzas para incluir "ord.", "ord" y variantes de forma flexible
+                    if (keyLower.includes("ordenanza") || keyLower === "ord" || keyLower === "ord." || keyLower.includes("nro_ord")) {
+                        ordenanza = decodificarTexto(String(v));
+                    }
                     
                     if (keyLower.includes("exp") || keyLower.includes("expediente") || keyLower.includes("expte")) {
                         let expVal = decodificarTexto(String(v)).trim();
