@@ -72,6 +72,8 @@
             { title: "Preservación", desc: "Patrimonio histórico.", link: "https://dcartografiayde.github.io/IDE-PARANA/preservacion/" },
             { title: "Censo 2022", desc: "Resultados poblacionales.", link: "https://dcartografiayde.github.io/IDE-PARANA/censo_2022/" },
             { title: "Urbanizaciones", desc: "Monitoreo y desarrollo urbanístico.", link: "https://dcartografiayde.github.io/IDE-PARANA/backdoor/" },
+            // MODIFICACIÓN: Se agrega el visor de urbanizaciones optimizado para dispositivos móviles
+            { title: "Urbanizaciones - Versión para celular", desc: "Monitoreo de desarrollos adaptado a pantallas táctiles.", link: "https://dcartografiayde.github.io/IDE-PARANA/backdoor/visor_urbanizaciones_celular.html" },
             { title: "Vecinales", desc: "Límites jurisdiccionales de comisiones vecinales.", link: "https://dcartografiayde.github.io/IDE-PARANA/backdoor/vecinales/" },
             { title: "Servicios por Calle", desc: "Cobertura de servicios públicos por red vial.", link: "https://dcartografiayde.github.io/IDE-PARANA/servicios/" }
         ];
@@ -80,10 +82,12 @@
             { title: "Crecimiento Huella Urbana", desc: "Análisis histórico de expansión (1967-2023).", link: "https://dcartografiayde.github.io/IDE-PARANA/atlas_pua/crecimiento_huella_urbana/" },
             { title: "Cuencas Hidrográficas", desc: "Delimitación de las 17 cuencas hídricas.", link: "https://dcartografiayde.github.io/IDE-PARANA/atlas_pua/cuencas_hidrograficas/" },
             { title: "Área Metropolitana Paraná-Santa Fe", desc: "Conformación del conglomerado urbano y redes viales." },
-            { title: "Crecimiento Poblacional 2010-2022", desc: "Tasas de crecimiento anual y tamaño poblacional." },
+            // MODIFICACIÓN: Activado con el enlace correspondiente al mapa de crecimiento poblacional
+            { title: "Crecimiento Poblacional 2010-2022", desc: "Tasas de crecimiento anual y tamaño poblacional.", link: "https://dcartografiayde.github.io/IDE-PARANA/atlas_pua/crecimiento_huella_urbana/" },
             { title: "Conexiones Territoriales Gran Paraná", desc: "Corredores estratégicos (San Benito, Oro Verde, Colonia Avellaneda)." },
             { title: "Distrito Código Urbano", desc: "Zonificación normativa según Ordenanza N° 8.563." },
-            { title: "Densidad de Población", desc: "Distribución espacial por hectárea (2010 y 2022)." },
+            // MODIFICACIÓN: Activado con el enlace correspondiente al mapa de densidad poblacional
+            { title: "Densidad de Población", desc: "Distribución espacial por hectárea (2010 y 2022).", link: "https://dcartografiayde.github.io/IDE-PARANA/atlas_pua/densidad_poblacional/" },
             { title: "Curvas de Nivel e Hidrografía", desc: "Topografía del terreno y cursos de agua principales." },
             { title: "Áreas Ecológicas", desc: "Valor ambiental, áreas degradadas y bosques nativos." },
             { title: "Áreas Servidas - No Servidas", desc: "Cobertura de agua, gas, cloacas y alumbrado público." },
@@ -92,10 +96,13 @@
             { title: "Presupuesto Participativo 2023", desc: "Intervenciones comunitarias y proyectos lineales." },
             { title: "Redes Institucionales", desc: "Protección de derechos (Niñez y Familia - COPNAF)." },
             { title: "Equipamientos e Infraestructuras", desc: "Usos del suelo (Salud, Recreación, Comercio)." },
-            { title: "Asentamientos y Barrios Populares", desc: "Localización RENABAP 2023." },
+            // MODIFICACIÓN: Actualizado título a "Asentamientos Informales" y activado con su respectivo enlace de mapa
+            { title: "Asentamientos Informales", desc: "Localización RENABAP 2023 y análisis territorial.", link: "https://dcartografiayde.github.io/IDE-PARANA/atlas_pua/asentamientos_informales/" },
             { title: "Áreas de Influencia", desc: "Accesibilidad a equipamientos públicos y educativos." },
             { title: "Barrios IAPV", desc: "Loteos construidos por el IAPV desde 1954." },
-            { title: "Protección Patrimonial", desc: "Edificios con declaratoria de protección." }
+            { title: "Protección Patrimonial", desc: "Edificios con declaratoria de protección." },
+            // MODIFICACIÓN: Se añadió el botón/tarjeta para el mapa de Espacios Verdes Públicos
+            { title: "Espacios Verdes Públicos", desc: "Distribución, accesibilidad y cobertura de áreas verdes de la ciudad.", link: "https://dcartografiayde.github.io/IDE-PARANA/atlas_pua/espacios_verdes_publicos/" }
         ];
 
         function renderCards(data, containerId, icon) {
