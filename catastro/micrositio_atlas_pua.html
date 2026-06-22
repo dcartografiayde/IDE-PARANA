@@ -65,54 +65,183 @@
     </div>
 
     <script>
+        // MODIFICACIÓN: Se definieron iconos SVG específicos, modernos y elegantes para cada uno de los mapas
         const ideMaps = [
-            { title: "Catastro", desc: "Parcelario y zonificaciones.", link: "https://dcartografiayde.github.io/IDE-PARANA/catastro/" },
-            { title: "Mapa Base", desc: "Trama vial y urbana.", link: "https://dcartografiayde.github.io/IDE-PARANA/mapa base/" },
-            { title: "Obras Privadas", desc: "Permisos de construcción.", link: "https://dcartografiayde.github.io/IDE-PARANA/obras_privadas/" },
-            { title: "Preservación", desc: "Patrimonio histórico.", link: "https://dcartografiayde.github.io/IDE-PARANA/preservacion/" },
-            { title: "Censo 2022", desc: "Resultados poblacionales.", link: "https://dcartografiayde.github.io/IDE-PARANA/censo_2022/" },
-            { title: "Urbanizaciones", desc: "Monitoreo y desarrollo urbanístico.", link: "https://dcartografiayde.github.io/IDE-PARANA/backdoor/" },
-            // MODIFICACIÓN: Se agrega el visor de urbanizaciones optimizado para dispositivos móviles
-            { title: "Urbanizaciones - Versión para celular", desc: "Monitoreo de desarrollos adaptado a pantallas táctiles.", link: "https://dcartografiayde.github.io/IDE-PARANA/backdoor/visor_urbanizaciones_celular.html" },
-            { title: "Vecinales", desc: "Límites jurisdiccionales de comisiones vecinales.", link: "https://dcartografiayde.github.io/IDE-PARANA/backdoor/vecinales/" },
-            { title: "Servicios por Calle", desc: "Cobertura de servicios públicos por red vial.", link: "https://dcartografiayde.github.io/IDE-PARANA/servicios/" }
+            { 
+                title: "Catastro", 
+                desc: "Parcelario y zonificaciones.", 
+                link: "https://dcartografiayde.github.io/IDE-PARANA/catastro/",
+                icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M3 14h18m-9-9v14m-5-14v14m10-14v14" /></svg>` // Cuadrícula / Parcelas
+            },
+            { 
+                title: "Mapa Base", 
+                desc: "Trama vial y urbana.", 
+                link: "https://dcartografiayde.github.io/IDE-PARANA/mapa base/",
+                icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" /></svg>` // Mapa desplegado
+            },
+            { 
+                title: "Obras Privadas", 
+                desc: "Permisos de construcción.", 
+                link: "https://dcartografiayde.github.io/IDE-PARANA/obras_privadas/",
+                icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>` // Edificios / Construcción
+            },
+            { 
+                title: "Preservación", 
+                desc: "Patrimonio histórico.", 
+                link: "https://dcartografiayde.github.io/IDE-PARANA/preservacion/",
+                icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v1H4v-1z" /></svg>` // Templo patrimonial
+            },
+            { 
+                title: "Censo 2022", 
+                desc: "Resultados poblacionales.", 
+                link: "https://dcartografiayde.github.io/IDE-PARANA/censo_2022/",
+                icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>` // Demografía / Personas
+            },
+            { 
+                title: "Urbanizaciones", 
+                desc: "Monitoreo y desarrollo urbanístico.", 
+                link: "https://dcartografiayde.github.io/IDE-PARANA/backdoor/",
+                icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>` // Urbanización / Casas
+            },
+            { 
+                title: "Urbanizaciones - Versión para celular", 
+                desc: "Monitoreo de desarrollos adaptado a pantallas táctiles.", 
+                link: "https://dcartografiayde.github.io/IDE-PARANA/backdoor/visor_urbanizaciones_celular.html",
+                icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2zM9 9h6" /></svg>` // Dispositivo móvil / Celular
+            },
+            { 
+                title: "Vecinales", 
+                desc: "Límites jurisdiccionales de comisiones vecinales.", 
+                link: "https://dcartografiayde.github.io/IDE-PARANA/backdoor/vecinales/",
+                icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>` // Comunidades / Vecinales
+            },
+            { 
+                title: "Servicios por Calle", 
+                desc: "Cobertura de servicios públicos por red vial.", 
+                link: "https://dcartografiayde.github.io/IDE-PARANA/servicios/",
+                icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>` // Servicios de red / Electricidad / Energía
+            }
         ];
 
+        // MODIFICACIÓN: Se definieron iconos SVG específicos, modernos y elegantes para cada uno de los mapas del Atlas PUA
         const atlasMaps = [
-            { title: "Crecimiento Huella Urbana", desc: "Análisis histórico de expansión (1967-2023).", link: "https://dcartografiayde.github.io/IDE-PARANA/atlas_pua/crecimiento_huella_urbana/" },
-            { title: "Cuencas Hidrográficas", desc: "Delimitación de las 17 cuencas hídricas.", link: "https://dcartografiayde.github.io/IDE-PARANA/atlas_pua/cuencas_hidrograficas/" },
-            { title: "Área Metropolitana Paraná-Santa Fe", desc: "Conformación del conglomerado urbano y redes viales." },
-            // MODIFICACIÓN: Activado con el enlace correspondiente al mapa de crecimiento poblacional
-            { title: "Crecimiento Poblacional 2010-2022", desc: "Tasas de crecimiento anual y tamaño poblacional.", link: "https://dcartografiayde.github.io/IDE-PARANA/atlas_pua/crecimiento_huella_urbana/" },
-            { title: "Conexiones Territoriales Gran Paraná", desc: "Corredores estratégicos (San Benito, Oro Verde, Colonia Avellaneda)." },
-            { title: "Distrito Código Urbano", desc: "Zonificación normativa según Ordenanza N° 8.563." },
-            // MODIFICACIÓN: Activado con el enlace correspondiente al mapa de densidad poblacional
-            { title: "Densidad de Población", desc: "Distribución espacial por hectárea (2010 y 2022).", link: "https://dcartografiayde.github.io/IDE-PARANA/atlas_pua/densidad_poblacional/" },
-            { title: "Curvas de Nivel e Hidrografía", desc: "Topografía del terreno y cursos de agua principales." },
-            { title: "Áreas Ecológicas", desc: "Valor ambiental, áreas degradadas y bosques nativos." },
-            { title: "Áreas Servidas - No Servidas", desc: "Cobertura de agua, gas, cloacas y alumbrado público." },
-            { title: "Redes de Servicios Individuales", desc: "Detalle técnico de redes por tipo de servicio." },
-            { title: "Red de Drenaje", desc: "Infraestructura pluvial noroeste y central (2020-2022)." },
-            { title: "Presupuesto Participativo 2023", desc: "Intervenciones comunitarias y proyectos lineales." },
-            { title: "Redes Institucionales", desc: "Protección de derechos (Niñez y Familia - COPNAF)." },
-            { title: "Equipamientos e Infraestructuras", desc: "Usos del suelo (Salud, Recreación, Comercio)." },
-            // MODIFICACIÓN: Actualizado título a "Asentamientos Informales" y activado con su respectivo enlace de mapa
-            { title: "Asentamientos Informales", desc: "Localización RENABAP 2023 y análisis territorial.", link: "https://dcartografiayde.github.io/IDE-PARANA/atlas_pua/asentamientos_informales/" },
-            { title: "Áreas de Influencia", desc: "Accesibilidad a equipamientos públicos y educativos." },
-            { title: "Barrios IAPV", desc: "Loteos construidos por el IAPV desde 1954." },
-            { title: "Protección Patrimonial", desc: "Edificios con declaratoria de protección." },
-            // MODIFICACIÓN: Se añadió el botón/tarjeta para el mapa de Espacios Verdes Públicos
-            { title: "Espacios Verdes Públicos", desc: "Distribución, accesibilidad y cobertura de áreas verdes de la ciudad.", link: "https://dcartografiayde.github.io/IDE-PARANA/atlas_pua/espacios_verdes_publicos/" }
+            { 
+                title: "Crecimiento Huella Urbana", 
+                desc: "Análisis histórico de expansión (1967-2023).", 
+                link: "https://dcartografiayde.github.io/IDE-PARANA/atlas_pua/crecimiento_huella_urbana/",
+                icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>` // Crecimiento estadístico / Gráfico de línea
+            },
+            { 
+                title: "Cuencas Hidrográficas", 
+                desc: "Delimitación de las 17 cuencas hídricas.", 
+                link: "https://dcartografiayde.github.io/IDE-PARANA/atlas_pua/cuencas_hidrograficas/",
+                icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 12c1.5 0 2.5-1 4-1s2.5 1 4 1 2.5-1 4-1 2.5 1 4 1M4 16c1.5 0 2.5-1 4-1s2.5 1 4 1 2.5-1 4-1 2.5 1 4 1" /></svg>` // Ondas de agua / Cuencas
+            },
+            { 
+                title: "Área Metropolitana Paraná-Santa Fe", 
+                desc: "Conformación del conglomerado urbano y redes viales.",
+                icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18.364 5.636a9 9 0 010 12.728m0 0l-2.829-2.829m2.829 2.829L21 21M15.536 8.464a5 5 0 010 7.072m0 0l-2.829-2.829m-4.243 2.829a4.978 4.978 0 01-1.414-3.536 4.978 4.978 0 011.414-3.536m0 0L12 12" /></svg>` // Red / Nodos de conexión
+            },
+            { 
+                title: "Crecimiento Poblacional 2010-2022", 
+                desc: "Tasas de crecimiento anual y tamaño poblacional.", 
+                link: "https://dcartografiayde.github.io/IDE-PARANA/atlas_pua/crecimiento_huella_urbana/",
+                icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 00-2 2h-2a2 2 0 00-2-2z" /></svg>` // Gráfico de barras de crecimiento
+            },
+            { 
+                title: "Conexiones Territoriales Gran Paraná", 
+                desc: "Corredores estratégicos (San Benito, Oro Verde, Colonia Avellaneda).",
+                icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>` // Conexiones e infraestructura vial
+            },
+            { 
+                title: "Distrito Código Urbano", 
+                desc: "Zonificación normativa según Ordenanza N° 8.563.",
+                icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>` // Documento legal / Código Urbano
+            },
+            { 
+                title: "Densidad de Población", 
+                desc: "Distribución espacial por hectárea (2010 y 2022).", 
+                link: "https://dcartografiayde.github.io/IDE-PARANA/atlas_pua/densidad_poblacional/",
+                icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1" /><circle cx="12" cy="5" r="1" /><circle cx="12" cy="19" r="1" /><circle cx="5" cy="12" r="1" /><circle cx="19" cy="12" r="1" /><circle cx="7" cy="7" r="1" /><circle cx="17" cy="17" r="1" /><circle cx="7" cy="17" r="1" /><circle cx="17" cy="7" r="1" /></svg>` // Patrón de puntos / Densidad espacial
+            },
+            { 
+                title: "Curvas de Nivel e Hidrografía", 
+                desc: "Topografía del terreno y cursos de agua principales.",
+                icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12c4-4 6 4 10 0s4-4 8 0m-18 4c4-4 6 4 10 0s4-4 8 0" /></svg>` // Curvas topográficas / Olas
+            },
+            { 
+                title: "Áreas Ecológicas", 
+                desc: "Valor ambiental, áreas degradadas y bosques nativos.",
+                icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19c0-6 6-11 6-11s-5 1.5-6 5c-1-3.5-6-5-6-5s6 5 6 11zm0 0v3" /></svg>` // Hoja / Medio Ambiente
+            },
+            { 
+                title: "Áreas Servidas - No Servidas", 
+                desc: "Cobertura de agua, gas, cloacas y alumbrado público.",
+                icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547" /></svg>` // Red de servicios públicos
+            },
+            { 
+                title: "Redes de Servicios Individuales", 
+                desc: "Detalle técnico de redes por tipo de servicio.",
+                icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10" /></svg>` // Esquema / Infraestructura
+            },
+            { 
+                title: "Red de Drenaje", 
+                desc: "Infraestructura pluvial noroeste y central (2020-2022).",
+                icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 4H21v3" /></svg>` // Pluvial / Canales
+            },
+            { 
+                title: "Presupuesto Participativo 2023", 
+                desc: "Intervenciones comunitarias y proyectos lineales.",
+                icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8" /></svg>` // Moneda / Finanzas comunitarias
+            },
+            { 
+                title: "Redes Institucionales", 
+                desc: "Protección de derechos (Niñez y Familia - COPNAF).",
+                icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04" /></svg>` // Escudo Institucional / Seguridad
+            },
+            { 
+                title: "Equipamientos e Infraestructuras", 
+                desc: "Usos del suelo (Salud, Recreación, Comercio).",
+                icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5" /></svg>` // Equipamiento urbano / Servicios comunitarios
+            },
+            { 
+                title: "Asentamientos Informales", 
+                desc: "Localización RENABAP 2023 y análisis territorial.", 
+                link: "https://dcartografiayde.github.io/IDE-PARANA/atlas_pua/asentamientos_informales/",
+                icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2" /></svg>` // Viviendas sociales / Vulnerabilidad
+            },
+            { 
+                title: "Áreas de Influencia", 
+                desc: "Accesibilidad a equipamientos públicos y educativos.",
+                icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><circle cx="12" cy="12" r="5" /><circle cx="12" cy="12" r="1" /></svg>` // Zonas de cobertura / Radios de influencia
+            },
+            { 
+                title: "Barrios IAPV", 
+                desc: "Loteos construidos por el IAPV desde 1954.",
+                icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2" /></svg>` // Loteo residencial / Viviendas colectivas
+            },
+            { 
+                title: "Protección Patrimonial", 
+                desc: "Edificios con declaratoria de protección.",
+                icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>` // Candado / Protección patrimonial
+            },
+            { 
+                title: "Espacios Verdes Públicos", 
+                desc: "Distribución, accesibilidad y cobertura de áreas verdes de la ciudad.", 
+                link: "https://dcartografiayde.github.io/IDE-PARANA/atlas_pua/espacios_verdes_publicos/",
+                icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19V22M12 15C15 15 17 12 17 9C17 5 14 2 12 2C10 2 7 5 7 9C7 12 9 15 12 15Z" /></svg>` // Árbol / Parque / Espacios verdes
+            }
         ];
 
-        function renderCards(data, containerId, icon) {
+        // MODIFICACIÓN: Se refactorizó el renderizador de tarjetas para aceptar y renderizar de forma segura el icono personalizado de cada mapa
+        function renderCards(data, containerId) {
             const container = document.getElementById(containerId);
             container.innerHTML = data.map(m => {
                 const isReady = !!m.link;
                 return `
                 <div class="bg-card-dark p-6 rounded-2xl border border-slate-700 shadow-sm card-hover transition-all group ${!isReady ? 'card-disabled' : ''}">
-                    <div class="w-12 h-12 ${isReady ? 'bg-muni-green/20 text-muni-green' : 'bg-slate-700 text-slate-400'} rounded-xl flex items-center justify-center mb-6 text-2xl group-hover:bg-muni-green group-hover:text-white transition-colors">
-                        ${icon}
+                    <div class="w-12 h-12 ${isReady ? 'bg-muni-green/20 text-muni-green' : 'bg-slate-700 text-slate-400'} rounded-xl flex items-center justify-center mb-6 group-hover:bg-muni-green group-hover:text-white transition-colors">
+                        ${m.icon}
                     </div>
                     <h3 class="font-bold text-lg text-white mb-2">${m.title}</h3>
                     <p class="text-sm text-slate-400 mb-6 h-10">${m.desc}</p>
@@ -124,8 +253,9 @@
             `}).join('');
         }
 
-        renderCards(ideMaps, 'ide-grid', '🗺️');
-        renderCards(atlasMaps, 'atlas-grid', '📐');
+        // MODIFICACIÓN: Llamada a render sin el argumento estático de icono genérico
+        renderCards(ideMaps, 'ide-grid');
+        renderCards(atlasMaps, 'atlas-grid');
 
         function openTab(evt, tabName) {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
