@@ -859,7 +859,7 @@ fetchGeoJSON(
             iconSize: null
         })
 
-    }).addTo(grupoEtiquetasDensidad2010);
+    }).addTo(grupoEtiquetasDensidad2022);
 
 } catch(e){}
         }
@@ -876,7 +876,43 @@ fetchGeoJSON(
 
 });
 
+/* ===== ETIQUETAS DENSIDAD 2010 ===== */
 
+if (
+    document.getElementById('chk-densidad2010').checked &&
+    zoomActual >= 14
+) {
+
+    if (!map.hasLayer(grupoEtiquetasDensidad2010)) {
+        map.addLayer(grupoEtiquetasDensidad2010);
+    }
+
+} else {
+
+    if (map.hasLayer(grupoEtiquetasDensidad2010)) {
+        map.removeLayer(grupoEtiquetasDensidad2010);
+    }
+
+}
+
+/* ===== ETIQUETAS DENSIDAD 2022 ===== */
+
+if (
+    document.getElementById('chk-densidad2022').checked &&
+    zoomActual >= 14
+) {
+
+    if (!map.hasLayer(grupoEtiquetasDensidad2022)) {
+        map.addLayer(grupoEtiquetasDensidad2022);
+    }
+
+} else {
+
+    if (map.hasLayer(grupoEtiquetasDensidad2022)) {
+        map.removeLayer(grupoEtiquetasDensidad2022);
+    }
+
+}
 
 // MODIFICACIÓN: Gestión unificada de visibilidad dinámica sincronizada con el nuevo panel de capas del menú lateral
 function controlarVisibilidadDinamica() {
@@ -1000,31 +1036,26 @@ function cambiarBaseMap(tipo) {
 // MODIFICACIÓN: Alternador para el control manual de checkboxes de las capas vectoriales
 function toggleOverlay(capa) {
 
+    let zoomActual = map.getZoom();
+
     if (capa === 'densidad2010') {
 
-        const chk2010 =
-            document.getElementById('chk-densidad2010');
+        document.getElementById('chk-densidad2022').checked = false;
 
-        const chk2022 =
-            document.getElementById('chk-densidad2022');
-
-        if (chk2010.checked) {
-            chk2022.checked = false;
-        }
+        map.removeLayer(grupoDensidad2022);
+        map.removeLayer(grupoEtiquetasDensidad2022);
     }
 
     if (capa === 'densidad2022') {
 
-        const chk2010 =
-            document.getElementById('chk-densidad2010');
+        document.getElementById('chk-densidad2010').checked = false;
 
-        const chk2022 =
-            document.getElementById('chk-densidad2022');
-
-        if (chk2022.checked) {
-            chk2010.checked = false;
-        }
+        map.removeLayer(grupoDensidad2010);
+        map.removeLayer(grupoEtiquetasDensidad2010);
     }
+
+    controlarVisibilidadDinamica();
+}
 
         /* ===== ETIQUETAS DENSIDAD 2010 ===== */
 
