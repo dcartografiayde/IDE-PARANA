@@ -181,6 +181,13 @@
                 desc: "Cobertura de servicios públicos por red vial.", 
                 link: "https://dcartografiayde.github.io/IDE-PARANA/servicios/",
                 icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>`
+            },
+            { 
+                title: "Posicion Georeferenciada de lotes", 
+                desc: "Cálculo de centro de manzana y Línea de Frente Interno.", 
+                // MODIFICACIÓN: Enlace corregido para redireccionar al mapa en vivo de GitHub Pages en lugar del repositorio de código
+                link: "https://dcartografiayde.github.io/IDE-PARANA/posicion_georeferenciada/",
+                icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" /><path stroke-linecap="round" stroke-linejoin="round" d="M12 2v3m0 14v3M2 12h3m14 0h3M12 8a4 4 0 110 8 4 4 0 010-8z" /></svg>`
             }
         ];
 
@@ -329,6 +336,10 @@
             "Servicios por Calle": {
                 what: "Modelado lineal de la red vial asignando atributos específicos de cobertura física de servicios de saneamiento (cloacas, agua de red, gas y alumbrado) y asfalto tramo por tramo.",
                 use: "Te sirve para verificar el estado de urbanización oficial de tu cuadra, lo cual es muy útil para reclamar asfalto, cordón cuneta o iluminación ante tu vecinal."
+            },
+            "Posicion Georeferenciada de lotes": {
+                what: "Delimitación técnica de la Línea de Frente Interno (Art. 139° Ord. 8563) que actúa como traza del plano que limita la edificación permitida para preservar el centro libre de manzana. Método de Trazado: Se calcula uniendo los tercios centrales de los lados opuestos. Casos Particulares: Las manzanas de lados irregulares, curvos o con longitudes mayores a 200m son evaluadas por la Comisión Asesora.",
+                use: "Te permite calcular de manera exacta el límite de edificación permitido en el fondo de tu terreno para preservar el pulmón o espacio de aire libre obligatorio en la manzana."
             },
             "Crecimiento Huella Urbana": {
                 what: "Análisis multitemporal satelital de la huella urbana consolidada (1967-2023) que cuantifica los vectores de expansión física e invasión sobre el cinturón rural periurbano de Paraná.",
