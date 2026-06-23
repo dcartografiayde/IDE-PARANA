@@ -45,7 +45,6 @@
                 El <strong>Plan Urbano Ambiental (PUA)</strong> de Paraná trasciende la planificación técnica para constituirse en un <strong>espacio de participación ciudadana y construcción colectiva</strong>. Es nuestra herramienta de gestión estratégica para el desarrollo sostenible, forjada a través del diálogo entre la comunidad, profesionales e instituciones para proyectar un modelo territorial consensuado. Este Atlas Territorial Interactivo actúa como el repositorio geográfico donde transformamos ese conocimiento compartido en herramientas visuales, permitiendo a toda la ciudadanía comprender la dinámica de nuestro territorio y las proyecciones hacia una ciudad más inclusiva, resiliente y proyectada al futuro.
             </p>
 
-            <!-- MODIFICACIÓN: Banner informativo simplificado integrado en la portada, sin tecnicismos ni referencias a Córdoba -->
             <div class="max-w-3xl mx-auto bg-emerald-950/40 border border-emerald-500/30 rounded-2xl p-6 text-left space-y-4 shadow-xl">
                 <div class="flex items-center space-x-3 text-emerald-400">
                     <svg class="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -77,6 +76,53 @@
 
         <div id="atlas" class="tab-content">
             <div class="grid md:grid-cols-3 gap-6" id="atlas-grid"></div>
+        </div>
+    </div>
+
+    <div id="pua-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden" onclick="closePuaModalOnOutsideClick(event)">
+        <div id="modal-container" class="bg-card-dark border border-slate-700 rounded-2xl max-w-xl w-full p-6 md:p-8 shadow-2xl space-y-6 transform scale-95 opacity-0 transition-all duration-300">
+            <div class="flex justify-between items-start border-b border-slate-800 pb-4">
+                <div class="flex items-center space-x-3">
+                    <div class="p-2.5 bg-muni-green/20 text-muni-green rounded-xl">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 id="modal-title-custom" class="text-xl font-bold text-white">Explicación del mapa</h3>
+                        <p class="text-xs text-muni-green font-semibold tracking-wider uppercase">Plan Urbano Ambiental Paraná</p>
+                    </div>
+                </div>
+                <button onclick="closePuaModal()" class="text-slate-400 hover:text-white transition-colors bg-slate-800/50 p-2 rounded-xl">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <div class="space-y-6 overflow-y-auto max-h-[60vh] pr-2 text-sm leading-relaxed text-slate-300">
+                <div class="space-y-2">
+                    <h4 class="font-bold text-white flex items-center gap-2 text-base">
+                        <span class="w-1.5 h-3 bg-muni-green rounded-full"></span> 
+                        ¿Qué encontramos en este mapa?
+                    </h4>
+                    <p id="modal-what" class="pl-3.5 text-slate-400 text-sm leading-relaxed"></p>
+                </div>
+                
+                <div class="space-y-2">
+                    <h4 class="font-bold text-white flex items-center gap-2 text-base">
+                        <span class="w-1.5 h-3 bg-muni-green rounded-full"></span> 
+                        ¿De qué le sirve al vecino?
+                    </h4>
+                    <p id="modal-use" class="pl-3.5 text-slate-400 text-sm leading-relaxed"></p>
+                </div>
+            </div>
+
+            <div class="border-t border-slate-800 pt-4 flex justify-end">
+                <button onclick="closePuaModal()" class="bg-muni-green hover:bg-muni-green/90 text-white font-bold py-2.5 px-6 rounded-xl text-sm transition-all shadow-lg shadow-muni-green/20">
+                    Cerrar Explicación
+                </button>
+            </div>
         </div>
     </div>
 
@@ -247,27 +293,194 @@
             }
         ];
 
+        const mapExplanations = {
+            "Catastro": {
+                what: "Representación vectorial georreferenciada de la subdivisión parcelaria de Paraná, integrada con las capas normativas de zonificación urbana y coeficientes de edificación (FOS/FOT) vigentes según ordenanza municipal.",
+                use: "Te permite conocer con exactitud dónde termina tu terreno y qué tipo de construcción tenés permitido edificar de manera legal."
+            },
+            "Mapa Base": {
+                what: "Cartografía vectorial de la red de conectividad vial jerarquizada, amanzanamiento consolidado oficial de Paraná y el polígono poligonal geodésico que delimita el ejido urbano municipal.",
+                use: "Te sirve para ubicarte con precisión en el plano de la ciudad con nombres oficiales de calles, formas reales de las manzanas y límites territoriales de Paraná."
+            },
+            "Obras Privadas": {
+                what: "Inventario espacializado y registro administrativo de expedientes constructivos, estados de factibilidad de obras civiles nuevas, y proyectos y relevamientos de obras civiles.",
+                use: "Te ayuda a verificar que cualquier obra o edificio nuevo que se levante al lado de tu casa cuente con planos aprobados y esté debidamente habilitado por el municipio."
+            },
+            "Preservación": {
+                what: "Base de datos geográfica de inmuebles catalogados como patrimonio arquitectónico, monumental e histórico de Paraná, detallando grados de protección e inventario estructural.",
+                use: "Te sirve para valorar las fachadas antiguas de la ciudad y confirmar si tu vivienda o las que te rodean están protegidas contra reformas bruscas o demoliciones."
+            },
+            "Censo 2022": {
+                what: "Asociación geoespacial de indicadores socio-demográficos oficiales nacionales organizados por la agregación de radios censales y fracciones dentro de la geografía del municipio de Paraná.",
+                use: "Te ayuda a entender en qué barrios vive más gente y permite a comerciantes y emprendedores analizar dónde instalar un local según la cantidad de familias que residen en la zona."
+            },
+            "Urbanizaciones": {
+                what: "Polígonos delimitadores de urbanizaciones de iniciativa pública y privada (loteos privados y barrios de IAPV), clasificando el estado del tramite.",
+                use: "¡Te protege contra fraudes! Sirve para comprobar en segundos si un lote que te quieren vender en la periferia de la ciudad cuenta con todos los planos técnicos aprobados."
+            },
+            "Urbanizaciones - Versión para celular": {
+                what: "Visualizador espacial optimizado para vusualizar en celulares (Mobile GIS) diseñado para la lectura y verificación geográfica in situ de polígonos de loteos aprobados o en proceso técnico de aprobacion.",
+                use: "Te permite consultar los límites de un terreno y si tiene su habilitación municipal correspondiente en regla directamente desde tu celular mientras estás parado en el lote."
+            },
+            "Vecinales": {
+                what: "Límites geométricos poligonales y áreas de influencia administrativa de las comisiones vecinales oficialmente conformadas bajo el marco regulatorio municipal vigente.",
+                use: "Te permite saber exactamente a qué comisión vecinal pertenecés, contactar a tus representantes barriales y proponer proyectos conjuntos de mejoras en tu vecindad."
+            },
+            "Servicios por Calle": {
+                what: "Modelado lineal de la red vial asignando atributos específicos de cobertura física de servicios de saneamiento (cloacas, agua de red, gas y alumbrado) y asfalto tramo por tramo.",
+                use: "Te sirve para verificar el estado de urbanización oficial de tu cuadra, lo cual es muy útil para reclamar asfalto, cordón cuneta o iluminación ante tu vecinal."
+            },
+            "Crecimiento Huella Urbana": {
+                what: "Análisis multitemporal satelital de la huella urbana consolidada (1967-2023) que cuantifica los vectores de expansión física e invasión sobre el cinturón rural periurbano de Paraná.",
+                use: "Te ayuda a ver la evolución de tu propio barrio en los últimos 50 años mediante mapas históricos y comprender por qué la ciudad debe crecer de forma más compacta."
+            },
+            "Cuencas Hidrográficas": {
+                what: "Delimitación topográfica de las 17 subcuencas hidrográficas activas en Paraná, redes de escurrimiento pluvial secundarias y áreas vulnerables a anegamientos cíclicos.",
+                use: "Te permite identificar si tu vivienda se ubica en el paso natural del escurrimiento del agua de lluvia, ayudándote a prevenir problemas en días de tormentas fuertes."
+            },
+            "Área Metropolitana Paraná-Santa Fe": {
+                what: "Cartografía de escala regional que analiza el nodo vial logístico, flujos de circulación de transporte público e interconexión interurbana del conglomerado biprovincial.",
+                use: "Te ayuda a comprender cómo nos movemos e interactuamos diariamente entre Paraná, Santa Fe y las ciudades satélite por trabajo, estudio o salud."
+            },
+            "Crecimiento Poblacional 2010-2022": {
+                what: "Cálculo espacializado de la variación demográfica relativa e índices de crecimiento habitacional neto por manzanas urbanas analizando los censos de la última década.",
+                use: "Te muestra qué sectores de Paraná sumaron vecinos a gran velocidad para saber con prioridad dónde se necesitan nuevas escuelas, plazas y dispensarios médicos."
+            },
+            "Conexiones Territoriales Gran Paraná": {
+                what: "Geometría lineal y funcional de los corredores interurbanos de vinculación preferencial entre la ciudad y las comunas del Gran Paraná (San Benito, Oro Verde, Colonia Avellaneda).",
+                use: "Te muestra los accesos viales y las rutas de vinculación que utilizás todos los días si vivís en el Gran Paraná pero trabajás o estudiás en la capital."
+            },
+            "Distrito Código Urbano": {
+                what: "Representación cartográfica de la zonificación morfológica y regulatoria de la Ordenanza N° 8.563, con indicación de distritos, alturas y retiros permitidos.",
+                use: "Te sirve para controlar de forma directa qué se puede construir en tu cuadra, evitando que te hagan un edificio de departamentos pegado a tu medianera sin permiso."
+            },
+            "Densidad de Población": {
+                what: "Mapa temático de densidad habitacional neta, expresado en habitantes por hectárea, modelado para la distribución por manzana y radio censal.",
+                use: "Te ayuda a ver en qué barrios vive más gente junta, lo que explica por qué en esas zonas suele haber más demanda de servicios o mayor tránsito en horas pico."
+            },
+            "Curvas de Nivel e Hidrografía": {
+                what: "Representación topográfica altimétrica mediante isolíneas de nivel (curvas topográficas cada 1 metro de elevación) y su vinculación directa con la hidrografía de Paraná.",
+                use: "Información muy valiosa si vas a construir o comprar, ya que te indica la inclinación real del suelo y hacia dónde corre el agua de lluvia en tu terreno."
+            },
+            "Áreas Ecológicas": {
+                what: "Delimitación poligonal de áreas de preservación natural, reservas biológicas, humedales y bordes de barranca con categorizaciones de valor ecológico y conservación.",
+                use: "Te ayuda a ubicar los pulmones verdes y entornos naturales protegidos de Paraná que debemos cuidar, evitando arrojar basura o realizar desmontes ilegales."
+            },
+            "Áreas Servidas - No Servidas": {
+                what: "Diagnóstico socio-territorial correlacionado que contrasta los polígonos de cobertura simultánea de servicios básicos de red contra áreas con déficit habitacional consolidado.",
+                use: "Funciona como una herramienta transparente para exigir que las futuras inversiones y obras de saneamiento de la ciudad lleguen primero a donde más hace falta."
+            },
+            "Redes de Servicios Individuales": {
+                what: "Trazado lineal y técnico de conductos principales, cañerías maestras y nodos de conexión para las redes de agua potable, cloaca y gas en Paraná.",
+                use: "Te sirve para saber si pasa la red por la puerta de tu casa y evita accidentes graves rompiendo caños importantes al realizar excavaciones domiciliarias en la vereda."
+            },
+            "Red de Drenaje": {
+                what: "Modelado de la infraestructura de conductos pluviales subterráneos, sumideros principales y bocas de tormenta de las áreas central y noroeste de la ciudad.",
+                use: "Te permite conocer hacia dónde drenan las lluvias en tu zona e identificar la boca de tormenta más cercana para mantenerla libre de hojas y residuos."
+            },
+            "Presupuesto Participativo 2023": {
+                what: "Georreferenciación puntual y lineal de proyectos comunitarios de infraestructura y equipamiento priorizados y electos mediante los presupuestos participativos de Paraná.",
+                use: "Te permite realizar un seguimiento vecinal transparente sobre el avance y la ubicación de las obras que tu barrio debatió y votó democráticamente."
+            },
+            "Redes Institucionales": {
+                what: "Distribución espacial y categorización funcional de dependencias de derechos de la niñez (COPNAF), centros comunitarios, comedores y redes de soporte social institucional.",
+                use: "Funciona como una guía rápida para que encuentres fácilmente dependencias de contención para familias, salud infantil o ayuda social cerca de tu domicilio."
+            },
+            "Equipamientos e Infraestructuras": {
+                what: "Puntos geoespaciales clasificados de la infraestructura de servicios públicos (Salud de media y alta complejidad, Educación por niveles y espacios deportivos de Paraná).",
+                use: "Te sirve como mapa directo de consulta rápida para encontrar el hospital, centro de salud, club deportivo o escuela más cercana a tu hogar."
+            },
+            "Asentamientos Informales": {
+                what: "Representación poligonal de los asentamientos y barrios populares integrados en el registro nacional (RENABAP 2023) geolocalizados dentro de Paraná.",
+                use: "Te permite visualizar las realidades habitacionales complejas del ejido para acompañar y demandar el avance de las urbanizaciones de estos sectores."
+            },
+            "Áreas de Influencia": {
+                what: "Análisis espacial de accesibilidad física y cobertura de isócronas que calcula los tiempos de traslado peatonal y vehicular hacia equipamientos esenciales.",
+                use: "Te ayuda a medir la calidad urbana de tu barrio, analizando si contás con una plaza, escuela o centro de salud a una distancia segura para ir caminando."
+            },
+            "Barrios IAPV": {
+                what: "Registro georreferenciado e histórico de los polígonos residenciales proyectados, construidos y adjudicados por el Instituto Provincial de la Vivienda desde 1954.",
+                use: "Te sirve para conocer la historia habitacional y el origen de una gran cantidad de los barrios residenciales consolidados que hoy componen Paraná."
+            },
+            "Protección Patrimonial": {
+                what: "Parcelario georreferenciado de inmuebles que cuentan con declaratoria municipal de protección arquitectónica, fachada o valor patrimonial monumental.",
+                use: "Te ayuda a resguardar la identidad histórica de tu barrio y denunciar demoliciones no autorizadas sobre construcciones tradicionales de la ciudad."
+            },
+            "Espacios Verdes Públicos": {
+                what: "Relevamiento poligonal, cálculo de superficies parquizadas y categorización de plazas, parques y paseos en Paraná para el análisis del indicador de m² verdes por habitante.",
+                use: "Te sirve para descubrir nuevas plazas, reservas o parques infantiles en la ciudad para disfrutar al aire libre el fin de semana en familia."
+            }
+        };
+
         function renderCards(data, containerId) {
             const container = document.getElementById(containerId);
             container.innerHTML = data.map(m => {
                 const isReady = !!m.link;
                 return `
-                <div class="bg-card-dark p-6 rounded-2xl border border-slate-700 shadow-sm card-hover transition-all group ${!isReady ? 'card-disabled' : ''}">
-                    <div class="w-12 h-12 ${isReady ? 'bg-muni-green/20 text-muni-green' : 'bg-slate-700 text-slate-400'} rounded-xl flex items-center justify-center mb-6 group-hover:bg-muni-green group-hover:text-white transition-colors">
-                        ${m.icon}
+                <div class="bg-card-dark p-6 rounded-2xl border border-slate-700 shadow-sm card-hover transition-all group flex flex-col justify-between ${!isReady ? 'card-disabled' : ''}">
+                    <div>
+                        <div class="w-12 h-12 ${isReady ? 'bg-muni-green/20 text-muni-green' : 'bg-slate-700 text-slate-400'} rounded-xl flex items-center justify-center mb-6 group-hover:bg-muni-green group-hover:text-white transition-colors">
+                            ${m.icon}
+                        </div>
+                        <h3 class="font-bold text-lg text-white mb-2">${m.title}</h3>
+                        <p class="text-sm text-slate-400 mb-6 h-10">${m.desc}</p>
                     </div>
-                    <h3 class="font-bold text-lg text-white mb-2">${m.title}</h3>
-                    <p class="text-sm text-slate-400 mb-6 h-10">${m.desc}</p>
-                    ${isReady 
-                        ? `<a href="${m.link}" target="_blank" class="inline-flex items-center text-muni-green font-bold text-sm hover:underline">Explorar Mapa ↗</a>`
-                        : `<span class="inline-flex items-center text-slate-500 font-bold text-sm cursor-default">Mapa en desarrollo ⏳</span>`
-                    }
+                    <div class="flex items-center justify-between mt-auto pt-4 border-t border-slate-800">
+                        ${isReady 
+                            ? `<a href="${m.link}" target="_blank" class="inline-flex items-center text-muni-green font-bold text-sm hover:underline">Explorar Mapa ↗</a>`
+                            : `<span class="inline-flex items-center text-slate-500 font-bold text-sm cursor-default">En desarrollo ⏳</span>`
+                        }
+                        <button onclick="showPuaAnalysis('${m.title}')" class="inline-flex items-center text-xs text-emerald-400 font-bold hover:text-emerald-300 transition-colors py-1.5 px-3 rounded-lg hover:bg-slate-800">
+                            ✨ Explicación
+                        </button>
+                    </div>
                 </div>
             `}).join('');
         }
 
         renderCards(ideMaps, 'ide-grid');
         renderCards(atlasMaps, 'atlas-grid');
+
+        function showPuaAnalysis(mapTitle) {
+            const modal = document.getElementById('pua-modal');
+            const modalContainer = document.getElementById('modal-container');
+            const titleEl = document.getElementById('modal-title-custom');
+            const whatEl = document.getElementById('modal-what');
+            const useEl = document.getElementById('modal-use');
+
+            const explanation = mapExplanations[mapTitle] || {
+                what: "Información espacial detallada sobre esta variable del desarrollo urbano de la ciudad de Paraná.",
+                use: "Te permite consultar el estado del territorio en tu zona de residencia para planificar actividades vecinales o gestiones constructivas."
+            };
+
+            titleEl.innerText = mapTitle;
+            whatEl.innerText = explanation.what;
+            useEl.innerText = explanation.use;
+
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modalContainer.classList.remove('scale-95', 'opacity-0');
+                modalContainer.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+
+        function closePuaModal() {
+            const modal = document.getElementById('pua-modal');
+            const modalContainer = document.getElementById('modal-container');
+            
+            modalContainer.classList.remove('scale-100', 'opacity-100');
+            modalContainer.classList.add('scale-95', 'opacity-0');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        function closePuaModalOnOutsideClick(event) {
+            if (event.target.id === 'pua-modal') {
+                closePuaModal();
+            }
+        }
 
         function openTab(evt, tabName) {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
