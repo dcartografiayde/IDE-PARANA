@@ -80,6 +80,19 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
         }
 
+        .etiqueta-densidad {
+            background: rgba(255,255,255,0.75);
+            border: none;
+            border-radius: 3px;
+            padding: 1px 4px;
+            font-size: 9px;
+            font-weight: 600;
+            color: #333;
+            white-space: nowrap;
+            pointer-events: none;
+            box-shadow: none;
+        }
+
         /* MODIFICACIÓN: Ajustes de diseño premium para adaptar la interfaz de Leaflet Measure al visor oscuro */
         .leaflet-control-measure {
             border: none !important;
@@ -568,6 +581,8 @@ fetchGeoJSON(BASE_URL + "catastro/manzana.geojson").then(data => {
 var grupoParcelas = L.layerGroup();
 var grupoDensidad2010 = L.layerGroup();
 var grupoDensidad2022 = L.layerGroup();
+var grupoEtiquetasDensidad2010 = L.layerGroup();
+var grupoEtiquetasDensidad2022 = L.layerGroup();
 var parcelasLayers = [];
     
 // MODIFICACIÓN: Lista global e indexada para la búsqueda predictiva case-insensitive de ubicaciones (UBIPAR1 / calle y altura)
@@ -727,6 +742,27 @@ fetchGeoJSON(
 
 `);
 
+            try {
+
+    const centro = layer.getBounds().getCenter();
+
+    const poblacion =
+        feature.properties.poblacion || 0;
+
+    L.marker(centro, {
+
+        interactive: false,
+
+        icon: L.divIcon({
+            className: 'etiqueta-densidad',
+            html: `${Number(poblacion).toLocaleString('es-AR')}`,
+            iconSize: null
+        })
+
+    }).addTo(grupoEtiquetasDensidad2010);
+
+} catch(e){}
+
         }
 
    }).addTo(grupoDensidad2010);
@@ -805,6 +841,27 @@ fetchGeoJSON(
 </div>
 
 `);
+
+            try {
+
+    const centro = layer.getBounds().getCenter();
+
+    const poblacion =
+        feature.properties.poblacion || 0;
+
+    L.marker(centro, {
+
+        interactive: false,
+
+        icon: L.divIcon({
+            className: 'etiqueta-densidad',
+            html: `${Number(poblacion).toLocaleString('es-AR')}`,
+            iconSize: null
+        })
+
+    }).addTo(grupoEtiquetasDensidad2010);
+
+} catch(e){}
         }
 
    }).addTo(grupoDensidad2022);
@@ -818,6 +875,44 @@ fetchGeoJSON(
     );
 
 });
+
+    /* ===== ETIQUETAS DENSIDAD 2010 ===== */
+
+if (
+    document.getElementById('chk-densidad2010').checked &&
+    zoomActual >= 15
+) {
+
+    if (!map.hasLayer(grupoEtiquetasDensidad2010)) {
+        map.addLayer(grupoEtiquetasDensidad2010);
+    }
+
+} else {
+
+    if (map.hasLayer(grupoEtiquetasDensidad2010)) {
+        map.removeLayer(grupoEtiquetasDensidad2010);
+    }
+
+}
+
+/* ===== ETIQUETAS DENSIDAD 2022 ===== */
+
+if (
+    document.getElementById('chk-densidad2022').checked &&
+    zoomActual >= 15
+) {
+
+    if (!map.hasLayer(grupoEtiquetasDensidad2022)) {
+        map.addLayer(grupoEtiquetasDensidad2022);
+    }
+
+} else {
+
+    if (map.hasLayer(grupoEtiquetasDensidad2022)) {
+        map.removeLayer(grupoEtiquetasDensidad2022);
+    }
+
+}
 
 // MODIFICACIÓN: Gestión unificada de visibilidad dinámica sincronizada con el nuevo panel de capas del menú lateral
 function controlarVisibilidadDinamica() {
