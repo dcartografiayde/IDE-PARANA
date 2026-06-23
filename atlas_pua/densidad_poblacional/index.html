@@ -81,13 +81,14 @@
         }
 
         .etiqueta-densidad {
-            background: rgba(255,255,255,0.75);
+            background: transparent;
             border: none;
-            border-radius: 3px;
-            padding: 1px 4px;
-            font-size: 9px;
-            font-weight: 600;
-            color: #333;
+            padding: 0;
+            margin: 0;
+            font-size: 11px;
+            font-weight: 700;
+            color: #111;
+            text-align: center;
             white-space: nowrap;
             pointer-events: none;
             box-shadow: none;
@@ -753,14 +754,16 @@ fetchGeoJSON(
         Number(feature.properties.poblacion) || 0;
 
     L.marker(centro, {
-        pane: 'etiquetasDensidadPane',
-        interactive: false,
-        zIndexOffset: 1000,
-        icon: L.divIcon({
-            className: 'etiqueta-densidad',
-            html: poblacion.toLocaleString('es-AR'),
-            iconSize: [60,18]
-        })
+    pane: 'etiquetasDensidadPane',
+    interactive: false,
+    zIndexOffset: 1000,
+    icon: L.divIcon({
+        className: 'etiqueta-densidad',
+        html: poblacion.toLocaleString('es-AR'),
+        iconSize: [1,1],
+        iconAnchor: [0,0]
+    })
+})
     }).addTo(grupoEtiquetasDensidad2010);
 
 } catch(e) {}
@@ -851,14 +854,16 @@ fetchGeoJSON(
         Number(feature.properties.poblacion) || 0;
 
     L.marker(centro, {
-        pane: 'etiquetasDensidadPane',
-        interactive: false,
-        zIndexOffset: 1000,
-        icon: L.divIcon({
-            className: 'etiqueta-densidad',
-            html: poblacion.toLocaleString('es-AR'),
-            iconSize: [60,18]
-        })
+    pane: 'etiquetasDensidadPane',
+    interactive: false,
+    zIndexOffset: 1000,
+    icon: L.divIcon({
+        className: 'etiqueta-densidad',
+        html: poblacion.toLocaleString('es-AR'),
+        iconSize: [1,1],
+        iconAnchor: [0,0]
+    })
+})
     }).addTo(grupoEtiquetasDensidad2022);
 
 } catch(e) {}
