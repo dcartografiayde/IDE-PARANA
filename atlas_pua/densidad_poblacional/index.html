@@ -876,136 +876,162 @@ fetchGeoJSON(
 
 });
 
-/* ===== ETIQUETAS DENSIDAD 2010 ===== */
-
-if (
-    document.getElementById('chk-densidad2010').checked &&
-    zoomActual >= 14
-) {
-
-    if (!map.hasLayer(grupoEtiquetasDensidad2010)) {
-        map.addLayer(grupoEtiquetasDensidad2010);
-    }
-
-} else {
-
-    if (map.hasLayer(grupoEtiquetasDensidad2010)) {
-        map.removeLayer(grupoEtiquetasDensidad2010);
-    }
-
-}
-
-/* ===== ETIQUETAS DENSIDAD 2022 ===== */
-
-if (
-    document.getElementById('chk-densidad2022').checked &&
-    zoomActual >= 14
-) {
-
-    if (!map.hasLayer(grupoEtiquetasDensidad2022)) {
-        map.addLayer(grupoEtiquetasDensidad2022);
-    }
-
-} else {
-
-    if (map.hasLayer(grupoEtiquetasDensidad2022)) {
-        map.removeLayer(grupoEtiquetasDensidad2022);
-    }
-
-}
 
 // MODIFICACIÓN: Gestión unificada de visibilidad dinámica sincronizada con el nuevo panel de capas del menú lateral
 function controlarVisibilidadDinamica() {
+
     let zoomActual = map.getZoom();
-    
+
     document.getElementById('zoom-indicator').innerText = zoomActual;
 
-    // 1. Visibilidad de Manzanas y etiquetas
-    const chkManzanas = document.getElementById('chk-manzanas').checked;
+    /* ================= MANZANAS ================= */
+
+    const chkManzanas =
+        document.getElementById('chk-manzanas').checked;
+
     if (chkManzanas) {
+
         if (!map.hasLayer(grupoManzanas)) {
             map.addLayer(grupoManzanas);
         }
+
         if (zoomActual >= 15) {
+
             if (!map.hasLayer(grupoEtiquetasManzanas)) {
                 map.addLayer(grupoEtiquetasManzanas);
             }
+
         } else {
+
             if (map.hasLayer(grupoEtiquetasManzanas)) {
                 map.removeLayer(grupoEtiquetasManzanas);
             }
+
         }
+
     } else {
-        if (map.hasLayer(grupoManzanas)) map.removeLayer(grupoManzanas);
-        if (map.hasLayer(grupoEtiquetasManzanas)) map.removeLayer(grupoEtiquetasManzanas);
+
+        if (map.hasLayer(grupoManzanas)) {
+            map.removeLayer(grupoManzanas);
+        }
+
+        if (map.hasLayer(grupoEtiquetasManzanas)) {
+            map.removeLayer(grupoEtiquetasManzanas);
+        }
+
     }
 
-    // 2. Visibilidad de Calles (Zoom >= 15)
-    const chkCalles = document.getElementById('chk-calles').checked;
+    /* ================= CALLES ================= */
+
+    const chkCalles =
+        document.getElementById('chk-calles').checked;
+
     if (chkCalles && zoomActual >= 15) {
+
         if (!map.hasLayer(grupoCalles)) {
             map.addLayer(grupoCalles);
         }
+
     } else {
+
         if (map.hasLayer(grupoCalles)) {
             map.removeLayer(grupoCalles);
         }
+
     }
 
-    // 3. Visibilidad de Parcelas Catastrales (Zoom >= 16)
-    const chkParcelas = document.getElementById('chk-parcelas').checked;
+    /* ================= PARCELAS ================= */
+
+    const chkParcelas =
+        document.getElementById('chk-parcelas').checked;
+
     if (chkParcelas && zoomActual >= 16) {
+
         if (!map.hasLayer(grupoParcelas)) {
             map.addLayer(grupoParcelas);
         }
+
     } else {
+
         if (map.hasLayer(grupoParcelas)) {
             map.removeLayer(grupoParcelas);
         }
-    }
-    // 4. Densidad Poblacional 2010
 
-const chkDensidad =
-    document.getElementById('chk-densidad2010').checked;
-
-if (chkDensidad) {
-
-    if (!map.hasLayer(grupoDensidad2010)) {
-        map.addLayer(grupoDensidad2010);
     }
 
-} else {
+    /* ================= DENSIDAD 2010 ================= */
 
-    if (map.hasLayer(grupoDensidad2010)) {
-        map.removeLayer(grupoDensidad2010);
+    const chkDensidad2010 =
+        document.getElementById('chk-densidad2010').checked;
+
+    if (chkDensidad2010) {
+
+        if (!map.hasLayer(grupoDensidad2010)) {
+            map.addLayer(grupoDensidad2010);
+        }
+
+    } else {
+
+        if (map.hasLayer(grupoDensidad2010)) {
+            map.removeLayer(grupoDensidad2010);
+        }
+
+    }
+
+    if (
+        chkDensidad2010 &&
+        zoomActual >= 15
+    ) {
+
+        if (!map.hasLayer(grupoEtiquetasDensidad2010)) {
+            map.addLayer(grupoEtiquetasDensidad2010);
+        }
+
+    } else {
+
+        if (map.hasLayer(grupoEtiquetasDensidad2010)) {
+            map.removeLayer(grupoEtiquetasDensidad2010);
+        }
+
+    }
+
+    /* ================= DENSIDAD 2022 ================= */
+
+    const chkDensidad2022 =
+        document.getElementById('chk-densidad2022').checked;
+
+    if (chkDensidad2022) {
+
+        if (!map.hasLayer(grupoDensidad2022)) {
+            map.addLayer(grupoDensidad2022);
+        }
+
+    } else {
+
+        if (map.hasLayer(grupoDensidad2022)) {
+            map.removeLayer(grupoDensidad2022);
+        }
+
+    }
+
+    if (
+        chkDensidad2022 &&
+        zoomActual >= 15
+    ) {
+
+        if (!map.hasLayer(grupoEtiquetasDensidad2022)) {
+            map.addLayer(grupoEtiquetasDensidad2022);
+        }
+
+    } else {
+
+        if (map.hasLayer(grupoEtiquetasDensidad2022)) {
+            map.removeLayer(grupoEtiquetasDensidad2022);
+        }
+
     }
 
 }
-
-    // 5. Densidad Poblacional 2022
-
-const chkDensidad2022 =
-    document.getElementById('chk-densidad2022').checked;
-
-if (chkDensidad2022) {
-
-    if (!map.hasLayer(grupoDensidad2022)) {
-        map.addLayer(grupoDensidad2022);
-    }
-
-} else {
-
-    if (map.hasLayer(grupoDensidad2022)) {
-        map.removeLayer(grupoDensidad2022);
-    }
-
-}
-
-}
-
-
-map.on('zoomend', controlarVisibilidadDinamica);
-
 /* ================= CONTROLES Y BÚSQUEDA DEL MENÚ LATERAL ================= */
 
 // MODIFICACIÓN: Alternar visualización del menú lateral con transiciones fluidas de Tailwind CSS
@@ -1036,14 +1062,13 @@ function cambiarBaseMap(tipo) {
 // MODIFICACIÓN: Alternador para el control manual de checkboxes de las capas vectoriales
 function toggleOverlay(capa) {
 
-    let zoomActual = map.getZoom();
-
     if (capa === 'densidad2010') {
 
         document.getElementById('chk-densidad2022').checked = false;
 
         map.removeLayer(grupoDensidad2022);
         map.removeLayer(grupoEtiquetasDensidad2022);
+
     }
 
     if (capa === 'densidad2022') {
@@ -1052,52 +1077,12 @@ function toggleOverlay(capa) {
 
         map.removeLayer(grupoDensidad2010);
         map.removeLayer(grupoEtiquetasDensidad2010);
+
     }
 
     controlarVisibilidadDinamica();
-}
-
-        /* ===== ETIQUETAS DENSIDAD 2010 ===== */
-
-if (
-    document.getElementById('chk-densidad2010').checked &&
-    zoomActual >= 15
-) {
-
-    if (!map.hasLayer(grupoEtiquetasDensidad2010)) {
-        map.addLayer(grupoEtiquetasDensidad2010);
-    }
-
-} else {
-
-    if (map.hasLayer(grupoEtiquetasDensidad2010)) {
-        map.removeLayer(grupoEtiquetasDensidad2010);
-    }
 
 }
-
-/* ===== ETIQUETAS DENSIDAD 2022 ===== */
-
-if (
-    document.getElementById('chk-densidad2022').checked &&
-    zoomActual >= 15
-) {
-
-    if (!map.hasLayer(grupoEtiquetasDensidad2022)) {
-        map.addLayer(grupoEtiquetasDensidad2022);
-    }
-
-} else {
-
-    if (map.hasLayer(grupoEtiquetasDensidad2022)) {
-        map.removeLayer(grupoEtiquetasDensidad2022);
-    }
-
-}
-
-    controlarVisibilidadDinamica();
-}
-
 function buscarPM() {
     let val = document.getElementById('input-pm').value.trim();
     if (!val) return;
