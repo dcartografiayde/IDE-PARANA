@@ -876,43 +876,7 @@ fetchGeoJSON(
 
 });
 
-    /* ===== ETIQUETAS DENSIDAD 2010 ===== */
 
-if (
-    document.getElementById('chk-densidad2010').checked &&
-    zoomActual >= 15
-) {
-
-    if (!map.hasLayer(grupoEtiquetasDensidad2010)) {
-        map.addLayer(grupoEtiquetasDensidad2010);
-    }
-
-} else {
-
-    if (map.hasLayer(grupoEtiquetasDensidad2010)) {
-        map.removeLayer(grupoEtiquetasDensidad2010);
-    }
-
-}
-
-/* ===== ETIQUETAS DENSIDAD 2022 ===== */
-
-if (
-    document.getElementById('chk-densidad2022').checked &&
-    zoomActual >= 15
-) {
-
-    if (!map.hasLayer(grupoEtiquetasDensidad2022)) {
-        map.addLayer(grupoEtiquetasDensidad2022);
-    }
-
-} else {
-
-    if (map.hasLayer(grupoEtiquetasDensidad2022)) {
-        map.removeLayer(grupoEtiquetasDensidad2022);
-    }
-
-}
 
 // MODIFICACIÓN: Gestión unificada de visibilidad dinámica sincronizada con el nuevo panel de capas del menú lateral
 function controlarVisibilidadDinamica() {
@@ -1061,6 +1025,44 @@ function toggleOverlay(capa) {
             chk2010.checked = false;
         }
     }
+
+        /* ===== ETIQUETAS DENSIDAD 2010 ===== */
+
+if (
+    document.getElementById('chk-densidad2010').checked &&
+    zoomActual >= 15
+) {
+
+    if (!map.hasLayer(grupoEtiquetasDensidad2010)) {
+        map.addLayer(grupoEtiquetasDensidad2010);
+    }
+
+} else {
+
+    if (map.hasLayer(grupoEtiquetasDensidad2010)) {
+        map.removeLayer(grupoEtiquetasDensidad2010);
+    }
+
+}
+
+/* ===== ETIQUETAS DENSIDAD 2022 ===== */
+
+if (
+    document.getElementById('chk-densidad2022').checked &&
+    zoomActual >= 15
+) {
+
+    if (!map.hasLayer(grupoEtiquetasDensidad2022)) {
+        map.addLayer(grupoEtiquetasDensidad2022);
+    }
+
+} else {
+
+    if (map.hasLayer(grupoEtiquetasDensidad2022)) {
+        map.removeLayer(grupoEtiquetasDensidad2022);
+    }
+
+}
 
     controlarVisibilidadDinamica();
 }
