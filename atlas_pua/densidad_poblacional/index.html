@@ -769,7 +769,6 @@ fetchGeoJSON(
 
    }).addTo(grupoDensidad2010);
 
-    grupoDensidad2010.addTo(map);
     
 })
 .catch(err => {
@@ -864,6 +863,14 @@ fetchGeoJSON(
 
 } catch(e) {}
 
+            } // fin onEachFeature
+
+    }).addTo(grupoDensidad2022);
+
+
+})
+.catch(err => {
+
     console.error(
         "Error cargando densidad_poblacional_2022:",
         err
@@ -871,9 +878,10 @@ fetchGeoJSON(
 
 });
 
-
 // MODIFICACIÓN: Gestión unificada de visibilidad dinámica sincronizada con el nuevo panel de capas del menú lateral
 function controlarVisibilidadDinamica() {
+
+    console.log("Zoom actual:", map.getZoom());
 
     let zoomActual = map.getZoom();
 
