@@ -81,17 +81,15 @@
         }
 
         .etiqueta-densidad {
-            background: transparent;
-            border: none;
-            padding: 0;
-            margin: 0;
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            text-align: center !important;
             font-size: 11px;
             font-weight: 700;
             color: #111;
-            text-align: center;
             white-space: nowrap;
             pointer-events: none;
-            box-shadow: none;
         }
 
         /* MODIFICACIÓN: Ajustes de diseño premium para adaptar la interfaz de Leaflet Measure al visor oscuro */
@@ -760,8 +758,8 @@ fetchGeoJSON(
     icon: L.divIcon({
         className: 'etiqueta-densidad',
         html: poblacion.toLocaleString('es-AR'),
-        iconSize: [1,1],
-        iconAnchor: [0,0]
+        iconSize: [40,20],
+        iconAnchor: [20,10]
     })
     }).addTo(grupoEtiquetasDensidad2010);
 
@@ -859,8 +857,8 @@ fetchGeoJSON(
     icon: L.divIcon({
         className: 'etiqueta-densidad',
         html: poblacion.toLocaleString('es-AR'),
-        iconSize: [1,1],
-        iconAnchor: [0,0]
+        iconSize: [40,20],
+        iconAnchor: [20,10]
     })
     }).addTo(grupoEtiquetasDensidad2022);
 
