@@ -408,6 +408,9 @@ map.createPane('densidad2022Pane');
 
 map.getPane('densidad2010Pane').style.zIndex = 250;
 map.getPane('densidad2022Pane').style.zIndex = 251;
+
+map.createPane('etiquetasDensidadPane');
+map.getPane('etiquetasDensidadPane').style.zIndex = 700;
     
 var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 22, maxNativeZoom: 19 });
 var dark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 22, maxNativeZoom: 20 });
@@ -747,21 +750,20 @@ fetchGeoJSON(
     const centro = layer.getBounds().getCenter();
 
     const poblacion =
-        feature.properties.poblacion || 0;
+        Number(feature.properties.poblacion) || 0;
 
     L.marker(centro, {
-
+        pane: 'etiquetasDensidadPane',
         interactive: false,
-
+        zIndexOffset: 1000,
         icon: L.divIcon({
             className: 'etiqueta-densidad',
-            html: `${Number(poblacion).toLocaleString('es-AR')}`,
-            iconSize: null
+            html: poblacion.toLocaleString('es-AR'),
+            iconSize: [60,18]
         })
-
     }).addTo(grupoEtiquetasDensidad2010);
 
-} catch(e){}
+} catch(e) {}
 
         }
 
@@ -842,32 +844,25 @@ fetchGeoJSON(
 
 `);
 
-            try {
+         try {
 
     const centro = layer.getBounds().getCenter();
 
     const poblacion =
-        feature.properties.poblacion || 0;
+        Number(feature.properties.poblacion) || 0;
 
     L.marker(centro, {
-
+        pane: 'etiquetasDensidadPane',
         interactive: false,
-
+        zIndexOffset: 1000,
         icon: L.divIcon({
             className: 'etiqueta-densidad',
-            html: `${Number(poblacion).toLocaleString('es-AR')}`,
-            iconSize: null
+            html: poblacion.toLocaleString('es-AR'),
+            iconSize: [60,18]
         })
-
     }).addTo(grupoEtiquetasDensidad2022);
 
-} catch(e){}
-        }
-
-   }).addTo(grupoDensidad2022);
-
-})
-.catch(err => {
+} catch(e) {}
 
     console.error(
         "Error cargando densidad_poblacional_2022:",
@@ -980,7 +975,7 @@ function controlarVisibilidadDinamica() {
 
     if (
         chkDensidad2010 &&
-        zoomActual >= 15
+        zoomActual >= 14
     ) {
 
         if (!map.hasLayer(grupoEtiquetasDensidad2010)) {
@@ -1016,7 +1011,7 @@ function controlarVisibilidadDinamica() {
 
     if (
         chkDensidad2022 &&
-        zoomActual >= 15
+        zoomActual >= 14
     ) {
 
         if (!map.hasLayer(grupoEtiquetasDensidad2022)) {
@@ -1221,6 +1216,10 @@ measureControl.addTo(map);
 
 // Inicializar el buscador predictivo al cargar el script
 configurarBuscadorUbicaciones();
+
+map.on('zoomend', controlarVisibilidadDinamica);
+map.on('moveend', controlarVisibilidadDinamica);
+
 controlarVisibilidadDinamica();
 </script>
 </body>
