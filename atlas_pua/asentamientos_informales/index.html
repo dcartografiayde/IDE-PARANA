@@ -776,16 +776,12 @@ if(document.getElementById('chk-asentamientos').checked){
     if(!map.hasLayer(grupoAsentamientos))
         map.addLayer(grupoAsentamientos);
 
-    if(!map.hasLayer(etiquetasAsentamientos))
-        map.addLayer(etiquetasAsentamientos);
 
 }else{
 
     if(map.hasLayer(grupoAsentamientos))
         map.removeLayer(grupoAsentamientos);
 
-    if(map.hasLayer(etiquetasAsentamientos))
-        map.removeLayer(etiquetasAsentamientos);
 }
 
 
@@ -796,22 +792,57 @@ if(document.getElementById('chk-renabap').checked){
     if(!map.hasLayer(grupoRenabap))
         map.addLayer(grupoRenabap);
 
-    if(!map.hasLayer(etiquetasRenabap))
-        map.addLayer(etiquetasRenabap);
-
 }else{
 
     if(map.hasLayer(grupoRenabap))
         map.removeLayer(grupoRenabap);
-
-    if(map.hasLayer(etiquetasRenabap))
-        map.removeLayer(etiquetasRenabap);
 }
+
+controlarEtiquetasAtlas();
     
 }
 
 map.on('zoomend', controlarVisibilidadDinamica);
+map.on('zoomend', controlarEtiquetasAtlas);
 map.on('layeradd layerremove', controlarVisibilidadDinamica); 
+
+function controlarEtiquetasAtlas() {
+
+    const zoom = map.getZoom();
+
+    // ASENTAMIENTOS
+
+    if (
+        document.getElementById('chk-asentamientos').checked &&
+        zoom >= 14
+    ) {
+
+        if (!map.hasLayer(etiquetasAsentamientos))
+            map.addLayer(etiquetasAsentamientos);
+
+    } else {
+
+        if (map.hasLayer(etiquetasAsentamientos))
+            map.removeLayer(etiquetasAsentamientos);
+    }
+
+
+    // RENABAP
+
+    if (
+        document.getElementById('chk-renabap').checked &&
+        zoom >= 14
+    ) {
+
+        if (!map.hasLayer(etiquetasRenabap))
+            map.addLayer(etiquetasRenabap);
+
+    } else {
+
+        if (map.hasLayer(etiquetasRenabap))
+            map.removeLayer(etiquetasRenabap);
+    }
+}
 
 /* ================= CONTROLES Y BÚSQUEDA DEL MENÚ LATERAL ================= */
 
@@ -984,6 +1015,7 @@ measureControl.addTo(map);
 // Inicializar el buscador predictivo al cargar el script
 configurarBuscadorUbicaciones();
 controlarVisibilidadDinamica();
+controlarEtiquetasAtlas();
 </script>
 </body>
 </html>
