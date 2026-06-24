@@ -524,7 +524,7 @@ fetchGeoJSON(BASE_URL + "catastro/manzana.geojson").then(data => {
 .then(data => {
 
     L.geoJSON(data, {
-        pane:'atlasLabelsPane',
+        pane:'atlasPane',
 
         style: {
             color: "#cc0000",
@@ -559,12 +559,14 @@ fetchGeoJSON(BASE_URL + "catastro/manzana.geojson").then(data => {
                 }
 
                 L.marker(center,{
-                    icon: L.divIcon({
-                        className:'etiqueta-atlas',
-                        html:nombre
-                    }),
-                    interactive:false
-                }).addTo(etiquetasAsentamientos);
+    pane:'atlasLabelsPane',
+    icon: L.divIcon({
+        className:'etiqueta-atlas',
+        html:nombre
+    }),
+    interactive:false
+})
+                    .addTo(etiquetasAsentamientos);
 
             } catch(e){}
 
@@ -578,7 +580,7 @@ fetchGeoJSON(BASE_URL + "catastro/manzana.geojson").then(data => {
 .then(data => {
 
     L.geoJSON(data, {
-        pane:'atlasLabelsPane',
+        pane:'atlasPane',
 
         style: {
             color: "#c8a200",
@@ -612,13 +614,15 @@ fetchGeoJSON(BASE_URL + "catastro/manzana.geojson").then(data => {
                     center = layer.getBounds().getCenter();
                 }
 
-                L.marker(center,{
-                    icon: L.divIcon({
-                        className:'etiqueta-atlas',
-                        html:nombre
-                    }),
-                    interactive:false
-                }).addTo(etiquetasRenabap);
+               L.marker(center,{
+    pane:'atlasLabelsPane',
+    icon: L.divIcon({
+        className:'etiqueta-atlas',
+        html:nombre
+    }),
+    interactive:false
+})
+                   .addTo(etiquetasRenabap);
 
             } catch(e){}
 
