@@ -346,6 +346,12 @@ map.createPane('parcelasPane');
 map.getPane('parcelasPane').style.zIndex = 350; // Capa superior
 map.getPane('parcelasPane').style.pointerEvents = 'auto'; // Captura clics
 
+map.createPane('atlasPane');
+map.getPane('atlasPane').style.zIndex = 320;
+
+map.createPane('atlasLabelsPane');
+map.getPane('atlasLabelsPane').style.zIndex = 650;
+
 var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 22, maxNativeZoom: 19 });
 var dark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 22, maxNativeZoom: 20 });
 var sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 22, maxNativeZoom: 18 });
@@ -518,6 +524,7 @@ fetchGeoJSON(BASE_URL + "catastro/manzana.geojson").then(data => {
 .then(data => {
 
     L.geoJSON(data, {
+        pane:'atlasLabelsPane',
 
         style: {
             color: "#cc0000",
@@ -571,6 +578,7 @@ fetchGeoJSON(BASE_URL + "catastro/manzana.geojson").then(data => {
 .then(data => {
 
     L.geoJSON(data, {
+        pane:'atlasLabelsPane',
 
         style: {
             color: "#c8a200",
@@ -625,7 +633,7 @@ var grupoParcelas = L.layerGroup();
 var grupoAsentamientos = L.layerGroup().addTo(map);
 var grupoRenabap = L.layerGroup();
 
-var etiquetasAsentamientos = L.layerGroup().addTo(map);
+var etiquetasAsentamientos = L.layerGroup();
 var etiquetasRenabap = L.layerGroup();
 var parcelasLayers = [];
 
@@ -761,6 +769,44 @@ function controlarVisibilidadDinamica() {
             map.removeLayer(grupoParcelas);
         }
     }
+     // ASENTAMIENTOS INFORMALES
+
+if(document.getElementById('chk-asentamientos').checked){
+
+    if(!map.hasLayer(grupoAsentamientos))
+        map.addLayer(grupoAsentamientos);
+
+    if(!map.hasLayer(etiquetasAsentamientos))
+        map.addLayer(etiquetasAsentamientos);
+
+}else{
+
+    if(map.hasLayer(grupoAsentamientos))
+        map.removeLayer(grupoAsentamientos);
+
+    if(map.hasLayer(etiquetasAsentamientos))
+        map.removeLayer(etiquetasAsentamientos);
+}
+
+
+// RENABAP
+
+if(document.getElementById('chk-renabap').checked){
+
+    if(!map.hasLayer(grupoRenabap))
+        map.addLayer(grupoRenabap);
+
+    if(!map.hasLayer(etiquetasRenabap))
+        map.addLayer(etiquetasRenabap);
+
+}else{
+
+    if(map.hasLayer(grupoRenabap))
+        map.removeLayer(grupoRenabap);
+
+    if(map.hasLayer(etiquetasRenabap))
+        map.removeLayer(etiquetasRenabap);
+}
     
 }
 
@@ -934,45 +980,6 @@ var measureControl = new L.Control.Measure({
     }
 });
 measureControl.addTo(map);
-
-    // ASENTAMIENTOS INFORMALES
-
-if(document.getElementById('chk-asentamientos').checked){
-
-    if(!map.hasLayer(grupoAsentamientos))
-        map.addLayer(grupoAsentamientos);
-
-    if(!map.hasLayer(etiquetasAsentamientos))
-        map.addLayer(etiquetasAsentamientos);
-
-}else{
-
-    if(map.hasLayer(grupoAsentamientos))
-        map.removeLayer(grupoAsentamientos);
-
-    if(map.hasLayer(etiquetasAsentamientos))
-        map.removeLayer(etiquetasAsentamientos);
-}
-
-
-// RENABAP
-
-if(document.getElementById('chk-renabap').checked){
-
-    if(!map.hasLayer(grupoRenabap))
-        map.addLayer(grupoRenabap);
-
-    if(!map.hasLayer(etiquetasRenabap))
-        map.addLayer(etiquetasRenabap);
-
-}else{
-
-    if(map.hasLayer(grupoRenabap))
-        map.removeLayer(grupoRenabap);
-
-    if(map.hasLayer(etiquetasRenabap))
-        map.removeLayer(etiquetasRenabap);
-}
 
 // Inicializar el buscador predictivo al cargar el script
 configurarBuscadorUbicaciones();
