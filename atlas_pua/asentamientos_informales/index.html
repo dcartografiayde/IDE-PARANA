@@ -80,6 +80,22 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
         }
 
+        .etiqueta-atlas {
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            color: black !important;
+            font-weight: 700 !important;
+            font-size: 12px !important;
+            text-shadow:
+                -1px -1px 2px white,
+                 1px -1px 2px white,
+                -1px  1px 2px white,
+                 1px  1px 2px white;
+
+            white-space: nowrap;
+        }
+
         /* MODIFICACIÓN: Ajustes de diseño premium para adaptar la interfaz de Leaflet Measure al visor oscuro */
         .leaflet-control-measure {
             border: none !important;
@@ -168,26 +184,51 @@
                 <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide">Capas vectoriales</span>
                 <div class="space-y-2">
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
-                        <input type="checkbox" id="chk-manzanas" checked onchange="toggleOverlay('manzanas')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
+                        <input type="checkbox" id="chk-manzanas"  onchange="toggleOverlay('manzanas')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
                         <span class="flex items-center gap-2">
                             <span class="w-3.5 h-3.5 rounded border border-[#ff6b6b] bg-[rgba(255,107,107,0.15)] inline-block"></span>
                             <span>Manzanas</span>
                         </span>
                     </label>
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
-                        <input type="checkbox" id="chk-calles" checked onchange="toggleOverlay('calles')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
+                        <input type="checkbox" id="chk-calles"  onchange="toggleOverlay('calles')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
                         <span class="flex items-center gap-2">
                             <span class="w-3.5 h-1 bg-[#FFFF00] inline-block"></span>
                             <span>Nombres de Calles</span>
                         </span>
                     </label>
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
-                        <input type="checkbox" id="chk-parcelas" checked onchange="toggleOverlay('parcelas')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
+                        <input type="checkbox" id="chk-parcelas"  onchange="toggleOverlay('parcelas')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
                         <span class="flex items-center gap-2">
                             <span class="w-3.5 h-3.5 rounded bg-[#2980b9] inline-block"></span>
                             <span>Parcelas Catastrales</span>
                         </span>
                     </label>
+                    
+                    <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
+    <input type="checkbox"
+           id="chk-asentamientos"
+           checked
+           onchange="toggleOverlay('asentamientos')"
+           class="rounded bg-slate-800 border-slate-700 text-blue-500">
+
+    <span class="flex items-center gap-2">
+        <span class="w-3.5 h-3.5 rounded border border-red-600 bg-red-500/40 inline-block"></span>
+        <span>Asentamientos Informales</span>
+    </span>
+</label>
+
+<label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
+    <input type="checkbox"
+           id="chk-renabap"
+           onchange="toggleOverlay('renabap')"
+           class="rounded bg-slate-800 border-slate-700 text-blue-500">
+
+    <span class="flex items-center gap-2">
+        <span class="w-3.5 h-3.5 rounded border border-yellow-500 bg-yellow-400/50 inline-block"></span>
+        <span>Barrios Populares - RENABAP</span>
+    </span>
+</label>
                 </div>
             </div>
         </div>
@@ -433,7 +474,7 @@ fetchGeoJSON(BASE_URL + "catastro/manzana.geojson").then(data => {
         filter: (f) => f && f.geometry && f.geometry.coordinates && f.geometry.coordinates.length > 0,
         style: {
             color: "#ff6b6b", 
-            weight: 3,         
+            weight: 1,         
             fillColor: "transparent",
             fillOpacity: 0,
             interactive: false 
@@ -473,8 +514,119 @@ fetchGeoJSON(BASE_URL + "catastro/manzana.geojson").then(data => {
     console.error("Error al cargar la capa de manzanas:", err);
 });
 
+    fetchGeoJSON("asentamientos_informales.geojson")
+.then(data => {
+
+    L.geoJSON(data, {
+
+        style: {
+            color: "#cc0000",
+            weight: 2,
+            fillColor: "#ff0000",
+            fillOpacity: 0.30
+        },
+
+        onEachFeature: function(feature, layer){
+
+            const nombre =
+                feature.properties.nombre || "Sin nombre";
+
+            layer.bindPopup(`
+                <div class="popup-custom">
+                    <div class="popup-header">
+                        ASENTAMIENTOS INFORMALES
+                    </div>
+
+                    <b>Nombre:</b> ${nombre}
+                </div>
+            `);
+
+            try {
+
+                let center;
+
+                try {
+                    center = layer.getCenter();
+                } catch(e) {
+                    center = layer.getBounds().getCenter();
+                }
+
+                L.marker(center,{
+                    icon: L.divIcon({
+                        className:'etiqueta-atlas',
+                        html:nombre
+                    }),
+                    interactive:false
+                }).addTo(etiquetasAsentamientos);
+
+            } catch(e){}
+
+        }
+
+    }).addTo(grupoAsentamientos);
+
+});
+
+    fetchGeoJSON("barrios_populares_renabap.geojson")
+.then(data => {
+
+    L.geoJSON(data, {
+
+        style: {
+            color: "#c8a200",
+            weight: 2,
+            fillColor: "#ffff00",
+            fillOpacity: 0.30
+        },
+
+        onEachFeature: function(feature, layer){
+
+            const nombre =
+                feature.properties.nombre_bar || "Sin nombre";
+
+            layer.bindPopup(`
+                <div class="popup-custom">
+                    <div class="popup-header">
+                        BARRIOS POPULARES - RENABAP
+                    </div>
+
+                    <b>Nombre:</b> ${nombre}
+                </div>
+            `);
+
+            try {
+
+                let center;
+
+                try {
+                    center = layer.getCenter();
+                } catch(e) {
+                    center = layer.getBounds().getCenter();
+                }
+
+                L.marker(center,{
+                    icon: L.divIcon({
+                        className:'etiqueta-atlas',
+                        html:nombre
+                    }),
+                    interactive:false
+                }).addTo(etiquetasRenabap);
+
+            } catch(e){}
+
+        }
+
+    }).addTo(grupoRenabap);
+
+});
+
 // Capa de Parcelas (Totalmente Restituida)
 var grupoParcelas = L.layerGroup();
+var grupoAsentamientos = L.layerGroup().addTo(map);
+var grupoRenabap = L.layerGroup();
+
+var etiquetasAsentamientos = L.layerGroup().addTo(map);
+var etiquetasRenabap = L.layerGroup();
 var parcelasLayers = [];
 
 // MODIFICACIÓN: Lista global e indexada para la búsqueda predictiva case-insensitive de ubicaciones (UBIPAR1 / calle y altura)
@@ -609,6 +761,7 @@ function controlarVisibilidadDinamica() {
             map.removeLayer(grupoParcelas);
         }
     }
+    
 }
 
 map.on('zoomend', controlarVisibilidadDinamica);
@@ -781,6 +934,45 @@ var measureControl = new L.Control.Measure({
     }
 });
 measureControl.addTo(map);
+
+    // ASENTAMIENTOS INFORMALES
+
+if(document.getElementById('chk-asentamientos').checked){
+
+    if(!map.hasLayer(grupoAsentamientos))
+        map.addLayer(grupoAsentamientos);
+
+    if(!map.hasLayer(etiquetasAsentamientos))
+        map.addLayer(etiquetasAsentamientos);
+
+}else{
+
+    if(map.hasLayer(grupoAsentamientos))
+        map.removeLayer(grupoAsentamientos);
+
+    if(map.hasLayer(etiquetasAsentamientos))
+        map.removeLayer(etiquetasAsentamientos);
+}
+
+
+// RENABAP
+
+if(document.getElementById('chk-renabap').checked){
+
+    if(!map.hasLayer(grupoRenabap))
+        map.addLayer(grupoRenabap);
+
+    if(!map.hasLayer(etiquetasRenabap))
+        map.addLayer(etiquetasRenabap);
+
+}else{
+
+    if(map.hasLayer(grupoRenabap))
+        map.removeLayer(grupoRenabap);
+
+    if(map.hasLayer(etiquetasRenabap))
+        map.removeLayer(etiquetasRenabap);
+}
 
 // Inicializar el buscador predictivo al cargar el script
 configurarBuscadorUbicaciones();
