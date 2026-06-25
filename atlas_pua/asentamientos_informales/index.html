@@ -64,6 +64,85 @@
             border-radius: 3px; 
         }
 
+        .panel-info-mapa{
+    position:absolute;
+    bottom:25px;
+    right:10px;
+    width:320px;
+    max-width:35vw;
+
+    background:rgba(255,255,255,0.95);
+    backdrop-filter:blur(6px);
+
+    border:1px solid rgba(0,0,0,0.12);
+    border-radius:12px;
+
+    box-shadow:0 6px 18px rgba(0,0,0,0.18);
+
+    z-index:1000;
+
+    overflow:hidden;
+}
+
+.panel-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+
+    padding:12px;
+}
+
+.panel-titulo{
+    font-size:13px;
+    font-weight:800;
+    color:#1e293b;
+    text-transform:uppercase;
+    line-height:1.2;
+}
+
+.panel-zoom{
+    margin-top:4px;
+    font-size:10px;
+    color:#64748b;
+    font-weight:600;
+}
+
+.panel-descripcion{
+
+    padding:0 12px 12px 12px;
+
+    font-size:11px;
+    color:#475569;
+
+    line-height:1.45;
+
+    max-height:180px;
+    overflow-y:auto;
+
+    transition:all .3s ease;
+}
+
+.panel-descripcion.oculto{
+
+    max-height:0;
+    padding:0 12px;
+
+    overflow:hidden;
+}
+
+#btn-descripcion{
+
+    border:none;
+    background:none;
+
+    cursor:pointer;
+
+    font-size:14px;
+    font-weight:bold;
+
+    color:#475569;
+}
+
         .etiqueta-manzana {
             background: rgba(255, 255, 255, 0.95) !important;
             border: 2px solid #ff6b6b !important;
@@ -254,7 +333,34 @@
 
 <!-- Cuadro Informativo de Distritos con indicador de Zoom -->
 <div class="adv-distrito text-right bg-white/90 backdrop-blur border border-slate-200 shadow-xl rounded-lg px-4 py-2">
-    <div class="font-bold text-slate-700 text-xs">Zoom Vista: <span id="zoom-indicator" class="text-blue-600">12</span></div>
+    <div id="panel-info-mapa" class="panel-info-mapa">
+
+    <div class="panel-header">
+
+        <div>
+            <div class="panel-titulo" id="titulo-mapa">
+                ASENTAMIENTOS INFORMALES
+            </div>
+
+            <div class="panel-zoom">
+                Zoom: <span id="zoom-indicator">12</span>
+            </div>
+        </div>
+
+        <button onclick="toggleDescripcionMapa()"
+                id="btn-descripcion">
+            ▼
+        </button>
+
+    </div>
+
+    <div id="descripcion-mapa" class="panel-descripcion">
+
+        En el plano se observa la localización de asentamientos infor- males y barrios populares dentro del ejido urbano de la ciudad de Paraná. Los asentamientos informales se representan en color rojo y los barrios populares (RENABAP, año 2023) en color amarillo, lo que permite identifi- car su distribución espacial en relación con la trama urbana y los principales ejes viales. Se observa una mayor concen- tración en sectores periféricos, especialmente hacia el oeste, sur y sudeste de la ciudad, así como en áreas cercanas a infraestructuras lineales y bordes urbanos.
+
+    </div>
+
+</div>
     <div class="text-[9px] text-slate-500">IDE Paraná - Límites indicativos (Ord. 8563). Zoom Máx: 22.</div>
     <div class="text-[8px] text-slate-400 font-semibold mt-0.5">Elaborado por Dirección de Cartografía y Datos Espaciales</div>
 </div>
@@ -382,6 +488,22 @@ fetchGeoJSON(BASE_URL + "calles.geojson").then(data => {
     activarEtiquetasCalles();
 });
 
+    function toggleDescripcionMapa(){
+
+    const descripcion =
+        document.getElementById('descripcion-mapa');
+
+    const boton =
+        document.getElementById('btn-descripcion');
+
+    descripcion.classList.toggle('oculto');
+
+    boton.innerHTML =
+        descripcion.classList.contains('oculto')
+            ? '►'
+            : '▼';
+}
+    
 function activarEtiquetasCalles() {
     const renderLabels = () => {
         let z = map.getZoom();
