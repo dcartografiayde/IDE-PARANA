@@ -53,6 +53,77 @@
         .adv-legal { font-size: 8px; color: #a0aec0; margin-top: 6px; border-top: 1px dashed #cbd5e0; padding-top: 4px; line-height: 1.1; }
         
         .adv-distrito { position: absolute; bottom: 25px; right: 10px; z-index: 1000; background: rgba(255,255,255,0.8); padding: 6px 10px; border-radius: 6px; font-size: 9px; color: #4a5568; pointer-events: none; border: 1px solid rgba(0,0,0,0.1); }
+
+        .panel-info-mapa{
+    width:260px;
+    max-width:30vw;
+
+    background:transparent;
+    border:none;
+    box-shadow:none;
+
+    position:relative;
+    bottom:auto;
+    right:auto;
+
+    overflow:hidden;
+}
+
+.panel-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+
+    padding:12px;
+}
+
+.panel-titulo{
+    font-size:13px;
+    font-weight:800;
+    color:#1e293b;
+    text-transform:uppercase;
+    line-height:1.2;
+    text-align:center;
+}
+
+.panel-zoom{
+    margin-top:4px;
+    font-size:10px;
+    color:#64748b;
+    font-weight:600;
+}
+
+.panel-descripcion{
+    padding:0 12px 12px 12px;
+
+    font-size:11px;
+    color:#475569;
+
+    line-height:1.45;
+    text-align:justify;
+
+    max-height:180px;
+    overflow-y:auto;
+
+    transition:all .3s ease;
+}
+
+.panel-descripcion.oculto{
+    max-height:0;
+    padding:0 12px;
+    overflow:hidden;
+}
+
+#btn-descripcion{
+    border:none;
+    background:none;
+    cursor:pointer;
+
+    font-size:14px;
+    font-weight:bold;
+
+    color:#475569;
+}
         
         .layer-legend-icon { 
             display: inline-block; 
@@ -212,11 +283,52 @@
 </div>
 
 <!-- Cuadro Informativo de Distritos con indicador de Zoom -->
-<div class="adv-distrito text-right bg-white/90 backdrop-blur border border-slate-200 shadow-xl rounded-lg px-4 py-2">
-    <div class="font-bold text-slate-700 text-xs">Zoom Vista: <span id="zoom-indicator" class="text-blue-600">12</span></div>
-    <div class="text-[9px] text-slate-500">IDE Paraná - Límites indicativos (Ord. 8563). Zoom Máx: 22.</div>
-    <div class="text-[8px] text-slate-400 font-semibold mt-0.5">Elaborado por Dirección de Cartografía y Datos Espaciales</div>
+<!-- Cuadro Informativo -->
+<div class="adv-distrito">
+
+    <div id="panel-info-mapa" class="panel-info-mapa">
+
+        <div class="panel-header">
+
+            <div style="width:100%;">
+
+                <div class="panel-titulo" id="titulo-mapa">
+                    TÍTULO DEL MAPA
+                </div>
+
+                <div class="panel-zoom"
+                    Zoom: <span id="zoom-indicator">12</span>
+                </div>
+
+            </div>
+
+            <button onclick="toggleDescripcionMapa()"
+                    id="btn-descripcion">
+                ▼
+            </button>
+
+        </div>
+
+        <div id="descripcion-mapa" class="panel-descripcion">
+
+            Aquí puede incorporarse una descripción general del mapa. Este texto puede modificarse para explicar el contenido cartográfico, la fuente de datos y cualquier observación relevante para la interpretación de la información representada.
+
+        </div>
+
+        <hr style="margin:8px 0;">
+
+        <div class="text-[9px] text-slate-500">
+            IDE Paraná - Límites indicativos (Ord. 8563). Zoom Máx: 22.
+        </div>
+
+        <div class="text-[8px] text-slate-400 font-semibold mt-1">
+            Elaborado por Dirección de Cartografía y Datos Espaciales
+        </div>
+
+    </div>
+
 </div>
+
 <div id="map"></div>
 
 <script>
