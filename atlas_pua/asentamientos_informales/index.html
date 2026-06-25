@@ -52,7 +52,26 @@
         .adv-sv { font-size: 9px; color: #718096; text-align: center; font-style: italic; margin-top: 4px; line-height: 1.2; }
         .adv-legal { font-size: 8px; color: #a0aec0; margin-top: 6px; border-top: 1px dashed #cbd5e0; padding-top: 4px; line-height: 1.1; }
         
-        .adv-distrito { position: absolute; bottom: 25px; right: 10px; z-index: 1000; background: rgba(255,255,255,0.8); padding: 6px 10px; border-radius: 6px; font-size: 9px; color: #4a5568; pointer-events: none; border: 1px solid rgba(0,0,0,0.1); }
+        .adv-distrito{
+    position:absolute;
+    bottom:35px;
+    right:15px;
+    z-index:1000;
+
+    background:rgba(255,255,255,0.92);
+
+    border:1px solid rgba(0,0,0,0.12);
+    border-radius:10px;
+
+    padding:10px;
+
+    box-shadow:0 4px 12px rgba(0,0,0,0.15);
+
+    font-size:9px;
+    color:#4a5568;
+
+    pointer-events:auto;
+}
         
         .layer-legend-icon { 
             display: inline-block; 
@@ -65,21 +84,16 @@
         }
 
         .panel-info-mapa{
-    position:absolute;
-    bottom:25px;
-    right:10px;
-    width:320px;
-    max-width:35vw;
+    width:260px;
+    max-width:30vw;
 
-    background:rgba(255,255,255,0.95);
-    backdrop-filter:blur(6px);
+    background:transparent;
+    border:none;
+    box-shadow:none;
 
-    border:1px solid rgba(0,0,0,0.12);
-    border-radius:12px;
-
-    box-shadow:0 6px 18px rgba(0,0,0,0.18);
-
-    z-index:1000;
+    position:relative;
+    bottom:auto;
+    right:auto;
 
     overflow:hidden;
 }
@@ -360,10 +374,18 @@
 
     </div>
 
+    <hr style="margin:8px 0;">
+
+    <div class="text-[9px] text-slate-500">
+        IDE Paraná - Límites indicativos (Ord. 8563). Zoom Máx: 22.
+    </div>
+
+    <div class="text-[8px] text-slate-400 font-semibold mt-1">
+        Elaborado por Dirección de Cartografía y Datos Espaciales
+    </div>
 </div>
-    <div class="text-[9px] text-slate-500">IDE Paraná - Límites indicativos (Ord. 8563). Zoom Máx: 22.</div>
-    <div class="text-[8px] text-slate-400 font-semibold mt-0.5">Elaborado por Dirección de Cartografía y Datos Espaciales</div>
 </div>
+    
 <div id="map"></div>
 
 <script>
@@ -454,9 +476,11 @@ map.getPane('parcelasPane').style.pointerEvents = 'auto'; // Captura clics
 
 map.createPane('atlasPane');
 map.getPane('atlasPane').style.zIndex = 320;
+map.getPane('atlasPane').style.pointerEvents = 'auto';
 
 map.createPane('atlasLabelsPane');
 map.getPane('atlasLabelsPane').style.zIndex = 650;
+map.getPane('atlasLabelsPane').style.pointerEvents = 'none';
 
 var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 22, maxNativeZoom: 19 });
 var dark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 22, maxNativeZoom: 20 });
