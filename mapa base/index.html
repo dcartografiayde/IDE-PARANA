@@ -52,26 +52,27 @@
         .adv-sv { font-size: 9px; color: #718096; text-align: center; font-style: italic; margin-top: 4px; line-height: 1.2; }
         .adv-legal { font-size: 8px; color: #a0aec0; margin-top: 6px; border-top: 1px dashed #cbd5e0; padding-top: 4px; line-height: 1.1; }
         
-        .adv-distrito{
-        position:absolute;
+         .adv-distrito{
+    position:absolute;
+    bottom:35px;
+    right:15px;
+    z-index:1000;
 
-        bottom:35px;
-        right:15px;
+    background:rgba(255,255,255,0.92);
 
-        width:260px;
+    border:1px solid rgba(0,0,0,0.12);
+    border-radius:10px;
 
-        z-index:1000;
+    padding:10px;
 
-        background:rgba(255,255,255,.92);
-    
-        border-radius:10px;
+    box-shadow:0 4px 12px rgba(0,0,0,0.15);
 
-        border:1px solid rgba(0,0,0,.12);
+    font-size:9px;
+    color:#4a5568;
 
-        box-shadow:0 4px 12px rgba(0,0,0,.15);
-
-        pointer-events:auto;
-    }
+    pointer-events:auto;
+}
+        
         .panel-info-mapa{
     width:260px;
     max-width:30vw;
@@ -314,22 +315,26 @@
                     TÍTULO DEL MAPA
                 </div>
 
-                <div class="panel-zoom"
-                    Zoom: <span id="zoom-indicator">12</span>
+                <div class="panel-zoom" style="text-align:center;">
+                    Zoom:
+                    <span id="zoom-indicator">12</span>
                 </div>
 
             </div>
 
-            <button onclick="toggleDescripcionMapa()"
-                    id="btn-descripcion">
+            <button
+                id="btn-descripcion"
+                onclick="toggleDescripcionMapa()">
                 ▼
             </button>
 
         </div>
 
-        <div id="descripcion-mapa" class="panel-descripcion">
+        <div
+            id="descripcion-mapa"
+            class="panel-descripcion">
 
-            Aquí puede incorporarse una descripción general del mapa. Este texto puede modificarse para explicar el contenido cartográfico, la fuente de datos y cualquier observación relevante para la interpretación de la información representada.
+            Aquí va la descripción del mapa.
 
         </div>
 
@@ -434,6 +439,14 @@ map.getPane('manzanasPane').style.pointerEvents = 'none'; // Clics pasan de larg
 map.createPane('parcelasPane');
 map.getPane('parcelasPane').style.zIndex = 350; // Capa superior
 map.getPane('parcelasPane').style.pointerEvents = 'auto'; // Captura clics
+
+map.createPane('atlasPane');
+map.getPane('atlasPane').style.zIndex = 320;
+map.getPane('atlasPane').style.pointerEvents = 'auto';
+
+map.createPane('atlasLabelsPane');
+map.getPane('atlasLabelsPane').style.zIndex = 650;
+map.getPane('atlasLabelsPane').style.pointerEvents = 'none';
 
 var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 22, maxNativeZoom: 19 });
 var dark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 22, maxNativeZoom: 20 });
