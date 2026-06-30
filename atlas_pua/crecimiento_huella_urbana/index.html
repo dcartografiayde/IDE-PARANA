@@ -86,7 +86,7 @@
 }
 
 .panel-info-mapa{
-    width:310px;
+    width:260px;
     max-width:30vw;
 
     background:transparent;
@@ -98,20 +98,18 @@
     right:auto;
 
     overflow:hidden;
-
-    transition:all .25s ease;
 }
 
 .panel-header{
     display:flex;
     justify-content:space-between;
-    align-items:center;
+    align-items:flex-start;
 
     padding:12px;
 }
 
 .panel-titulo{
-    font-size:15px;
+    font-size:13px;
     font-weight:800;
     color:#1e293b;
     text-transform:uppercase;
@@ -129,10 +127,10 @@
 .panel-descripcion{
     padding:0 12px 12px 12px;
 
-    font-size:12px;
+    font-size:11px;
     color:#475569;
 
-    line-height:1.6;
+    line-height:1.45;
     text-align:justify;
 
     max-height:180px;
@@ -156,10 +154,6 @@
     font-weight:bold;
 
     color:#475569;
-
-    padding:2px;
-
-    transition:.2s;
 }
         
         .layer-legend-icon{
@@ -282,6 +276,11 @@
 </div>
 
 <!-- Cuadro Informativo de Distritos con indicador de Zoom -->
+<div class="adv-distrito text-right">
+    <div class="font-bold text-slate-700">Zoom Vista: <span id="zoom-indicator" class="text-blue-600">12</span></div>
+    <div>IDE Paraná - Límites indicativos (Ord. 8563). Zoom Máx: 22.</div>
+    <div class="text-[8px] text-slate-500 font-semibold mt-0.5">Elaborado por Dirección de Cartografía y Datos Espaciales</div>
+</div>
 
 <div class="adv-distrito">
 
@@ -297,7 +296,7 @@
 
                 <div class="panel-zoom" style="text-align:center;">
                     Zoom:
-                    <span id="zoom-indicator-panel">12</span>
+                    <span id="zoom-indicator">12</span>
                 </div>
 
             </div>
@@ -668,7 +667,7 @@ archivosCatastro.forEach(file => {
 function controlarVisibilidadDinamica() {
     let zoomActual = map.getZoom();
     
-    document.getElementById("zoom-indicator-panel").innerText = zoomActual;
+    document.getElementById('zoom-indicator').innerText = zoomActual;
 
     if (zoomActual >= 15 && map.hasLayer(grupoManzanas)) {
         if (!map.hasLayer(grupoEtiquetasManzanas)) {
@@ -701,34 +700,6 @@ function controlarVisibilidadDinamica() {
             map.removeLayer(grupoParcelas);
         }
     }
-}
-
-let descripcionVisible = true;
-
-function toggleDescripcionMapa(){
-
-    const descripcion =
-        document.getElementById("descripcion-mapa");
-
-    const boton =
-        document.getElementById("btn-descripcion");
-
-    descripcionVisible = !descripcionVisible;
-
-    if(descripcionVisible){
-
-        descripcion.classList.remove("oculto");
-
-        boton.innerHTML="▼";
-
-    }else{
-
-        descripcion.classList.add("oculto");
-
-        boton.innerHTML="▲";
-
-    }
-
 }
 
 map.on('zoomend', controlarVisibilidadDinamica);
