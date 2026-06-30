@@ -10,14 +10,21 @@
     <script src="https://cdn.jsdelivr.net/npm/leaflet-textpath@1.2.3/leaflet.textpath.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- MODIFICACIÓN: Agregado CSS de Leaflet Measure para las herramientas de medición -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-measure@3.1.0/dist/leaflet-measure.css"/>
-    <!-- MODIFICACIÓN: Agregado JS de Leaflet Measure para habilitar los cálculos de longitud y superficie -->
-    <script src="https://cdn.jsdelivr.net/npm/leaflet-measure@3.1.0/dist/leaflet-measure.js"></script>
+    <!-- MODIFICACIÓN: Se removieron los archivos CSS y JS de Leaflet Measure ya que la herramienta fue retirada -->
 
     <style>
         body { margin:0; padding:0; font-family: 'Inter', sans-serif; background: #0f172a; overflow: hidden; }
         #map { height: 100vh; width: 100%; z-index: 1; }
+
+        /* MODIFICACIÓN: Corrección de contraste para los inputs de búsqueda catastral para evitar letras invisibles o transparentes */
+        #input-pm, #input-ubicacion, #input-google {
+            background-color: #1e293b !important; /* Slate 800 */
+            color: #ffffff !important; /* Texto blanco de alto contraste */
+            border-color: #475569 !important; /* border-slate-600 */
+        }
+        #input-pm::placeholder, #input-ubicacion::placeholder, #input-google::placeholder {
+            color: #94a3b8 !important; /* placeholder-slate-400 */
+        }
 
         /* MODIFICACIÓN: Estilos personalizados para el scrollbar del menú lateral */
         .scrollbar-custom::-webkit-scrollbar {
@@ -80,18 +87,12 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
         }
 
-        /* MODIFICACIÓN: Ajustes de diseño premium para adaptar la interfaz de Leaflet Measure al visor oscuro */
-        .leaflet-control-measure {
+        /* MODIFICACIÓN: Estilo personalizado para las etiquetas de las mediciones flotantes en el mapa */
+        .measure-tooltip-container {
+            background: transparent !important;
             border: none !important;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
-            border-radius: 8px !important;
-            font-family: 'Inter', sans-serif !important;
-        }
-        .leaflet-control-measure a.has-measurements {
-            background-color: #2980b9 !important;
-        }
-        .leaflet-control-measure .js-toggle {
-            border-radius: 8px !important;
+            box-shadow: none !important;
+            pointer-events: none !important;
         }
 
         /* MODIFICACIÓN: Ajustes de impresión corregidos quirúrgicamente para eliminar la deformación de página y los bloques negros */
@@ -207,8 +208,7 @@
             display: none !important;
         }
         body.print-active .leaflet-control-zoom,
-        body.print-active .leaflet-control-layers,
-        body.print-active .leaflet-control-measure {
+        body.print-active .leaflet-control-layers {
             display: none !important;
         }
 
@@ -249,7 +249,7 @@
             <div class="space-y-1">
                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Buscar por Partida (PM)</label>
                 <div class="flex gap-2">
-                    <input type="text" id="input-pm" placeholder="Partida (p. ej. 13245)" class="flex-1 bg-slate-850 border border-slate-700 rounded-md px-3 py-1.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                    <input type="text" id="input-pm" placeholder="Partida (p. ej. 13245)" class="flex-1 bg-slate-800 border border-slate-700 rounded-md px-3 py-1.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
                     <button class="bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs px-4 rounded-md transition shadow" onclick="buscarPM(true)">Buscar</button>
                 </div>
             </div>
@@ -257,7 +257,7 @@
             <!-- Búsqueda por Dirección Predictiva (Por UBIPAR1 de las parcelas catastrales) -->
             <div class="space-y-1 relative">
                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Dirección (Calle y Altura - Predictivo)</label>
-                <input type="text" id="input-ubicacion" placeholder="Buscar dirección (p. ej. San Martín 123)..." class="w-full bg-slate-850 border border-slate-700 rounded-md px-3 py-1.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition" autocomplete="off">
+                <input type="text" id="input-ubicacion" placeholder="Buscar dirección (p. ej. San Martín 123)..." class="w-full bg-slate-800 border border-slate-700 rounded-md px-3 py-1.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition" autocomplete="off">
                 <div id="sugerencias-ubicacion" class="absolute left-0 right-0 bg-slate-800 border border-slate-700 rounded-md max-h-52 overflow-y-auto mt-1 hidden z-[2000] shadow-2xl scrollbar-custom"></div>
             </div>
 
@@ -265,7 +265,7 @@
             <div class="space-y-1">
                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Buscar Lugares o Puntos de interés</label>
                 <div class="flex gap-2">
-                    <input type="text" id="input-google" placeholder="Lugar (p. ej. Plaza de Mayo)..." class="flex-1 bg-slate-850 border border-slate-700 rounded-md px-3 py-1.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                    <input type="text" id="input-google" placeholder="Lugar (p. ej. Plaza de Mayo)..." class="flex-1 bg-slate-800 border border-slate-700 rounded-md px-3 py-1.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
                     <button class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs px-4 rounded-md transition shadow" onclick="buscarGoogle()">Google</button>
                 </div>
             </div>
@@ -341,14 +341,7 @@
                             <span>Parcelas Catastrales</span>
                         </span>
                     </label>
-                    <!-- MODIFICACIÓN: Agregado control interactivo para habilitar/deshabilitar la Línea de Frente Interno de forma manual en el visor -->
-                    <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
-                        <input type="checkbox" id="chk-lfi" checked onchange="toggleOverlay('lfi')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
-                        <span class="flex items-center gap-2">
-                            <span class="w-3.5 h-1 border-b-2 border-dashed border-[#dc2626] inline-block"></span>
-                            <span>Líneas de Frente Interno (Ord. 8563)</span>
-                        </span>
-                    </label>
+                    <!-- MODIFICACIÓN: Se removió por completo el checkbox del control interactivo de "Líneas de Frente Interno (Ord. 8563)" -->
                 </div>
             </div>
         </div>
@@ -357,7 +350,6 @@
         <div class="space-y-3 pt-2">
             <h2 class="text-xs font-extrabold uppercase tracking-widest text-slate-400 border-b border-slate-800 pb-1.5">Información útil</h2>
             <div class="text-[11px] text-slate-400 space-y-1.5 leading-relaxed bg-slate-950/20 p-3 rounded-lg border border-slate-850">
-                <p>📏 Use la regla en el margen superior derecho para realizar mediciones de longitud y área.</p>
                 <p>⚡ Las parcelas catastrales y los nombres de las calles se visualizan automáticamente a niveles de zoom cercanos (Zoom >= 15/16).</p>
             </div>
         </div>
@@ -386,6 +378,36 @@
         </button>
         <button class="bg-slate-800 hover:bg-slate-700 font-bold text-xs py-2 px-4 rounded-lg transition-colors" onclick="cancelarImpresion()">
             <span>Salir</span>
+        </button>
+    </div>
+</div>
+
+<!-- MODIFICACIÓN: Contenedor flotante de herramientas de medición nativas (Estilo e interfaz idéntica a Mapas Córdoba) -->
+<div class="fixed top-24 right-4 z-[1000] flex flex-col gap-2 no-print">
+    <div class="bg-slate-900/95 border border-slate-850 p-2 rounded-xl shadow-2xl flex flex-col gap-1.5">
+        <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest text-center px-1.5 pb-1 border-b border-slate-800/80">
+            Medir
+        </div>
+        <!-- Botón Medir Distancia -->
+        <button id="btn-medir-distancia" onclick="activarHerramientaMedicion('distancia')" class="flex items-center justify-center p-2.5 rounded-lg bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 transition" title="Medir Distancia (Haga clics sucesivos, doble clic para finalizar)">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+        </button>
+        <!-- Botón Medir Superficie -->
+        <button id="btn-medir-superficie" onclick="activarHerramientaMedicion('superficie')" class="flex items-center justify-center p-2.5 rounded-lg bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 transition" title="Medir Superficie (Haga clics para trazar polígono, doble clic para finalizar)">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v14a1 1 0 01-1 1H5a1 1 0 01-1-1V5z" stroke-dasharray="2 2" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 8l5 4 6-3" />
+            </svg>
+        </button>
+        <!-- Separador de barra flotante -->
+        <div class="h-px bg-slate-800/80 my-0.5"></div>
+        <!-- Botón Limpiar Mediciones -->
+        <button id="btn-limpiar-mediciones" onclick="limpiarMediciones()" class="flex items-center justify-center p-2.5 rounded-lg bg-slate-800 text-red-400 hover:text-red-300 hover:bg-slate-700 transition" title="Limpiar Mediciones">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
         </button>
     </div>
 </div>
@@ -449,7 +471,7 @@
 
     <!-- MODIFICACIÓN: Leyenda catastral y aviso legal corregido que contiene el texto de advertencia obligatorio solicitado -->
     <div class="absolute bottom-[6mm] right-[6mm] text-right text-[6.5px] text-slate-500 max-w-[155mm] leading-tight border-t border-slate-300 pt-1 pointer-events-auto">
-        Límites y trazados indicativos (Ord. 8563). Las medidas del lote son aproximadas y calculadas según la representación gráfica de la parcela, no representan las medidas de la mensura del lote y no pueden usarse para el cálculo exacto del centro de manzana.
+        Límites y trazados indicativos (Ord. 8563). Las medidas del lote son aproximadas y calculadas según la representation gráfica de la parcela, no representan las medidas de la mensura del lote y no pueden usarse para el cálculo exacto del centro de manzana.
     </div>
 </div>
 
@@ -815,8 +837,8 @@ var highlightLayer = null;
 var centroManzanaActual = null; 
 var parcelLabelLayer = null; 
 var dimensionLabelsGroup = null; 
-// MODIFICACIÓN: Declaración global de la capa interactiva L.F.I. para trazado automático
-var grupoLFI = L.layerGroup().addTo(map);
+
+// MODIFICACIÓN: Se removieron por completo las referencias y capas relativas a la visualización de la Línea de Frente Interno (L.F.I.) en el mapa interactivo
 
 function obtenerLatLngsPlanos(latlngs) {
     if (!Array.isArray(latlngs)) return [];
@@ -961,17 +983,7 @@ function controlarVisibilidadDinamica() {
         }
     }
 
-    // MODIFICACIÓN: Control de visibilidad dinámica sincronizado para la Línea de Frente Interno (L.F.I.)
-    const chkLFI = document.getElementById('chk-lfi').checked;
-    if (chkLFI) {
-        if (!map.hasLayer(grupoLFI)) {
-            map.addLayer(grupoLFI);
-        }
-    } else {
-        if (map.hasLayer(grupoLFI)) {
-            map.removeLayer(grupoLFI);
-        }
-    }
+    // MODIFICACIÓN: Se removió la verificación y el control de visibilidad del elemento chk-lfi
 }
 
 map.on('zoomend', controlarVisibilidadDinamica);
@@ -1042,68 +1054,9 @@ function encontrar4Esquinas(latlngs) {
     return corners;
 }
 
-// MODIFICACIÓN: Función matemática de trazado automático de Líneas de Frente Interno (L.F.I.) sobre la manzana delimitadora
+// MODIFICACIÓN: Eliminado por completo el trazado de líneas de frente interno interactivo, respetando únicamente las definiciones técnicas de la hoja de impresión técnica
 function trazarLFI(manzanaLayer) {
-    grupoLFI.clearLayers();
-    if (!manzanaLayer) return;
-
-    try {
-        let latlngs = manzanaLayer.getLatLngs();
-        let pts = obtenerLatLngsPlanos(latlngs);
-        if (pts.length < 3) return;
-
-        let corners = encontrar4Esquinas(pts);
-        if (corners.length < 4) return;
-
-        // Ordenar las esquinas en sentido horario desde su baricentro para evitar entrecruzamientos de líneas opuestas
-        let sumLat = 0, sumLng = 0;
-        corners.forEach(p => { sumLat += p.lat; sumLng += p.lng; });
-        let center = L.latLng(sumLat / 4, sumLng / 4);
-        corners.sort((a, b) => {
-            let angleA = Math.atan2(a.lat - center.lat, a.lng - center.lng);
-            let angleB = Math.atan2(b.lat - center.lat, b.lng - center.lng);
-            return angleA - angleB;
-        });
-
-        // Interpolar tercios en los 4 lados de la manzana
-        function interpolate(p1, p2, fraction) {
-            return L.latLng(
-                p1.lat + (p2.lat - p1.lat) * fraction,
-                p1.lng + (p2.lng - p1.lng) * fraction
-            );
-        }
-
-        let ab1 = interpolate(corners[0], corners[1], 1/3);
-        let ab2 = interpolate(corners[0], corners[1], 2/3);
-
-        let bc1 = interpolate(corners[1], corners[2], 1/3);
-        let bc2 = interpolate(corners[1], corners[2], 2/3);
-
-        let cd1 = interpolate(corners[2], corners[3], 1/3);
-        let cd2 = interpolate(corners[2], corners[3], 2/3);
-
-        let da1 = interpolate(corners[3], corners[0], 1/3);
-        let da2 = interpolate(corners[3], corners[0], 2/3);
-
-        // Crear polilíneas L.F.I. cruzando tercios opuestos (Líneas de Frente Interno de manzanas)
-        L.polyline([ab1, cd2], { color: '#dc2626', weight: 1.5, dashArray: '6, 6' }).addTo(grupoLFI);
-        L.polyline([ab2, cd1], { color: '#dc2626', weight: 1.5, dashArray: '6, 6' }).addTo(grupoLFI);
-        L.polyline([bc1, da2], { color: '#dc2626', weight: 1.5, dashArray: '6, 6' }).addTo(grupoLFI);
-        L.polyline([bc2, da1], { color: '#dc2626', weight: 1.5, dashArray: '6, 6' }).addTo(grupoLFI);
-
-        // Agregar una etiqueta flotante para identificar el trazo de la L.F.I. en el plano
-        let mid1 = interpolate(ab1, cd2, 0.5);
-        let lfiLabelIcon = L.divIcon({
-            className: 'lfi-label-container',
-            html: `<div class="text-[#dc2626] font-black text-[7.5px] bg-white/95 border border-red-200 px-1 rounded shadow-sm whitespace-nowrap uppercase tracking-wider">L.F.I. (Art. 139)</div>`,
-            iconSize: [0, 0],
-            iconAnchor: [30, 5]
-        });
-        L.marker(mid1, { icon: lfiLabelIcon, interactive: false }).addTo(grupoLFI);
-
-    } catch (e) {
-        console.error("Error al trazar las Líneas de Frente Interno automáticas:", e);
-    }
+    // Esta función ha quedado desocupada para eliminar el trazado en el mapa
 }
 
 function buscarPM(dispararPopup = true) {
@@ -1207,12 +1160,10 @@ function buscarPM(dispararPopup = true) {
                 if (manzanaContenedora) {
                     centroManzanaActual = manzanaContenedora.getBounds().getCenter();
                     map.fitBounds(manzanaContenedora.getBounds(), { padding: [40, 40] });
-                    // MODIFICACIÓN: Trazar las líneas de frente interno de forma totalmente automatizada sobre la manzana seleccionada
-                    trazarLFI(manzanaContenedora);
+                    // MODIFICACIÓN: El trazado dinámico de líneas de frente interno sobre el mapa de la manzana ha sido removido
                 } else {
                     centroManzanaActual = l.getBounds().getCenter();
                     map.fitBounds(l.getBounds(), { maxZoom: 19 });
-                    grupoLFI.clearLayers(); // Limpiar si no se detectó una manzana
                 }
 
                 if (dispararPopup && !document.body.classList.contains('print-active')) {
@@ -1363,7 +1314,7 @@ function prepararImpresion() {
     document.getElementById('chk-parcelas').checked = true;
     document.getElementById('chk-manzanas').checked = true;
     document.getElementById('chk-calles').checked = true;
-    document.getElementById('chk-lfi').checked = true; // Asegurar que LFI se dibuje en la previa de impresión
+    // MODIFICACIÓN: Se removió la línea que forzaba el estado activo del chk-lfi para imprimir
     controlarVisibilidadDinamica();
 
     document.getElementById('print-partida-val').innerText = partidaSeleccionadaImpresion;
@@ -1415,6 +1366,283 @@ function prepararImpresion() {
     }, 100);
 }
 
+/* ================= MODIFICACIÓN: HERRAMIENTAS DE MEDICIÓN NATIVAS (ESTILO MAPAS CÓRDOBA) ================= */
+let activeMeasureMode = null; // 'distancia', 'superficie' o null
+let measurePoints = [];
+let measureFeature = null; // polyline o polygon temporal interactivo
+let measureGuideLine = null; // guía elástica hasta el cursor del mouse
+let measureMarkers = []; // vértices circulares dibujados
+let measureLabels = []; // marcas con textos de dimensiones y áreas
+let measureActive = false;
+
+// MODIFICACIÓN: Función matemática para calcular el área de cualquier polígono dibujado en metros cuadrados de forma local y exacta
+function calcularAreaGeodesica(latlngs) {
+    if (latlngs.length < 3) return 0;
+    let area = 0;
+    const R = 6378137; // Radio de la Tierra en metros
+    
+    for (let i = 0; i < latlngs.length; i++) {
+        let p1 = latlngs[i];
+        let p2 = latlngs[(i + 1) % latlngs.length];
+        
+        let x1 = p1.lng * Math.PI / 180 * R * Math.cos(p1.lat * Math.PI / 180);
+        let y1 = p1.lat * Math.PI / 180 * R;
+        let x2 = p2.lng * Math.PI / 180 * R * Math.cos(p2.lat * Math.PI / 180);
+        let y2 = p2.lat * Math.PI / 180 * R;
+        
+        area += (x1 * y2 - x2 * y1);
+    }
+    return Math.abs(area / 2);
+}
+
+// MODIFICACIÓN: Activa e inicializa el modo de medición y cambia la interacción visual del mapa
+function activarHerramientaMedicion(modo) {
+    if (activeMeasureMode === modo) {
+        desactivarMedicion();
+        return;
+    }
+    
+    desactivarMedicion();
+    activeMeasureMode = modo;
+    measurePoints = [];
+    measureActive = true;
+    
+    const btnDist = document.getElementById('btn-medir-distancia');
+    const btnSup = document.getElementById('btn-medir-superficie');
+    
+    if (modo === 'distancia') {
+        btnDist.classList.add('bg-blue-600', 'text-white');
+        btnDist.classList.remove('bg-slate-800', 'text-slate-300');
+        mostrarNotificacion("Regla de distancia activa. Haga clic en el mapa para iniciar.", "📏");
+    } else if (modo === 'superficie') {
+        btnSup.classList.add('bg-emerald-600', 'text-white');
+        btnSup.classList.remove('bg-slate-800', 'text-slate-300');
+        mostrarNotificacion("Herramienta de superficie activa. Haga clic en el mapa para iniciar.", "📐");
+    }
+    
+    document.getElementById('map').style.cursor = 'crosshair';
+    
+    // Desactivar temporalmente el zoom por doble clic para evitar distorsiones al terminar de dibujar
+    map.doubleClickZoom.disable();
+    
+    map.on('click', onMapMeasureClick);
+    map.on('mousemove', onMapMeasureMouseMove);
+}
+
+// MODIFICACIÓN: Desactiva los modos de medición activos y remueve los controladores de eventos
+function desactivarMedicion() {
+    activeMeasureMode = null;
+    measureActive = false;
+    measurePoints = [];
+    
+    if (measureGuideLine) {
+        map.removeLayer(measureGuideLine);
+        measureGuideLine = null;
+    }
+    
+    const btnDist = document.getElementById('btn-medir-distancia');
+    const btnSup = document.getElementById('btn-medir-superficie');
+    
+    btnDist.classList.remove('bg-blue-600', 'text-white');
+    btnDist.classList.add('bg-slate-800', 'text-slate-300');
+    
+    btnSup.classList.remove('bg-emerald-600', 'text-white');
+    btnSup.classList.add('bg-slate-800', 'text-slate-300');
+    
+    document.getElementById('map').style.cursor = '';
+    
+    map.doubleClickZoom.enable();
+    
+    map.off('click', onMapMeasureClick);
+    map.off('mousemove', onMapMeasureMouseMove);
+}
+
+// MODIFICACIÓN: Añade un vértice al trazo de medición y computa los cálculos acumulados
+function onMapMeasureClick(e) {
+    if (!measureActive) return;
+    
+    const latlng = e.latlng;
+    measurePoints.push(latlng);
+    
+    const marker = L.circleMarker(latlng, {
+        radius: 4.5,
+        color: activeMeasureMode === 'distancia' ? '#2563eb' : '#059669',
+        fillColor: '#ffffff',
+        fillOpacity: 1,
+        weight: 2
+    }).addTo(map);
+    measureMarkers.push(marker);
+    
+    if (activeMeasureMode === 'distancia') {
+        if (!measureFeature) {
+            measureFeature = L.polyline(measurePoints, {
+                color: '#2563eb',
+                weight: 3.5,
+                opacity: 0.9
+            }).addTo(map);
+        } else {
+            measureFeature.setLatLngs(measurePoints);
+        }
+        
+        if (measurePoints.length > 1) {
+            let totalDist = 0;
+            for (let i = 1; i < measurePoints.length; i++) {
+                totalDist += measurePoints[i-1].distanceTo(measurePoints[i]);
+            }
+            
+            const lblText = totalDist > 1000 
+                ? (totalDist / 1000).toFixed(2) + ' km' 
+                : totalDist.toFixed(1) + ' m';
+                
+            let labelMarker = L.marker(latlng, {
+                icon: L.divIcon({
+                    className: 'measure-tooltip-container',
+                    html: `<div class="bg-blue-600 text-white font-bold text-[9.5px] px-1.5 py-0.5 rounded shadow border border-blue-500 whitespace-nowrap">${lblText}</div>`,
+                    iconSize: [0, 0],
+                    iconAnchor: [-10, 10]
+                }),
+                interactive: false
+            }).addTo(map);
+            measureLabels.push(labelMarker);
+        }
+        
+    } else if (activeMeasureMode === 'superficie') {
+        if (measurePoints.length >= 3) {
+            if (!measureFeature) {
+                measureFeature = L.polygon(measurePoints, {
+                    color: '#059669',
+                    weight: 3,
+                    opacity: 0.9,
+                    fillColor: '#10b981',
+                    fillOpacity: 0.3
+                }).addTo(map);
+            } else {
+                measureFeature.setLatLngs(measurePoints);
+            }
+            
+            const areaM2 = calcularAreaGeodesica(measurePoints);
+            const lblText = areaM2 > 10000 
+                ? (areaM2 / 10000).toFixed(2) + ' ha' 
+                : areaM2.toFixed(1) + ' m²';
+                
+            actualizarLabelSuperficie(lblText);
+        }
+    }
+}
+
+// MODIFICACIÓN: Dibuja dinámicamente la banda elástica que acompaña al cursor del mouse antes de hacer clic
+function onMapMeasureMouseMove(e) {
+    if (!measureActive || measurePoints.length === 0) return;
+    
+    const latlng = e.latlng;
+    
+    if (activeMeasureMode === 'distancia') {
+        const tempPoints = [...measurePoints, latlng];
+        if (!measureGuideLine) {
+            measureGuideLine = L.polyline(tempPoints, {
+                color: '#2563eb',
+                weight: 2,
+                dashArray: '5, 5',
+                opacity: 0.7
+            }).addTo(map);
+        } else {
+            measureGuideLine.setLatLngs(tempPoints);
+        }
+    } else if (activeMeasureMode === 'superficie') {
+        const tempPoints = [...measurePoints, latlng];
+        if (!measureGuideLine) {
+            measureGuideLine = L.polygon(tempPoints, {
+                color: '#059669',
+                weight: 2,
+                dashArray: '5, 5',
+                opacity: 0.7,
+                fillColor: '#10b981',
+                fillOpacity: 0.15
+            }).addTo(map);
+        } else {
+            measureGuideLine.setLatLngs(tempPoints);
+        }
+    }
+}
+
+// MODIFICACIÓN: Actualiza o recoloca la etiqueta con la superficie total en el centroide del polígono dibujado
+function actualizarLabelSuperficie(texto) {
+    measureLabels.forEach(lbl => {
+        if (lbl.options.isAreaLabel) map.removeLayer(lbl);
+    });
+    measureLabels = measureLabels.filter(lbl => !lbl.options.isAreaLabel);
+    
+    let sumLat = 0, sumLng = 0;
+    measurePoints.forEach(p => { sumLat += p.lat; sumLng += p.lng; });
+    const centroide = [sumLat / measurePoints.length, sumLng / measurePoints.length];
+    
+    let labelMarker = L.marker(centroide, {
+        icon: L.divIcon({
+            className: 'measure-tooltip-container',
+            html: `<div class="bg-emerald-600 text-white font-extrabold text-[10px] px-2 py-1 rounded shadow-lg border border-emerald-500 whitespace-nowrap">${texto}</div>`,
+            iconSize: [0, 0],
+            iconAnchor: [40, 10]
+        }),
+        interactive: false,
+        isAreaLabel: true
+    }).addTo(map);
+    measureLabels.push(labelMarker);
+}
+
+// MODIFICACIÓN: Concluye la medición actual bloqueando las formas resultantes y reiniciando el estado interactivo del mapa
+function finalizarMedicion() {
+    if (measureGuideLine) {
+        map.removeLayer(measureGuideLine);
+        measureGuideLine = null;
+    }
+    
+    if (activeMeasureMode === 'superficie' && measurePoints.length >= 3) {
+        const areaM2 = calcularAreaGeodesica(measurePoints);
+        const lblText = areaM2 > 10000 
+            ? (areaM2 / 10000).toFixed(2) + ' ha' 
+            : areaM2.toFixed(1) + ' m²';
+        actualizarLabelSuperficie(lblText);
+    }
+    
+    if (measureFeature) {
+        measureFeature = null; // Soltar la referencia para que permanezca dibujado de forma fija
+    }
+    
+    desactivarMedicion();
+    mostrarNotificacion("Medición guardada en el plano interactivo.", "✅");
+}
+
+// MODIFICACIÓN: Elimina del mapa interactivo todas las mediciones realizadas, líneas guía y textos
+function limpiarMediciones() {
+    desactivarMedicion();
+    
+    measureMarkers.forEach(m => map.removeLayer(m));
+    measureMarkers = [];
+    
+    measureLabels.forEach(l => map.removeLayer(l));
+    measureLabels = [];
+    
+    map.eachLayer(layer => {
+        if (layer instanceof L.Polygon || layer instanceof L.Polyline) {
+            if (layer !== highlightLayer && layer !== grupoCalles && layer !== grupoManzanas && layer !== grupoParcelas) {
+                let isSystemLayer = manzanasLayers.includes(layer) || parcelasLayers.some(lyGroup => lyGroup.hasLayer(layer));
+                if (!isSystemLayer) {
+                    map.removeLayer(layer);
+                }
+            }
+        }
+    });
+    
+    mostrarNotificacion("Limpieza de mediciones completada.", "🧹");
+}
+
+// Vincular doble clic del mapa para concluir el dibujo cómodamente
+map.on('dblclick', () => {
+    if (measureActive) {
+        finalizarMedicion();
+    }
+});
+
 function ejecutarImpresion() {
     window.print();
 }
@@ -1435,22 +1663,6 @@ function cancelarImpresion() {
         }
     }, 100);
 }
-
-// Inicialización de la herramienta de medición (longitud y superficie) en español
-var measureControl = new L.Control.Measure({
-    primaryLengthUnit: 'meters',
-    secondaryLengthUnit: 'kilometers',
-    primaryAreaUnit: 'sqmeters',
-    secondaryAreaUnit: 'hectares',
-    activeColor: '#ff6b6b',
-    completedColor: '#2980b9',
-    localization: 'es',
-    popupOptions: {
-        className: 'leaflet-measure-popup',
-        autoPanPadding: [80, 80]
-    }
-});
-measureControl.addTo(map);
 
 // Inicializar el buscador predictivo al cargar el script
 configurarBuscadorUbicaciones();
