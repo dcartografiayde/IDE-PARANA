@@ -1,1 +1,717 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consulta de Usos - Código Urbano de Paraná</title>
+    <!-- Tailwind CSS para diseño y estilos fluidos -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Librería Lucide para iconografía interactiva -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        }
+        /* Personalización de scrollbars elegantes para paneles densos */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col antialiased">
 
+    <!-- Encabezado de la Aplicación -->
+    <header class="bg-slate-950 border-b border-slate-800 py-4 px-6 shrink-0 shadow-lg">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="p-2.5 bg-blue-600/20 text-blue-400 rounded-xl border border-blue-500/30">
+                    <i data-lucide="map" class="w-7 h-7"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+                        Código Urbano de Paraná
+                        <span class="text-xs bg-blue-500/20 text-blue-400 border border-blue-500/30 px-2 py-0.5 rounded-full font-medium">Anexo III Actualizado</span>
+                    </h1>
+                    <p class="text-slate-400 text-xs mt-0.5">Visor Interactivo de Planillas de Usos, Distritos y Áreas Especiales (Referencia: image_85b863.png)</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3 bg-slate-900/80 p-2 rounded-xl border border-slate-800">
+                <div class="text-xs text-slate-400">
+                    <span class="block font-semibold text-white">Estado de Base de Datos:</span>
+                    <span id="dbState">Cargada y optimizada</span>
+                </div>
+                <div class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Área de Trabajo Principal (Layout de Triple Panel en pantallas grandes) -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 overflow-hidden">
+        
+        <!-- COLUMNA IZQUIERDA: Buscador, Filtros de Áreas y Referencias (lg:col-span-3) -->
+        <div class="lg:col-span-3 flex flex-col gap-5 overflow-y-auto pr-1">
+            
+            <!-- Panel de Entrada de Datos -->
+            <div class="bg-slate-950 p-5 rounded-2xl border border-slate-800 shadow-xl space-y-4">
+                <div class="space-y-2">
+                    <label class="text-xs font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-2">
+                        <i data-lucide="search" class="w-4 h-4 text-blue-400"></i>
+                        Buscar Uso o Código
+                    </label>
+                    <div class="relative">
+                        <input
+                            type="text"
+                            id="searchInput"
+                            placeholder="Ej: farma, auto, 11.2, bar..."
+                            class="w-full pl-10 pr-4 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm"
+                        />
+                        <i data-lucide="search" class="w-4 h-4 text-slate-500 absolute left-3.5 top-3.5"></i>
+                    </div>
+                    <p class="text-[10px] text-slate-400 leading-tight">
+                        * Busca por prefijo exacto. Ignora acentos y mayúsculas.
+                    </p>
+                </div>
+
+                <!-- Selector de Zonas / Distritos / Áreas Agrupados -->
+                <div class="pt-3 border-t border-slate-800 space-y-2">
+                    <label class="text-xs font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-2">
+                        <i data-lucide="filter" class="w-4 h-4 text-blue-400"></i>
+                        Destacar Distrito o Área
+                    </label>
+                    <select
+                        id="zoneSelect"
+                        class="w-full px-4 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer text-sm"
+                    >
+                        <option value="TODOS" class="bg-slate-900 text-white font-medium">-- Ver Todas las Zonas --</option>
+                        <!-- Se poblará y agrupará dinámicamente con optgroup mediante JS -->
+                    </select>
+                </div>
+            </div>
+
+            <!-- Panel de Glosario y Referencias de Símbolos -->
+            <div class="bg-slate-950 p-5 rounded-2xl border border-slate-800 shadow-xl flex-1 flex flex-col">
+                <h2 class="text-xs font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-2 mb-3 shrink-0">
+                    <i data-lucide="info" class="w-4 h-4 text-amber-400"></i>
+                    Glosario de Restricciones
+                </h2>
+                <div class="overflow-y-auto flex-1 space-y-2.5 pr-1 text-xs">
+                    <div id="referencesContainer" class="space-y-2.5">
+                        <!-- Generado dinámicamente para soportar hover inteligente -->
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- COLUMNA CENTRAL: Tabla de Rubros e Indicadores Básicos (lg:col-span-5) -->
+        <div class="lg:col-span-5 flex flex-col bg-slate-950 rounded-2xl border border-slate-800 overflow-hidden shadow-xl">
+            
+            <!-- Cabecera de la Tabla -->
+            <div class="p-4 bg-slate-900/60 border-b border-slate-800 flex items-center justify-between">
+                <div>
+                    <h3 class="font-bold text-sm text-white">Listado de Rubros</h3>
+                    <p class="text-[11px] text-slate-400">Resultados encontrados: <span id="resultsCount" class="text-blue-400 font-semibold">0</span></p>
+                </div>
+                <div id="activeFilterBadge" class="hidden text-[10px] bg-blue-500/20 border border-blue-500/30 text-blue-300 px-2 py-1 rounded-lg"></div>
+            </div>
+
+            <!-- Tabla de datos interactivos -->
+            <div class="flex-1 overflow-y-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead class="sticky top-0 bg-slate-900 text-slate-400 text-[10px] uppercase tracking-wider border-b border-slate-800 z-10">
+                        <tr>
+                            <th class="p-3 w-16">Cód.</th>
+                            <th class="p-3">Descripción de Actividad / Uso</th>
+                            <th id="filterHeaderCell" class="p-3 text-right hidden w-28">Estado Filtro</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody" class="divide-y divide-slate-800">
+                        <!-- Renglones de usos dinámicos -->
+                    </tbody>
+                </table>
+
+                <!-- Sin Resultados -->
+                <div id="noResults" class="hidden p-12 text-center text-slate-500 flex flex-col items-center justify-center">
+                    <i data-lucide="slash" class="w-10 h-10 text-slate-700 mb-2"></i>
+                    <p class="text-sm">Ningún rubro o código coincide con los criterios especificados.</p>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- COLUMNA DERECHA: Ficha Técnica Detallada (lg:col-span-4) -->
+        <div class="lg:col-span-4 flex flex-col bg-slate-950 rounded-2xl border border-slate-800 overflow-hidden shadow-xl" id="detailPanel">
+            <!-- Vacío / Selección Inicial -->
+            <div id="emptyDetailState" class="flex-1 flex flex-col items-center justify-center p-8 text-center text-slate-500">
+                <div class="p-4 bg-slate-900 rounded-full mb-3 text-slate-600">
+                    <i data-lucide="layers" class="w-10 h-10"></i>
+                </div>
+                <h4 class="text-white font-semibold text-sm">Ficha Técnica de Zonificación</h4>
+                <p class="text-xs mt-1 max-w-xs">Selecciona un rubro de la tabla central para analizar su viabilidad en los distritos y áreas especiales (Protección Patrimonial, Complementaria y Extra Urbana).</p>
+            </div>
+
+            <!-- Detalle de Uso Activo -->
+            <div id="activeDetailState" class="hidden flex-1 flex flex-col overflow-hidden">
+                <!-- Cabecera de la ficha -->
+                <div class="p-5 bg-gradient-to-r from-slate-900 to-slate-950 border-b border-slate-800 relative">
+                    <button id="closeDetailBtn" class="absolute top-4 right-4 text-slate-400 hover:text-white lg:hidden">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                    <span id="detailCode" class="text-xs font-mono font-bold text-blue-400 bg-blue-500/10 border border-blue-500/20 px-2 py-0.5 rounded"></span>
+                    <h3 id="detailName" class="text-base font-bold text-white mt-2 leading-tight"></h3>
+                </div>
+
+                <!-- Contenedor con Desglose Grupal de Zonas -->
+                <div class="flex-1 overflow-y-auto p-5 space-y-5">
+                    
+                    <!-- Grupo 1: Distritos Urbanos Principales -->
+                    <div class="space-y-2">
+                        <h4 class="text-[11px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                            <i data-lucide="home" class="w-3.5 h-3.5 text-blue-400"></i>
+                            Distritos Urbanos y Centrales
+                        </h4>
+                        <div id="groupDistritos" class="grid grid-cols-3 gap-2"></div>
+                    </div>
+
+                    <!-- Grupo 2: Costa y Protección Patrimonial (Referencia: image_85b863.png) -->
+                    <div class="space-y-2">
+                        <h4 class="text-[11px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                            <i data-lucide="landmark" class="w-3.5 h-3.5 text-amber-400"></i>
+                            Costa y Protección Patrimonial
+                        </h4>
+                        <div id="groupPatrimonial" class="grid grid-cols-2 gap-2"></div>
+                    </div>
+
+                    <!-- Grupo 3: Complementaria y Extra Urbana (Referencia: image_85b863.png) -->
+                    <div class="space-y-2">
+                        <h4 class="text-[11px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                            <i data-lucide="shield-alert" class="w-3.5 h-3.5 text-emerald-400"></i>
+                            Áreas Complementaria y Extra Urbana
+                        </h4>
+                        <div id="groupExtraUrbana" class="grid grid-cols-2 gap-2"></div>
+                    </div>
+
+                    <!-- Grupo 4: Vías de Enlace Extra Urbanas (Referencia: image_85b863.png) -->
+                    <div class="space-y-2">
+                        <h4 class="text-[11px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                            <i data-lucide="milestone" class="w-3.5 h-3.5 text-purple-400"></i>
+                            Vías de Enlace (Extra Urbana)
+                        </h4>
+                        <div id="groupVias" class="grid grid-cols-5 gap-1.5"></div>
+                    </div>
+
+                </div>
+
+                <!-- Visor Rápido de Notas del Chip Tocado/Enfocado -->
+                <div class="p-4 bg-slate-900 border-t border-slate-800">
+                    <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 text-xs">
+                        <div class="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">
+                            <i data-lucide="help-circle" class="w-3.5 h-3.5 text-blue-400"></i>
+                            Definición de Restricción
+                        </div>
+                        <p id="focusNote" class="text-slate-300 leading-normal italic">Pasa el cursor o presiona cualquier indicador de arriba para ver su especificación técnica aquí.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        // Diccionario estructurado de Metadatos de Zonas según image_85b863.png
+        const COLUMNAS_INFO = {
+            // Distritos
+            RE: { label: "RE", grupo: "Distritos", desc: "Residencial Especial" },
+            R1: { label: "R1", grupo: "Distritos", desc: "Residencial Densidad Alta" },
+            R3: { label: "R3", grupo: "Distritos", desc: "Residencial Densidad Media" },
+            R5: { label: "R5", grupo: "Distritos", desc: "Residencial Densidad Baja" },
+            R6: { label: "R6", grupo: "Distritos", desc: "Residencial de Baja Densidad Exclusivo" },
+            R7: { label: "R7", grupo: "Distritos", desc: "Residencial Densidad Baja Común" },
+            R8: { label: "R8", grupo: "Distritos", desc: "Residencial de Ensanche" },
+            R9: { label: "R9", grupo: "Distritos", desc: "Residencial de Ensanche Industrial" },
+            RT: { label: "RT", grupo: "Distritos", desc: "Residencial Turístico" },
+            UCC1: { label: "UCC1", grupo: "Distritos", desc: "Urbano Centro Cívico 1" },
+            UCC2: { label: "UCC2", grupo: "Distritos", desc: "Urbano Centro Cívico 2" },
+            
+            // De la Costa
+            COSTA: { label: "De la Costa", grupo: "Costa", desc: "Área de Protección de Ribera / Costa" },
+            
+            // Protección Patrimonial
+            PP_MLP: { label: "Mercado La Paz", grupo: "Patrimonial", desc: "Protección Patrimonial - Mercado La Paz" },
+            PP_PM: { label: "Plaza de Mayo", grupo: "Patrimonial", desc: "Protección Patrimonial - Plaza de Mayo" },
+            PP_PN: { label: "Puerto Nuevo", grupo: "Patrimonial", desc: "Protección Patrimonial - Puerto Nuevo" },
+            PP_PV: { label: "Puerto Viejo", grupo: "Patrimonial", desc: "Protección Patrimonial - Puerto Viejo" },
+            PP_FFCC: { label: "FFCC", grupo: "Patrimonial", desc: "Protección Patrimonial - Ex FFCC" },
+            PP_TS: { label: "Túnel Subfluvial", grupo: "Patrimonial", desc: "Protección Patrimonial - Entorno Túnel Subfluvial" },
+            
+            // Complementaria
+            C_CT2_CT3: { label: "CT2-CT3", grupo: "Complementaria", desc: "Complementaria - Corredor de Transición CT2-CT3" },
+            C_EU: { label: "Ensanche Urbano", grupo: "Complementaria", desc: "Complementaria - Ensanche Urbano" },
+            
+            // Extra Urbana
+            EU_EQ: { label: "Equipamiento", grupo: "Extra Urbana", desc: "Extra Urbana - Equipamientos Especiales" },
+            EU_PI: { label: "Parque Industrial", grupo: "Extra Urbana", desc: "Extra Urbana - Parque Industrial General Belgrano" },
+            EU_RURAL: { label: "E.U. Rural", grupo: "Extra Urbana", desc: "Extra Urbana - Zona de Transición Rural" },
+            
+            // Vías de enlace Extra Urbanas
+            EU_V1: { label: "Vía 1", grupo: "Vias", desc: "Vía de Enlace Nivel 1" },
+            EU_V2: { label: "Vía 2", grupo: "Vias", desc: "Vía de Enlace Nivel 2" },
+            EU_V3: { label: "Vía 3", grupo: "Vias", desc: "Vía de Enlace Nivel 3" },
+            EU_V4: { label: "Vía 4", grupo: "Vias", desc: "Vía de Enlace Nivel 4" },
+            EU_V5: { label: "Vía 5", grupo: "Vias", desc: "Vía de Enlace Nivel 5" }
+        };
+
+        const REFERENCIAS = {
+            "•": "Uso permitido libremente en este distrito o área.",
+            "1": "El organismo de aplicación determinará conveniencia de radicación. Requiere trámite y autorización de viabilidad expresa.",
+            "2": "Se efectuará estudio pormenorizado en conjunto para determinar factibilidad. Requiere autorización explícita.",
+            "3": "Uso condicionado bajo permiso de carácter precario y temporal.",
+            "4": "Únicamente admitido para oficinas de servicios e informes de carácter turístico.",
+            "5": "Limitado a una superficie cubierta total máxima de 40 m².",
+            "6": "Limitado a una superficie cubierta total máxima de 200 m².",
+            "7": "Limitado a una superficie cubierta total máxima de 500 m².",
+            "8": "Limitado a una superficie cubierta total máxima de 1500 m².",
+            "9": "Admitidos exclusivamente los contemplados bajo la categorización de industrias y depósitos del Anexo IV.",
+            "G": "Supeditado al cumplimiento riguroso de la Ordenanza 7911 (Normativa sobre Estaciones de expendio de Combustibles Líquidos y GNC).",
+            "H": "Sujeto a controles de la Ordenanza 7382 (Inspección y habilitación bromatológica, higiene y manipulación de alimentos).",
+            "I": "Requisito obligatorio de contar con dársenas y áreas internas de carga/descarga y cocheras en proporción directa a la capacidad edilicia.",
+            "M": "Regulado restrictivamente por las pautas de cocheras en la Ordenanza 5785."
+        };
+
+        // Base de Datos Ampliada con columnas de Distritos, Protección Patrimonial y Áreas de image_85b863.png
+        const USOS_DATA = [
+            { 
+                codigo: "1.1", 
+                nombre: "Oficinas Públicas", 
+                permisos: { 
+                    R3: "1", R5: "1", R6: "1", R7: "1", UCC1: "•", UCC2: "•",
+                    COSTA: "1", PP_MLP: "•", PP_PM: "•", PP_PN: "1", PP_PV: "1", PP_FFCC: "1", PP_TS: "1",
+                    C_CT2_CT3: "1", C_EU: "1", EU_EQ: "•", EU_PI: "1", EU_RURAL: "2",
+                    EU_V1: "•", EU_V2: "•", EU_V3: "1", EU_V4: "2", EU_V5: "2"
+                } 
+            },
+            { 
+                codigo: "1.2", 
+                nombre: "Cuartel de Bomberos", 
+                permisos: { 
+                    R3: "1", R5: "1", R6: "1", R7: "1", R8: "1", R9: "1",
+                    PP_MLP: "•", PP_PM: "•", PP_PN: "•", PP_PV: "•",
+                    C_EU: "•", EU_EQ: "•", EU_RURAL: "•",
+                    EU_V1: "•", EU_V2: "•", EU_V3: "•", EU_V4: "•", EU_V5: "•"
+                } 
+            },
+            { 
+                codigo: "1.4", 
+                nombre: "Comisaría", 
+                permisos: { 
+                    R3: "1", R5: "1", R6: "1", R7: "•", R8: "•", R9: "•", RT: "•", UCC1: "•", UCC2: "•",
+                    COSTA: "1", PP_MLP: "•", PP_PM: "•", PP_PN: "•", PP_PV: "•",
+                    C_CT2_CT3: "•", C_EU: "•", EU_EQ: "•", EU_RURAL: "•",
+                    EU_V1: "•", EU_V2: "•", EU_V3: "•"
+                } 
+            },
+            { 
+                codigo: "2.1", 
+                nombre: "Comercio mayorista sin depósito ni reposición (máx 200m2)", 
+                permisos: { 
+                    R5: "9", R6: "9", R7: "6", R8: "6", R9: "6", RT: "6", UCC1: "6", UCC2: "6",
+                    COSTA: "3", PP_MLP: "6", PP_PN: "6", PP_PV: "6",
+                    C_CT2_CT3: "6", C_EU: "6", EU_EQ: "9", EU_PI: "•",
+                    EU_V1: "6", EU_V2: "6", EU_V3: "6"
+                } 
+            },
+            { 
+                codigo: "3.2.1", 
+                nombre: "Autoservicios", 
+                permisos: { 
+                    R3: "5", R5: "6", R6: "6", R7: "•", R8: "•", R9: "•", RT: "•", UCC1: "•", UCC2: "•",
+                    COSTA: "5", PP_MLP: "6", PP_PM: "6", PP_PN: "6", PP_PV: "6", PP_FFCC: "3",
+                    C_CT2_CT3: "•", C_EU: "•", EU_EQ: "6", EU_RURAL: "3",
+                    EU_V1: "•", EU_V2: "•", EU_V3: "•", EU_V4: "6", EU_V5: "6"
+                } 
+            },
+            { 
+                codigo: "3.2.4", 
+                nombre: "Supermercados (hasta 2500 m2)", 
+                permisos: { 
+                    R7: "•", R8: "•", R9: "•", RT: "•", UCC1: "•", UCC2: "•",
+                    COSTA: "2", PP_PN: "I", PP_PV: "I",
+                    C_CT2_CT3: "I", C_EU: "I", EU_EQ: "I", EU_PI: "I",
+                    EU_V1: "•", EU_V2: "•", EU_V3: "•"
+                } 
+            },
+            { 
+                codigo: "3.3.1", 
+                nombre: "Transporte automotor: Autos nuevos y usados. Exposición y venta", 
+                permisos: { 
+                    R7: "•", R8: "•", R9: "•", RT: "•", UCC1: "•", UCC2: "•",
+                    COSTA: "2", PP_PN: "1", PP_PV: "1",
+                    C_CT2_CT3: "I", C_EU: "I", EU_EQ: "I",
+                    EU_V1: "•", EU_V2: "•", EU_V3: "•", EU_V4: "•", EU_V5: "•"
+                } 
+            },
+            { 
+                codigo: "3.4.5", 
+                nombre: "Artículos para limpieza", 
+                permisos: { 
+                    R5: "5", R6: "5", R7: "5", R8: "5", R9: "5", UCC1: "•", UCC2: "•",
+                    COSTA: "5", PP_MLP: "5", PP_PM: "5", PP_PN: "5", PP_PV: "5",
+                    C_CT2_CT3: "•", C_EU: "•", EU_EQ: "5",
+                    EU_V1: "•", EU_V2: "•", EU_V3: "•"
+                } 
+            },
+            { 
+                codigo: "3.4.13", 
+                nombre: "Farmacia, perfumería", 
+                permisos: { 
+                    R1: "5", R3: "•", R5: "5", R6: "•", R7: "•", R8: "•", R9: "•", RT: "•", UCC1: "•", UCC2: "•",
+                    COSTA: "5", PP_MLP: "•", PP_PM: "•", PP_PN: "•", PP_PV: "•",
+                    C_CT2_CT3: "5", C_EU: "5", EU_EQ: "•",
+                    EU_V1: "•", EU_V2: "•", EU_V3: "•"
+                } 
+            },
+            { 
+                codigo: "3.4.15", 
+                nombre: "Locales de venta de gas envasado", 
+                permisos: { 
+                    R3: "1", R5: "1", R6: "1", R7: "1", R8: "1", R9: "1", RT: "1",
+                    C_EU: "1", EU_EQ: "1", EU_RURAL: "1",
+                    EU_V1: "1", EU_V2: "1", EU_V3: "1", EU_V4: "1", EU_V5: "1"
+                } 
+            },
+            { 
+                codigo: "4.10", 
+                nombre: "Cine, Teatros y Centros Culturales", 
+                permisos: { 
+                    R3: "1", R5: "1", R6: "1", R7: "•", R8: "1", R9: "1", RT: "1", UCC1: "1", UCC2: "•",
+                    COSTA: "•", PP_MLP: "•", PP_PM: "•", PP_PN: "•", PP_PV: "•", PP_FFCC: "•",
+                    C_CT2_CT3: "•", C_EU: "•", EU_EQ: "•",
+                    EU_V1: "•", EU_V2: "•", EU_V3: "•"
+                } 
+            },
+            { 
+                codigo: "5.3", 
+                nombre: "Jardines de infantes y maternales", 
+                permisos: { 
+                    R1: "1", R3: "1", R5: "•", R6: "•", R7: "•", R8: "•", R9: "•", RT: "•", UCC1: "•", UCC2: "•",
+                    COSTA: "1", PP_MLP: "•", PP_PM: "•", PP_PN: "•", PP_PV: "•",
+                    C_CT2_CT3: "•", C_EU: "•", EU_EQ: "•"
+                } 
+            },
+            { 
+                codigo: "9.3", 
+                nombre: "Vivienda colectiva", 
+                permisos: { 
+                    R1: "•", R3: "•", R5: "•", R6: "•", R7: "•", R8: "•", R9: "•", RT: "•", UCC1: "•", UCC2: "•",
+                    COSTA: "•", PP_MLP: "•", PP_PM: "•", PP_PN: "•", PP_PV: "•",
+                    C_CT2_CT3: "•", C_EU: "•"
+                } 
+            },
+            { 
+                codigo: "9.4", 
+                nombre: "Vivienda individual", 
+                permisos: { 
+                    R1: "•", R3: "•", R5: "•", R6: "•", R7: "•", R8: "•", R9: "•", RT: "•", UCC1: "•", UCC2: "•",
+                    COSTA: "•", PP_MLP: "•", PP_PM: "•", PP_PN: "•", PP_PV: "•",
+                    C_CT2_CT3: "•", C_EU: "•", EU_RURAL: "•"
+                } 
+            },
+            { 
+                codigo: "11.2", 
+                nombre: "Alimentación en general (pizzería, restaurante, bar)", 
+                permisos: { 
+                    R1: "•", R3: "•", R5: "•", R6: "•", R7: "•", R8: "•", R9: "•", RT: "•", UCC1: "•", UCC2: "•",
+                    COSTA: "H", PP_MLP: "H", PP_PM: "H", PP_PN: "H", PP_PV: "H", PP_FFCC: "H",
+                    C_CT2_CT3: "H", C_EU: "H", EU_EQ: "H", EU_RURAL: "H",
+                    EU_V1: "H", EU_V2: "H", EU_V3: "H", EU_V4: "H", EU_V5: "H"
+                } 
+            },
+            { 
+                codigo: "11.6", 
+                nombre: "Estación de servicio o lavadero mecánico", 
+                permisos: { 
+                    R5: "G", R6: "G", R7: "G", R8: "G", R9: "G", RT: "G", UCC1: "G", UCC2: "G",
+                    COSTA: "2",
+                    C_EU: "G", EU_EQ: "G", EU_PI: "G", EU_RURAL: "G",
+                    EU_V1: "G", EU_V2: "G", EU_V3: "G", EU_V4: "G", EU_V5: "G"
+                } 
+            },
+            { 
+                codigo: "11.14", 
+                nombre: "Cocheras", 
+                permisos: { 
+                    R1: "1", R3: "•", R5: "•", R6: "•", R7: "•", R8: "•", R9: "•", RT: "•", UCC1: "•", UCC2: "•",
+                    COSTA: "M", PP_MLP: "M", PP_PM: "M", PP_PN: "M", PP_PV: "M",
+                    C_CT2_CT3: "M", C_EU: "M", EU_EQ: "M"
+                } 
+            },
+        ];
+
+        // Referencias de elementos DOM
+        const searchInput = document.getElementById('searchInput');
+        const zoneSelect = document.getElementById('zoneSelect');
+        const referencesContainer = document.getElementById('referencesContainer');
+        const tableBody = document.getElementById('tableBody');
+        const resultsCount = document.getElementById('resultsCount');
+        const activeFilterBadge = document.getElementById('activeFilterBadge');
+        const filterHeaderCell = document.getElementById('filterHeaderCell');
+        const noResults = document.getElementById('noResults');
+
+        // Paneles de Ficha Técnica
+        const emptyDetailState = document.getElementById('emptyDetailState');
+        const activeDetailState = document.getElementById('activeDetailState');
+        const detailCode = document.getElementById('detailCode');
+        const detailName = document.getElementById('detailName');
+        const focusNote = document.getElementById('focusNote');
+        const closeDetailBtn = document.getElementById('closeDetailBtn');
+        const detailPanel = document.getElementById('detailPanel');
+
+        // Grupos de Ficha Técnica
+        const groupDistritos = document.getElementById('groupDistritos');
+        const groupPatrimonial = document.getElementById('groupPatrimonial');
+        const groupExtraUrbana = document.getElementById('groupExtraUrbana');
+        const groupVias = document.getElementById('groupVias');
+
+        let selectedRowId = null;
+
+        // Inicialización
+        function initApp() {
+            // 1. Cargar referencias fijas en la izquierda
+            Object.entries(REFERENCIAS).forEach(([simbolo, desc]) => {
+                const item = document.createElement('div');
+                item.className = 'flex items-start gap-2 p-2 rounded-lg bg-slate-900 border border-slate-800 hover:border-blue-500/30 hover:bg-slate-900/60 transition-all cursor-help';
+                item.title = desc;
+                item.innerHTML = `
+                    <span class="w-6 h-6 flex items-center justify-center font-extrabold text-xs text-white bg-slate-800 border border-slate-700 rounded shadow-inner shrink-0 group-hover:bg-blue-600">
+                        ${simbolo}
+                    </span>
+                    <span class="text-[11px] text-slate-300 leading-tight">${desc}</span>
+                `;
+                // Efecto hover para actualizar la descripción en el visor inferior si está abierto
+                item.addEventListener('mouseenter', () => {
+                    setFocusNote(simbolo, desc);
+                });
+                referencesContainer.appendChild(item);
+            });
+
+            // 2. Poblar selector agrupado de zonas
+            const grupos = {
+                "Distritos": "Distritos Urbanos y Centrales",
+                "Costa": "Costa",
+                "Patrimonial": "Protección Patrimonial",
+                "Complementaria": "Áreas Complementarias",
+                "Extra Urbana": "Áreas Extra Urbanas",
+                "Vias": "Vías de Enlace (Extra Urbanas)"
+            };
+
+            Object.entries(grupos).forEach(([grupoKey, grupoNombre]) => {
+                const optGroup = document.createElement('optgroup');
+                optGroup.label = grupoNombre;
+                optGroup.className = "bg-slate-900 text-slate-300 font-semibold";
+
+                Object.entries(COLUMNAS_INFO)
+                    .filter(([_, info]) => info.grupo === grupoKey)
+                    .forEach(([key, info]) => {
+                        const opt = document.createElement('option');
+                        opt.value = key;
+                        opt.textContent = `${info.label} - ${info.desc}`;
+                        opt.className = "bg-slate-900 text-slate-100 font-normal";
+                        optGroup.appendChild(opt);
+                    });
+
+                zoneSelect.appendChild(optGroup);
+            });
+
+            // 3. Suscribir listeners
+            searchInput.addEventListener('input', renderTable);
+            zoneSelect.addEventListener('change', renderTable);
+            closeDetailBtn.addEventListener('click', () => {
+                detailPanel.classList.add('hidden');
+                detailPanel.classList.remove('flex');
+            });
+
+            renderTable();
+            lucide.createIcons();
+        }
+
+        // Helper para establecer nota de enfoque interactiva
+        function setFocusNote(simbolo, desc) {
+            focusNote.innerHTML = `<strong class="text-blue-400 font-bold font-mono">[${simbolo}]</strong>: ${desc}`;
+        }
+
+        function renderTable() {
+            const term = searchInput.value.trim().toLowerCase();
+            const selectedZone = zoneSelect.value;
+
+            // Filtrado prefix-based insensible a mayúsculas
+            const filtered = USOS_DATA.filter(item => {
+                let matchesSearch = true;
+                if (term !== '') {
+                    const words = item.nombre.toLowerCase().split(/[\s,.\-()]+/);
+                    const matchesCode = item.codigo.startsWith(term);
+                    const matchesPrefix = words.some(word => word.startsWith(term));
+                    matchesSearch = matchesCode || matchesPrefix;
+                }
+
+                let matchesZone = true;
+                if (selectedZone !== 'TODOS') {
+                    // El uso debe tener configurada alguna restricción/permiso para esa zona
+                    matchesZone = item.permisos[selectedZone] !== undefined && item.permisos[selectedZone] !== "";
+                }
+
+                return matchesSearch && matchesZone;
+            });
+
+            // Actualizar interfaz general
+            resultsCount.textContent = filtered.length;
+            tableBody.innerHTML = '';
+
+            if (selectedZone !== 'TODOS') {
+                const info = COLUMNAS_INFO[selectedZone];
+                activeFilterBadge.textContent = `Destacando: ${info.label}`;
+                activeFilterBadge.classList.remove('hidden');
+                filterHeaderCell.textContent = info.label;
+                filterHeaderCell.classList.remove('hidden');
+            } else {
+                activeFilterBadge.classList.add('hidden');
+                filterHeaderCell.classList.add('hidden');
+            }
+
+            if (filtered.length === 0) {
+                noResults.classList.remove('hidden');
+            } else {
+                noResults.classList.add('hidden');
+
+                filtered.forEach(item => {
+                    const tr = document.createElement('tr');
+                    const isSelected = selectedRowId === item.codigo;
+                    tr.className = `cursor-pointer transition-all border-l-2 ${isSelected ? 'bg-slate-800 border-l-blue-500 hover:bg-slate-800' : 'hover:bg-slate-900 border-l-transparent'}`;
+                    
+                    let colEspecialHTML = '';
+                    if (selectedZone !== 'TODOS') {
+                        const val = item.permisos[selectedZone] || '-';
+                        const colorClass = getSymbolColor(val);
+                        colEspecialHTML = `
+                            <td class="p-3 text-right">
+                                <span class="px-2 py-0.5 rounded font-mono font-extrabold text-xs shadow ${colorClass}">
+                                    ${val}
+                                </span>
+                            </td>
+                        `;
+                    }
+
+                    tr.innerHTML = `
+                        <td class="p-3 font-mono text-xs text-slate-400">${item.codigo}</td>
+                        <td class="p-3 text-xs text-slate-100 font-medium leading-relaxed">${item.nombre}</td>
+                        ${colEspecialHTML}
+                    `;
+
+                    tr.addEventListener('click', () => {
+                        selectedRowId = item.codigo;
+                        // Forzar refresco visual en la tabla para cambiar la clase activa
+                        Array.from(tableBody.children).forEach(child => {
+                            child.classList.remove('bg-slate-800', 'border-l-blue-500');
+                            child.classList.add('border-l-transparent');
+                        });
+                        tr.classList.add('bg-slate-800', 'border-l-blue-500');
+                        tr.classList.remove('border-l-transparent');
+
+                        showDetail(item);
+                    });
+
+                    tableBody.appendChild(tr);
+                });
+            }
+        }
+
+        // Devuelve las combinaciones cromáticas de Tailwind según el tipo de restricción
+        function getSymbolColor(simbolo) {
+            if (simbolo === "•") return "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
+            if (["1", "2", "3", "4"].includes(simbolo)) return "bg-amber-500/20 text-amber-300 border border-amber-500/30";
+            if (["5", "6", "7", "8"].includes(simbolo)) return "bg-blue-500/20 text-blue-300 border border-blue-500/30";
+            if (["G", "H", "I", "M"].includes(simbolo)) return "bg-purple-500/20 text-purple-300 border border-purple-500/30";
+            return "bg-slate-800 text-slate-500 border border-slate-700";
+        }
+
+        // Despliega la ficha técnica detallada a la derecha
+        function showDetail(item) {
+            emptyDetailState.classList.add('hidden');
+            activeDetailState.classList.remove('hidden');
+            
+            // Forzar visualización de panel derecho en resoluciones móviles
+            detailPanel.classList.remove('hidden');
+            detailPanel.classList.add('flex');
+
+            detailCode.textContent = `Código ${item.codigo}`;
+            detailName.textContent = item.nombre;
+            focusNote.textContent = "Toca o posa el cursor sobre cualquiera de las áreas para consultar la normativa complementaria del Anexo III.";
+
+            // Limpieza de grupos
+            groupDistritos.innerHTML = '';
+            groupPatrimonial.innerHTML = '';
+            groupExtraUrbana.innerHTML = '';
+            groupVias.innerHTML = '';
+
+            // Poblar las categorías según image_85b863.png
+            Object.entries(COLUMNAS_INFO).forEach(([key, info]) => {
+                const val = item.permisos[key] || '-';
+                const chip = document.createElement('div');
+                
+                // Estilo general del chip
+                chip.className = `flex flex-col p-2 bg-slate-900 hover:bg-slate-800 rounded-lg border border-slate-800 hover:border-slate-700 transition-all cursor-help relative group`;
+                
+                // Determina la apariencia de la restricción
+                const colorClass = getSymbolColor(val);
+
+                chip.innerHTML = `
+                    <div class="flex items-center justify-between gap-1">
+                        <span class="text-[10px] text-slate-400 font-semibold truncate" title="${info.desc}">${info.label}</span>
+                        <span class="px-1.5 py-0.5 rounded font-mono font-extrabold text-[10px] text-center shrink-0 min-w-[18px] ${colorClass}">
+                            ${val}
+                        </span>
+                    </div>
+                `;
+
+                // Interacciones para refrescar el cuadro de texto interpretativo al instante
+                const descCompleta = REFERENCIAS[val] || "No registra normativas específicas o prohibido expresamente.";
+                
+                const handleFocus = () => {
+                    setFocusNote(val, `<strong>${info.desc}:</strong> ${descCompleta}`);
+                };
+
+                chip.addEventListener('mouseenter', handleFocus);
+                chip.addEventListener('click', handleFocus);
+
+                // Distribuir el chip en el grupo visual que le corresponde según image_85b863.png
+                if (info.grupo === "Distritos") {
+                    groupDistritos.appendChild(chip);
+                } else if (info.grupo === "Patrimonial" || info.grupo === "Costa") {
+                    groupPatrimonial.appendChild(chip);
+                } else if (info.grupo === "Complementaria" || info.grupo === "Extra Urbana") {
+                    groupExtraUrbana.appendChild(chip);
+                } else if (info.grupo === "Vias") {
+                    groupVias.appendChild(chip);
+                }
+            });
+
+            // Hacer scroll suave hacia el panel de detalle en resoluciones pequeñas
+            if (window.innerWidth < 1024) {
+                detailPanel.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        window.onload = initApp;
+    </script>
+</body>
+</html>
