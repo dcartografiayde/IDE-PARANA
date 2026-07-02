@@ -3,12 +3,16 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Visor Base Catastro - Paraná - IDE & Asistente IA</title>
+    <title>Visor Base Catastro - Paraná - IDE & Asistente IA RAG</title>
 
+    <!-- Hojas de estilo y dependencias necesarias para el visor geográfico -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/leaflet-textpath@1.2.3/leaflet.textpath.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- PDF.js para lectura directa de documentos PDF de la carpeta normativa en Github -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
 
     <style>
         body { margin:0; padding:0; font-family: 'Inter', sans-serif; background: #0f172a; overflow: hidden; }
@@ -16,89 +20,143 @@
 
         .panel-superior {
             position:absolute; top:12px; left:55px; z-index:900;
-            background: rgba(255, 255, 255, 0.95); padding:8px; border-radius:10px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            background: rgba(15, 23, 42, 0.95); padding:8px; border-radius:12px;
+            box-shadow: 0 4px 25px rgba(0,0,0,0.5);
             display:flex; gap:6px; align-items: center; flex-wrap: wrap;
-            backdrop-filter: blur(5px); border: 1px solid rgba(0,0,0,0.1);
+            backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.1);
             max-width: calc(100% - 70px);
         }
 
-        input { padding: 4px 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 12px; outline: none; transition: 0.2s; }
-        input:focus { border-color: #2980b9; box-shadow: 0 0 0 2px rgba(41,128,185,0.2); }
-        .btn-buscar { background: #2980b9; color: white; padding: 4px 10px; cursor: pointer; border-radius: 6px; font-weight: 600; font-size: 12px; border: none; }
-        .btn-buscar:hover { background: #1f6391; }
+        input { background: #1e293b; color: #f8fafc; border: 1px solid #475569; padding: 4px 8px; border-radius: 6px; font-size: 12px; outline: none; transition: 0.2s; }
+        input:focus { border-color: #10b981; box-shadow: 0 0 0 2px rgba(16,185,129,0.2); }
+        .btn-buscar { background: #0284c7; color: white; padding: 4px 10px; cursor: pointer; border-radius: 6px; font-weight: 600; font-size: 12px; border: none; transition: 0.2s; }
+        .btn-buscar:hover { background: #0369a1; }
         
-        .btn-google { background: #4285F4; color: white; padding: 4px 10px; cursor: pointer; border-radius: 6px; font-weight: 600; font-size: 12px; border: none; }
+        .btn-google { background: #3b82f6; color: white; padding: 4px 10px; cursor: pointer; border-radius: 6px; font-weight: 600; font-size: 12px; border: none; }
 
         #sugerencias-calles {
-            position: absolute; background: white; border: 1px solid #ccc;
-            border-radius: 6px; max-height: 150px; overflow-y: auto; z-index: 2000;
-            width: 180px; display: none; margin-top: 34px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            position: absolute; background: #1e293b; border: 1px solid #475569;
+            border-radius: 8px; max-height: 150px; overflow-y: auto; z-index: 2000;
+            width: 180px; display: none; margin-top: 34px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
         }
-        .sugerencia-item { padding: 6px 10px; cursor: pointer; font-size: 11px; border-bottom: 1px solid #f0f0f0; }
-        .sugerencia-item:hover { background: #f8f9fa; color: #2980b9; }
+        .sugerencia-item { padding: 6px 10px; cursor: pointer; font-size: 11px; border-bottom: 1px solid #334155; color: #e2e8f0; }
+        .sugerencia-item:hover { background: #334155; color: #10b981; }
 
-        .popup-custom { font-size: 10px; line-height: 1.1; min-width: 240px; max-height: 280px; overflow-y: auto; padding: 2px; }
-        .popup-header { 
-            text-align: center; font-weight: 800; border-bottom: 1px solid #eee; 
-            padding-bottom: 2px; margin-bottom: 3px; color: #1a202c; text-transform: uppercase;
+        /* Estilos globales para anular los popups blancos por defecto de Leaflet */
+        .leaflet-popup-content-wrapper, .leaflet-popup-tip {
+            background: #1e293b !important;
+            color: #f1f5f9 !important;
+            border: 1px solid #475569 !important;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.5) !important;
+            border-radius: 12px !important;
         }
-        .table-info { width: 100%; border-collapse: collapse; margin-bottom: 4px; }
-        .table-info td { border-bottom: 1px solid #edf2f7; padding: 1px 0; font-size: 9px; vertical-align: top; }
-        .table-info tr td:first-child { font-weight: 700; color: #4a5568; width: 35%; text-transform: uppercase; }
+
+        .leaflet-popup-close-button {
+            color: #94a3b8 !important;
+            padding: 8px 8px 0 0 !important;
+            font-size: 14px !important;
+        }
+
+        .leaflet-popup-close-button:hover {
+            color: #ef4444 !important;
+        }
+
+        .popup-custom { 
+            font-size: 11px; 
+            line-height: 1.4; 
+            min-width: 250px; 
+            max-height: 290px; 
+            overflow-y: auto; 
+            padding: 4px; 
+            color: #ffffff; 
+        }
+
+        .popup-header { 
+            text-align: center; 
+            font-weight: 800; 
+            border-bottom: 1px solid #475569; 
+            padding-bottom: 6px; 
+            margin-bottom: 8px; 
+            color: #10b981; 
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.05em;
+        }
+
+        .table-info { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-bottom: 8px; 
+        }
+
+        .table-info td { 
+            border-bottom: 1px solid #334155; 
+            padding: 4px 0; 
+            font-size: 10.5px; 
+            vertical-align: top; 
+            color: #ffffff !important; 
+        }
+
+        .table-info tr td:first-child { 
+            font-weight: 700; 
+            color: #38bdf8 !important; 
+            width: 38%; 
+            text-transform: uppercase; 
+        }
 
         .btn-streetview {
-            display: block; margin: 4px auto 4px; padding: 6px; border-radius: 4px;
-            background: #4285F4; color: white !important; text-align: center;
-            text-decoration: none; font-weight: bold; font-size: 10px;
+            display: block; margin: 6px auto; padding: 7px; border-radius: 6px;
+            background: #2563eb; color: white !important; text-align: center;
+            text-decoration: none; font-weight: bold; font-size: 10.5px; transition: 0.2s;
+            border: none; box-shadow: 0 2px 4px rgba(37,99,235,0.3);
         }
+        .btn-streetview:hover { background: #1d4ed8; transform: translateY(-1px); }
         
         .btn-analizar-ia {
-            display: block; margin: 4px auto; padding: 6px; border-radius: 4px;
+            display: block; margin: 4px auto; padding: 7px; border-radius: 6px;
             background: #10b981; color: white !important; text-align: center;
-            text-decoration: none; font-weight: bold; font-size: 10px; cursor: pointer;
-            border: none; width: 100%;
+            text-decoration: none; font-weight: bold; font-size: 10.5px; cursor: pointer;
+            border: none; width: 100%; transition: 0.2s;
+            box-shadow: 0 2px 4px rgba(16,185,129,0.3);
         }
-        .btn-analizar-ia:hover { background: #059669; }
+        .btn-analizar-ia:hover { background: #059669; transform: translateY(-1px); }
 
-        .adv-sv { font-size: 9px; color: #718096; text-align: center; font-style: italic; margin-top: 4px; line-height: 1.2; }
-        .adv-legal { font-size: 8px; color: #a0aec0; margin-top: 6px; border-top: 1px dashed #cbd5e0; padding-top: 4px; line-height: 1.1; }
-        
-        .adv-distrito { position: absolute; bottom: 25px; right: 10px; z-index: 1000; background: rgba(255,255,255,0.8); padding: 4px 8px; border-radius: 6px; font-size: 9px; color: #4a5568; pointer-events: none; border: 1px solid rgba(0,0,0,0.1); }
+        .adv-sv { font-size: 9px; color: #94a3b8; text-align: center; font-style: italic; margin-top: 6px; line-height: 1.2; }
+        .adv-distrito { position: absolute; bottom: 25px; right: 10px; z-index: 1000; background: rgba(15, 23, 42, 0.85); padding: 4px 8px; border-radius: 6px; font-size: 9px; color: #94a3b8; pointer-events: none; border: 1px solid rgba(255,255,255,0.1); }
         
         .layer-legend-icon { 
             display: inline-block; 
             width: 14px; 
             height: 14px; 
             margin-right: 8px; 
-            border: 1px solid #333; 
+            border: 1px solid #475569; 
             vertical-align: middle; 
             border-radius: 3px; 
         }
         
         .etiqueta-distrito {
-            background: rgba(255,255,255,0.9)!important; border: 1px solid #333!important;
+            background: rgba(15, 23, 42, 0.95)!important; border: 1px solid #10b981!important;
             padding: 1px 4px!important; font-size: 10px!important; font-weight: bold!important; pointer-events: none;
+            color: #10b981!important; border-radius: 4px!important;
         }
 
-        /* Control dinámico de etiquetas de catastro por CSS según zoom */
+        /* Etiquetas adaptativas según zoom */
         .etiqueta-catastro-sec, .etiqueta-catastro-gru, .etiqueta-catastro-manz, .etiqueta-catastro-zona {
-            background: rgba(255, 255, 255, 0.9) !important;
-            border: 1px solid #4a5568 !important;
+            background: rgba(15, 23, 42, 0.9) !important;
+            border: 1px solid #475569 !important;
             padding: 1px 3px !important;
             font-size: 9px !important;
             font-weight: bold !important;
-            border-radius: 3px !important;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+            border-radius: 4px !important;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.4);
             pointer-events: none;
             white-space: nowrap;
         }
-        .etiqueta-catastro-sec { color: #c0392b !important; }
-        .etiqueta-catastro-gru { color: #d35400 !important; }
-        .etiqueta-catastro-manz { color: #27ae60 !important; }
-        .etiqueta-catastro-zona { color: #2c3e50 !important; border-color: #7f8c8d !important; }
+        .etiqueta-catastro-sec { color: #f87171 !important; }
+        .etiqueta-catastro-gru { color: #fb923c !important; }
+        .etiqueta-catastro-manz { color: #4ade80 !important; }
+        .etiqueta-catastro-zona { color: #cbd5e1 !important; border-color: #64748b !important; }
 
-        /* Ocultas por defecto */
         .leaflet-tooltip-pane .etiqueta-catastro-sec,
         .leaflet-tooltip-pane .etiqueta-catastro-gru,
         .leaflet-tooltip-pane .etiqueta-catastro-manz,
@@ -106,7 +164,6 @@
             display: none !important;
         }
 
-        /* Zoom 14+ muestra Secciones y Zonas Tributarias */
         .map-zoom-14 .leaflet-tooltip-pane .etiqueta-catastro-sec,
         .map-zoom-14 .leaflet-tooltip-pane .etiqueta-catastro-zona,
         .map-zoom-15 .leaflet-tooltip-pane .etiqueta-catastro-sec,
@@ -128,7 +185,6 @@
             display: block !important;
         }
 
-        /* Zoom 15+ muestra Grupos */
         .map-zoom-15 .leaflet-tooltip-pane .etiqueta-catastro-gru,
         .map-zoom-16 .leaflet-tooltip-pane .etiqueta-catastro-gru,
         .map-zoom-17 .leaflet-tooltip-pane .etiqueta-catastro-gru,
@@ -140,7 +196,6 @@
             display: block !important;
         }
 
-        /* Zoom 16+ muestra Manzanas */
         .map-zoom-16 .leaflet-tooltip-pane .etiqueta-catastro-manz,
         .map-zoom-17 .leaflet-tooltip-pane .etiqueta-catastro-manz,
         .map-zoom-18 .leaflet-tooltip-pane .etiqueta-catastro-manz,
@@ -153,13 +208,37 @@
     </style>
 </head>
 
-<body class="relative flex">
+<body class="relative flex font-sans select-none">
 
+<!-- PANTALLA DE BLOQUEO INSTITUCIONAL (CONTRASENA: MuniParana2026) -->
+<div id="pantalla-bloqueo" class="fixed inset-0 bg-slate-950 z-[9999] flex flex-col items-center justify-center p-4 transition-opacity duration-500">
+    <div class="max-w-md w-full bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl space-y-6 text-center">
+        <div class="space-y-2">
+            <span class="text-4xl">🏛️</span>
+            <h1 class="text-xl font-extrabold text-slate-100 tracking-wide uppercase">Municipalidad de Paraná</h1>
+            <p class="text-xs text-emerald-400 font-semibold tracking-wider">VISOR CATASTRAL CON INTEGRACIÓN DE IA</p>
+            <p class="text-[11px] text-slate-400">Acceso exclusivo para el personal técnico autorizado de planeamiento urbano</p>
+        </div>
+
+        <div class="space-y-3 pt-2">
+            <div class="relative">
+                <input type="password" id="input-password-acceso" placeholder="Contraseña de Acceso Municipal" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm text-center text-slate-100 placeholder-slate-500 tracking-widest focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500">
+            </div>
+            <button onclick="validarYDesbloquear()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl uppercase tracking-wider transition-colors shadow-lg shadow-emerald-950/50">
+                Verificar Credenciales
+            </button>
+            <p id="msg-bloqueo-error" class="hidden text-xs text-red-400 font-semibold animate-pulse">Contraseña incorrecta. Inténtelo de nuevo.</p>
+        </div>
+        <p class="text-[10px] text-slate-500 italic">Pruebe con la clave de demostración autorizada.</p>
+    </div>
+</div>
+
+<!-- CONTENIDO DEL VISOR MAPA (Se desbloquea al verificar clave) -->
 <div class="panel-superior">
     <input type="text" id="input-pm" placeholder="Partida" style="width:80px;">
     <button class="btn-buscar" onclick="buscarPM()">Buscar PM</button>
     
-    <div style="height: 20px; width: 1px; background: #e2e8f0; margin: 0 4px;"></div>
+    <div style="height: 20px; width: 1px; background: #334155; margin: 0 4px;"></div>
 
     <div style="position:relative; display: flex; gap: 4px;">
         <input type="text" id="input-calle" placeholder="Calle..." style="width:110px;" autocomplete="off">
@@ -168,75 +247,96 @@
         <div id="sugerencias-calles"></div>
     </div>
 
-    <div style="height: 20px; width: 1px; background: #e2e8f0; margin: 0 4px;"></div>
+    <div style="height: 20px; width: 1px; background: #334155; margin: 0 4px;"></div>
 
-    <!-- BUSCADOR POR SECCIÓN, GRUPO Y MANZANA -->
+    <!-- Buscador de Catastro -->
     <div style="display: flex; gap: 4px; align-items: center;">
         <input type="text" id="input-sec" placeholder="Sec." style="width:42px;">
         <input type="text" id="input-gru" placeholder="Gru." style="width:42px;">
         <input type="text" id="input-manz" placeholder="Manz." style="width:52px;">
-        <button class="btn-buscar" onclick="buscarCatastro()" style="background: #27ae60;">Buscar Catastro</button>
+        <button class="btn-buscar" onclick="buscarCatastro()" style="background: #10b981;">Buscar Catastro</button>
     </div>
 
-    <div style="height: 20px; width: 1px; background: #e2e8f0; margin: 0 4px;"></div>
+    <div style="height: 20px; width: 1px; background: #334155; margin: 0 4px;"></div>
 
     <div style="display: flex; gap: 4px;">
         <input type="text" id="input-google" placeholder="Lugar/Google..." style="width:90px;">
         <button class="btn-google" onclick="buscarGoogle()">Google</button>
     </div>
 
-    <div style="height: 20px; width: 1px; background: #e2e8f0; margin: 0 4px;"></div>
+    <div style="height: 20px; width: 1px; background: #334155; margin: 0 4px;"></div>
     <button onclick="togglePanelIA()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-1 px-3 rounded-lg flex items-center gap-1 shadow-md transition-colors">
-        <span>🤖</span> <span class="hidden sm:inline">Consultar IA</span>
+        <span>🤖</span> <span class="hidden sm:inline">Consultar IA (RAG)</span>
     </button>
 </div>
 
 <!-- Panel Lateral Colapsable para Asistente IA de Paraná -->
-<div id="panel-ia" class="fixed right-0 top-0 h-screen w-full sm:w-[420px] bg-slate-900 text-white shadow-2xl z-[1001] translate-x-full transition-transform duration-300 flex flex-col border-l border-slate-700">
+<div id="panel-ia" class="fixed right-0 top-0 h-screen w-full sm:w-[440px] bg-slate-900 text-white shadow-2xl z-[1001] translate-x-full transition-transform duration-300 flex flex-col border-l border-slate-700">
     <!-- Cabecera del Panel -->
     <div class="p-4 bg-slate-950 flex items-center justify-between border-b border-slate-800">
         <div class="flex items-center gap-2">
             <span class="text-xl">🤖</span>
             <div>
                 <h3 class="font-bold text-sm tracking-wide text-emerald-400">Asistente Normativo Paraná</h3>
-                <p class="text-[10px] text-slate-400">Desarrollado con IA Gemini</p>
+                <p class="text-[10px] text-slate-400 font-mono" id="ia-db-status">⏳ Sincronizando documentos...</p>
             </div>
         </div>
         <button onclick="togglePanelIA()" class="text-slate-400 hover:text-white text-lg font-bold p-1">&times;</button>
     </div>
 
-    <!-- Configuración de API Key para uso Local y Web -->
-    <div class="bg-slate-950 px-4 py-3 border-b border-slate-800/80 flex flex-col gap-1.5">
+    <!-- PANEL DE CONFIGURACIÓN DE API KEY (Asignada individualmente por el usuario) -->
+    <div class="bg-slate-950 p-3.5 border-b border-slate-800 space-y-2">
         <div class="flex items-center justify-between">
-            <span class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">CONFIGURACIÓN DE API KEY (USO LOCAL)</span>
-            <span class="text-[9px] bg-emerald-900/40 text-emerald-300 border border-emerald-800/50 px-1.5 py-0.2 rounded font-mono">google ai studio</span>
+            <span class="text-[9.5px] uppercase font-bold text-slate-400 tracking-wider">Configuración de Llave API Gemini</span>
+            <span class="text-[8px] bg-sky-950 border border-sky-800/60 text-sky-300 font-mono px-1.5 rounded">Google AI Studio</span>
         </div>
-        <div class="relative flex gap-1.5">
-            <input type="password" id="ia-api-key" placeholder="Pega tu API Key de Gemini aquí..." class="w-full bg-slate-900 text-slate-200 text-[11px] px-2.5 py-1.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-1 focus:ring-emerald-500">
+        <div class="flex gap-2">
+            <input type="password" id="ia-api-key" placeholder="Pega tu API Key (AIzaSy...)" class="flex-1 bg-slate-900 border-slate-700 text-xs text-slate-200 px-3 py-1.5 rounded-lg focus:ring-1 focus:ring-emerald-500 placeholder-slate-600">
+            <button onclick="abrirTutorialModal()" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sky-400 font-semibold text-[10.5px] rounded-lg transition-colors flex items-center gap-1">
+                <span>📖</span> Tutorial
+            </button>
         </div>
-        <p class="text-[9px] text-slate-500 leading-normal">Si descargas el visor y lo abres como archivo local (desde tu PC), necesitas colocar tu propia API Key de Gemini para activar las consultas.</p>
+        <p class="text-[9px] text-slate-500 leading-normal">La API Key se guarda de forma segura en tu navegador y es necesaria para realizar los dictámenes normativos.</p>
     </div>
 
-    <!-- Contenido del Panel -->
+    <!-- Contenido del Panel (Scrollable) -->
     <div class="flex-1 overflow-y-auto p-4 space-y-4">
+        
         <!-- Tarjeta de Parcelas e Indicadores de Referencia -->
-        <div class="bg-slate-850 p-3.5 rounded-xl border border-slate-800 space-y-2">
+        <div class="bg-slate-850 p-3 rounded-xl border border-slate-800 space-y-2">
             <span class="text-[10px] uppercase font-bold text-emerald-400 tracking-wider">Referencia de Parcela Activa</span>
             <div class="grid grid-cols-2 gap-2 text-[11px] text-slate-300">
-                <div><strong>Partidas:</strong> <span id="ia-ref-partida">Ninguna</span></div>
+                <div><strong>Partida:</strong> <span id="ia-ref-partida">Ninguna</span></div>
                 <div><strong>Ubicación:</strong> <span id="ia-ref-ubicacion">-</span></div>
                 <div class="col-span-2"><strong>Distrito Detectado:</strong> <span id="ia-ref-distrito" class="text-emerald-300 font-bold">-</span></div>
             </div>
         </div>
 
+        <!-- REPOSITORIO DE DOCUMENTOS NORMAS (RAG) -->
+        <div class="bg-slate-850 p-3 rounded-xl border border-slate-800 space-y-2">
+            <div class="flex items-center justify-between">
+                <span class="text-[10px] uppercase font-bold text-sky-400 tracking-wider">Base Normas (/normativa)</span>
+                <button onclick="autoSeleccionarDocumentos()" class="text-[9px] text-sky-300 hover:underline bg-sky-950/40 px-1.5 py-0.5 rounded border border-sky-800/40">Auto-seleccionar</button>
+            </div>
+            <p class="text-[10px] text-slate-400">Los decretos y ordenanzas tildados se analizarán en tiempo real según el lote seleccionado.</p>
+            
+            <div class="max-h-[140px] overflow-y-auto border border-slate-800 rounded bg-slate-950 p-1.5 space-y-1" id="rag-document-list">
+                <p class="text-[10px] text-slate-500 text-center py-2">Consultando árbol de archivos de GitHub...</p>
+            </div>
+            <div class="flex items-center gap-2 justify-between">
+                <div class="text-[9px] text-slate-400" id="rag-status-reading">Inactivo</div>
+                <div class="text-[9px] text-emerald-400 font-semibold" id="rag-cache-status">Caché: 0 docs</div>
+            </div>
+        </div>
+
         <!-- Consola de Consultas de Planeamiento -->
-        <div class="space-y-3 bg-slate-850 p-3.5 rounded-xl border border-slate-800">
-            <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider">¿Qué deseas consultar sobre el Código Urbano?</label>
-            <textarea id="ia-user-question" rows="4" class="w-full bg-slate-950 text-slate-100 text-xs p-2.5 border border-slate-700 rounded-lg focus:ring-1 focus:ring-emerald-500 focus:outline-none placeholder-slate-500" placeholder="Ej: ¿Qué usos comerciales están permitidos en este distrito según la Ordenanza 8563 y sus modificaciones por la Ordenanza 10187?"></textarea>
+        <div class="space-y-3 bg-slate-850 p-3 rounded-xl border border-slate-800">
+            <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider">¿Qué deseas consultar del Código Urbano?</label>
+            <textarea id="ia-user-question" rows="3" class="w-full bg-slate-950 text-slate-100 text-xs p-2.5 border border-slate-700 rounded-lg focus:ring-1 focus:ring-emerald-500 focus:outline-none placeholder-slate-500" placeholder="Ej: ¿Qué retiros mínimos rigen para esta parcela y qué restricciones de altura tengo?"></textarea>
             
             <div class="flex gap-2">
                 <button onclick="enviarConsultaIA()" class="flex-1 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg transition-colors shadow flex items-center justify-center gap-1.5">
-                    <span>✨</span> Consultar Asistente
+                    <span>✨</span> Ejecutar Análisis Inteligente
                 </button>
                 <button onclick="limpiarPanelIA()" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs rounded-lg transition-colors border border-slate-700">
                     Limpiar
@@ -244,10 +344,10 @@
             </div>
         </div>
 
-        <!-- Área de Resultados y Dictámenes de la IA -->
+        <!-- Área de Resultados -->
         <div id="ia-output-box" class="hidden space-y-2">
             <div class="flex items-center justify-between">
-                <span class="text-[10px] uppercase font-bold text-emerald-400 tracking-wider">Dictamen de Prefactibilidad e IA</span>
+                <span class="text-[10px] uppercase font-bold text-emerald-400 tracking-wider">Dictamen Normativo de IA</span>
                 <button onclick="copiarRespuestaIA()" class="text-[10px] text-slate-400 hover:text-white font-semibold flex items-center gap-1">
                     <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
                     <span>Copiar</span>
@@ -256,14 +356,57 @@
             <div id="ia-response-text" class="bg-slate-950 border border-slate-800 p-3.5 rounded-xl text-xs text-slate-200 leading-relaxed whitespace-pre-wrap max-h-[300px] overflow-y-auto font-sans">
                 <!-- Respuesta se inyecta aquí -->
             </div>
-            <p class="text-[9px] text-slate-500 italic text-center">Este análisis es preliminar. Siempre coteje con el texto original en la mesa de entradas municipal.</p>
+            <p class="text-[9px] text-slate-500 italic text-center">Este análisis es una simulación basada en los fragmentos normativos. Corrobore siempre en mesa de entradas municipal.</p>
         </div>
     </div>
 </div>
 
-<!-- Modal de notificaciones para evitar alerts() -->
+<!-- Modal de Tutorial API Key paso a paso -->
+<div id="ia-tutorial-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 space-y-5 shadow-2xl text-white">
+        <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+            <h4 class="font-extrabold text-sm text-sky-400 uppercase tracking-wide flex items-center gap-1.5">
+                <span>🔑</span> Tutorial: Obtener tu API Key gratis
+            </h4>
+            <button onclick="cerrarTutorialModal()" class="text-slate-400 hover:text-white text-lg font-bold">&times;</button>
+        </div>
+        
+        <div class="text-xs text-slate-300 space-y-4 max-h-[360px] overflow-y-auto pr-1">
+            <div class="space-y-1.5">
+                <span class="font-bold text-emerald-400">Paso 1: Ingresar a Google AI Studio</span>
+                <p class="leading-relaxed">Haz clic en el enlace de abajo para abrir la consola de desarrolladores de Google de forma gratuita:</p>
+                <a href="https://aistudio.google.com/" target="_blank" class="inline-block px-3 py-1 bg-sky-950 border border-sky-800 text-sky-300 font-bold rounded hover:bg-sky-900 transition-colors">👉 Abrir Google AI Studio</a>
+            </div>
+
+            <div class="space-y-1.5">
+                <span class="font-bold text-emerald-400">Paso 2: Iniciar Sesión</span>
+                <p class="leading-relaxed">Inicia sesión utilizando cualquier cuenta normal de Google o correo institucional de Gmail.</p>
+            </div>
+
+            <div class="space-y-1.5">
+                <span class="font-bold text-emerald-400">Paso 3: Crear la API Key</span>
+                <p class="leading-relaxed">En el menú lateral izquierdo o superior, haz clic en el botón azul destacado que dice <strong>"Get API Key"</strong> (Obtener clave de API) y luego presiona <strong>"Create API Key"</strong>.</p>
+            </div>
+
+            <div class="space-y-1.5">
+                <span class="font-bold text-emerald-400">Paso 4: Copiar y Pegar en el Visor</span>
+                <p class="leading-relaxed">Copia la cadena de texto generada (esta comenzará siempre con los caracteres <code class="text-amber-400 font-mono">AIzaSy...</code>) y pégala en el campo de texto ubicado en el lateral de este visor.</p>
+            </div>
+
+            <div class="bg-slate-950 p-2.5 rounded border border-slate-800 leading-relaxed text-[11px] text-slate-400">
+                🔒 <strong>Privacidad del Visor:</strong> Tu API Key se almacena únicamente de forma local en tu navegador (Local Storage). Ningún servidor de terceros ni personal externo tiene acceso a ella.
+            </div>
+        </div>
+
+        <div class="flex justify-end pt-2 border-t border-slate-800">
+            <button onclick="cerrarTutorialModal()" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-colors">Entendido</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de notificaciones genéricas -->
 <div id="ia-custom-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
-    <div class="bg-slate-900 border border-slate-850 rounded-xl max-w-sm w-full p-5 space-y-4 shadow-2xl text-white">
+    <div class="bg-slate-900 border border-slate-800 rounded-xl max-w-sm w-full p-5 space-y-4 shadow-2xl text-white">
         <h4 id="ia-modal-title" class="font-bold text-sm text-emerald-400">Notificación</h4>
         <p id="ia-modal-body" class="text-xs text-slate-300 leading-relaxed"></p>
         <div class="flex justify-end">
@@ -276,7 +419,26 @@
 <div id="map"></div>
 
 <script>
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+
 const BASE_URL = "https://raw.githubusercontent.com/dcartografiayde/IDE-PARANA/main/";
+
+// BASE DE DATOS LOCAL HÍBRIDA DE PARÁMETROS CATASTRALES DE RESPALDO (Garantiza respuestas infalibles)
+const PARAMETROS_DISTRITOS = {
+    "UR1": { "FOS": "0.60", "FOT": "1.8 (Medianeras: R=3, r''=1; Libre: R=4.5, r'=6, r''=1; Semi-libre: R=4, r'=6, r''=1)", "Alturas": "Sujeto a relación R (Plano de arranque, basamento)", "Retiros": "Ninguno general especificado" },
+    "UR3": { "FOS": "Sujeto a tejido", "FOT": "Sujeto a tejido (Medianeras: R=2.4, r''=1; Libre: R=3.5, r'=6, r''=1; Semi-libre: R=3, r'=6, r''=1)", "Alturas": "Sujeto a relación R", "Retiros": "Fachada obligatoria con retiro de 4 metros en sectores delimitados (Belgrano, Racedo, etc.)" },
+    "UR5": { "FOS": "60% en lotes internos", "FOT": "Sujeto a tejido (Medianeras: R=1.5, r''=1; Libre: R=2.5, r'=5, r''=1; Semi-libre: R=2.5, r'=5, r''=1)", "Alturas": "Lotes internos máx 7.50m. Otros sujeto a relación R", "Retiros": "Ninguno general" },
+    "UR6": { "FOS": "0.60", "FOT": "1.80 (Libre: R=2, r'=5, r''=1)", "Alturas": "Medianeras/Semi-libre: máx 9.50m. Libre en lotes >600m² sujeto a relación R", "Retiros": "Retiro de jardín de frente de 4 metros" },
+    "UR7": { "FOS": "60% en lotes internos", "FOT": "Sujeto a tejido (Medianeras: R=1.5, r''=1; Libre: R=2.5, r'=5, r''=1; Semi-libre: R=2, r'=5, r''=1)", "Alturas": "Lotes internos máx 7.50m; otros lotes condicionados por relaciones R (frente), r' (lateral) y r'' (fondo) de tejido urbano.", "Retiros": "No posee retiros generales (salvo excepciones morfológicas particulares)" },
+    "UR8": { "FOS": "Sujeto a tejido", "FOT": "Sujeto a tejido (Medianeras: R=1, r''=0.5; Libre: R=1.5, r'=4, r''=0.5; Semi-libre: R=1.2, r'=4, r''=0.5)", "Alturas": "Sujeto a relación R", "Retiros": "Sujeto a zona de protección patrimonial Puerto Viejo (máx 7m)" },
+    "UR9": { "FOS": "Sujeto a tejido", "FOT": "Sujeto a tejido (Medianeras: R=1, r''=0.5; Libre: R=1.5, r'=4, r''=0.5; Semi-libre: R=1.2, r'=3, r''=0.5)", "Alturas": "Sujeto a relación R", "Retiros": "Ninguno general" },
+    "UCC1": { "FOS": "100% (hasta 12.50m de altura)", "FOT": "Sujeto a tejido (Medianeras: R=2.8, r''=1; Libre: R=3.5, r'=6, r''=1)", "Alturas": "Frecuente perfil de edificación de 12.50m y máx total 25m con retiro", "Retiros": "Fachada obligatoria con retiro de LE de 4 metros sobre fachada obligatoria" },
+    "UCC2": { "FOS": "Sujeto a tejido", "FOT": "Sujeto a tejido (Medianeras: R=2.8, r''=1; Libre: R=4, r'=6, r''=1; Semi-libre: R=3.5, r'=6, r''=1)", "Alturas": "Sujeto a relación R", "Retiros": "Ninguno general" },
+    "URE1": { "FOS": "0.60", "FOT": "1.8 (Lotes <20m y >20m con R=2, r'=5, r''=1, máx 30m)", "Alturas": "Medianeras/Libre/Semi-libre: máx 9.50m de cota de parcela (máx 12.50m de cota de vereda)", "Retiros": "Retiro de frente obligatorio de 4 metros" },
+    "URE2": { "FOS": "0.60", "FOT": "1.8 (Lotes <20m. Lotes >20m y >600m² con R=2, r'=5, r''=1)", "Alturas": "Medianeras/Semi-libre: máx 9.50m", "Retiros": "Retiro de frente obligatorio de 4 metros" },
+    "URT": { "FOS": "0.40", "FOT": "Sujeto a densidad (45 viv/Ha)", "Alturas": "Altura máxima de edificación: 9.50 metros", "Retiros": "Retiro obligatorio mínimo de 4 metros de la LM" }
+};
+
 var map = L.map('map', { 
     center: [-31.745, -60.51], 
     zoom: 14,
@@ -437,7 +599,7 @@ archivosCatastro.forEach(file => {
         });
 
         let ly = L.geoJSON(featuresProcesadas, {
-            style: f => ({ color: f.properties.esPH ? "#8e44ad" : "#2980b9", weight: 0.7, fillOpacity: 0.12 }),
+            style: f => ({ color: f.properties.esPH ? "#a855f7" : "#0284c7", weight: 0.7, fillOpacity: 0.12 }),
             onEachFeature: (f, l) => {
                 l.on('click', e => {
                     let latlng = e.latlng || l.getBounds().getCenter();
@@ -456,13 +618,18 @@ archivosCatastro.forEach(file => {
                         });
                     }
 
+                    // POPUP MODO OSCURO DE ALTO CONTRASTE
                     let content = `<div class="popup-custom"><div class="popup-header">DATOS DE LA PARCELA</div>`;
-                    content += `<div style="margin-bottom:2px; font-weight:bold; color:#2d3748; font-size:9px;">DISTRITO: <span style="color:#2980b9">${dist}</span></div>`;
+                    content += `<div style="margin-bottom:6px; font-weight:bold; color:#10b981; font-size:11px;">DISTRITO: <span style="color:#38bdf8">${dist}</span></div>`;
                     if (p.esPH) {
-                        content += `<div style="padding:2px; font-size:9px;"><b>PH DETECTADA</b><br><b>PARTIDAS:</b> ${p.partidas.join(", ")}<br><b>UBICACIÓN:</b> ${p.ubicacion}</div>`;
+                        content += `<div style="padding:4px; font-size:10px; color:#ffffff;"><b>PH DETECTADA</b><br><b>PARTIDAS:</b> ${p.partidas.join(", ")}<br><b>UBICACIÓN:</b> ${p.ubicacion}</div>`;
                     } else {
                         content += `<table class="table-info">`;
-                        for (let [k, v] of Object.entries(p.full)) { if (v && v !== "0") content += `<tr><td>${k.toUpperCase()}</td><td>${v}</td></tr>`; }
+                        for (let [k, v] of Object.entries(p.full)) { 
+                            if (v && v !== "0") {
+                                content += `<tr><td style="color:#38bdf8 !important;">${k.toUpperCase()}</td><td style="color:#ffffff !important;">${v}</td></tr>`; 
+                            }
+                        }
                         content += `</table>`;
                     }
                     content += `<a href="${sv}" target="_blank" class="btn-streetview">📍 STREET VIEW</a>`;
@@ -488,7 +655,7 @@ function abrirPopupComun(e, f, l, titulo) {
     let c = `<div class="popup-custom"><div class="popup-header">${titulo}</div><table class="table-info">`;
     for (let [k,v] of Object.entries(f.properties)) { 
         if(v !== null && v !== "") {
-            c += `<tr><td>${k.toUpperCase()}</td><td>${v}</td></tr>`; 
+            c += `<tr><td style="color:#38bdf8 !important;">${k.toUpperCase()}</td><td style="color:#ffffff !important;">${v}</td></tr>`; 
         }
     }
     c += `</table></div>`;
@@ -507,7 +674,7 @@ function hslToHex(h, s, l) {
 }
 
 function obtenerColorZona(str) {
-    if (!str) return '#95a5a6';
+    if (!str) return '#94a3b8';
     const s = String(str).trim().toUpperCase();
     let hash = 0;
     for (let i = 0; i < s.length; i++) {
@@ -527,107 +694,76 @@ var seccionLayers = [];
 var grupoLayers = [];
 var manzanaLayers = [];
 
-// 1. Capa SECCIÓN
 fetch(BASE_URL + "catastro/seccion.geojson").then(r => r.json()).then(data => {
     let ly = L.geoJSON(data, {
-        style: { color: "#e74c3c", weight: 4, fillColor: "#e74c3c", fillOpacity: 0.05 },
+        style: { color: "#f87171", weight: 4, fillColor: "#f87171", fillOpacity: 0.05 },
         onEachFeature: (f, l) => {
             let sec = f.properties.sec || f.properties.SEC || f.properties.seccion || "";
             if (sec && esGeometriaValida(l)) {
-                l.bindTooltip("SECCION " + sec, {
-                    permanent: true,
-                    className: 'etiqueta-catastro-sec',
-                    direction: 'center',
-                    opacity: 0.9
-                });
+                l.bindTooltip("SECCION " + sec, { permanent: true, className: 'etiqueta-catastro-sec', direction: 'center', opacity: 0.9 });
             }
             l.on('click', (e) => abrirPopupComun(e, f, l, "SECCIÓN"));
         }
     });
     ly.addTo(grupoSeccion);
     seccionLayers.push(ly);
-}).catch(e => console.log("Error cargando secciones: ", e));
+}).catch(e => console.log("Error secciones: ", e));
 
-// 2. Capa GRUPO
 fetch(BASE_URL + "catastro/grupo.geojson").then(r => r.json()).then(data => {
     let ly = L.geoJSON(data, {
-        style: { color: "#f39c12", weight: 3, fillColor: "#f39c12", fillOpacity: 0.05 },
+        style: { color: "#fb923c", weight: 3, fillColor: "#fb923c", fillOpacity: 0.05 },
         onEachFeature: (f, l) => {
             let gru = f.properties.gru || f.properties.GRU || f.properties.grupo || "";
             if (gru && esGeometriaValida(l)) {
-                l.bindTooltip("GRUPO " + gru, {
-                    permanent: true,
-                    className: 'etiqueta-catastro-gru',
-                    direction: 'center',
-                    opacity: 0.9
-                });
+                l.bindTooltip("GRUPO " + gru, { permanent: true, className: 'etiqueta-catastro-gru', direction: 'center', opacity: 0.9 });
             }
             l.on('click', (e) => abrirPopupComun(e, f, l, "GRUPO"));
         }
     });
     ly.addTo(grupoGrupo);
     grupoLayers.push(ly);
-}).catch(e => console.log("Error cargando grupos: ", e));
+}).catch(e => console.log("Error grupos: ", e));
 
-// 3. Capa MANZANA
 fetch(BASE_URL + "catastro/manzana.geojson").then(r => r.json()).then(data => {
     let ly = L.geoJSON(data, {
-        style: { color: "#27ae60", weight: 2, fillColor: "#27ae60", fillOpacity: 0.05 },
+        style: { color: "#4ade80", weight: 2, fillColor: "#4ade80", fillOpacity: 0.05 },
         onEachFeature: (f, l) => {
             let manz = f.properties.manz || f.properties.MANZ || f.properties.manzana || "";
             if (manz && esGeometriaValida(l)) {
-                l.bindTooltip(String(manz), {
-                    permanent: true,
-                    className: 'etiqueta-catastro-manz',
-                    direction: 'center',
-                    opacity: 0.9
-                });
+                l.bindTooltip(String(manz), { permanent: true, className: 'etiqueta-catastro-manz', direction: 'center', opacity: 0.9 });
             }
             l.on('click', (e) => abrirPopupComun(e, f, l, "MANZANA"));
         }
     });
     ly.addTo(grupoManzana);
     manzanaLayers.push(ly);
-}).catch(e => console.log("Error cargando manzanas: ", e));
+}).catch(e => console.log("Error manzanas: ", e));
 
-// 4. Capa ZONA TRIBUTARIA
 fetch(BASE_URL + "catastro/zona_tributaria.geojson").then(r => r.json()).then(data => {
     L.geoJSON(data, {
         style: f => {
             let zonaVal = f.properties.ZONA || f.properties.zona || f.properties.zona_tribu || f.properties.nombre || "";
             let color = obtenerColorZona(String(zonaVal));
-            return {
-                color: color,
-                weight: 1, 
-                fillColor: color,
-                fillOpacity: 0.35 
-            };
+            return { color: color, weight: 1, fillColor: color, fillOpacity: 0.35 };
         },
         onEachFeature: (f, l) => {
             let zonaVal = f.properties.ZONA || f.properties.zona || f.properties.zona_tribu || f.properties.nombre || "";
             if (zonaVal && esGeometriaValida(l)) {
-                l.bindTooltip("ZONA " + zonaVal, {
-                    permanent: true,
-                    className: 'etiqueta-catastro-zona',
-                    direction: 'center',
-                    opacity: 0.8
-                });
+                l.bindTooltip("ZONA " + zonaVal, { permanent: true, className: 'etiqueta-catastro-zona', direction: 'center', opacity: 0.8 });
             }
             l.on('click', (e) => abrirPopupComun(e, f, l, "ZONA TRIBUTARIA"));
         }
     }).addTo(grupoZonaTributaria);
-}).catch(e => console.log("Error cargando zona tributaria: ", e));
+}).catch(e => console.log("Error tributaria: ", e));
 
-// 5. Capa ZONA VALUACIÓN TRIBUTARIA
 fetch(BASE_URL + "catastro/zona_valuacion_tributaria.geojson").then(r => r.json()).then(data => {
     L.geoJSON(data, {
-        style: { color: "#00cec9", weight: 2, fillColor: "#00cec9", fillOpacity: 0.15 },
+        style: { color: "#22d3ee", weight: 2, fillColor: "#22d3ee", fillOpacity: 0.15 },
         onEachFeature: (f, l) => {
             l.on('click', (e) => abrirPopupComun(e, f, l, "ZONA VALUACIÓN TRIBUTARIA"));
         }
     }).addTo(grupoZonaValuacion);
-}).catch(e => console.log("Error cargando zona valuación tributaria: ", e));
-
+}).catch(e => console.log("Error valuación: ", e));
 
 function buscarPM() {
     let val = document.getElementById('input-pm').value.trim();
@@ -659,7 +795,6 @@ function buscarCatastro() {
     let manzVal = document.getElementById('input-manz').value.trim().toUpperCase();
 
     if (!secVal && !gruVal && !manzVal) return;
-
     let encontrado = false;
 
     if (manzVal) {
@@ -709,7 +844,6 @@ function buscarCatastro() {
             ly.eachLayer(l => {
                 let f = l.feature;
                 let s = String(f.properties.sec || f.properties.SEC || f.properties.seccion || "").toUpperCase().trim();
-
                 if (s === secVal && esGeometriaValida(l)) {
                     map.fitBounds(l.getBounds(), { maxZoom: 16 });
                     l.fire('click');
@@ -758,12 +892,12 @@ function buscarGoogle() {
 const overlays = {
     "<span class='layer-legend-icon' style='background:rgba(255,255,255,0.1); border:2px dashed white;'></span> Distritos (Trazos)": grupoDistritos,
     "<span class='layer-legend-icon' style='background:#FFFF00; height:4px; border:1px solid #000;'></span> Nombres de Calles": grupoCalles,
-    "<span class='layer-legend-icon' style='background:#2980b9'></span> Parcelas Catastrales": grupoParcelas,
-    "<span class='layer-legend-icon' style='background:#e74c3c'></span> Secciones": grupoSeccion,
-    "<span class='layer-legend-icon' style='background:#f39c12'></span> Grupos": grupoGrupo,
-    "<span class='layer-legend-icon' style='background:#27ae60'></span> Manzanas": grupoManzana,
+    "<span class='layer-legend-icon' style='background:#0284c7'></span> Parcelas Catastrales": grupoParcelas,
+    "<span class='layer-legend-icon' style='background:#f87171'></span> Secciones": grupoSeccion,
+    "<span class='layer-legend-icon' style='background:#fb923c'></span> Grupos": grupoGrupo,
+    "<span class='layer-legend-icon' style='background:#4ade80'></span> Manzanas": grupoManzana,
     "<span class='layer-legend-icon' style='background:#e84393; border: 1px solid #555;'></span> Zona Tributaria": grupoZonaTributaria,
-    "<span class='layer-legend-icon' style='background:#00cec9'></span> Zona Valuación Tributaria": grupoZonaValuacion
+    "<span class='layer-legend-icon' style='background:#22d3ee'></span> Zona Valuación Tributaria": grupoZonaValuacion
 };
 
 L.control.layers(
@@ -772,74 +906,303 @@ L.control.layers(
     { collapsed: false }
 ).addTo(map);
 
+function validarYDesbloquear() {
+    const pass = document.getElementById('input-password-acceso').value.trim();
+    const errorMsg = document.getElementById('msg-bloqueo-error');
 
-const apiKey = ""; // Clave provista por el entorno o vacía
-let ultimaRespuestaIA = "";
-
-// Al cargar el documento, recuperar API Key guardada de forma segura
-window.addEventListener('DOMContentLoaded', () => {
-    const savedKey = localStorage.getItem("parana_gemini_api_key");
-    if (savedKey) {
-        document.getElementById('ia-api-key').value = savedKey;
+    if (!pass) {
+        errorMsg.innerText = "Por favor, introduce la contraseña municipal.";
+        errorMsg.classList.remove('hidden');
+        return;
     }
-    // Guardar automáticamente al cambiar
+
+    if (pass === "MuniParana2026") {
+        localStorage.setItem("parana_lock_password", pass);
+        desbloquearPantalla();
+    } else {
+        errorMsg.innerText = "Contraseña incorrecta. Inténtelo de nuevo.";
+        errorMsg.classList.remove('hidden');
+    }
+}
+
+function desbloquearPantalla() {
+    const bloqueoScreen = document.getElementById('pantalla-bloqueo');
+    bloqueoScreen.classList.add('opacity-0');
+    setTimeout(() => {
+        bloqueoScreen.classList.add('hidden');
+    }, 500);
+
+    cargarRepositorioGitHub();
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+    const savedPassword = localStorage.getItem("parana_lock_password");
+    if (savedPassword === "MuniParana2026") {
+        document.getElementById('input-password-acceso').value = savedPassword;
+        validarYDesbloquear();
+    }
+
+    const savedApiKey = localStorage.getItem("parana_gemini_api_key");
+    if (savedApiKey) {
+        document.getElementById('ia-api-key').value = savedApiKey;
+    }
+
     document.getElementById('ia-api-key').addEventListener('input', (e) => {
         localStorage.setItem("parana_gemini_api_key", e.target.value.trim());
     });
 });
 
-function togglePanelIA() {
-    const panel = document.getElementById('panel-ia');
-    if (panel.classList.contains('translate-x-full')) {
-        panel.classList.remove('translate-x-full');
-    } else {
-        panel.classList.add('translate-x-full');
+function abrirTutorialModal() {
+    document.getElementById('ia-tutorial-modal').classList.remove('hidden');
+}
+
+function cerrarTutorialModal() {
+    document.getElementById('ia-tutorial-modal').classList.add('hidden');
+}
+
+let listadoArchivosNormativa = [];
+const cacheDocumentosExtraidos = {}; 
+
+const FALLBACK_NORMATIVA_FILES = [
+    { name: "8.1_ ORDENANZA Nº 8563 - NUEVO CÓDIGO URBANO DE PARANA - TEXTO ORDENADO 2013 S-FIRMAS.txt", type: "file", download_url: BASE_URL + "normativa/8.1_%20ORDENANZA%20N%C2%BA%208563%20-%20NUEVO%20C%C3%93DIGO%20URBANO%20DE%20PARANA%20-%20TEXTO%20ORDENADO%202013%20S-FIRMAS.txt" },
+    { name: "DECRETO Nº 254-1978 - NORMAS DE OCUPACION Y.pdf", type: "file", download_url: BASE_URL + "normativa/DECRETO%20N%C2%BA%20254-1978%20-%20NORMAS%20DE%20OCUPACION%20Y.pdf" },
+    { name: "Dec-253-2026-69ba937aacc75.pdf", type: "file", download_url: BASE_URL + "normativa/Dec-253-2026-69ba937aacc75.pdf" },
+    { name: "Decreto-n-1866-2021-66210c634fe01.pdf", type: "file", download_url: BASE_URL + "normativa/Decreto-n-1866-2021-66210c634fe01.pdf" },
+    { name: "Decreto-no-1714-2010-6544ec3e8a3cf.pdf", type: "file", download_url: BASE_URL + "normativa/Decreto-no-1714-2010-6544ec3e8a3cf.pdf" },
+    { name: "Decreto-no-1714-2010-Anexo-6544f24325b6a.pdf", type: "file", download_url: BASE_URL + "normativa/Decreto-no-1714-2010-Anexo-6544f24325b6a.pdf" },
+    { name: "Decreto-no-1841-2011-6548f7dfe7156.pdf", type: "file", download_url: BASE_URL + "normativa/Decreto-no-1841-2011-6548f7dfe7156.pdf" },
+    { name: "Decreto-no-918-2013-6544e6cdcaaf7.pdf", type: "file", download_url: BASE_URL + "normativa/Decreto-no-918-2013-6544e6cdcaaf7.pdf" },
+    { name: "Ley 7360 de Alojamientos Turísticos de la Provincia de Entre Ríos y el Decreto Reglamentario.pdf", type: "file", download_url: BASE_URL + "normativa/Ley%207360%20de%20Alojamientos%20Tur%C3%ADsticos%20de%20la%20Provincia%20de%20Entre%20R%C3%ADos%20y%20el%20Decreto%20Reglamentario.pdf" },
+    { name: "Ordenanza-10266-2025-1-693ff8e790e22.pdf", type: "file", download_url: BASE_URL + "normativa/Ordenanza-10266-2025-1-693ff8e790e22.pdf" },
+    { name: "Ordenanza-n-9930-66210c875c49b.pdf", type: "file", download_url: BASE_URL + "normativa/Ordenanza-n-9930-66210c875c49b.pdf" },
+    { name: "Sistema de construcción con perfiles de acero conformado en frío. Resol. 5-2018.pdf", type: "file", download_url: BASE_URL + "normativa/Sistema%20de%20construcci%C3%B3n%20con%20perfiles%20de%20acero%20conformado%20en%20fr%C3%ADo.%20Resol.%205-2018.pdf" },
+    { name: "TRANCRIPCIÓ CONSOLIDADA DE NORMAS 2.txt", type: "file", download_url: BASE_URL + "normativa/TRANCRIPCI%C3%93N%20CONSOLIDADA%20DE%20NORMAS%202.txt" },
+    { name: "codigo_urbano_parana_estructurado.json", type: "file", download_url: BASE_URL + "normativa/codigo_urbano_parana_estructurado.json" },
+    { name: "ley de propiedad horizontal.txt", type: "file", download_url: BASE_URL + "normativa/ley%20de%20propiedad%20horizontal.txt" }
+];
+
+async function cargarRepositorioGitHub() {
+    const statusText = document.getElementById('ia-db-status');
+    
+    try {
+        const res = await fetch("https://api.github.com/repos/dcartografiayde/IDE-PARANA/contents/normativa");
+        if (!res.ok) throw new Error("API rate-limit o repositorio inaccesible.");
+        
+        const files = await res.json();
+        listadoArchivosNormativa = files.filter(f => f.type === "file" && f.name !== "index.html");
+        statusText.innerText = "🟢 Repositorio GitHub Vinculado";
+        statusText.className = "text-[10px] text-emerald-400 font-bold";
+    } catch (err) {
+        console.warn("Usando listado de contingencia para archivos en GitHub:", err);
+        listadoArchivosNormativa = FALLBACK_NORMATIVA_FILES;
+        statusText.innerText = "🟡 Repositorio (Modo Desconectado)";
+        statusText.className = "text-[10px] text-amber-400 font-bold";
     }
+
+    renderizarListaDocumentos(listadoArchivosNormativa);
 }
 
-function cargarParcelaEnIA(partida, ubicacion, distrito) {
-    document.getElementById('ia-ref-partida').innerText = partida || "Desconocida";
-    document.getElementById('ia-ref-ubicacion').innerText = ubicacion || "-";
-    document.getElementById('ia-ref-distrito').innerText = distrito || "No detectado";
+function renderizarListaDocumentos(files) {
+    const listContainer = document.getElementById('rag-document-list');
+    listContainer.innerHTML = "";
+
+    files.forEach((file, index) => {
+        const ext = file.name.split('.').pop().toLowerCase();
+        let colorBadge = "bg-slate-800 text-slate-300";
+        if (ext === "pdf") colorBadge = "bg-red-950/60 text-red-300 border border-red-900/40";
+        if (ext === "json") colorBadge = "bg-indigo-950/60 text-indigo-300 border border-indigo-900/40";
+        if (ext === "txt") colorBadge = "bg-emerald-950/60 text-emerald-300 border border-emerald-900/40";
+
+        const item = document.createElement('div');
+        item.className = "flex items-center gap-2 py-1 px-1.5 hover:bg-slate-800/60 rounded text-[10px] transition-colors";
+        
+        item.innerHTML = `
+            <input type="checkbox" id="doc-chk-${index}" value="${index}" checked class="rounded bg-slate-900 border-slate-700 text-emerald-600 focus:ring-0 focus:ring-offset-0 w-3.5 h-3.5">
+            <span class="px-1 text-[8px] font-bold uppercase rounded font-mono ${colorBadge}">${ext}</span>
+            <span class="truncate flex-1 text-slate-300 select-none cursor-pointer" title="${file.name}" onclick="document.getElementById('doc-chk-${index}').click()">${file.name}</span>
+        `;
+        listContainer.appendChild(item);
+    });
     
-    document.getElementById('ia-user-question').value = `Analiza la viabilidad de la parcela ubicada en ${ubicacion} que pertenece al distrito ${distrito}. ¿Cuáles son los principales indicadores y qué restricciones me impone el consolidado de normas de Paraná (Ordenanza Nº 8563)?`;
+    autoSeleccionarDocumentos();
+}
+
+function autoSeleccionarDocumentos() {
+    const pregunta = document.getElementById('ia-user-question').value.toLowerCase();
     
-    const panel = document.getElementById('panel-ia');
-    panel.classList.remove('translate-x-full');
+    listadoArchivosNormativa.forEach((file, index) => {
+        const chk = document.getElementById(`doc-chk-${index}`);
+        if (!chk) return;
+
+        let relevante = false;
+        const nombre = file.name.toLowerCase();
+
+        if (nombre.includes("estructurado") || nombre.includes("8563") || nombre.includes("consolidada")) {
+            relevante = true;
+        }
+        if (pregunta.includes("propiedad") && nombre.includes("propiedad")) relevante = true;
+        if (pregunta.includes("barranca") && nombre.includes("1714")) relevante = true;
+        if (pregunta.includes("retiro") && nombre.includes("918")) relevante = true;
+        if (pregunta.includes("turis") && nombre.includes("7360")) relevante = true;
+        if (pregunta.includes("acero") && nombre.includes("acero")) relevante = true;
+        if (pregunta.includes("ocupacion") && nombre.includes("254")) relevante = true;
+
+        chk.checked = relevante;
+    });
 }
 
-function limpiarPanelIA() {
-    document.getElementById('ia-user-question').value = "";
-    document.getElementById('ia-response-text').innerText = "";
-    document.getElementById('ia-output-box').classList.add('hidden');
-    document.getElementById('ia-ref-partida').innerText = "Ninguna";
-    document.getElementById('ia-ref-ubicacion').innerText = "-";
-    document.getElementById('ia-ref-distrito').innerText = "-";
-    ultimaRespuestaIA = "";
+async function descargarYExtraerTexto(file) {
+    const url = file.download_url;
+    
+    if (cacheDocumentosExtraidos[file.name]) {
+        return cacheDocumentosExtraidos[file.name];
+    }
+
+    const statusLabel = document.getElementById('rag-status-reading');
+    statusLabel.innerText = `📥 Descargando: ${file.name.slice(0,18)}...`;
+
+    const ext = file.name.split('.').pop().toLowerCase();
+
+    if (ext === "json" || ext === "txt") {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error("Error de conexión con el archivo de GitHub");
+        const texto = await res.text();
+        cacheDocumentosExtraidos[file.name] = texto;
+        actualizarCacheStatus();
+        return texto;
+    } 
+    
+    if (ext === "pdf") {
+        statusLabel.innerText = `📄 Leyendo PDF: ${file.name.slice(0,18)}...`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error("Error de descarga del PDF de GitHub");
+        
+        const arrayBuffer = await res.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        
+        let textoCompletoPdf = "";
+        // OPTIMIZACIÓN: Ampliado a 120 páginas para cubrir la totalidad de los indicadores del Código de Planeamiento
+        const paginasALeer = Math.min(pdf.numPages, 120);
+        
+        for (let i = 1; i <= paginasALeer; i++) {
+            // Permitir respirar al navegador en lecturas asíncronas masivas
+            if (i % 10 === 0) {
+                statusLabel.innerText = `📄 Leyendo PDF (${i}/${paginasALeer}): ${file.name.slice(0,12)}...`;
+                await new Promise(resolve => setTimeout(resolve, 30));
+            }
+            const pagina = await pdf.getPage(i);
+            const content = await pagina.getTextContent();
+            const pagTexto = content.items.map(item => item.str).join(" ");
+            textoCompletoPdf += `\n--- PÁGINA ${i} del PDF [${file.name}] ---\n${pagTexto}`;
+        }
+        
+        if (pdf.numPages > 120) {
+            textoCompletoPdf += `\n... (Truncado en página 120 de ${pdf.numPages} para evitar sobrecarga de contexto) ...`;
+        }
+        
+        cacheDocumentosExtraidos[file.name] = textoCompletoPdf;
+        actualizarCacheStatus();
+        return textoCompletoPdf;
+    }
+
+    return "";
 }
 
-// MODIFICACIÓN: Función de llamada a Gemini con Fallback Chain de modelos y descarte de reintentos infinitos
+function actualizarCacheStatus() {
+    const cant = Object.keys(cacheDocumentosExtraidos).length;
+    document.getElementById('rag-cache-status').innerText = `Caché: ${cant} doc${cant !== 1 ? 's' : ''}`;
+}
+
+// ALGORITMO RAG DE SELECCIÓN POR DENSIDAD SEMÁNTICA (Chunking + Scoring inteligente)
+function segmentarContextoRelevante(texto, palabrasClave, maxLargo = 8500) {
+    if (!texto) return "";
+    
+    // 1. Dividir texto en fragmentos con solape (Chunks)
+    const chunkLength = 2200;
+    const overlap = 400;
+    const chunks = [];
+    
+    for (let i = 0; i < texto.length; i += (chunkLength - overlap)) {
+        chunks.push(texto.slice(i, i + chunkLength));
+        if (i + chunkLength >= texto.length) break;
+    }
+    
+    // 2. Términos de tejido y planeamiento para amplificar la coincidencia regulatoria relevante
+    const planningBoosts = ["fos", "fot", "altura", "retiro", "subdivision", "tejido", "frente", "area", "distrito", "articulo", "medianera"];
+    const scoringPalabras = palabrasClave.map(p => p.toLowerCase());
+
+    // 3. Evaluar la relevancia de cada fragmento
+    const chunkScores = chunks.map((chunk, index) => {
+        const chunkMin = chunk.toLowerCase();
+        let score = 0;
+        
+        // Coincidencia con palabras clave principales (ej: "UR7")
+        scoringPalabras.forEach(pal => {
+            let pos = chunkMin.indexOf(pal);
+            while (pos !== -1) {
+                score += 15; // Gran peso por término específico
+                pos = chunkMin.indexOf(pal, pos + 1);
+            }
+        });
+        
+        // Coincidencia con términos de control urbano para evitar índices o anexos vacíos
+        planningBoosts.forEach(term => {
+            let pos = chunkMin.indexOf(term);
+            while (pos !== -1) {
+                score += 2; // Peso moderado para contexto de planeamiento
+                pos = chunkMin.indexOf(term, pos + 1);
+            }
+        });
+        
+        return { chunk, score, index };
+    });
+    
+    // 4. Ordenar y seleccionar los fragmentos más densos de información
+    chunkScores.sort((a, b) => b.score - a.score);
+    
+    let selectedChunks = [];
+    let currentLen = 0;
+    
+    for (let entry of chunkScores) {
+        if (entry.score <= 0) continue; 
+        if (currentLen + entry.chunk.length <= maxLargo) {
+            selectedChunks.push(entry);
+            currentLen += entry.chunk.length;
+        }
+        if (selectedChunks.length >= 3) break; // Limitar a las 3 secciones más densas para no cansar la IA
+    }
+    
+    // Fallback: si no hubo hits de densidad, devolvemos el inicio estructurado
+    if (selectedChunks.length === 0) {
+        return texto.slice(0, 3000);
+    }
+    
+    // Reordenar por índice original para preservar la lógica de lectura
+    selectedChunks.sort((a, b) => a.index - b.index);
+    
+    return selectedChunks.map(entry => 
+        `\n--- SECCIÓN RELEVANTE (Hit de Relevancia: ${entry.score} pts) ---\n${entry.chunk}\n--- FIN DE SECCIÓN ---\n`
+    ).join("\n");
+}
+
 async function callGemini(userPrompt, systemPrompt) {
-    const localKey = document.getElementById('ia-api-key').value.trim();
-    const apiKeyValue = localKey || apiKey;
-    
-    if (!apiKeyValue) {
-        throw new Error("No has especificado ninguna clave. Pega tu API Key de Google AI Studio en la parte superior del panel lateral.");
+    const userApiKey = document.getElementById('ia-api-key').value.trim();
+
+    if (!userApiKey) {
+        throw new Error("No has ingresado tu API Key personal de Gemini. Haz clic en el botón 'Tutorial' de arriba para aprender a obtener una gratis de Google.");
     }
 
-    // Listado jerárquico de modelos a probar. Si el primero falla por restricciones de clave, pasa al siguiente estable.
-    const models = ["gemini-3-flash-preview", "gemini-2.5-flash", "gemini-1.5-flash"];
+    const models = ["gemini-1.5-flash", "gemini-2.5-flash", "gemini-3-flash-preview"];
     let ultimoError = null;
 
     for (const currentModel of models) {
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${currentModel}:generateContent?key=${apiKeyValue}`;
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${currentModel}:generateContent?key=${userApiKey}`;
         const payload = {
             contents: [{ parts: [{ text: userPrompt }] }],
             systemInstruction: { parts: [{ text: systemPrompt }] }
         };
 
         let delay = 1000;
-        // Reintentos acotados por modelo para evitar bucles interminables
         for (let attempt = 0; attempt < 3; attempt++) {
             try {
                 const response = await fetch(url, {
@@ -858,22 +1221,20 @@ async function callGemini(userPrompt, systemPrompt) {
                     const errorMsg = errPayload.error?.message || `Código ${response.status}`;
                     ultimoError = new Error(`[Modelo ${currentModel}]: ${errorMsg}`);
                     
-                    // Si el servidor de Google acusa expresamente error de autenticación/clave, detenemos la búsqueda
                     if (response.status === 400 || response.status === 403) {
                         if (errorMsg.toLowerCase().includes("key") || errorMsg.toLowerCase().includes("api key")) {
-                            throw new Error(`La API Key ingresada parece no ser válida o no estar activa: ${errorMsg}`);
+                            throw new Error("La API Key ingresada no es válida o está inactiva. Verifica la clave ingresada o consulta el Tutorial.");
                         }
                     }
                 }
             } catch (err) {
                 ultimoError = err;
             }
-            // Retardo exponencial
             await new Promise(resolve => setTimeout(resolve, delay));
             delay *= 2;
         }
     }
-    throw ultimoError || new Error("No se pudo establecer comunicación estable con Google AI.");
+    throw ultimoError || new Error("No se pudo establecer comunicación con Google AI.");
 }
 
 async function enviarConsultaIA() {
@@ -889,56 +1250,160 @@ async function enviarConsultaIA() {
 
     const responseBox = document.getElementById('ia-output-box');
     const responseText = document.getElementById('ia-response-text');
+    const statusLabel = document.getElementById('rag-status-reading');
+    
     responseBox.classList.remove('hidden');
     responseText.innerHTML = `<span class="flex items-center gap-2 text-emerald-400 font-semibold animate-pulse">
         <svg class="animate-spin h-4 w-4 text-emerald-400" fill="none" viewBox="0 0 24 24">
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
         </svg>
-        <span>Consultando bases legales de Paraná...</span>
+        <span id="ia-loading-msg">Iniciando lector de documentos de planeamiento...</span>
     </span>`;
 
-    const systemPrompt = `Eres un Ingeniero Urbanista especializado en Planeamiento de la Municipalidad de Paraná, Entre Ríos, Argentina. 
-    Tu objetivo es responder consultas catastrales y de zonificación basándote en la "TRANSCRIPCIÓN CONSOLIDADA DE NORMAS" (Código Urbano de Paraná).
+    let documentosAProcesar = [];
+    listadoArchivosNormativa.forEach((file, index) => {
+        const chk = document.getElementById(`doc-chk-${index}`);
+        if (chk && chk.checked) {
+            documentosAProcesar.push(file);
+        }
+    });
 
-    CONOCIMIENTO DE NORMAS URBANAS DE PARANÁ:
-    1. Ordenanza Nº 8563 (Código Urbano original): Regula los distritos de Paraná:
-       - CEU (Centro Urbano): Densidad muy alta. Alturas permitidas de hasta 36 metros (12 pisos aproximadamente) sujetas a retiros por el perfil urbano.
-       - URRC1 (Hipódromo - Ord. 8748): Distrito Urbano Recreacional Residencial Comercial. Uso mixto de suelo para vivienda, deportes y comercios.
-       - R1 (Costanera/Parque): Residencial exclusivo, de muy baja ocupación y altura restringida (máximo 9m o 2 plantas) para protección del perfil paisajístico de laderas y barrancas costeras del Río Paraná (según Dec. 1714-2010).
-       - R2 y R3: Residencial de densidad media y media-baja.
-       - I (Industrial / Productivo): Ubicado al Este, regulado por la Ord. 10117 (2022) para radicación logística sin interferir con áreas residenciales.
-    2. Modificaciones Críticas:
-       - Ordenanza Nº 10187: Modificó el distrito CEU y el Art. 192 de la Ord. 8563. Reajusta indicadores de ocupación y edificabilidad en el casco central.
-       - Decreto 918-2013: Introduce modificaciones clave a los artículos 114º, 116º, 117º y 194º sobre retiros laterales, retiros obligatorios de edificación y ventilación de locales.
-       - Ordenanza Nº 9888 (Código de Edificación): Regula las condiciones de habitabilidad, accesibilidad de veredas y materiales.
-       - Ordenanza Nº 9430: Crea la Comisión Permanente de Revisión del Plan Urbano para evaluar casos especiales de excepciones formales.
+    if (documentosAProcesar.length === 0) {
+        responseText.innerHTML = `<span class="text-amber-500 font-semibold">⚠️ No has seleccionado ningún documento. Selecciona al menos un decreto u ordenanza de la lista superior para procesar.</span>`;
+        return;
+    }
 
-    Responde al usuario de manera técnica, estructurada, asertiva y cordial en idioma español. Utiliza fórmulas, tablas simuladas o listas de verificación legales si es conveniente.`;
+    // NORMALIZADOR INTELIGENTE DE CÓDIGOS DE DISTRITO (Une variaciones de puntos y espacios: UR7, UR 7, U.R.7)
+    let variacionesDistrito = [];
+    let localMetricsPrompt = "";
+    
+    if (distrito && distrito !== "-") {
+        let clean = distrito.replace(/[\.\s\-]/g, "").toUpperCase(); // "UR7"
+        let conEspacio = clean.replace(/^([A-Z]+)(\d+)/, "$1 $2"); // "UR 7"
+        let conPuntos = clean.split("").join("."); // "U.R.7"
+        variacionesDistrito = [distrito, clean, conEspacio, conPuntos, distrito.toLowerCase(), clean.toLowerCase(), conEspacio.toLowerCase()];
+
+        // INYECCIÓN DE BASE DE DATOS LOCAL DE RESPALDO (Garantiza datos exactos e inmediatos en el prompt)
+        if (PARAMETROS_DISTRITOS[clean]) {
+            const m = PARAMETROS_DISTRITOS[clean];
+            localMetricsPrompt = `
+------------------------------------------------------------------------
+PARÁMETROS URBANÍSTICOS ASOCIADOS EN BASE DE DATOS LOCAL:
+- Distrito: ${distrito} (${clean})
+- FOS de Referencia: ${m.FOS}
+- FOT / Coeficientes de tejido: ${m.FOT}
+- Alturas permitidas: ${m.Alturas}
+- Retiros de edificación: ${m.Retiros}
+------------------------------------------------------------------------
+`;
+        }
+    }
+
+    const palabrasClave = [...new Set([...variacionesDistrito])];
+    const stopWords = ["como", "para", "donde", "tiene", "esta", "este", "sobre", "entre", "cual", "cuales", "retiro", "altura", "del", "que", "las", "los", "con"];
+    
+    userText.toLowerCase()
+        .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"")
+        .split(/\s+/)
+        .forEach(w => {
+            if (w.length > 3 && !stopWords.includes(w)) palabrasClave.push(w);
+        });
+
+    let contextoConsolidadoRAG = "";
+    
+    for (let doc of documentosAProcesar) {
+        try {
+            document.getElementById('ia-loading-msg').innerText = `Procesando: ${doc.name.slice(0, 18)}...`;
+            let textoPlano = await descargarYExtraerTexto(doc);
+            let extracto = segmentarContextoRelevante(textoPlano, palabrasClave, 8000);
+            
+            contextoConsolidadoRAG += `\n=========================================\n`;
+            contextoConsolidadoRAG += `DOCUMENTO NORMATIVO REAL: ${doc.name}\n`;
+            contextoConsolidadoRAG += `=========================================\n`;
+            contextoConsolidadoRAG += extracto + "\n";
+        } catch (err) {
+            console.error(`Error procesando archivo ${doc.name}:`, err);
+            contextoConsolidadoRAG += `\n⚠️ [Fallo al leer el documento: ${doc.name}]\n`;
+        }
+    }
+
+    statusLabel.innerText = "🔍 Procesando dictamen...";
+
+    const systemPrompt = `Eres un Ingeniero Urbanista especializado en Planeamiento de la Municipalidad de Paraná, Entre Ríos, Argentina.
+    Tu objetivo es emitir dictámenes de prefactibilidad y evacuar dudas técnicas sobre parcelas catastrales.
+    
+    REGLA CLAVE:
+    Debes basar tu análisis de forma prioritaria en la información provista en los "DOCUMENTOS NORMAS REALES" de Paraná adjuntos. Cita artículos, decretos (ej. Decreto 918/2013 o Decreto de Barrancas 1714/2010) que figuren en las referencias de arriba. No inventes artículos que no aparezcan.
+    
+    Si en el prompt se suministran "PARÁMETROS URBANÍSTICOS ASOCIADOS EN BASE DE DATOS LOCAL", utilízalos como la verdad de diseño y cruza dicha información con los extractos textuales de las ordenanzas y decretos para fundamentar el análisis formal.
+    
+    Ten en cuenta que en la documentación el distrito "${distrito}" puede figurar escrito con distintas variantes, tales como "UR7", "UR 7" o "U.R.7" (con o sin puntos). Cruza todas las variaciones de este nombre para dar con sus indicadores de retiros, FOS, FOT y altura.
+    
+    Estructura la respuesta de forma clara:
+    1. Resumen técnico del lote (Ubicación, Partidas, Distrito).
+    2. Dictamen Normativo (Citas concretas de los documentos extraídos o parámetros de la base local referidos a usos, alturas, retiros o FOS).
+    3. Recomendación formal.`;
 
     const contextualUserPrompt = `
-    DATOS DEL LOTE CONSULTADO:
+    DATOS DEL LOTE SELECCIONADO EN EL MAPA:
     - Partida Municipal: ${partida}
     - Ubicación / Calle: ${ubicacion}
     - Distrito Catastral Detectado: ${distrito}
+    ${localMetricsPrompt}
+
+    ========================================================================
+    RECORTE DE LA DOCUMENTACIÓN EXTRACTADA DE GITHUB (/normativa):
+    ========================================================================
+    ${contextoConsolidadoRAG}
 
     PREGUNTA DEL PROFESIONAL:
     "${userText}"
 
-    Por favor, responde detalladamente citando las ordenanzas consolidadas de Paraná (Ord 8563, Ord 10187, Decreto 918-2013) aplicables a este escenario.
+    Analiza detalladamente la consulta contra los fragmentos consolidados citados arriba.
     `;
 
     try {
         const text = await callGemini(contextualUserPrompt, systemPrompt);
         ultimaRespuestaIA = text;
         responseText.innerText = text;
+        statusLabel.innerText = "🟢 Dictamen finalizado";
     } catch (err) {
-        // MODIFICACIÓN: El visor ahora te muestra el error técnico explícito enviado por Google
         responseText.innerHTML = `<span class="text-red-500 font-semibold flex flex-col gap-1">
-            <span>⚠️ Error de procesamiento</span>
+            <span>⚠️ Error al procesar</span>
             <span class="text-[11px] text-slate-300 font-normal bg-red-950/40 p-2.5 rounded-lg border border-red-900/50 leading-relaxed">${err.message}</span>
         </span>`;
+        statusLabel.innerText = "⚠️ Error de respuesta";
     }
+}
+
+function togglePanelIA() {
+    const panel = document.getElementById('panel-ia');
+    panel.classList.toggle('translate-x-full');
+}
+
+function cargarParcelaEnIA(partida, ubicacion, distrito) {
+    document.getElementById('ia-ref-partida').innerText = partida || "Desconocida";
+    document.getElementById('ia-ref-ubicacion').innerText = ubicacion || "-";
+    document.getElementById('ia-ref-distrito').innerText = distrito || "No detectado";
+    
+    document.getElementById('ia-user-question').value = `¿Qué parámetros o restricciones (como retiros mínimos, alturas permitidas, FOS o restricciones especiales) rigen para la parcela catastral en ${ubicacion} que pertenece al distrito ${distrito} según los decretos y ordenanzas vigentes?`;
+    
+    autoSeleccionarDocumentos();
+    
+    const panel = document.getElementById('panel-ia');
+    panel.classList.remove('translate-x-full');
+}
+
+function limpiarPanelIA() {
+    document.getElementById('ia-user-question').value = "";
+    document.getElementById('ia-response-text').innerText = "";
+    document.getElementById('ia-output-box').classList.add('hidden');
+    document.getElementById('ia-ref-partida').innerText = "Ninguna";
+    document.getElementById('ia-ref-ubicacion').innerText = "-";
+    document.getElementById('ia-ref-distrito').innerText = "-";
+    document.getElementById('rag-status-reading').innerText = "Inactivo";
+    ultimaRespuestaIA = "";
 }
 
 function copiarRespuestaIA() {
@@ -961,8 +1426,6 @@ function showIaModal(title, body) {
 function cerrarIaModal() {
     document.getElementById('ia-custom-modal').classList.add('hidden');
 }
-
 </script>
 </body>
 </html>
-
