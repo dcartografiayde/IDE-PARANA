@@ -477,20 +477,18 @@ fetchGeoJSON(BASE_URL + "calles.geojson").then(data => {
     activarEtiquetasCalles();
 });
 
-    function toggleDescripcionMapa(){
+function toggleDescripcionMapa() {
 
-    const descripcion =
-        document.getElementById('descripcion-mapa');
+    const descripcion = document.getElementById("descripcion-mapa");
+    const boton = document.getElementById("btn-descripcion");
 
-    const boton =
-        document.getElementById('btn-descripcion');
+    if (!descripcion || !boton) return;
 
-    descripcion.classList.toggle('oculto');
+    descripcion.classList.toggle("oculto");
 
-    boton.innerHTML =
-        descripcion.classList.contains('oculto')
-            ? '►'
-            : '▼';
+    boton.innerHTML = descripcion.classList.contains("oculto")
+        ? "►"
+        : "▼";
 }
 
 function activarEtiquetasCalles() {
