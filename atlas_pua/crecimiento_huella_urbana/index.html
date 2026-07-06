@@ -180,7 +180,7 @@
 
     font-weight:800;
 
-    font-size:20px;
+    font-size:12px;
 
     text-shadow:
         -2px -2px 0 red,
@@ -1168,6 +1168,23 @@ gruposHuellaPorFecha[fecha]
 });
 
 return;
+
+}
+
+function toggleDescripcionMapa(){
+
+    const descripcion =
+        document.getElementById("descripcion-mapa");
+
+    const boton =
+        document.getElementById("btn-descripcion");
+
+    descripcion.classList.toggle("oculto");
+
+    boton.innerHTML =
+        descripcion.classList.contains("oculto")
+        ? "►"
+        : "▼";
 
 }
 
