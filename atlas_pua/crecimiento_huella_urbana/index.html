@@ -170,6 +170,31 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
         }
 
+        .etiqueta-ejido{
+
+    background:transparent;
+
+    border:none;
+
+    color:white;
+
+    font-weight:800;
+
+    font-size:20px;
+
+    text-shadow:
+        -2px -2px 0 red,
+         2px -2px 0 red,
+        -2px  2px 0 red,
+         2px  2px 0 red,
+         0px  0px 8px rgba(0,0,0,.8);
+
+    white-space:nowrap;
+
+    pointer-events:none;
+
+}
+
         /* MODIFICACIÓN: Ajustes de diseño premium para adaptar la interfaz de Leaflet Measure al visor oscuro */
         .leaflet-control-measure {
             border: none !important;
@@ -473,7 +498,11 @@ map.getPane('atlasLabelsPane').style.pointerEvents = 'none';
 
 map.createPane('ejidosPane');
 map.getPane('ejidosPane').style.zIndex = 325;
-map.getPane('ejidosPane').style.pointerEvents = 'auto';    
+map.getPane('ejidosPane').style.pointerEvents = 'auto';
+
+map.createPane("ejidosLabelsPane");
+map.getPane("ejidosLabelsPane").style.zIndex = 700;
+map.getPane("ejidosLabelsPane").style.pointerEvents = "none";
 
 var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 22, maxNativeZoom: 19 });
 var dark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 22, maxNativeZoom: 20 });
@@ -673,11 +702,79 @@ fill:false
 var grupoParcelas = L.layerGroup();
 var parcelasLayers = [];
 
-/* ===========================
+/* ===================================================
    EJIDOS
-=========================== */
+=================================================== */
 
 var grupoEjidos = L.layerGroup();
+var grupoEtiquetasEjidos = L.layerGroup();
+
+fetchGeoJSON(
+    BASE_URL +
+    "atlas_pua/crecimiento_huella_urbana/ejidos_linderos.geojson"
+)
+
+.then(data => {
+
+    L.geoJSON(data, {
+
+        pane: "ejidosPane",
+
+        style: {
+
+            color: "#ff2d2d",
+            weight: 2,
+            dashArray: "10 8",
+            fillOpacity: 0
+
+        },
+
+        onEachFeature: function(feature, layer){
+
+            layer.addTo(grupoEjidos);
+
+            const localidad =
+                decodificarTexto(
+                    String(feature.properties.localidad || "")
+                );
+
+            let centro;
+
+            try{
+
+                centro = layer.getBounds().getCenter();
+
+            }catch(e){
+
+                return;
+
+            }
+
+            L.marker(centro,{
+
+                pane: "ejidosLabelsPane",
+
+                interactive:false,
+
+                icon:L.divIcon({
+
+                    className:"etiqueta-ejido",
+
+                    html:`
+                    <div>
+                        ${localidad}
+                    </div>
+                    `
+
+                })
+
+            }).addTo(grupoEtiquetasEjidos);
+
+        }
+
+    });
+
+});
    
 /* ===========================
    CRECIMIENTO HUELLA URBANA
@@ -1031,10 +1128,12 @@ if(capa==="ejidos"){
 if(document.getElementById("chk-ejidos").checked){
 
 map.addLayer(grupoEjidos);
+map.addLayer(grupoEtiquetasEjidos);
 
 }else{
 
 map.removeLayer(grupoEjidos);
+map.removeLayer(grupoEtiquetasEjidos);
 
 }
 
