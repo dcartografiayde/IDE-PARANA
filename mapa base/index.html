@@ -478,6 +478,22 @@ fetchGeoJSON(BASE_URL + "calles.geojson").then(data => {
     activarEtiquetasCalles();
 });
 
+    function toggleDescripcionMapa(){
+
+    const descripcion =
+        document.getElementById('descripcion-mapa');
+
+    const boton =
+        document.getElementById('btn-descripcion');
+
+    descripcion.classList.toggle('oculto');
+
+    boton.innerHTML =
+        descripcion.classList.contains('oculto')
+            ? '►'
+            : '▼';
+}
+
 function activarEtiquetasCalles() {
     const renderLabels = () => {
         let z = map.getZoom();
