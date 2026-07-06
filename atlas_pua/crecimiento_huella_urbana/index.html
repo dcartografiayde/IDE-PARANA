@@ -1290,24 +1290,6 @@ measureControl.addTo(map);
 // Inicializar el buscador predictivo al cargar el script
 configurarBuscadorUbicaciones();
 controlarVisibilidadDinamica();
-
-function toggleDescripcionMapa(){
-
- const descripcion =
-        document.getElementById("descripcion-mapa");
-
- const boton =
-        document.getElementById("btn-descripcion");
-
-    descripcion.classList.toggle("oculto");
-
-    boton.innerHTML =
-        descripcion.classList.contains("oculto")
-        ? "►"
-        : "▼";
-
-}
-
     
 </script>
 </body>
