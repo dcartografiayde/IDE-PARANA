@@ -672,32 +672,6 @@ fetchGeoJSON(BASE_URL + "catastro/manzana.geojson").then(data => {
     console.error("Error al cargar la capa de manzanas:", err);
 });
 
-fetchGeoJSON(
-BASE_URL +
-"atlas_pua/crecimiento_huella_urbana/ejidos_linderos.geojson"
-)
-.then(data=>{
-
-L.geoJSON(data,{
-
-pane:"ejidosPane",
-
-style:{
-
-color:"#ff0000",
-
-weight:2,
-
-dashArray:"8 6",
-
-fill:false
-
-}
-
-}).addTo(grupoEjidos);
-
-});
-
 // Capa de Parcelas (Totalmente Restituida)
 var grupoParcelas = L.layerGroup();
 var parcelasLayers = [];
@@ -1170,13 +1144,13 @@ gruposHuellaPorFecha[fecha]
 return;
 
 }
-
+    
 function toggleDescripcionMapa(){
 
-    const descripcion =
+ const descripcion =
         document.getElementById("descripcion-mapa");
 
-    const boton =
+ const boton =
         document.getElementById("btn-descripcion");
 
     descripcion.classList.toggle("oculto");
@@ -1187,6 +1161,7 @@ function toggleDescripcionMapa(){
         : "▼";
 
 }
+
 
 controlarVisibilidadDinamica();
 
