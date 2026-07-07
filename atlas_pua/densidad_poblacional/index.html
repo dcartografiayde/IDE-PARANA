@@ -314,6 +314,54 @@
     <div class="text-[8px] text-slate-400 font-semibold mt-0.5">Elaborado por Dirección de Cartografía y Datos Espaciales</div>
 </div>
     
+<div class="adv-distrito">
+
+    <div id="panel-info-mapa" class="panel-info-mapa">
+
+        <div class="panel-header">
+
+            <div style="width:100%;">
+
+                <div class="panel-titulo" id="titulo-mapa">
+                    DENSIDAD POBLACIONAL 2010 - 2022
+                </div>
+
+                <div class="panel-zoom" style="text-align:center;">
+                    Zoom:
+                    <span id="zoom-indicator">12</span>
+                </div>
+
+            </div>
+
+            <button onclick="toggleDescripcionMapa()"
+                id="btn-descripcion">
+            ▼
+        </button>
+
+        </div>
+
+        <div
+            id="descripcion-mapa"
+            class="panel-descripcion">
+
+            El mapa representa la distribución espacial de la densidad de población dentro del área urbana, para el año 2010 y 2022. Se ha realizado por radios censales mediante una clasificación por intervalos, donde los tonos más claros indican menores densidades y los tonos más intensos mayores concentraciones poblacionales. Se percibe un patrón de concentración en el área central en ambos censos, donde se registran los valores más altos de densidad.
+            
+        </div>
+
+        <hr style="margin:8px 0;">
+
+        <div class="text-[9px] text-slate-500">
+            IDE Paraná - Límites indicativos (Ord. 8563). Zoom Máx: 22.
+        </div>
+
+        <div class="text-[8px] text-slate-400 font-semibold mt-1">
+            Elaborado por Dirección de Cartografía y Datos Espaciales
+        </div>
+
+    </div>
+
+</div>
+
 <div id="map"></div>
 
 <script>
@@ -440,6 +488,20 @@ fetchGeoJSON(BASE_URL + "calles.geojson").then(data => {
     }).addTo(grupoCalles);
     activarEtiquetasCalles();
 });
+
+function toggleDescripcionMapa() {
+
+    const descripcion = document.getElementById("descripcion-mapa");
+    const boton = document.getElementById("btn-descripcion");
+
+    if (!descripcion || !boton) return;
+
+    descripcion.classList.toggle("oculto");
+
+    boton.innerHTML = descripcion.classList.contains("oculto")
+        ? "►"
+        : "▼";
+}
 
 function activarEtiquetasCalles() {
     const renderLabels = () => {
