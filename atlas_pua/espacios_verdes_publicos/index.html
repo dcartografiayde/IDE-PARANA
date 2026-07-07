@@ -906,24 +906,25 @@ function cambiarBaseMap(tipo) {
 
 // MODIFICACIÓN: Alternador para el control manual de checkboxes de las capas vectoriales
 function toggleOverlay(capa) {
-    function toggleOverlay(capa) {
-    controlarVisibilidadDinamica();
+
     if(capa==="espaciosVerdes"){
 
-    if(document.getElementById("chk-espacios-verdes").checked){
+        if(document.getElementById("chk-espacios-verdes").checked){
 
-        map.addLayer(grupoEspaciosVerdes);
+            map.addLayer(grupoEspaciosVerdes);
 
-    }else{
+        }else{
 
-        map.removeLayer(grupoEspaciosVerdes);
+            map.removeLayer(grupoEspaciosVerdes);
+
+        }
+
+        return;
 
     }
 
-    return;
-
-}
     controlarVisibilidadDinamica();
+
 }
 
 function buscarPM() {
