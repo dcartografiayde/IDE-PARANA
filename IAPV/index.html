@@ -10,11 +10,6 @@
     <script src="https://cdn.jsdelivr.net/npm/leaflet-textpath@1.2.3/leaflet.textpath.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- MODIFICACIÓN: Agregado CSS de Leaflet Measure para las herramientas de medición -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-measure@3.1.0/dist/leaflet-measure.css"/>
-    <!-- MODIFICACIÓN: Agregado JS de Leaflet Measure para habilitar los cálculos de longitud y superficie -->
-    <script src="https://cdn.jsdelivr.net/npm/leaflet-measure@3.1.0/dist/leaflet-measure.js"></script>
-
     <style>
         body { margin:0; padding:0; font-family: 'Inter', sans-serif; background: #0f172a; overflow: hidden; }
         #map { height: 100vh; width: 100%; z-index: 1; }
@@ -52,97 +47,97 @@
         .adv-sv { font-size: 9px; color: #718096; text-align: center; font-style: italic; margin-top: 4px; line-height: 1.2; }
         .adv-legal { font-size: 8px; color: #a0aec0; margin-top: 6px; border-top: 1px dashed #cbd5e0; padding-top: 4px; line-height: 1.1; }
         
-         .adv-distrito{
-    position:absolute;
-    bottom:35px;
-    right:15px;
-    z-index:1000;
+        .adv-distrito{
+            position:absolute;
+            bottom:35px;
+            right:15px;
+            z-index:1000;
 
-    background:rgba(255,255,255,0.92);
+            background:rgba(255,255,255,0.92);
 
-    border:1px solid rgba(0,0,0,0.12);
-    border-radius:10px;
+            border:1px solid rgba(0,0,0,0.12);
+            border-radius:10px;
 
-    padding:10px;
+            padding:10px;
 
-    box-shadow:0 4px 12px rgba(0,0,0,0.15);
+            box-shadow:0 4px 12px rgba(0,0,0,0.15);
 
-    font-size:9px;
-    color:#4a5568;
+            font-size:9px;
+            color:#4a5568;
 
-    pointer-events:auto;
-}
+            pointer-events:auto;
+        }
         
         .panel-info-mapa{
-    width:260px;
-    max-width:30vw;
+            width:260px;
+            max-width:30vw;
 
-    background:transparent;
-    border:none;
-    box-shadow:none;
+            background:transparent;
+            border:none;
+            box-shadow:none;
 
-    position:relative;
-    bottom:auto;
-    right:auto;
+            position:relative;
+            bottom:auto;
+            right:auto;
 
-    overflow:hidden;
-}
+            overflow:hidden;
+        }
 
-.panel-header{
-    display:flex;
-    justify-content:space-between;
-    align-items:flex-start;
+        .panel-header{
+            display:flex;
+            justify-content:space-between;
+            align-items:flex-start;
 
-    padding:12px;
-}
+            padding:12px;
+        }
 
-.panel-titulo{
-    font-size:13px;
-    font-weight:800;
-    color:#1e293b;
-    text-transform:uppercase;
-    line-height:1.2;
-    text-align:center;
-}
+        .panel-titulo{
+            font-size:13px;
+            font-weight:800;
+            color:#1e293b;
+            text-transform:uppercase;
+            line-height:1.2;
+            text-align:center;
+        }
 
-.panel-zoom{
-    margin-top:4px;
-    font-size:10px;
-    color:#64748b;
-    font-weight:600;
-}
+        .panel-zoom{
+            margin-top:4px;
+            font-size:10px;
+            color:#64748b;
+            font-weight:600;
+        }
 
-.panel-descripcion{
-    padding:0 12px 12px 12px;
+        .panel-descripcion{
+            padding:0 12px 12px 12px;
 
-    font-size:11px;
-    color:#475569;
+            font-size:11px;
+            color:#475569;
 
-    line-height:1.45;
-    text-align:justify;
+            line-height:1.45;
+            text-align:justify;
 
-    max-height:180px;
-    overflow-y:auto;
+            max-height:180px;
+            overflow-y:auto;
 
-    transition:all .3s ease;
-}
+            transition:all .3s ease;
+        }
 
-.panel-descripcion.oculto{
-    max-height:0;
-    padding:0 12px;
-    overflow:hidden;
-}
+        .panel-descripcion.oculto{
+            max-height:0;
+            padding:0 12px;
+            overflow:hidden;
+        }
 
-#btn-descripcion{
-    border:none;
-    background:none;
-    cursor:pointer;
+        #btn-descripcion{
+            border:none;
+            background:none;
+            cursor:pointer;
 
-    font-size:14px;
-    font-weight:bold;
+            font-size:14px;
+            font-weight:bold;
 
-    color:#475569;
-}
+            color:#475569;
+        }
         
         .layer-legend-icon { 
             display: inline-block; 
@@ -170,25 +165,33 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
         }
 
-        /* MODIFICACIÓN: Ajustes de diseño premium para adaptar la interfaz de Leaflet Measure al visor oscuro */
-        .leaflet-control-measure {
-            border: none !important;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
-            border-radius: 8px !important;
-            font-family: 'Inter', sans-serif !important;
-        }
-        .leaflet-control-measure a.has-measurements {
-            background-color: #2980b9 !important;
-        }
-        .leaflet-control-measure .js-toggle {
-            border-radius: 8px !important;
+        /* MODIFICACIÓN: Estilo sofisticado y multilínea para etiquetas de Barrios IAPV que evita superposiciones */
+        .etiqueta-barrio {
+            background: rgba(15, 23, 42, 0.92) !important;
+            border: 1.5px solid #2ec771 !important;
+            color: #2ec771 !important;
+            font-weight: 800 !important;
+            font-size: 8px !important;
+            border-radius: 4px !important;
+            padding: 4px 6px !important;
+            display: block !important;
+            white-space: normal !important; 
+            pointer-events: none !important; 
+            box-shadow: 0 2px 6px rgba(0,0,0,0.4) !important;
+            text-shadow: 1px 1px 1px rgba(0,0,0,0.9) !important;
+            text-align: center !important;
+            text-transform: uppercase !important;
+            width: auto !important;
+            height: auto !important;
+            min-width: 80px;
+            max-width: 140px;
         }
     </style>
 </head>
 
 <body>
 
-<!-- MODIFICACIÓN: Menú lateral premium colapsable en tonos oscuros con todas las búsquedas y capa controladas quirúrgicamente -->
+<!-- MODIFICACIÓN: Menú lateral premium colapsable en tonos oscuros con todas las búsquedas y capas controladas quirúrgicamente -->
 <div id="sidebar" class="fixed top-0 left-0 h-full w-[360px] max-w-[85vw] bg-slate-900 border-r border-slate-800 text-slate-100 flex flex-col z-[1000] shadow-2xl transition-transform duration-300 ease-in-out transform">
     
     <!-- Encabezado del visor -->
@@ -218,6 +221,13 @@
                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Dirección (Calle y Altura - Predictivo)</label>
                 <input type="text" id="input-ubicacion" placeholder="Buscar dirección (p. ej. San Martín 123)..." class="w-full bg-slate-850 border border-slate-700 rounded-md px-3 py-1.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition" autocomplete="off">
                 <div id="sugerencias-ubicacion" class="absolute left-0 right-0 bg-slate-800 border border-slate-700 rounded-md max-h-52 overflow-y-auto mt-1 hidden z-[2000] shadow-2xl scrollbar-custom"></div>
+            </div>
+
+            <!-- MODIFICACIÓN: Búsqueda Predictiva de Barrios IAPV por Nombre -->
+            <div class="space-y-1 relative">
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Buscar Barrio I.A.P.V. (Nombre)</label>
+                <input type="text" id="input-barrio" placeholder="Buscar barrio (p. ej. 170 viviendas)..." class="w-full bg-slate-850 border border-slate-700 rounded-md px-3 py-1.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition" autocomplete="off">
+                <div id="sugerencias-barrio" class="absolute left-0 right-0 bg-slate-800 border border-slate-700 rounded-md max-h-52 overflow-y-auto mt-1 hidden z-[2000] shadow-2xl scrollbar-custom"></div>
             </div>
 
             <!-- Búsqueda de Lugares en Google / Nominatim -->
@@ -258,6 +268,13 @@
                 <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide">Capas vectoriales</span>
                 <div class="space-y-2">
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
+                        <input type="checkbox" id="chk-barrios" checked onchange="toggleOverlay('barrios')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
+                        <span class="flex items-center gap-2">
+                            <span class="w-3.5 h-3.5 rounded border border-[#2ecc71] bg-[rgba(46,204,113,0.15)] inline-block"></span>
+                            <span>Barrios IAPV</span>
+                        </span>
+                    </label>
+                    <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
                         <input type="checkbox" id="chk-manzanas" checked onchange="toggleOverlay('manzanas')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
                         <span class="flex items-center gap-2">
                             <span class="w-3.5 h-3.5 rounded border border-[#ff6b6b] bg-[rgba(255,107,107,0.15)] inline-block"></span>
@@ -286,7 +303,7 @@
         <div class="space-y-3 pt-2">
             <h2 class="text-xs font-extrabold uppercase tracking-widest text-slate-400 border-b border-slate-800 pb-1.5">Información útil</h2>
             <div class="text-[11px] text-slate-400 space-y-1.5 leading-relaxed bg-slate-950/20 p-3 rounded-lg border border-slate-850">
-                <p>📏 Use la regla en el margen superior derecho para realizar mediciones de longitud y área.</p>
+                <p>📏 Use el panel flotante derecho para realizar mediciones de distancia y área.</p>
                 <p>⚡ Las parcelas catastrales y los nombres de las calles se visualizan automáticamente a niveles de zoom cercanos (Zoom >= 15/16).</p>
             </div>
         </div>
@@ -302,39 +319,25 @@
 </div>
 
 <!-- Cuadro Informativo de Distritos con indicador de Zoom -->
-<!-- Cuadro Informativo -->
 <div class="adv-distrito">
-
     <div id="panel-info-mapa" class="panel-info-mapa">
-
         <div class="panel-header">
-
             <div style="width:100%;">
-
                 <div class="panel-titulo" id="titulo-mapa">
-                    TÍTULO DEL MAPA
+                    BARRIOS I.A.P.V.
                 </div>
-
                 <div class="panel-zoom" style="text-align:center;">
                     Zoom:
                     <span id="zoom-indicator">12</span>
                 </div>
-
             </div>
-
-            <button onclick="toggleDescripcionMapa()"
-                id="btn-descripcion">
-            ▼
-        </button>
-
+            <button onclick="toggleDescripcionMapa()" id="btn-descripcion">
+                ▼
+            </button>
         </div>
 
-        <div
-            id="descripcion-mapa"
-            class="panel-descripcion">
-
-            Aquí va la descripción del mapa. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur iaculis nulla sed diam porttitor gravida. Mauris sodales sit amet tellus commodo luctus. Proin arcu erat, consequat vitae tortor et, rutrum consectetur neque.
-            
+        <div id="descripcion-mapa" class="panel-descripcion">
+            Este MAPA WEB contiene información geoespacial sobre las urbanizaciones generadas por el IAPV que se encuentran en tramite o aprobadas en la ciudad de Paraná
         </div>
 
         <hr style="margin:8px 0;">
@@ -346,9 +349,42 @@
         <div class="text-[8px] text-slate-400 font-semibold mt-1">
             Elaborado por Dirección de Cartografía y Datos Espaciales
         </div>
-
     </div>
+</div>
 
+<!-- MODIFICACIÓN: Panel Flotante de Herramientas de Medición (Estilo Premium Mapas Córdoba / IDECOR) -->
+<div class="fixed right-4 top-4 flex flex-col gap-2 z-[1000] bg-slate-900/95 border border-slate-800 p-2 rounded-xl shadow-2xl transition-all duration-300">
+    <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest text-center mb-1 border-b border-slate-800/60 pb-1.5">Herramientas</div>
+    
+    <!-- Botón Medir Distancia -->
+    <button id="btn-medir-distancia" onclick="toggleMedicion('distancia')" class="flex items-center justify-between gap-3 px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-100 text-xs font-semibold transition border border-transparent hover:border-blue-500/50 focus:outline-none w-36 shadow-md" title="Medir Distancia">
+        <span class="flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+            <span>Distancia</span>
+        </span>
+    </button>
+    
+    <!-- Botón Medir Superficie -->
+    <button id="btn-medir-superficie" onclick="toggleMedicion('superficie')" class="flex items-center justify-between gap-3 px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-100 text-xs font-semibold transition border border-transparent hover:border-emerald-500/50 focus:outline-none w-36 shadow-md" title="Medir Superficie">
+        <span class="flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" />
+            </svg>
+            <span>Superficie</span>
+        </span>
+    </button>
+    
+    <!-- Consola Dinámica de Resultados de Medición -->
+    <div id="consola-medicion" class="hidden flex flex-col bg-slate-950 p-2.5 rounded-lg border border-slate-800 text-slate-300 mt-1 max-w-[144px]">
+        <p id="texto-consola-instruccion" class="text-[9px] font-bold text-slate-400 mb-1 leading-snug">Haga clic en el mapa para marcar puntos...</p>
+        <p id="resultado-consola-medicion" class="text-blue-400 font-extrabold text-sm border-t border-slate-800/60 pt-1 mt-1">0.00 m</p>
+        <div class="flex gap-1 mt-2.5">
+            <button onclick="finalizarMedicion()" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-[8px] py-1 rounded transition uppercase">Listo</button>
+            <button onclick="limpiarMedicion()" class="flex-1 bg-rose-600 hover:bg-rose-500 text-white font-extrabold text-[8px] py-1 rounded transition uppercase">Limpiar</button>
+        </div>
+    </div>
 </div>
 
 <div id="map"></div>
@@ -407,6 +443,29 @@ function decodificarTexto(str) {
     } catch (e) { return str; }
 }
 
+// MODIFICACIÓN: Función de formateo multilínea de etiquetas con un máximo de 20 caracteres por línea
+function formatearEtiquetaMultiline(texto, maxAncho = 20) {
+    if (!texto) return "";
+    let palabras = texto.split(" ");
+    let lineas = [];
+    let lineaActual = "";
+
+    palabras.forEach(palabra => {
+        if (lineaActual.length === 0) {
+            lineaActual = palabra;
+        } else if ((lineaActual + " " + palabra).length <= maxAncho) {
+            lineaActual += " " + palabra;
+        } else {
+            lineas.push(lineaActual);
+            lineaActual = palabra;
+        }
+    });
+    if (lineaActual) {
+        lineas.push(lineaActual);
+    }
+    return lineas.join("<br>");
+}
+
 async function fetchGeoJSON(url) {
     const response = await fetch(url);
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
@@ -432,12 +491,12 @@ var map = L.map('map', {
 
 // Creación explícita de paneles ordenados por Z-Index
 map.createPane('manzanasPane');
-map.getPane('manzanasPane').style.zIndex = 300; // Capa inferior de fondo
-map.getPane('manzanasPane').style.pointerEvents = 'none'; // Clics pasan de largo
+map.getPane('manzanasPane').style.zIndex = 300; 
+map.getPane('manzanasPane').style.pointerEvents = 'none'; 
 
 map.createPane('parcelasPane');
-map.getPane('parcelasPane').style.zIndex = 350; // Capa superior
-map.getPane('parcelasPane').style.pointerEvents = 'auto'; // Captura clics
+map.getPane('parcelasPane').style.zIndex = 350; 
+map.getPane('parcelasPane').style.pointerEvents = 'auto'; 
 
 map.createPane('atlasPane');
 map.getPane('atlasPane').style.zIndex = 320;
@@ -467,6 +526,9 @@ fetchGeoJSON(BASE_URL + "calles.geojson").then(data => {
                 let nombreCalle = decodificarTexto(f.properties.nombre);
                 listaCallesParaBusqueda.push({ nombre: nombreCalle.toUpperCase(), layer: l });
                 l.on('click', (e) => {
+                    // MODIFICACIÓN: Desactivar popup si el modo de medición está activo
+                    if (modoMedicion) return; 
+
                     let latlng = e.latlng || l.getBounds().getCenter();
                     let sv = `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${latlng.lat},${latlng.lng}`;
                     l.bindPopup(`<b>Calle:</b> ${nombreCalle.toUpperCase()}<br><a href="${sv}" target="_blank" class="btn-streetview">📍 STREET VIEW</a>`).openPopup();
@@ -478,7 +540,6 @@ fetchGeoJSON(BASE_URL + "calles.geojson").then(data => {
 });
 
 function toggleDescripcionMapa() {
-
     const descripcion = document.getElementById("descripcion-mapa");
     const boton = document.getElementById("btn-descripcion");
 
@@ -495,8 +556,6 @@ function activarEtiquetasCalles() {
     const renderLabels = () => {
         let z = map.getZoom();
         const activeOnMap = map.hasLayer(grupoCalles);
-
-        // Registro local para de-duplicación espacial de nombres de calle idénticos en el viewport
         let etiquetasColocadas = {}; 
 
         grupoCalles.eachLayer(geoJsonGroup => {
@@ -510,8 +569,6 @@ function activarEtiquetasCalles() {
                         try {
                             if (map.getBounds().intersects(ly.getBounds())) {
                                 let nombreCalle = decodificarTexto(ly.feature.properties.nombre).toUpperCase();
-
-                                // Cálculo de longitud real de segmento en metros para descartar polilíneas enanas
                                 let latlngs = ly.getLatLngs();
                                 if (Array.isArray(latlngs[0])) latlngs = latlngs.flat(2);
                                 
@@ -522,12 +579,9 @@ function activarEtiquetasCalles() {
                                     }
                                 }
 
-                                // Ignorar tramos menores a 70 metros para evitar acumulación redundante en las esquinas
                                 if (largoMetros < 70) return;
 
                                 let centro = ly.getBounds().getCenter();
-
-                                // Validación espacial de proximidad. No dibuja si hay otra etiqueta igual a menos de 200 metros
                                 let duplicadoCercano = false;
                                 if (etiquetasColocadas[nombreCalle]) {
                                     for (let pt of etiquetasColocadas[nombreCalle]) {
@@ -629,11 +683,71 @@ fetchGeoJSON(BASE_URL + "catastro/manzana.geojson").then(data => {
     console.error("Error al cargar la capa de manzanas:", err);
 });
 
+// MODIFICACIÓN: Gestión e Inicialización asíncrona de la capa Barrios IAPV con buscador de prefijos y no-superposición
+var grupoBarrios = L.layerGroup().addTo(map);
+var grupoEtiquetasBarrios = L.layerGroup().addTo(map);
+var listaBarriosParaBusqueda = [];
+
+fetchGeoJSON(BASE_URL + "IAPV/barrios_iapv.geojson").then(data => {
+    L.geoJSON(data, {
+        style: {
+            color: "#2ec771",
+            weight: 2.5,
+            fillColor: "#2ec771",
+            fillOpacity: 0.18,
+            dashArray: "5, 5"
+        },
+        onEachFeature: (f, l) => {
+            let propBarrio = f.properties.barrio || f.properties.BARRIO || "Barrio sin Nombre";
+            let nombreBarrio = decodificarTexto(propBarrio).toUpperCase().trim();
+            
+            // MODIFICACIÓN: Almacenar los datos del barrio indexándolos quirúrgicamente para la búsqueda de prefijos
+            listaBarriosParaBusqueda.push({
+                nombre: nombreBarrio,
+                layer: l,
+                bounds: l.getBounds()
+            });
+
+            let latlng = l.getBounds().getCenter();
+            let sv = `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${latlng.lat},${latlng.lng}`;
+
+            let content = `<div class="popup-custom"><div class="popup-header">BARRIO I.A.P.V.</div>`;
+            content += `<table class="table-info">`;
+            for (let [k, v] of Object.entries(f.properties)) { 
+                if (v && v !== "0") content += `<tr><td>${decodificarTexto(k).toUpperCase()}</td><td>${decodificarTexto(String(v))}</td></tr>`; 
+            }
+            content += `</table>`;
+            content += `<a href="${sv}" target="_blank" class="btn-streetview">📍 STREET VIEW</a>`;
+            content += `</div>`;
+            
+            l.bindPopup(content, { autoPanPadding: L.point(10, 110) });
+
+            // MODIFICACIÓN: Creación de marcadores de texto multilínea sin superposición espacial excesiva
+            try {
+                let center = l.getBounds().getCenter();
+                let textoFormateado = formatearEtiquetaMultiline(nombreBarrio, 18);
+                
+                L.marker(center, {
+                    icon: L.divIcon({
+                        className: 'etiqueta-barrio',
+                        html: `<div>${textoFormateado}</div>`,
+                        iconSize: [120, 36],
+                        iconAnchor: [60, 18]
+                    }),
+                    interactive: false 
+                }).addTo(grupoEtiquetasBarrios); 
+            } catch(e) {}
+        }
+    }).addTo(grupoBarrios);
+    configurarBuscadorBarrios();
+    controlarVisibilidadDinamica();
+}).catch(err => {
+    console.error("Error al cargar la capa de Barrios IAPV:", err);
+});
+
 // Capa de Parcelas (Totalmente Restituida)
 var grupoParcelas = L.layerGroup();
 var parcelasLayers = [];
-
-// MODIFICACIÓN: Lista global e indexada para la búsqueda predictiva case-insensitive de ubicaciones (UBIPAR1 / calle y altura)
 var listaParcelasUbicacion = [];
 
 function pointInPoly(point, vs) {
@@ -677,6 +791,9 @@ archivosCatastro.forEach(file => {
             style: f => ({ color: f.properties.esPH ? "#8e44ad" : "#2980b9", weight: 0.7, fillOpacity: 0.12 }),
             onEachFeature: (f, l) => {
                 l.on('click', e => {
+                    // MODIFICACIÓN: Ignorar clics en parcelas si se está midiendo distancias o superficies
+                    if (modoMedicion) return;
+
                     let latlng = e.latlng || l.getBounds().getCenter();
                     let p = f.properties;
                     let sv = `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${latlng.lat},${latlng.lng}`;
@@ -699,7 +816,6 @@ archivosCatastro.forEach(file => {
                     l.bindPopup(content, { autoPanPadding: L.point(10, 110) }).openPopup(latlng);
                 });
 
-                // MODIFICACIÓN: Alimentamos quirúrgicamente la lista global para búsqueda predictiva por UBIPAR1
                 if (f.properties.ubicacion && f.properties.ubicacion !== "-" && f.properties.ubicacion.trim() !== "") {
                     let ubiClean = decodificarTexto(f.properties.ubicacion).toUpperCase().trim();
                     listaParcelasUbicacion.push({
@@ -716,13 +832,32 @@ archivosCatastro.forEach(file => {
     });
 });
 
-// MODIFICACIÓN: Gestión unificada de visibilidad dinámica sincronizada con el nuevo panel de capas del menú lateral
+// MODIFICACIÓN: Control dinámico de capas de información y visibilidad por niveles de Zoom
 function controlarVisibilidadDinamica() {
     let zoomActual = map.getZoom();
-    
     document.getElementById('zoom-indicator').innerText = zoomActual;
 
-    // 1. Visibilidad de Manzanas y etiquetas
+    // 0. Visibilidad de Barrios IAPV (Habilitado control de etiquetas a nivel de Zoom >= 16)
+    const chkBarrios = document.getElementById('chk-barrios') ? document.getElementById('chk-barrios').checked : true;
+    if (chkBarrios) {
+        if (!map.hasLayer(grupoBarrios)) {
+            map.addLayer(grupoBarrios);
+        }
+        if (zoomActual >= 16) {
+            if (!map.hasLayer(grupoEtiquetasBarrios)) {
+                map.addLayer(grupoEtiquetasBarrios);
+            }
+        } else {
+            if (map.hasLayer(grupoEtiquetasBarrios)) {
+                map.removeLayer(grupoEtiquetasBarrios);
+            }
+        }
+    } else {
+        if (map.hasLayer(grupoBarrios)) map.removeLayer(grupoBarrios);
+        if (map.hasLayer(grupoEtiquetasBarrios)) map.removeLayer(grupoEtiquetasBarrios);
+    }
+
+    // 1. Visibilidad de Manzanas y etiquetas (Zoom >= 15)
     const chkManzanas = document.getElementById('chk-manzanas').checked;
     if (chkManzanas) {
         if (!map.hasLayer(grupoManzanas)) {
@@ -772,7 +907,6 @@ map.on('layeradd layerremove', controlarVisibilidadDinamica);
 
 /* ================= CONTROLES Y BÚSQUEDA DEL MENÚ LATERAL ================= */
 
-// MODIFICACIÓN: Alternar visualización del menú lateral con transiciones fluidas de Tailwind CSS
 function toggleSidebar() {
     const sidebar = document.getElementById('sidebar');
     const toggleIcon = document.getElementById('toggle-icon');
@@ -786,7 +920,6 @@ function toggleSidebar() {
     }
 }
 
-// MODIFICACIÓN: Gestión dinámica de mapas base mediante los radios del menú lateral
 function cambiarBaseMap(tipo) {
     map.removeLayer(dark);
     map.removeLayer(hibrido);
@@ -797,7 +930,6 @@ function cambiarBaseMap(tipo) {
     if (tipo === 'osm') osm.addTo(map);
 }
 
-// MODIFICACIÓN: Alternador para el control manual de checkboxes de las capas vectoriales
 function toggleOverlay(capa) {
     controlarVisibilidadDinamica();
 }
@@ -810,8 +942,6 @@ function buscarPM() {
         ly.eachLayer(l => {
             if (l.feature.properties.partidas.includes(val)) {
                 map.fitBounds(l.getBounds(), { maxZoom: 19 });
-                
-                // Aseguramos que la capa de parcelas esté visible para renderizarse
                 document.getElementById('chk-parcelas').checked = true;
                 controlarVisibilidadDinamica();
 
@@ -822,22 +952,19 @@ function buscarPM() {
     });
 }
 
-// MODIFICACIÓN: Buscador predictivo case-insensitive y basado en prefijos/subcadenas para UBIPAR1
 function buscarPredictivoUbicacion(query) {
     if (!query || query.length < 3) return [];
     let cleanQuery = query.toUpperCase().trim();
     let matches = [];
 
-    // Priorizamos coincidencias de prefijo
     for (let i = 0; i < listaParcelasUbicacion.length; i++) {
         let item = listaParcelasUbicacion[i];
         if (item.texto.startsWith(cleanQuery)) {
             matches.push(item);
-            if (matches.length >= 10) break; // Límite sugerencias
+            if (matches.length >= 10) break; 
         }
     }
 
-    // Si aún hay espacio, rellenamos con coincidencias de subcadena
     if (matches.length < 10) {
         for (let i = 0; i < listaParcelasUbicacion.length; i++) {
             let item = listaParcelasUbicacion[i];
@@ -850,7 +977,6 @@ function buscarPredictivoUbicacion(query) {
     return matches;
 }
 
-// MODIFICACIÓN: Vinculador de interacciones de autocompletado con el campo de entrada
 function configurarBuscadorUbicaciones() {
     const input = document.getElementById('input-ubicacion');
     const sug = document.getElementById('sugerencias-ubicacion');
@@ -867,8 +993,6 @@ function configurarBuscadorUbicaciones() {
 
         if (matches.length > 0) {
             sug.style.display = 'block';
-            
-            // Eliminar duplicados textuales de sugerencia para mejor UI/UX
             let textosAgregados = new Set();
 
             matches.forEach(m => {
@@ -883,12 +1007,8 @@ function configurarBuscadorUbicaciones() {
                         
                         if (m.layer) {
                             map.fitBounds(m.layer.getBounds(), { maxZoom: 19 });
-                            
-                            // Aseguramos que la capa esté visible
                             document.getElementById('chk-parcelas').checked = true;
                             controlarVisibilidadDinamica();
-
-                            // Ejecutar clic en el mapa para abrir Popup
                             m.layer.fire('click');
                         }
                     };
@@ -900,7 +1020,85 @@ function configurarBuscadorUbicaciones() {
         }
     });
 
-    // Cerrar sugerencias al cliquear afuera
+    document.addEventListener('click', (e) => {
+        if (e.target !== input && e.target !== sug) {
+            sug.style.display = 'none';
+        }
+    });
+}
+
+// MODIFICACIÓN: Motor de búsqueda predictivo para Barrios IAPV por Nombre con prioridad de prefijos
+function buscarPredictivoBarrio(query) {
+    if (!query || query.length < 2) return [];
+    let cleanQuery = query.toUpperCase().trim();
+    let matches = [];
+
+    // Coincidencias por prefijo (Prefix-based matching)
+    for (let i = 0; i < listaBarriosParaBusqueda.length; i++) {
+        let item = listaBarriosParaBusqueda[i];
+        if (item.nombre.startsWith(cleanQuery)) {
+            matches.push(item);
+            if (matches.length >= 10) break;
+        }
+    }
+
+    // Coincidencias por subcadena como respaldo
+    if (matches.length < 10) {
+        for (let i = 0; i < listaBarriosParaBusqueda.length; i++) {
+            let item = listaBarriosParaBusqueda[i];
+            if (!item.nombre.startsWith(cleanQuery) && item.nombre.includes(cleanQuery)) {
+                matches.push(item);
+                if (matches.length >= 12) break;
+            }
+        }
+    }
+    return matches;
+}
+
+// MODIFICACIÓN: Gestión e interfaz interactiva para el buscador de Barrios IAPV
+function configurarBuscadorBarrios() {
+    const input = document.getElementById('input-barrio');
+    const sug = document.getElementById('sugerencias-barrio');
+
+    input.addEventListener('input', () => {
+        let val = input.value;
+        sug.innerHTML = '';
+        if (val.length < 2) {
+            sug.style.display = 'none';
+            return;
+        }
+
+        let matches = buscarPredictivoBarrio(val);
+
+        if (matches.length > 0) {
+            sug.style.display = 'block';
+            let textosAgregados = new Set();
+
+            matches.forEach(m => {
+                if (!textosAgregados.has(m.nombre)) {
+                    textosAgregados.add(m.nombre);
+                    let d = document.createElement('div');
+                    d.className = 'px-3 py-1.5 cursor-pointer text-xs text-slate-300 hover:bg-emerald-600 hover:text-white border-b border-slate-800 last:border-none transition duration-150';
+                    d.innerText = m.nombre;
+                    d.onclick = () => {
+                        input.value = m.nombre;
+                        sug.style.display = 'none';
+                        
+                        if (m.layer) {
+                            map.fitBounds(m.bounds, { maxZoom: 18 });
+                            document.getElementById('chk-barrios').checked = true;
+                            controlarVisibilidadDinamica();
+                            m.layer.fire('click');
+                        }
+                    };
+                    sug.appendChild(d);
+                }
+            });
+        } else {
+            sug.style.display = 'none';
+        }
+    });
+
     document.addEventListener('click', (e) => {
         if (e.target !== input && e.target !== sug) {
             sug.style.display = 'none';
@@ -922,21 +1120,178 @@ function buscarGoogle() {
         });
 }
 
-// MODIFICACIÓN: Inicialización de la herramienta de medición (longitud y superficie) en español
-var measureControl = new L.Control.Measure({
-    primaryLengthUnit: 'meters',
-    secondaryLengthUnit: 'kilometers',
-    primaryAreaUnit: 'sqmeters',
-    secondaryAreaUnit: 'hectares',
-    activeColor: '#ff6b6b',
-    completedColor: '#2980b9',
-    localization: 'es',
-    popupOptions: {
-        className: 'leaflet-measure-popup',
-        autoPanPadding: [80, 80]
+
+/* ================= MODIFICACIÓN: SISTEMA DE MEDICIÓN PERSONALIZADO PREMIUM (Estilo Córdoba/IDECOR) ================= */
+
+var modoMedicion = null; // 'distancia' | 'superficie' | null
+var puntosMedicion = [];
+var grupoCapasMedicion = L.featureGroup().addTo(map);
+var lineaMedicionActiva = null;
+var poligonoMedicionActivo = null;
+var marcadoresPuntosMedicion = [];
+
+// Alternar estados y estilos entre Distancia o Superficie
+function toggleMedicion(tipo) {
+    if (modoMedicion === tipo) {
+        desactivarMedicion();
+    } else {
+        desactivarMedicion();
+        modoMedicion = tipo;
+        
+        // Efecto visual premium de botones activos
+        let btnDist = document.getElementById('btn-medir-distancia');
+        let btnSup = document.getElementById('btn-medir-superficie');
+        
+        if (tipo === 'distancia') {
+            btnDist.classList.add('border-blue-500', 'bg-blue-950/40', 'text-blue-400');
+        } else {
+            btnSup.classList.add('border-emerald-500', 'bg-emerald-950/40', 'text-emerald-400');
+        }
+
+        document.getElementById('consola-medicion').classList.remove('hidden');
+        document.getElementById('texto-consola-instruccion').innerText = `Modo ${tipo === 'distancia' ? 'Distancia' : 'Superficie'} activo. Haga clic en el mapa...`;
+        document.getElementById('resultado-consola-medicion').innerText = tipo === 'distancia' ? '0.00 m' : '0.00 m²';
+        
+        map.getContainer().style.cursor = 'crosshair';
+        map.closePopup();
+    }
+}
+
+function desactivarMedicion() {
+    modoMedicion = null;
+    
+    // Restablecer estilos de botones
+    let btnDist = document.getElementById('btn-medir-distancia');
+    let btnSup = document.getElementById('btn-medir-superficie');
+    
+    btnDist.className = "flex items-center justify-between gap-3 px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-100 text-xs font-semibold transition border border-transparent hover:border-blue-500/50 focus:outline-none w-36 shadow-md";
+    btnSup.className = "flex items-center justify-between gap-3 px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-100 text-xs font-semibold transition border border-transparent hover:border-emerald-500/50 focus:outline-none w-36 shadow-md";
+
+    document.getElementById('consola-medicion').classList.add('hidden');
+    map.getContainer().style.cursor = '';
+}
+
+// Limpiar todas las mediciones dibujadas
+function limpiarMedicion() {
+    puntosMedicion = [];
+    grupoCapasMedicion.clearLayers();
+    lineaMedicionActiva = null;
+    poligonoMedicionActivo = null;
+    marcadoresPuntosMedicion = [];
+    document.getElementById('resultado-consola-medicion').innerText = modoMedicion === 'distancia' ? '0.00 m' : '0.00 m²';
+    document.getElementById('texto-consola-instruccion').innerText = 'Dibujo limpio. Haga clic para comenzar de nuevo...';
+}
+
+function finalizarMedicion() {
+    desactivarMedicion();
+}
+
+// Motor de cálculo de Superficies locales precisas mediante geometría plana tangente
+function calcularAreaPlana(pts) {
+    if (pts.length < 3) return 0;
+    let origin = pts[0];
+    
+    // Coordenadas relativas en metros para evitar distorsión de proyección
+    let coords = pts.map(p => {
+        return {
+            y: (p.lat - origin.lat) * 111132.954,
+            x: (p.lng - origin.lng) * 111132.954 * Math.cos(origin.lat * Math.PI / 180)
+        };
+    });
+
+    let area = 0;
+    let j = coords.length - 1;
+    for (let i = 0; i < coords.length; i++) {
+        area += (coords[j].x + coords[i].x) * (coords[j].y - coords[i].y);
+        j = i;
+    }
+    return Math.abs(area / 2);
+}
+
+// Actualización en tiempo real del trazado de medición en base a los puntos seleccionados
+function actualizarDibujosMedicion(puntosTemporales = null) {
+    if (lineaMedicionActiva) grupoCapasMedicion.removeLayer(lineaMedicionActiva);
+    if (poligonoMedicionActivo) grupoCapasMedicion.removeLayer(poligonoMedicionActivo);
+
+    let pts = puntosTemporales || puntosMedicion;
+    if (pts.length === 0) return;
+
+    if (modoMedicion === 'distancia') {
+        lineaMedicionActiva = L.polyline(pts, {
+            color: '#3b82f6',
+            weight: 3.5,
+            dashArray: '6, 6'
+        }).addTo(grupoCapasMedicion);
+
+        // Sumatoria incremental de distancias geodésicas en metros
+        let dTotal = 0;
+        for (let i = 0; i < pts.length - 1; i++) {
+            dTotal += pts[i].distanceTo(pts[i+1]);
+        }
+        let dText = dTotal < 1000 ? `${dTotal.toFixed(2)} m` : `${(dTotal/1000).toFixed(3)} km`;
+        document.getElementById('resultado-consola-medicion').innerText = dText;
+        
+    } else if (modoMedicion === 'superficie') {
+        if (pts.length === 2) {
+            lineaMedicionActiva = L.polyline(pts, {
+                color: '#10b981',
+                weight: 2,
+                dashArray: '3, 3'
+            }).addTo(grupoCapasMedicion);
+            document.getElementById('resultado-consola-medicion').innerText = "Añadir 3er punto...";
+        } else if (pts.length >= 3) {
+            poligonoMedicionActivo = L.polygon(pts, {
+                color: '#10b981',
+                fillColor: '#10b981',
+                fillOpacity: 0.28,
+                weight: 3.5,
+                dashArray: '6, 6'
+            }).addTo(grupoCapasMedicion);
+
+            let area = calcularAreaPlana(pts);
+            let areaText = area < 10000 ? `${area.toFixed(2)} m²` : `${(area/10000).toFixed(4)} ha`;
+            document.getElementById('resultado-consola-medicion').innerText = areaText;
+        }
+    }
+}
+
+// Registrar clic de usuario para añadir puntos de control
+map.on('click', function(e) {
+    if (!modoMedicion) return;
+
+    let latlng = e.latlng;
+    puntosMedicion.push(latlng);
+
+    // Marcador circular del punto capturado
+    let m = L.circleMarker(latlng, {
+        radius: 5,
+        fillColor: modoMedicion === 'distancia' ? '#3b82f6' : '#10b981',
+        fillOpacity: 1,
+        color: '#ffffff',
+        weight: 1.5,
+        pane: 'atlasLabelsPane'
+    }).addTo(grupoCapasMedicion);
+    
+    marcadoresPuntosMedicion.push(m);
+    actualizarDibujosMedicion();
+    document.getElementById('texto-consola-instruccion').innerText = `Punto ${puntosMedicion.length} añadido con éxito.`;
+});
+
+// Soporte de previsualización en tiempo real con el movimiento del ratón
+map.on('mousemove', function(e) {
+    if (!modoMedicion || puntosMedicion.length === 0) return;
+    let latlng = e.latlng;
+    let puntosTemporales = [...puntosMedicion, latlng];
+    actualizarDibujosMedicion(puntosTemporales);
+});
+
+// Cancelación de medición activa presionando la tecla "Esc"
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && modoMedicion) {
+        desactivarMedicion();
     }
 });
-measureControl.addTo(map);
+
 
 // Inicializar el buscador predictivo al cargar el script
 configurarBuscadorUbicaciones();
@@ -944,4 +1299,3 @@ controlarVisibilidadDinamica();
 </script>
 </body>
 </html>
-
