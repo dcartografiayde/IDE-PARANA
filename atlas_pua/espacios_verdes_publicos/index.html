@@ -258,26 +258,45 @@
                 <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide">Capas vectoriales</span>
                 <div class="space-y-2">
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
-                        <input type="checkbox" id="chk-manzanas" checked onchange="toggleOverlay('manzanas')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
+                        <input type="checkbox" id="chk-manzanas" onchange="toggleOverlay('manzanas')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
                         <span class="flex items-center gap-2">
                             <span class="w-3.5 h-3.5 rounded border border-[#ff6b6b] bg-[rgba(255,107,107,0.15)] inline-block"></span>
                             <span>Manzanas</span>
                         </span>
                     </label>
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
-                        <input type="checkbox" id="chk-calles" checked onchange="toggleOverlay('calles')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
+                        <input type="checkbox" id="chk-calles" onchange="toggleOverlay('calles')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
                         <span class="flex items-center gap-2">
                             <span class="w-3.5 h-1 bg-[#FFFF00] inline-block"></span>
                             <span>Nombres de Calles</span>
                         </span>
                     </label>
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
-                        <input type="checkbox" id="chk-parcelas" checked onchange="toggleOverlay('parcelas')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
+                        <input type="checkbox" id="chk-parcelas" onchange="toggleOverlay('parcelas')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
                         <span class="flex items-center gap-2">
                             <span class="w-3.5 h-3.5 rounded bg-[#2980b9] inline-block"></span>
                             <span>Parcelas Catastrales</span>
                         </span>
                     </label>
+                    <label class="flex items-center gap-2.5">
+
+<input
+type="checkbox"
+id="chk-espacios-verdes"
+onchange="toggleOverlay('espaciosVerdes')">
+
+<span class="layer-item">
+
+<span
+class="layer-legend-icon"
+style="background:#39b54a">
+</span>
+
+Espacios Verdes
+
+</span>
+
+</label>
                 </div>
             </div>
         </div>
@@ -446,6 +465,10 @@ map.getPane('atlasPane').style.pointerEvents = 'auto';
 map.createPane('atlasLabelsPane');
 map.getPane('atlasLabelsPane').style.zIndex = 650;
 map.getPane('atlasLabelsPane').style.pointerEvents = 'none';
+
+map.createPane('espaciosVerdesPane');
+map.getPane('espaciosVerdesPane').style.zIndex = 310;
+map.getPane('espaciosVerdesPane').style.pointerEvents = 'auto';
 
 var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 22, maxNativeZoom: 19 });
 var dark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 22, maxNativeZoom: 20 });
@@ -629,9 +652,93 @@ fetchGeoJSON(BASE_URL + "catastro/manzana.geojson").then(data => {
     console.error("Error al cargar la capa de manzanas:", err);
 });
 
+/* ===================================================
+   ESPACIOS VERDES
+=================================================== */
+
+fetchGeoJSON(
+    BASE_URL +
+    "atlas_pua/espacios_verdes_publicos/espacios_verdes.geojson"
+)
+
+.then(data => {
+
+    L.geoJSON(data, {
+
+        pane: "espaciosVerdesPane",
+
+        style: {
+
+            color: "#0b8f3a",
+            weight: 2,
+
+            fillColor: "#39b54a",
+
+            fillOpacity: 0.35
+
+        },
+
+        onEachFeature: function(feature, layer){
+
+            const p = feature.properties || {};
+
+            layer.bindPopup(`
+
+<div class="popup-custom">
+
+<div class="popup-header">
+
+ESPACIOS VERDES
+
+</div>
+
+<table class="table-info">
+
+<tr>
+
+<td>Nombre</td>
+
+<td>${decodificarTexto(String(p.nombre || "-"))}</td>
+
+</tr>
+
+<tr>
+
+<td>Tipo</td>
+
+<td>${decodificarTexto(String(p.tipo || "-"))}</td>
+
+</tr>
+
+<tr>
+
+<td>Área</td>
+
+<td>${p.area || "-"}</td>
+
+</tr>
+
+</table>
+
+</div>
+
+            `);
+
+        }
+
+    }).addTo(grupoEspaciosVerdes);
+
+});
+
 // Capa de Parcelas (Totalmente Restituida)
 var grupoParcelas = L.layerGroup();
 var parcelasLayers = [];
+
+/* ===========================
+   ESPACIOS VERDES
+=========================== */
+
+var grupoEspaciosVerdes = L.layerGroup();
 
 // MODIFICACIÓN: Lista global e indexada para la búsqueda predictiva case-insensitive de ubicaciones (UBIPAR1 / calle y altura)
 var listaParcelasUbicacion = [];
@@ -799,6 +906,23 @@ function cambiarBaseMap(tipo) {
 
 // MODIFICACIÓN: Alternador para el control manual de checkboxes de las capas vectoriales
 function toggleOverlay(capa) {
+    function toggleOverlay(capa) {
+    controlarVisibilidadDinamica();
+    if(capa==="espaciosVerdes"){
+
+    if(document.getElementById("chk-espacios-verdes").checked){
+
+        map.addLayer(grupoEspaciosVerdes);
+
+    }else{
+
+        map.removeLayer(grupoEspaciosVerdes);
+
+    }
+
+    return;
+
+}
     controlarVisibilidadDinamica();
 }
 
