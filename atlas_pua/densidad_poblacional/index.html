@@ -52,83 +52,96 @@
         .adv-sv { font-size: 9px; color: #718096; text-align: center; font-style: italic; margin-top: 4px; line-height: 1.2; }
         .adv-legal { font-size: 8px; color: #a0aec0; margin-top: 6px; border-top: 1px dashed #cbd5e0; padding-top: 4px; line-height: 1.1; }
         
-        .adv-distrito { position: absolute; bottom: 25px; right: 10px; z-index: 1000; background: rgba(255,255,255,0.8); padding: 6px 10px; border-radius: 6px; font-size: 9px; color: #4a5568; pointer-events: none; border: 1px solid rgba(0,0,0,0.1); }
-        
-        .layer-legend-icon { 
-            display: inline-block; 
-            width: 14px; 
-            height: 14px; 
-            margin-right: 8px; 
-            border: 1px solid #333; 
-            vertical-align: middle; 
-            border-radius: 3px; 
-        }
-
-        .etiqueta-manzana {
-            background: rgba(255, 255, 255, 0.95) !important;
-            border: 2px solid #ff6b6b !important;
-            color: #1e293b !important;
-            font-weight: 800 !important;
-            font-size: 10px !important;
-            border-radius: 50% !important; 
-            width: 28px !important;
-            height: 28px !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            pointer-events: none !important; 
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
-        }
-
-        .etiqueta-densidad {
-            background: transparent !important;
-            border: none !important;
-            box-shadow: none !important;
-            text-align: center !important;
-            font-size: 11px;
-            font-weight: 700;
-            color: #111;
-            white-space: nowrap;
-            pointer-events: none;
-        }
-
-        .adv-distrito{
+         .adv-distrito{
     position:absolute;
-    bottom:15px;
+    bottom:35px;
     right:15px;
     z-index:1000;
-}
 
-.panel-info-mapa{
-    width:340px;
-    background:rgba(15,23,42,.95);
+    background:rgba(255,255,255,0.92);
+
+    border:1px solid rgba(0,0,0,0.12);
     border-radius:10px;
-    border:1px solid #475569;
-    padding:12px;
-    color:white;
-    box-shadow:0 4px 15px rgba(0,0,0,.4);
+
+    padding:10px;
+
+    box-shadow:0 4px 12px rgba(0,0,0,0.15);
+
+    font-size:9px;
+    color:#4a5568;
+
+    pointer-events:auto;
+}
+        
+        .panel-info-mapa{
+    width:260px;
+    max-width:30vw;
+
+    background:transparent;
+    border:none;
+    box-shadow:none;
+
+    position:relative;
+    bottom:auto;
+    right:auto;
+
+    overflow:hidden;
 }
 
 .panel-header{
     display:flex;
     justify-content:space-between;
     align-items:flex-start;
+
+    padding:12px;
 }
 
 .panel-titulo{
-    font-weight:700;
-    font-size:15px;
+    font-size:13px;
+    font-weight:800;
+    color:#1e293b;
+    text-transform:uppercase;
+    line-height:1.2;
     text-align:center;
 }
 
-.panel-descripcion{
-    margin-top:10px;
-    font-size:12px;
-    line-height:1.5;
+.panel-zoom{
+    margin-top:4px;
+    font-size:10px;
+    color:#64748b;
+    font-weight:600;
 }
 
-.oculto{
-    display:none;
+.panel-descripcion{
+    padding:0 12px 12px 12px;
+
+    font-size:11px;
+    color:#475569;
+
+    line-height:1.45;
+    text-align:justify;
+
+    max-height:180px;
+    overflow-y:auto;
+
+    transition:all .3s ease;
+}
+
+.panel-descripcion.oculto{
+    max-height:0;
+    padding:0 12px;
+    overflow:hidden;
+}
+
+#btn-descripcion{
+    border:none;
+    background:none;
+    cursor:pointer;
+
+    font-size:14px;
+    font-weight:bold;
+
+    color:#475569;
 }
 
         /* MODIFICACIÓN: Ajustes de diseño premium para adaptar la interfaz de Leaflet Measure al visor oscuro */
