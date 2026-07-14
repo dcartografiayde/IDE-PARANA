@@ -1296,7 +1296,7 @@ function actualizarParcelasEnVista() {
 
     grupoParcelas.clearLayers();
 
-    if (!chkParcelas || zoomActual < 18) {
+    if (!chkParcelas || zoomActual < 16) {
         return; 
     }
 
@@ -1396,7 +1396,7 @@ function controlarVisibilidadDinamica() {
     }
 
     const chkParcelas = document.getElementById('chk-parcelas').checked;
-    if (chkParcelas && zoomActual >= 18) {
+    if (chkParcelas && zoomActual >= 16) {
         if (!map.hasLayer(grupoParcelas)) {
             map.addLayer(grupoParcelas);
         }
