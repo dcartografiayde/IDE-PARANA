@@ -3,160 +3,445 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VISOR URBANIZACIONES - MUNICIPALIDAD DE PARANA</title>
+    <title>VISOR HIDROGRÁFICO - MUNICIPALIDAD DE PARANA</title>
 
+    <!-- Hojas de estilo y librerías básicas -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/leaflet-textpath@1.2.3/leaflet.textpath.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- MODIFICACIÓN: Agregado CSS de Leaflet Measure para las herramientas de medición -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-measure@3.1.0/dist/leaflet-measure.css"/>
-    <!-- MODIFICACIÓN: Agregado JS de Leaflet Measure para habilitar los cálculos de longitud y superficie -->
-    <script src="https://cdn.jsdelivr.net/npm/leaflet-measure@3.1.0/dist/leaflet-measure.js"></script>
-
     <style>
         body { margin:0; padding:0; font-family: 'Inter', sans-serif; background: #0f172a; overflow: hidden; }
         #map { height: 100vh; width: 100%; z-index: 1; }
 
-        .panel-superior {
-            position:absolute; top:12px; left:55px; z-index:900;
-            background: rgba(255, 255, 255, 0.95); padding:8px; border-radius:10px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-            display:flex; gap:6px; align-items: center; flex-wrap: wrap;
-            backdrop-filter: blur(5px); border: 1px solid rgba(0,0,0,0.1);
-            max-width: calc(100% - 70px);
+        /* Barra de desplazamiento premium personalizada para el panel lateral */
+        .scrollbar-custom::-webkit-scrollbar {
+            width: 6px;
+        }
+        .scrollbar-custom::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        .scrollbar-custom::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 4px;
+        }
+        .scrollbar-custom::-webkit-scrollbar-thumb:hover {
+            background: #334155;
         }
 
-        input { padding: 4px 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 12px; outline: none; transition: 0.2s; }
-        input:focus { border-color: #2980b9; box-shadow: 0 0 0 2px rgba(41,128,185,0.2); }
-        .btn-buscar { background: #2980b9; color: white; padding: 4px 10px; cursor: pointer; border-radius: 6px; font-weight: 600; font-size: 12px; border: none; }
-        .btn-buscar:hover { background: #1f6391; }
-        
-        .btn-google { background: #4285F4; color: white; padding: 4px 10px; cursor: pointer; border-radius: 6px; font-weight: 600; font-size: 12px; border: none; }
-
-        #sugerencias-calles {
-            position: absolute; background: white; border: 1px solid #ccc;
-            border-radius: 6px; max-height: 150px; overflow-y: auto; z-index: 2000;
-            width: 180px; display: none; margin-top: 34px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        }
-
-        .sugerencia-item { padding: 6px 10px; cursor: pointer; font-size: 11px; border-bottom: 1px solid #f0f0f0; }
-        .sugerencia-item:hover { background: #f8f9fa; color: #2980b9; }
-
-        .popup-custom { font-size: 10px; line-height: 1.1; min-width: 240px; max-height: 280px; overflow-y: auto; padding: 2px; }
+        /* Diseño de los globos de información (Popups) de Leaflet */
+        .popup-custom { font-size: 10px; line-height: 1.2; min-width: 250px; max-height: 280px; overflow-y: auto; padding: 4px; }
         .popup-header { 
-            text-align: center; font-weight: 800; border-bottom: 1px solid #eee; 
-            padding-bottom: 2px; margin-bottom: 3px; color: #1a202c; text-transform: uppercase;
+            text-align: center; font-weight: 800; border-bottom: 2px solid #38bdf8; 
+            padding-bottom: 4px; margin-bottom: 6px; color: #0f172a; text-transform: uppercase;
+            font-size: 11px;
         }
         .table-info { width: 100%; border-collapse: collapse; margin-bottom: 4px; }
-        .table-info td { border-bottom: 1px solid #edf2f7; padding: 1px 0; font-size: 9px; vertical-align: top; }
-        .table-info tr td:first-child { font-weight: 700; color: #4a5568; width: 35%; text-transform: uppercase; }
+        .table-info td { border-bottom: 1px solid #edf2f7; padding: 3px 0; font-size: 10px; vertical-align: top; }
+        .table-info tr td:first-child { font-weight: 700; color: #475569; width: 40%; text-transform: uppercase; }
 
+        /* Botón de Google Street View en Popups */
         .btn-streetview {
             display: block; margin: 8px auto 4px; padding: 6px; border-radius: 4px;
             background: #4285F4; color: white !important; text-align: center;
-            text-decoration: none; font-weight: bold; font-size: 10px;
+            text-decoration: none; font-weight: bold; font-size: 10px; transition: background 0.2s;
         }
+        .btn-streetview:hover { background: #357ae8; }
         
         .adv-sv { font-size: 9px; color: #718096; text-align: center; font-style: italic; margin-top: 4px; line-height: 1.2; }
-        .adv-legal { font-size: 8px; color: #a0aec0; margin-top: 6px; border-top: 1px dashed #cbd5e0; padding-top: 4px; line-height: 1.1; }
         
-        .adv-distrito { position: absolute; bottom: 25px; right: 10px; z-index: 1000; background: rgba(255,255,255,0.8); padding: 6px 10px; border-radius: 6px; font-size: 9px; color: #4a5568; pointer-events: none; border: 1px solid rgba(0,0,0,0.1); }
+        /* Panel Informativo de la esquina inferior derecha */
+        .adv-distrito {
+            position:absolute;
+            bottom:35px;
+            right:15px;
+            z-index:1000;
+            background:rgba(255,255,255,0.94);
+            border:1px solid rgba(0,0,0,0.12);
+            border-radius:10px;
+            padding:12px;
+            box-shadow:0 10px 25px -5px rgba(0,0,0,0.3);
+            font-size:9px;
+            color:#1e293b;
+            pointer-events:auto;
+            backdrop-filter: blur(4px);
+        }
         
-        .layer-legend-icon { 
-            display: inline-block; 
-            width: 14px; 
-            height: 14px; 
-            margin-right: 8px; 
-            border: 1px solid #333; 
-            vertical-align: middle; 
-            border-radius: 3px; 
+        .panel-info-mapa {
+            width:290px;
+            max-width:32vw;
+            background:transparent;
+            border:none;
+            box-shadow:none;
+            position:relative;
+            bottom:auto;
+            right:auto;
+            overflow:hidden;
         }
 
-        .etiqueta-manzana {
-            background: rgba(255, 255, 255, 0.95) !important;
-            border: 2px solid #ff6b6b !important;
-            color: #1e293b !important;
+        .panel-header {
+            display:flex;
+            justify-content:space-between;
+            align-items:flex-start;
+            padding:4px 0 8px 0;
+        }
+
+        .panel-titulo {
+            font-size:12px;
+            font-weight:800;
+            color:#0f172a;
+            text-transform:uppercase;
+            line-height:1.2;
+            text-align:center;
+            letter-spacing: 0.05em;
+            border-bottom: 2px solid #0284c7;
+            padding-bottom: 4px;
+        }
+
+        .panel-zoom {
+            margin-top:6px;
+            font-size:10px;
+            color:#475569;
+            font-weight:700;
+        }
+
+        .panel-descripcion {
+            padding:4px 0;
+            font-size:10.5px;
+            color:#334155;
+            line-height:1.45;
+            text-align:justify;
+            max-height:190px;
+            overflow-y:auto;
+            transition:all .3s ease;
+        }
+
+        .panel-descripcion.oculto {
+            max-height:0;
+            padding:0;
+            overflow:hidden;
+        }
+
+        #btn-descripcion {
+            border:none;
+            background:none;
+            cursor:pointer;
+            font-size:14px;
+            font-weight:bold;
+            color:#0284c7;
+            padding-left: 8px;
+            transition: transform 0.2s;
+        }
+
+        /* Estilo para las etiquetas permanentes de Cuencas - Anticolisión */
+        .etiqueta-cuenca {
+            background: rgba(15, 23, 42, 0.95) !important;
+            border: 1px solid #38bdf8 !important;
+            color: #38bdf8 !important;
             font-weight: 800 !important;
             font-size: 10px !important;
-            border-radius: 50% !important; 
-            width: 28px !important;
-            height: 28px !important;
+            padding: 4px 8px !important;
+            border-radius: 5px !important;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5) !important;
+            pointer-events: none !important;
+            white-space: nowrap;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.85);
             display: flex !important;
             align-items: center !important;
             justify-content: center !important;
-            pointer-events: none !important; 
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
-        }
-
-        /* MODIFICACIÓN: Ajustes de diseño premium para adaptar la interfaz de Leaflet Measure al visor oscuro */
-        .leaflet-control-measure {
-            border: none !important;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
-            border-radius: 8px !important;
-            font-family: 'Inter', sans-serif !important;
-        }
-        .leaflet-control-measure a.has-measurements {
-            background-color: #2980b9 !important;
-        }
-        .leaflet-control-measure .js-toggle {
-            border-radius: 8px !important;
+            width: auto !important;
+            height: auto !important;
+            transform: translate(-50%, -50%);
         }
     </style>
 </head>
 
 <body>
 
-<div class="panel-superior">
-    <!-- Título Visual del Mapa -->
-    <div class="w-full text-center text-[10px] font-extrabold text-slate-800 tracking-wider border-b border-slate-200 pb-1.5 mb-1.5 uppercase">
-        VISOR URBANO - MUNICIPALIDAD DE PARANA
-    </div>
-
-    <input type="text" id="input-pm" placeholder="Partida" style="width:80px;">
-    <button class="btn-buscar" onclick="buscarPM()">Buscar PM</button>
+<div id="sidebar" class="fixed top-0 left-0 h-full w-[360px] max-w-[85vw] bg-slate-900 border-r border-slate-800 text-slate-100 flex flex-col z-[1000] shadow-2xl transition-transform duration-300 ease-in-out transform">
     
-    <div style="height: 20px; width: 1px; background: #e2e8f0; margin: 0 4px;"></div>
-
-    <div style="position:relative; display: flex; gap: 4px;">
-        <input type="text" id="input-calle" placeholder="Calle..." style="width:110px;" autocomplete="off">
-        <input type="number" id="input-altura" placeholder="Alt." style="width:40px;">
-        <button class="btn-buscar" onclick="buscarDireccion()">Ir</button>
-        <div id="sugerencias-calles"></div>
+    <!-- Encabezado del visor -->
+    <div class="p-5 border-b border-slate-800 bg-slate-950/40">
+        <h1 class="text-xs font-black text-sky-400 tracking-wider uppercase text-center">Visor Hidrográfico Municipal</h1>
+        <p class="text-[10px] text-slate-400 text-center font-bold mt-1">DIRECCIÓN DE CARTOGRAFÍA Y DATOS ESPACIALES - PARANÁ</p>
     </div>
 
-    <div style="height: 20px; width: 1px; background: #e2e8f0; margin: 0 4px;"></div>
+    <!-- Contenido Scrollable -->
+    <div class="flex-1 overflow-y-auto p-5 space-y-6 scrollbar-custom">
+        
+        <!-- Bloque de Búsquedas -->
+        <div class="space-y-4">
+            <h2 class="text-xs font-extrabold uppercase tracking-widest text-sky-400 border-b border-slate-800 pb-1.5">Búsquedas catastrales</h2>
+            
+            <!-- Búsqueda por Partida (PM) -->
+            <div class="space-y-1">
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Buscar por Partida (PM)</label>
+                <div class="flex gap-2">
+                    <input type="text" id="input-pm" placeholder="Partida (p. ej. 13245)" class="flex-1 bg-slate-850 border border-slate-700 rounded-md px-3 py-1.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500 transition">
+                    <button class="bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs px-4 rounded-md transition shadow" onclick="buscarPM()">Buscar</button>
+                </div>
+            </div>
 
-    <div style="display: flex; gap: 4px;">
-        <input type="text" id="input-google" placeholder="Lugar/Google..." style="width:110px;">
-        <button class="btn-google" onclick="buscarGoogle()">Google</button>
+            <!-- Búsqueda por Dirección Predictiva -->
+            <div class="space-y-1 relative">
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Dirección (Calle y Altura - Predictivo)</label>
+                <input type="text" id="input-ubicacion" placeholder="Buscar dirección (p. ej. San Martín 123)..." class="w-full bg-slate-850 border border-slate-700 rounded-md px-3 py-1.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500 transition" autocomplete="off">
+                <div id="sugerencias-ubicacion" class="absolute left-0 right-0 bg-slate-800 border border-slate-700 rounded-md max-h-52 overflow-y-auto mt-1 hidden z-[2000] shadow-2xl scrollbar-custom"></div>
+            </div>
+
+            <!-- Búsqueda de Lugares en Google / Nominatim -->
+            <div class="space-y-1">
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Buscar Lugares o Puntos de interés</label>
+                <div class="flex gap-2">
+                    <input type="text" id="input-google" placeholder="Lugar (p. ej. Plaza de Mayo)..." class="flex-1 bg-slate-850 border border-slate-700 rounded-md px-3 py-1.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500 transition">
+                    <button class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs px-4 rounded-md transition shadow" onclick="buscarGoogle()">Google</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bloque de Capas de Hidrografía -->
+        <div class="space-y-4">
+            <h2 class="text-xs font-extrabold uppercase tracking-widest text-sky-400 border-b border-slate-800 pb-1.5">Hidrografía</h2>
+            
+            <!-- Filtro de Cuencas Especiales -->
+            <div class="space-y-1.5 bg-slate-950/30 p-2.5 rounded-lg border border-slate-800">
+                <label class="text-[10px] font-extrabold text-sky-400 uppercase tracking-wide block">Filtrar por Cuenca Hidrográfica</label>
+                <select id="select-cuenca" onchange="filtrarCuenca(this.value)" class="w-full bg-slate-850 border border-slate-700 rounded-md px-2.5 py-1.5 text-xs text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500 transition">
+                    <option value="TODAS">-- MOSTRAR TODAS LAS CUENCAS --</option>
+                </select>
+            </div>
+
+            <div class="space-y-2">
+                <!-- Toggles Hidrografía -->
+                <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
+                    <input type="checkbox" id="chk-arroyos" checked onchange="toggleOverlay('arroyos')" class="rounded bg-slate-800 border-slate-700 text-sky-500 focus:ring-sky-500">
+                    <span class="flex items-center gap-2">
+                        <span class="w-3.5 h-1.5 bg-[#00ffff] inline-block rounded"></span>
+                        <span>Arroyos principales (Etiquetados)</span>
+                    </span>
+                </label>
+                <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
+                    <input type="checkbox" id="chk-hidrografia-elem" checked onchange="toggleOverlay('hidrografia-elem')" class="rounded bg-slate-800 border-slate-700 text-sky-500 focus:ring-sky-500">
+                    <span class="flex items-center gap-2">
+                        <span class="w-3.5 h-3.5 rounded border border-[#38bdf8] bg-[rgba(56,189,248,0.4)] inline-block"></span>
+                        <span>Elementos de hidrografía</span>
+                    </span>
+                </label>
+                <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
+                    <input type="checkbox" id="chk-cuencas" checked onchange="toggleOverlay('cuencas')" class="rounded bg-slate-800 border-slate-700 text-sky-500 focus:ring-sky-500">
+                    <span class="flex items-center gap-2">
+                        <span class="w-3.5 h-3.5 rounded border border-[#ffffff] border-dashed bg-[rgba(16,185,129,0.25)] inline-block"></span>
+                        <span>Cuencas Tematizadas</span>
+                    </span>
+                </label>
+                <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
+                    <input type="checkbox" id="chk-inundabilidad" checked onchange="toggleOverlay('inundabilidad')" class="rounded bg-slate-800 border-slate-700 text-sky-500 focus:ring-sky-500">
+                    <span class="flex items-center gap-2">
+                        <span class="w-3.5 h-3.5 rounded border border-[#ef4444] bg-[rgba(239,68,68,0.3)] inline-block"></span>
+                        <span>Inundabilidad por Riesgo</span>
+                    </span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Bloque de Capas Base y Catastrales -->
+        <div class="space-y-4">
+            <h2 class="text-xs font-extrabold uppercase tracking-widest text-slate-400 border-b border-slate-800 pb-1.5">Control de capas base y Catastro</h2>
+            
+            <!-- Selector de Mapas Base -->
+            <div class="space-y-2">
+                <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide">Mapa Base</span>
+                <div class="space-y-1.5">
+                    <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
+                        <input type="radio" name="basemap" value="dark" checked onchange="cambiarBaseMap('dark')" class="bg-slate-800 border-slate-700 text-sky-500 focus:ring-sky-500">
+                        <span>Mapa Oscuro</span>
+                    </label>
+                    <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
+                        <input type="radio" name="basemap" value="hibrido" onchange="cambiarBaseMap('hibrido')" class="bg-slate-800 border-slate-700 text-sky-500 focus:ring-sky-500">
+                        <span>Híbrido (Satelital)</span>
+                    </label>
+                    <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
+                        <input type="radio" name="basemap" value="osm" onchange="cambiarBaseMap('osm')" class="bg-slate-800 border-slate-700 text-sky-500 focus:ring-sky-500">
+                        <span>OpenStreetMap</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Toggles de Capas Catastrales -->
+            <div class="space-y-2 pt-2">
+                <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide">Capas catastrales</span>
+                <div class="space-y-2">
+                    <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
+                        <input type="checkbox" id="chk-manzanas" checked onchange="toggleOverlay('manzanas')" class="rounded bg-slate-800 border-slate-700 text-sky-500 focus:ring-sky-500">
+                        <span class="flex items-center gap-2">
+                            <span class="w-3.5 h-3.5 rounded border border-[#ff6b6b] bg-[rgba(255,107,107,0.15)] inline-block"></span>
+                            <span>Manzanas Catastrales</span>
+                        </span>
+                    </label>
+                    <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
+                        <input type="checkbox" id="chk-calles" checked onchange="toggleOverlay('calles')" class="rounded bg-slate-800 border-slate-700 text-sky-500 focus:ring-sky-500">
+                        <span class="flex items-center gap-2">
+                            <span class="w-3.5 h-1 bg-[#FFFF00] inline-block"></span>
+                            <span>Nombres de Calles</span>
+                        </span>
+                    </label>
+                    <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
+                        <input type="checkbox" id="chk-parcelas" checked onchange="toggleOverlay('parcelas')" class="rounded bg-slate-800 border-slate-700 text-sky-500 focus:ring-sky-500">
+                        <span class="flex items-center gap-2">
+                            <span class="w-3.5 h-3.5 rounded bg-[#2980b9] inline-block"></span>
+                            <span>Parcelas Catastrales</span>
+                        </span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Leyenda / Información del Visor -->
+        <div class="space-y-3 pt-2">
+            <h2 class="text-xs font-extrabold uppercase tracking-widest text-slate-400 border-b border-slate-800 pb-1.5">Información útil</h2>
+            <div class="text-[11px] text-slate-400 space-y-1.5 leading-relaxed bg-slate-950/20 p-3 rounded-lg border border-slate-850">
+                <p>📐 Use el botón de la regla (esquina superior derecha) para activar la herramienta de medición catastral en tiempo real.</p>
+                <p>⚡ Las parcelas y calles catastrales se despliegan automáticamente a niveles de zoom cercanos para mantener el mapa ágil y legible (Zoom >= 15/16).</p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- BOTÓN DE COLAPSO: Panel lateral deslizable -->
+    <button onclick="toggleSidebar()" class="absolute top-3 left-full ml-3 bg-slate-900 border border-slate-800 text-slate-300 p-2.5 rounded-lg shadow-xl hover:text-white hover:bg-slate-800 transition-colors focus:outline-none z-[1010]" title="Mostrar/Ocultar Menú">
+        <svg id="toggle-icon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transform transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg>
+    </button>
+</div>
+
+<!-- Cuadro Informativo de Distritos con indicador de Zoom y detalles de Cuencas -->
+<div class="adv-distrito">
+    <div id="panel-info-mapa" class="panel-info-mapa">
+        <div class="panel-header">
+            <div style="width:100%;">
+                <div class="panel-titulo" id="titulo-mapa">
+                    MAPA HIDROGRÁFICO - PARANÁ
+                </div>
+                <div class="panel-zoom" style="text-align:center;">
+                    Zoom: <span id="zoom-indicator">12</span>
+                </div>
+            </div>
+            <button onclick="toggleDescripcionMapa()" id="btn-descripcion">▼</button>
+        </div>
+
+        <div id="descripcion-mapa" class="panel-descripcion">
+            Este mapa cartografía el complejo sistema hídrico y superficial de la Ciudad de Paraná. Se modelan con precisión las cuencas y subcuencas hidrográficas que estructuran el drenaje del ejido urbano hacia el Río Paraná. Se identifican las trazas principales de los arroyos (como el Antoñico, Las Viejas y Colorado), los elementos de hidrografía complementarios, los polígonos de inundabilidad histórica/riesgo hídrico y la relación parcelaria urbana. Permite entender las dinámicas hidráulicas, planificar obras de infraestructura pluvial y mitigar riesgos de anegamientos.
+        </div>
+
+        <hr style="margin:8px 0; border-color: rgba(0,0,0,0.1);">
+
+        <div class="text-[9px] text-slate-500">
+            IDE Paraná - Red Hidrológica & Cuencas de Aporte. Zoom Máx: 22.
+        </div>
+        <div class="text-[8px] text-slate-400 font-semibold mt-1">
+            Elaborado por Dirección de Cartografía y Datos Espaciales
+        </div>
     </div>
 </div>
 
-<!-- Cuadro Informativo de Distritos con indicador de Zoom -->
-<div class="adv-distrito text-right">
-    <div class="font-bold text-slate-700">Zoom Vista: <span id="zoom-indicator" class="text-blue-600">12</span></div>
-    <div>IDE Paraná - Límites indicativos (Ord. 8563). Zoom Máx: 22.</div>
-    <div class="text-[8px] text-slate-500 font-semibold mt-0.5">Elaborado por Dirección de Cartografía y Datos Espaciales</div>
+<!-- Widget de Medición Premium (Nativo de Catastro) -->
+<div id="widget-medicion" class="fixed top-3 right-14 bg-slate-900/95 border border-slate-700 rounded-lg shadow-2xl p-3.5 z-[1000] text-slate-100 w-64 backdrop-filter backdrop-blur-md hidden">
+    <div class="flex justify-between items-center border-b border-slate-800 pb-2 mb-2">
+        <span class="text-[10px] font-black uppercase tracking-wider text-sky-400">📐 Herramienta de Medición</span>
+        <button onclick="cerrarMedicion()" class="text-slate-400 hover:text-white text-xs font-bold">✕</button>
+    </div>
+    <div class="grid grid-cols-2 gap-2 mb-3">
+        <button id="btn-medida-linea" onclick="activarModoMedicion('distancia')" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded p-2 text-center transition duration-150 flex flex-col items-center justify-center gap-1">
+            <svg class="h-4 w-4 text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+            </svg>
+            <span class="text-[9px] font-bold uppercase tracking-wider">Distancia</span>
+        </button>
+        <button id="btn-medida-area" onclick="activarModoMedicion('area')" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded p-2 text-center transition duration-150 flex flex-col items-center justify-center gap-1">
+            <svg class="h-4 w-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v14a1 1 0 01-1 1H5a1 1 0 01-1-1V5z" />
+            </svg>
+            <span class="text-[9px] font-bold uppercase tracking-wider">Superficie</span>
+        </button>
+    </div>
+    <div id="resultado-medicion" class="bg-slate-950/60 rounded p-2 text-[10.5px] font-mono text-slate-300 space-y-1">
+        <div class="flex justify-between border-b border-slate-800 pb-1"><span>Nodos:</span><span id="medida-puntos" class="font-bold">0</span></div>
+        <div class="flex justify-between border-b border-slate-800 pb-1"><span>Perímetro/D:</span><span id="medida-distancia" class="font-bold">0.00 m</span></div>
+        <div class="flex justify-between"><span>Superficie:</span><span id="medida-superficie" class="font-bold text-emerald-400">0.00 m²</span></div>
+    </div>
+    <div class="flex gap-2 mt-3">
+        <button onclick="limpiarMedicion()" class="flex-1 bg-rose-600 hover:bg-rose-500 text-white font-bold text-[9px] uppercase tracking-wide py-1.5 rounded transition shadow">Limpiar</button>
+        <button id="btn-finalizar-medida" onclick="finalizarMedicion()" disabled class="flex-1 bg-slate-700 text-slate-400 font-bold text-[9px] uppercase tracking-wide py-1.5 rounded transition cursor-not-allowed">Terminar</button>
+    </div>
 </div>
+
+<!-- Botón premium flotante en mapa para abrir las mediciones -->
+<button onclick="toggleWidgetMedicion()" class="fixed top-3 right-3 bg-slate-900 border border-slate-700 text-slate-300 p-2.5 rounded-lg shadow-xl hover:text-white hover:bg-slate-800 transition-colors z-[1000]" title="Regla de Medición">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+    </svg>
+</button>
+
 <div id="map"></div>
 
 <script>
+if (window.L) {
+    [L.Path, L.Polyline].forEach(function(cls) {
+        if (cls && cls.prototype) {
+            // Parchear redibujado de texto para prevenir errores de contenedores SVG nulos
+            if (cls.prototype._textRedraw) {
+                const originalTextRedraw = cls.prototype._textRedraw;
+                cls.prototype._textRedraw = function() {
+                    try {
+                        if (!this._map || !this._renderer || !this._renderer._container) {
+                            return;
+                        }
+                        originalTextRedraw.call(this);
+                    } catch (e) {
+                        console.warn("[TextPath SafePatch] Evitado fallo de _textRedraw:", e);
+                    }
+                };
+            }
+            // Parchear setText para inicializar atributos de texto de manera robusta
+            if (cls.prototype.setText) {
+                const originalSetText = cls.prototype.setText;
+                cls.prototype.setText = function(text, options) {
+                    try {
+                        if (text && (!this._map || !this._renderer || !this._renderer._container)) {
+                            this._text = text;
+                            this._textOptions = options;
+                            return this;
+                        }
+                        return originalSetText.call(this, text, options);
+                    } catch (e) {
+                        console.warn("[TextPath SafePatch] Evitado fallo de setText:", e);
+                        return this;
+                    }
+                };
+            }
+        }
+    });
+}
+
 const BASE_URL = "https://raw.githubusercontent.com/dcartografiayde/IDE-PARANA/main/";
+
+// Variable global para filtro de cuencas
+var currentSelectedCuenca = "TODAS";
 
 /* ================= FUNCIONES DE LIMPIEZA Y DECODIFICACIÓN DE TEXTO ================= */
 function decodificarTexto(str) {
     if (!str || typeof str !== 'string') return str;
     try {
-        const correcciones = {
+        const corrections = {
             'Ã¡': 'á', 'Ã©': 'é', 'Ã­': 'í', 'Ã³': 'ó', 'Ãº': 'ú',
             'Ã ': 'Á', 'Ã‰': 'É', 'Ã ': 'Í', 'Ã“': 'Ó', 'Ãš': 'Ú',
             'Ãñ': 'ñ', 'Ã‘': 'Ñ', 'Â°': '°', 'Ã¼': 'ü', 'Â¿': '¿'
         };
         let textoCorregido = str;
-        for (let mal in correcciones) {
-            textoCorregido = textoCorregido.split(mal).join(correcciones[mal]);
+        for (let mal in corrections) {
+            textoCorregido = textoCorregido.split(mal).join(corrections[mal]);
         }
 
         const reemplazosClave = [
@@ -211,7 +496,20 @@ async function fetchGeoJSON(url) {
     return JSON.parse(text);
 }
 
-// Inicio del mapa en Zoom 12 (vista completa de la ciudad)
+// Función geométrica histórica sin regresión
+function pointInPoly(point, vs) {
+    var x = point[0], y = point[1];
+    var inside = false;
+    for (var i = 0, j = vs.length - 1; i < vs.length; j = i++) {
+        var xi = vs[i][0], yi = vs[i][1];
+        var xj = vs[j][0], yj = vs[j][1];
+        var intersect = ((yi > y) != (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+        if (intersect) inside = !inside;
+    }
+    return inside;
+}
+
+// Inicialización de Leaflet
 var map = L.map('map', { 
     center: [-31.745, -60.51], 
     zoom: 12, 
@@ -219,15 +517,41 @@ var map = L.map('map', {
     maxZoom: 22
 });
 
-// Creación explícita de paneles ordenados por Z-Index
+// Creación de paneles ordenados por Z-Index (Jerarquía de abajo hacia arriba)
+map.createPane('basemapPane');
+map.getPane('basemapPane').style.zIndex = 100;
+
+// Panes de Hidrografía para superposición inteligente
+map.createPane('cuencasPane');
+map.getPane('cuencasPane').style.zIndex = 210; // Capa base poligonal de Cuencas
+
+map.createPane('inundabilidadPane');
+map.getPane('inundabilidadPane').style.zIndex = 230; // Zonas de riesgo hídrico
+
+map.createPane('hidrografiaElemPane');
+map.getPane('hidrografiaElemPane').style.zIndex = 240; // Polígonos de agua menores
+
+map.createPane('arroyosPane');
+map.getPane('arroyosPane').style.zIndex = 250; // Líneas de flujo principales (Arroyos)
+
+// Panes Catastrales
 map.createPane('manzanasPane');
-map.getPane('manzanasPane').style.zIndex = 300; // Capa inferior de fondo
-map.getPane('manzanasPane').style.pointerEvents = 'none'; // Clics pasan de largo
+map.getPane('manzanasPane').style.zIndex = 300; 
+map.getPane('manzanasPane').style.pointerEvents = 'none';
 
 map.createPane('parcelasPane');
-map.getPane('parcelasPane').style.zIndex = 350; // Capa superior
-map.getPane('parcelasPane').style.pointerEvents = 'auto'; // Captura clics
+map.getPane('parcelasPane').style.zIndex = 350; 
+map.getPane('parcelasPane').style.pointerEvents = 'auto';
 
+map.createPane('atlasPane');
+map.getPane('atlasPane').style.zIndex = 320;
+map.getPane('atlasPane').style.pointerEvents = 'auto';
+
+map.createPane('atlasLabelsPane');
+map.getPane('atlasLabelsPane').style.zIndex = 650;
+map.getPane('atlasLabelsPane').style.pointerEvents = 'none';
+
+// Capas Base
 var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 22, maxNativeZoom: 19 });
 var dark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 22, maxNativeZoom: 20 });
 var sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 22, maxNativeZoom: 18 });
@@ -236,7 +560,420 @@ var hibrido = L.layerGroup([sat, ref]);
 
 dark.addTo(map);
 
-// Calles cargadas asíncronamente
+/* ================= FUNCIONES DE CLASIFICACIÓN Y TEMATIZACIÓN ================= */
+
+function obtenerColorCuenca(cuencaNombre) {
+    const name = (cuencaNombre || "").toUpperCase().trim();
+    if (name.includes("ANTOÑICO") || name.includes("ANTONICO")) return "#3b82f6"; // Azul
+    if (name.includes("VIEJAS")) return "#10b981"; // Esmeralda
+    if (name.includes("COLORADO")) return "#f43f5e"; // Rosa Intenso
+    if (name.includes("CORRENTOSO")) return "#06b6d4"; // Cian
+    if (name.includes("TUYUCUA") || name.includes("TUYUCUÁ")) return "#f59e0b"; // Ámbar
+    if (name.includes("PARACAO")) return "#8b5cf6"; // Violeta
+    if (name.includes("MANGA")) return "#ec4899"; // Rosa
+    if (name.includes("ARENALES")) return "#a855f7"; // Púrpura
+
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) {
+        hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const colors = ["#f59e0b", "#10b981", "#3b82f6", "#8b5cf6", "#ec4899", "#06b6d4", "#f43f5e", "#14b8a6", "#a855f7", "#f97316"];
+    return colors[Math.abs(hash) % colors.length];
+}
+
+function obtenerColorInundabilidad(descVal) {
+    const desc = (descVal || "").toUpperCase().trim();
+    if (desc.includes("MUY ALTO") || desc.includes("CRITICO") || desc.includes("CRÍTICO") || desc.includes("ALTO INTERMEDIO") || desc.includes("VULNERABLE")) {
+        return "#ef4444"; // Rojo
+    } else if (desc.includes("MEDIO") || desc.includes("MODERADO") || desc.includes("CONSERVADOR") || desc.includes("ANEGAMIENTO")) {
+        return "#f97316"; // Naranja
+    } else if (desc.includes("BAJO") || desc.includes("PREVENTIVO") || desc.includes("LIMITADO")) {
+        return "#eab308"; // Amarillo
+    } else if (desc.includes("FLUVIAL") || desc.includes("RIO") || desc.includes("RÍO")) {
+        return "#a855f7"; // Púrpura
+    } else if (desc.includes("PLUVIAL")) {
+        return "#3b82f6"; // Azul
+    }
+    return "#f59e0b";
+}
+
+// Calculador simple de longitud de geometrías de tipo LineString/MultiLineString
+function calcularLongitudLineString(coords, type) {
+    let total = 0;
+    if (!coords) return total;
+    if (type === "LineString") {
+        for (let i = 0; i < coords.length - 1; i++) {
+            let p1 = coords[i];
+            let p2 = coords[i+1];
+            if (p1 && p2) {
+                total += Math.sqrt(Math.pow(p2[0]-p1[0], 2) + Math.pow(p2[1]-p1[1], 2));
+            }
+        }
+    } else if (type === "MultiLineString") {
+        coords.forEach(line => {
+            if (line) {
+                for (let i = 0; i < line.length - 1; i++) {
+                    let p1 = line[i];
+                    let p2 = line[i+1];
+                    if (p1 && p2) {
+                        total += Math.sqrt(Math.pow(p2[0]-p1[0], 2) + Math.pow(p2[1]-p1[1], 2));
+                    }
+                }
+            }
+        });
+    }
+    return total;
+}
+
+/* ================= CAPAS DE HIDROGRAFÍA ================= */
+var grupoArroyos = L.layerGroup().addTo(map);
+var grupoCuencas = L.layerGroup().addTo(map);
+var grupoEtiquetasCuencas = L.layerGroup(); 
+var grupoHidrografiaElem = L.layerGroup().addTo(map);
+var grupoInundabilidad = L.layerGroup().addTo(map);
+
+// 1. Arroyos principales (Etiqueta Única por arroyo en su segmento más largo)
+fetchGeoJSON(BASE_URL + "atlas_pua/cuencas_hidrograficas/arroyos.geojson").then(data => {
+    let arroyosPorNombre = {};
+
+    L.geoJSON(data, {
+        pane: 'arroyosPane',
+        style: {
+            color: "#00ffff", 
+            weight: 3.5,
+            opacity: 0.9,
+            lineCap: 'round',
+            lineJoin: 'round'
+        },
+        onEachFeature: (f, l) => {
+            let props = f.properties || {};
+            let nombre = props.nombre || props.NOMBRE || props.Arroyo || "Arroyo Desconocido";
+            nombre = decodificarTexto(nombre);
+            let keyName = nombre.toUpperCase().trim();
+
+            if (keyName && keyName !== "ARROYO DESCONOCIDO") {
+                if (!arroyosPorNombre[keyName]) {
+                    arroyosPorNombre[keyName] = [];
+                }
+                arroyosPorNombre[keyName].push({
+                    layer: l,
+                    feature: f
+                });
+            }
+
+            let popupContent = `<div class="popup-custom">
+                <div class="popup-header" style="border-color: #00ffff;">Curso de Arroyo</div>
+                <table class="table-info">
+                    <tr><td>Nombre</td><td><b>${nombre.toUpperCase()}</b></td></tr>`;
+            for (let [k, v] of Object.entries(props)) {
+                if (k.toLowerCase() !== 'nombre' && v) {
+                    popupContent += `<tr><td>${decodificarTexto(k)}</td><td>${decodificarTexto(String(v))}</td></tr>`;
+                }
+            }
+            popupContent += `</table></div>`;
+            l.bindPopup(popupContent);
+        }
+    }).addTo(grupoArroyos);
+
+    // Identificar el segmento más largo de cada arroyo único y etiquetarlo
+    for (let arroyoKey in arroyosPorNombre) {
+        let items = arroyosPorNombre[arroyoKey];
+        let maxLen = -1;
+        let longestLayer = null;
+
+        items.forEach(item => {
+            if (item.feature && item.feature.geometry) {
+                let len = calcularLongitudLineString(item.feature.geometry.coordinates, item.feature.geometry.type);
+                if (len > maxLen) {
+                    maxLen = len;
+                    longestLayer = item.layer;
+                }
+            }
+        });
+
+        if (longestLayer && longestLayer.setText) {
+            setTimeout(() => {
+                try {
+                    if (longestLayer._map && longestLayer._renderer && longestLayer._renderer._container) {
+                        longestLayer.setText(arroyoKey, {
+                            repeat: false, 
+                            offset: -12,
+                            center: true,
+                            attributes: { 
+                                fill: '#00ffff', 
+                                'font-weight': '900', 
+                                'font-size': '11',
+                                'stroke': '#0f172a', 
+                                'stroke-width': '3px', 
+                                'paint-order': 'stroke',
+                                'letter-spacing': '0.1em'
+                            }
+                        });
+                    }
+                } catch(err) {
+                    console.warn("[TextPath] No se pudo colocar texto en arroyo:", arroyoKey, err);
+                }
+            }, 600);
+        }
+    }
+}).catch(err => console.error("Error cargando capa arroyos:", err));
+
+// 2. Cuencas y Subcuencas
+fetchGeoJSON(BASE_URL + "atlas_pua/cuencas_hidrograficas/cuencas_subcuencas.geojson").then(data => {
+    let cuencasMap = {}; 
+    let nombresUnicos = new Set();
+
+    L.geoJSON(data, {
+        pane: 'cuencasPane',
+        style: function(f) {
+            let props = f.properties || {};
+            let cuencaNombre = props.cuenca || props.CUENCA || props.nombre || "";
+            let color = obtenerColorCuenca(cuencaNombre);
+            return {
+                color: "#ffffff",         
+                weight: 1.2,
+                dashArray: '4, 4',       
+                fillColor: color,        
+                fillOpacity: 0.22,       
+                opacity: 0.6
+            };
+        },
+        onEachFeature: (f, l) => {
+            let props = f.properties || {};
+            let nombre = props.cuenca || props.CUENCA || props.nombre || "Cuenca s/n";
+            nombre = decodificarTexto(nombre);
+            let sub = props.subcuenca || props.SUBCUENCA || "-";
+            sub = decodificarTexto(sub);
+            
+            let nameClean = nombre.trim();
+            if (nameClean && nameClean.toUpperCase() !== "CUENCA S/N") {
+                nombresUnicos.add(nameClean);
+            }
+            
+            let popupContent = `<div class="popup-custom">
+                <div class="popup-header" style="border-color: #10b981;">Cuenca / Subcuenca</div>
+                <table class="table-info">
+                    <tr><td>Cuenca</td><td><b>${nombre.toUpperCase()}</b></td></tr>
+                    <tr><td>Subcuenca</td><td>${sub}</td></tr>`;
+            for (let [k, v] of Object.entries(props)) {
+                if (!['nombre','cuenca','subcuenca'].includes(k.toLowerCase()) && v) {
+                    popupContent += `<tr><td>${decodificarTexto(k)}</td><td>${decodificarTexto(String(v))}</td></tr>`;
+                }
+            }
+            popupContent += `</table></div>`;
+            l.bindPopup(popupContent);
+            
+            l.on({
+                mouseover: (e) => {
+                    let layer = e.target;
+                    let cleanSelected = currentSelectedCuenca.toUpperCase().trim();
+                    let thisCuencaName = nameClean.toUpperCase().trim();
+                    if (currentSelectedCuenca === "TODAS" || thisCuencaName === cleanSelected) {
+                        layer.setStyle({ fillOpacity: 0.4, weight: 2.2 });
+                    }
+                },
+                mouseout: (e) => {
+                    let layer = e.target;
+                    let cleanSelected = currentSelectedCuenca.toUpperCase().trim();
+                    let thisCuencaName = nameClean.toUpperCase().trim();
+                    if (currentSelectedCuenca === "TODAS" || thisCuencaName === cleanSelected) {
+                        layer.setStyle({ fillOpacity: 0.22, weight: 1.2 });
+                    }
+                }
+            });
+
+            let nameKey = nombre.toUpperCase().trim();
+            if (nameKey && nameKey !== "CUENCA S/N") {
+                if (!cuencasMap[nameKey]) {
+                    cuencasMap[nameKey] = [];
+                }
+                try {
+                    let bounds = l.getBounds();
+                    let width = Math.abs(bounds.getEast() - bounds.getWest());
+                    let height = Math.abs(bounds.getNorth() - bounds.getSouth());
+                    let area = width * height;
+                    
+                    cuencasMap[nameKey].push({
+                        center: bounds.getCenter(),
+                        area: area,
+                        layer: l
+                    });
+                } catch(e) {}
+            }
+        }
+    }).addTo(grupoCuencas);
+
+    // Alimentar filtro desplegable de cuencas en sidebar
+    let selectCuenca = document.getElementById('select-cuenca');
+    let sortedNames = Array.from(nombresUnicos).sort();
+    sortedNames.forEach(name => {
+        let opt = document.createElement('option');
+        opt.value = name;
+        opt.innerText = name.toUpperCase();
+        selectCuenca.appendChild(opt);
+    });
+
+    // Generar exactamente un marcador de etiqueta por cada Cuenca en el polígono representativo
+    for (let cuencaName in cuencasMap) {
+        let items = cuencasMap[cuencaName];
+        if (items && items.length > 0) {
+            items.sort((a, b) => b.area - a.area);
+            let representative = items[0];
+
+            let labelMarker = L.marker(representative.center, {
+                icon: L.divIcon({
+                    className: 'etiqueta-cuenca',
+                    html: `<div>${cuencaName}</div>`,
+                    iconSize: null
+                }),
+                interactive: false
+            });
+            labelMarker.addTo(grupoEtiquetasCuencas);
+        }
+    }
+
+    controlarVisibilidadDinamica();
+}).catch(err => console.error("Error cargando capa cuencas:", err));
+
+// 3. Elementos de Hidrografía
+fetchGeoJSON(BASE_URL + "atlas_pua/cuencas_hidrograficas/hidrografia.geojson").then(data => {
+    L.geoJSON(data, {
+        pane: 'hidrografiaElemPane',
+        style: function(f) {
+            let esPoligono = f.geometry && (f.geometry.type === 'Polygon' || f.geometry.type === 'MultiPolygon');
+            return {
+                color: "#38bdf8",
+                weight: esPoligono ? 1 : 2.5,
+                fillColor: "#0284c7",
+                fillOpacity: esPoligono ? 0.35 : 0,
+                opacity: 0.8
+            };
+        },
+        onEachFeature: (f, l) => {
+            let props = f.properties || {};
+            let tipo = props.tipo || props.TIPO || "Elemento hídrico";
+            let desc = props.descripcion || props.DESCRIP || "-";
+            let popupContent = `<div class="popup-custom">
+                <div class="popup-header" style="border-color: #38bdf8;">Elementos de Hidrografía</div>
+                <table class="table-info">
+                    <tr><td>Tipo</td><td><b>${decodificarTexto(tipo).toUpperCase()}</b></td></tr>
+                    <tr><td>Descripción</td><td>${decodificarTexto(desc)}</td></tr>`;
+            for (let [k, v] of Object.entries(props)) {
+                if (!['tipo','descripcion','descrip'].includes(k.toLowerCase()) && v) {
+                    popupContent += `<tr><td>${decodificarTexto(k)}</td><td>${decodificarTexto(String(v))}</td></tr>`;
+                }
+            }
+            popupContent += `</table></div>`;
+            l.bindPopup(popupContent);
+        }
+    }).addTo(grupoHidrografiaElem);
+}).catch(err => console.error("Error cargando capa hidrografia:", err));
+
+// 4. Inundabilidad (Clasificada dinámicamente por nivel de riesgo)
+fetchGeoJSON(BASE_URL + "atlas_pua/cuencas_hidrograficas/inundabilidad.geojson").then(data => {
+    L.geoJSON(data, {
+        pane: 'inundabilidadPane',
+        style: function(f) {
+            let props = f.properties || {};
+            let descVal = props.descrip || props.DESCRIPCION || props.zona || props.ZONA || "";
+            let color = obtenerColorInundabilidad(descVal);
+            return {
+                color: color,
+                weight: 1.5,
+                fillColor: color,
+                fillOpacity: 0.3,
+                dashArray: '3, 3'
+            };
+        },
+        onEachFeature: (f, l) => {
+            let props = f.properties || {};
+            let zona = props.zona || props.ZONA || "Riesgo de Inundación";
+            let desc = props.descrip || props.DESCRIPCION || "Área con vulnerabilidad hídrica pluvial o fluvial.";
+            let colorHex = obtenerColorInundabilidad(desc);
+            let popupContent = `<div class="popup-custom">
+                <div class="popup-header" style="border-color: ${colorHex}; color: ${colorHex};">ZONA DE INUNDABILIDAD</div>
+                <table class="table-info">
+                    <tr><td>Zonificación</td><td><b style="color: ${colorHex};">${decodificarTexto(zona).toUpperCase()}</b></td></tr>
+                    <tr><td>Riesgo / Detalle</td><td><b>${decodificarTexto(desc)}</b></td></tr>`;
+            for (let [k, v] of Object.entries(props)) {
+                if (!['zona','descrip','descripcion'].includes(k.toLowerCase()) && v) {
+                    popupContent += `<tr><td>${decodificarTexto(k)}</td><td>${decodificarTexto(String(v))}</td></tr>`;
+                }
+            }
+            popupContent += `</table></div>`;
+            l.bindPopup(popupContent);
+        }
+    }).addTo(grupoInundabilidad);
+}).catch(err => console.error("Error cargando capa inundabilidad:", err));
+
+
+/* ================= LOGICA DE FILTRADO POR CUENCA ================= */
+function filtrarCuenca(nombreCuenca) {
+    currentSelectedCuenca = nombreCuenca;
+    let bounds = L.latLngBounds();
+    let hasBounds = false;
+
+    // Actualizar estilo y visibilidad de las capas poligonales de cuencas
+    grupoCuencas.eachLayer(layer => {
+        if (typeof layer.eachLayer === 'function') {
+            layer.eachLayer(subLayer => {
+                let f = subLayer.feature;
+                let props = f.properties || {};
+                let name = (props.cuenca || props.CUENCA || props.nombre || "Cuenca s/n").trim();
+                let cleanSelected = nombreCuenca.toUpperCase().trim();
+                let thisCuencaName = name.toUpperCase().trim();
+
+                if (nombreCuenca === "TODAS" || thisCuencaName === cleanSelected) {
+                    let color = obtenerColorCuenca(name);
+                    subLayer.setStyle({
+                        color: "#ffffff",
+                        weight: 1.2,
+                        dashArray: '4, 4',
+                        fillColor: color,
+                        fillOpacity: 0.22,
+                        opacity: 0.6
+                    });
+                    
+                    bounds.extend(subLayer.getBounds());
+                    hasBounds = true;
+                } else {
+                    subLayer.setStyle({
+                        fillOpacity: 0,
+                        opacity: 0,
+                        weight: 0
+                    });
+                }
+            });
+        }
+    });
+
+    // Actualizar visibilidad de marcadores de etiquetas de cuencas
+    grupoEtiquetasCuencas.eachLayer(marker => {
+        let iconOpts = (marker.options && marker.options.icon && marker.options.icon.options) || {};
+        let textHTML = iconOpts.html || "";
+        let tempDiv = document.createElement('div');
+        tempDiv.innerHTML = textHTML;
+        let cuencaText = tempDiv.innerText.toUpperCase().trim();
+        let cleanSelected = nombreCuenca.toUpperCase().trim();
+
+        if (nombreCuenca === "TODAS" || cuencaText === cleanSelected) {
+            if (map.getZoom() >= 13 && map.hasLayer(grupoCuencas)) {
+                marker.addTo(map);
+            }
+        } else {
+            if (map.hasLayer(marker)) {
+                map.removeLayer(marker);
+            }
+        }
+    });
+
+    // Encuadrar el mapa a la cuenca seleccionada
+    if (hasBounds && nombreCuenca !== "TODAS") {
+        map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
+    }
+}
+
+/* ================= CAPAS CATASTRALES ORIGINALES ================= */
 var grupoCalles = L.layerGroup();
 var listaCallesParaBusqueda = [];
 
@@ -244,8 +981,9 @@ fetchGeoJSON(BASE_URL + "calles.geojson").then(data => {
     L.geoJSON(data, {
         style: { color: "#FFFF00", weight: 6, opacity: 0.01 },
         onEachFeature: (f, l) => {
-            if (f.properties.nombre) {
-                let nombreCalle = decodificarTexto(f.properties.nombre);
+            let props = f.properties || {};
+            if (props.nombre) {
+                let nombreCalle = decodificarTexto(props.nombre);
                 listaCallesParaBusqueda.push({ nombre: nombreCalle.toUpperCase(), layer: l });
                 l.on('click', (e) => {
                     let latlng = e.latlng || l.getBounds().getCenter();
@@ -255,83 +993,95 @@ fetchGeoJSON(BASE_URL + "calles.geojson").then(data => {
             }
         }
     }).addTo(grupoCalles);
-    configurarBuscadorCalles();
     activarEtiquetasCalles();
 });
+
+function toggleDescripcionMapa() {
+    const descripcion = document.getElementById("descripcion-mapa");
+    const boton = document.getElementById("btn-descripcion");
+
+    if (!descripcion || !boton) return;
+
+    descripcion.classList.toggle("oculto");
+    boton.innerHTML = descripcion.classList.contains("oculto") ? "►" : "▼";
+}
 
 function activarEtiquetasCalles() {
     const renderLabels = () => {
         let z = map.getZoom();
         const activeOnMap = map.hasLayer(grupoCalles);
 
-        // Registro local para de-duplicación espacial de nombres de calle idénticos en el viewport
         let etiquetasColocadas = {}; 
 
         grupoCalles.eachLayer(geoJsonGroup => {
-            geoJsonGroup.eachLayer(ly => {
-                if (ly.setText) {
-                    try {
-                        ly.setText(null);
-                    } catch (e) {}
-
-                    if (activeOnMap && z >= 16 && ly._map && ly._renderer && ly.feature && ly.feature.properties.nombre) {
+            if (typeof geoJsonGroup.eachLayer === 'function') {
+                geoJsonGroup.eachLayer(ly => {
+                    if (ly.setText) {
                         try {
-                            if (map.getBounds().intersects(ly.getBounds())) {
-                                let nombreCalle = decodificarTexto(ly.feature.properties.nombre).toUpperCase();
+                            ly.setText(null);
+                        } catch (e) {}
 
-                                // Cálculo de longitud real de segmento en metros para descartar polilíneas enanas
-                                let latlngs = ly.getLatLngs();
-                                if (Array.isArray(latlngs[0])) latlngs = latlngs.flat(2);
-                                
-                                let largoMetros = 0;
-                                for (let i = 0; i < latlngs.length - 1; i++) {
-                                    if (latlngs[i] && latlngs[i+1]) {
-                                        largoMetros += latlngs[i].distanceTo(latlngs[i+1]);
+                        let props = ly.feature ? (ly.feature.properties || {}) : {};
+                        if (activeOnMap && z >= 16 && ly._map && ly._renderer && ly._renderer._container && props.nombre) {
+                            try {
+                                if (map.getBounds().intersects(ly.getBounds())) {
+                                    let nombreCalle = decodificarTexto(props.nombre).toUpperCase();
+
+                                    let latlngs = ly.getLatLngs();
+                                    if (Array.isArray(latlngs[0])) latlngs = latlngs.flat(2);
+                                    
+                                    let largoMetros = 0;
+                                    for (let i = 0; i < latlngs.length - 1; i++) {
+                                        if (latlngs[i] && latlngs[i+1]) {
+                                            largoMetros += latlngs[i].distanceTo(latlngs[i+1]);
+                                        }
                                     }
-                                }
 
-                                // Ignorar tramos menores a 70 metros para evitar acumulación redundante en las esquinas
-                                if (largoMetros < 70) return;
+                                    if (largoMetros < 70) return;
 
-                                let centro = ly.getBounds().getCenter();
+                                    let centro = ly.getBounds().getCenter();
 
-                                // Validación espacial de proximidad. No dibuja si hay otra etiqueta igual a menos de 200 metros
-                                let duplicadoCercano = false;
-                                if (etiquetasColocadas[nombreCalle]) {
-                                    for (let pt of etiquetasColocadas[nombreCalle]) {
-                                        if (centro.distanceTo(pt) < 200) {
-                                            duplicadoCercano = true;
-                                            break;
+                                    let duplicadoCercano = false;
+                                    if (etiquetasColocadas[nombreCalle]) {
+                                        for (let pt of etiquetasColocadas[nombreCalle]) {
+                                            if (centro.distanceTo(pt) < 200) {
+                                                duplicadoCercano = true;
+                                                break;
+                                            }
+                                        }
+                                    }
+
+                                    if (!duplicadoCercano) {
+                                        if (!etiquetasColocadas[nombreCalle]) {
+                                            etiquetasColocadas[nombreCalle] = [];
+                                        }
+                                        etiquetasColocadas[nombreCalle].push(centro);
+
+                                        try {
+                                            ly.setText(nombreCalle, {
+                                                repeat: false,
+                                                center: true, 
+                                                orientation: 'flip',
+                                                offset: 0,
+                                                attributes: { 
+                                                    fill: '#FFFF00', 
+                                                    'font-weight': 'bold', 
+                                                    'font-size': z >= 18 ? '13' : '10',
+                                                    'stroke': 'black', 
+                                                    'stroke-width': '2px', 
+                                                    'paint-order': 'stroke'
+                                                }
+                                            });
+                                        } catch (e) {
+                                            console.warn("[TextPath] Fallo en setText de calle:", nombreCalle, e);
                                         }
                                     }
                                 }
-
-                                if (!duplicadoCercano) {
-                                    if (!etiquetasColocadas[nombreCalle]) {
-                                        etiquetasColocadas[nombreCalle] = [];
-                                    }
-                                    etiquetasColocadas[nombreCalle].push(centro);
-
-                                    ly.setText(nombreCalle, {
-                                        repeat: false,
-                                        center: true, 
-                                        orientation: 'flip',
-                                        offset: 0,
-                                        attributes: { 
-                                            fill: '#FFFF00', 
-                                            'font-weight': 'bold', 
-                                            'font-size': z >= 18 ? '13' : '10',
-                                            'stroke': 'black', 
-                                            'stroke-width': '2px', 
-                                            'paint-order': 'stroke'
-                                        }
-                                    });
-                                }
-                            }
-                        } catch (err) {}
+                            } catch (err) {}
+                        }
                     }
-                }
-            });
+                });
+            }
         });
     };
 
@@ -345,94 +1095,53 @@ function activarEtiquetasCalles() {
     renderLabels();
 }
 
-// Capa de Manzanas
+// Capa de Manzanas Catastrales
 var grupoManzanas = L.layerGroup().addTo(map);
-var grupoEtiquetasManzanas = L.layerGroup(); 
 
 fetchGeoJSON(BASE_URL + "catastro/manzana.geojson").then(data => {
-    const manzanasEtiquetadas = new Set();
-
     L.geoJSON(data, {
         pane: 'manzanasPane', 
         filter: (f) => f && f.geometry && f.geometry.coordinates && f.geometry.coordinates.length > 0,
         style: {
             color: "#ff6b6b", 
-            weight: 3,         
+            weight: 1,         
             fillColor: "transparent",
             fillOpacity: 0,
             interactive: false 
-        },
-        onEachFeature: (f, l) => {
-            let propNum = "";
-            for (let k in f.properties) {
-                let kLower = k.toLowerCase();
-                if (kLower.includes("manz") || kLower === "nro" || kLower === "num" || kLower.includes("mza")) {
-                    propNum = f.properties[k];
-                    break;
-                }
-            }
-            if (!propNum && f.properties.nropasd) propNum = f.properties.nropasd; 
-
-            if (propNum) {
-                const numStr = String(propNum).trim();
-                if (!manzanasEtiquetadas.has(numStr)) {
-                    manzanasEtiquetadas.add(numStr);
-                    try {
-                        let center = l.getBounds().getCenter();
-                        L.marker(center, {
-                            icon: L.divIcon({
-                                className: 'etiqueta-manzana',
-                                html: `<div>${decodificarTexto(numStr)}</div>`,
-                                iconSize: [28, 28]
-                            }),
-                            interactive: false 
-                        }).addTo(grupoEtiquetasManzanas); 
-                    } catch(e) {}
-                }
-            }
         }
     }).addTo(grupoManzanas);
-    controlarVisibilidadDinamica(); 
 }).catch(err => {
-    console.error("Error al cargar la capa de manzanas:", err);
+    console.error("Error al cargar la capa de manzanas catastrales:", err);
 });
 
-// Capa de Parcelas (Totalmente Restituida)
+// Capa de Parcelas Catastrales
 var grupoParcelas = L.layerGroup();
 var parcelasLayers = [];
-
-function pointInPoly(point, vs) {
-    var x = point[0], y = point[1];
-    var inside = false;
-    for (var i = 0, j = vs.length - 1; i < vs.length; j = i++) {
-        var xi = vs[i][0], yi = vs[i][1];
-        var xj = vs[j][0], yj = vs[j][1];
-        var intersect = ((yi > y) != (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
-        if (intersect) inside = !inside;
-    }
-    return inside;
-}
+var listaParcelasUbicacion = [];
 
 const archivosCatastro = ["parcela1_4.geojson", "parcela5_7.geojson", "parcela8_15.geojson"];
 archivosCatastro.forEach(file => {
     fetchGeoJSON(BASE_URL + "catastro/" + file).then(data => {
         let grupos = {};
-        data.features.forEach(f => {
-            if (!f.geometry || !f.geometry.coordinates) return;
-            let key = JSON.stringify(f.geometry.coordinates);
-            if (!grupos[key]) grupos[key] = [];
-            grupos[key].push(f);
-        });
+        if (data && data.features) {
+            data.features.forEach(f => {
+                if (!f.geometry || !f.geometry.coordinates) return;
+                let key = JSON.stringify(f.geometry.coordinates);
+                if (!grupos[key]) grupos[key] = [];
+                grupos[key].push(f);
+            });
+        }
 
         let featuresProcesadas = Object.values(grupos).map(g => {
             let base = g[0];
+            let baseProps = base.properties || {};
             return {
                 type: "Feature", geometry: base.geometry,
                 properties: {
                     esPH: g.length > 1,
-                    partidas: g.map(x => String(x.properties.nropasd || x.properties.nropas || "").trim()),
-                    ubicacion: base.properties.ubipar1 || "-",
-                    full: base.properties
+                    partidas: g.map(x => String((x.properties && (x.properties.nropasd || x.properties.nropas)) || "").trim()),
+                    ubicacion: baseProps.ubipar1 || "-",
+                    full: baseProps
                 }
             };
         });
@@ -463,6 +1172,14 @@ archivosCatastro.forEach(file => {
                     
                     l.bindPopup(content, { autoPanPadding: L.point(10, 110) }).openPopup(latlng);
                 });
+
+                if (f.properties.ubicacion && f.properties.ubicacion !== "-" && f.properties.ubicacion.trim() !== "") {
+                    let ubiClean = decodificarTexto(f.properties.ubicacion).toUpperCase().trim();
+                    listaParcelasUbicacion.push({
+                        texto: ubiClean,
+                        layer: l
+                    });
+                }
             }
         });
         parcelasLayers.push(ly);
@@ -472,107 +1189,199 @@ archivosCatastro.forEach(file => {
     });
 });
 
-// Gestión unificada de visibilidad dinámica por zoom
 function controlarVisibilidadDinamica() {
     let zoomActual = map.getZoom();
-    
     document.getElementById('zoom-indicator').innerText = zoomActual;
 
-    if (zoomActual >= 15 && map.hasLayer(grupoManzanas)) {
-        if (!map.hasLayer(grupoEtiquetasManzanas)) {
-            map.addLayer(grupoEtiquetasManzanas);
-        }
-    } else {
-        if (map.hasLayer(grupoEtiquetasManzanas)) {
-            map.removeLayer(grupoEtiquetasManzanas);
-        }
+    // A. CAPAS HIDROGRÁFICAS Sincronizadas
+    const chkArroyos = document.getElementById('chk-arroyos').checked;
+    if (chkArroyos) { if (!map.hasLayer(grupoArroyos)) map.addLayer(grupoArroyos); }
+    else { if (map.hasLayer(grupoArroyos)) map.removeLayer(grupoArroyos); }
+
+    const chkCuencas = document.getElementById('chk-cuencas').checked;
+    if (chkCuencas) { 
+        if (!map.hasLayer(grupoCuencas)) map.addLayer(grupoCuencas);
+        
+        // Evitar superposición en cuencas, mostrando marcadores únicamente a partir de Zoom >= 13
+        grupoEtiquetasCuencas.eachLayer(marker => {
+            let iconOpts = (marker.options && marker.options.icon && marker.options.icon.options) || {};
+            let textHTML = iconOpts.html || "";
+            let tempDiv = document.createElement('div');
+            tempDiv.innerHTML = textHTML;
+            let cuencaText = tempDiv.innerText.toUpperCase().trim();
+            let cleanSelected = currentSelectedCuenca.toUpperCase().trim();
+
+            if (zoomActual >= 13 && (currentSelectedCuenca === "TODAS" || cuencaText === cleanSelected)) {
+                if (!map.hasLayer(marker)) map.addLayer(marker);
+            } else {
+                if (map.hasLayer(marker)) map.removeLayer(marker);
+            }
+        });
+    }
+    else { 
+        if (map.hasLayer(grupoCuencas)) map.removeLayer(grupoCuencas); 
+        grupoEtiquetasCuencas.eachLayer(marker => {
+            if (map.hasLayer(marker)) map.removeLayer(marker);
+        });
     }
 
-    // 2. Visibilidad de Calles >= 15
-    if (zoomActual >= 15) {
-        if (!map.hasLayer(grupoCalles)) {
-            map.addLayer(grupoCalles);
-        }
+    const chkHidroElem = document.getElementById('chk-hidrografia-elem').checked;
+    if (chkHidroElem) { if (!map.hasLayer(grupoHidrografiaElem)) map.addLayer(grupoHidrografiaElem); }
+    else { if (map.hasLayer(grupoHidrografiaElem)) map.removeLayer(grupoHidrografiaElem); }
+
+    const chkInundacion = document.getElementById('chk-inundabilidad').checked;
+    if (chkInundacion) { if (!map.hasLayer(grupoInundabilidad)) map.addLayer(grupoInundabilidad); }
+    else { if (map.hasLayer(grupoInundabilidad)) map.removeLayer(grupoInundabilidad); }
+
+    // B. CAPAS CATASTRALES (Con restricción inteligente de Zoom)
+    const chkManzanas = document.getElementById('chk-manzanas').checked;
+    if (chkManzanas) {
+        if (!map.hasLayer(grupoManzanas)) map.addLayer(grupoManzanas);
     } else {
-        if (map.hasLayer(grupoCalles)) {
-            map.removeLayer(grupoCalles);
-        }
+        if (map.hasLayer(grupoManzanas)) map.removeLayer(grupoManzanas);
     }
 
-    // 3. Visibilidad de Parcelas Catastrales >= 16
-    if (zoomActual >= 16) {
-        if (!map.hasLayer(grupoParcelas)) {
-            map.addLayer(grupoParcelas);
-        }
+    const chkCalles = document.getElementById('chk-calles').checked;
+    if (chkCalles && zoomActual >= 15) {
+        if (!map.hasLayer(grupoCalles)) map.addLayer(grupoCalles);
     } else {
-        if (map.hasLayer(grupoParcelas)) {
-            map.removeLayer(grupoParcelas);
-        }
+        if (map.hasLayer(grupoCalles)) map.removeLayer(grupoCalles);
+    }
+
+    const chkParcelas = document.getElementById('chk-parcelas').checked;
+    if (chkParcelas && zoomActual >= 16) {
+        if (!map.hasLayer(grupoParcelas)) map.addLayer(grupoParcelas);
+    } else {
+        if (map.hasLayer(grupoParcelas)) map.removeLayer(grupoParcelas);
     }
 }
 
 map.on('zoomend', controlarVisibilidadDinamica);
 map.on('layeradd layerremove', controlarVisibilidadDinamica); 
 
-/* ================= CONTROLES Y BÚSQUEDA ================= */
+/* ================= CONTROLES Y BÚSQUEDA DEL MENÚ LATERAL ================= */
+
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const toggleIcon = document.getElementById('toggle-icon');
+
+    if (sidebar.classList.contains('-translate-x-full')) {
+        sidebar.classList.remove('-translate-x-full');
+        toggleIcon.classList.remove('rotate-180');
+    } else {
+        sidebar.classList.add('-translate-x-full');
+        toggleIcon.classList.add('rotate-180');
+    }
+}
+
+function cambiarBaseMap(tipo) {
+    map.removeLayer(dark);
+    map.removeLayer(hibrido);
+    map.removeLayer(osm);
+    
+    if (tipo === 'dark') dark.addTo(map);
+    if (tipo === 'hibrido') hibrido.addTo(map);
+    if (tipo === 'osm') osm.addTo(map);
+}
+
+function toggleOverlay(capa) {
+    controlarVisibilidadDinamica();
+}
 
 function buscarPM() {
     let val = document.getElementById('input-pm').value.trim();
     if (!val) return;
     let encontrado = false;
     parcelasLayers.forEach(ly => {
-        ly.eachLayer(l => {
-            if (l.feature.properties.partidas.includes(val)) {
-                map.fitBounds(l.getBounds(), { maxZoom: 19 });
-                l.fire('click');
-                encontrado = true;
-            }
-        });
+        if (typeof ly.eachLayer === 'function') {
+            ly.eachLayer(l => {
+                let props = l.feature ? (l.feature.properties || {}) : {};
+                if (props.partidas && props.partidas.includes(val)) {
+                    map.fitBounds(l.getBounds(), { maxZoom: 19 });
+                    
+                    document.getElementById('chk-parcelas').checked = true;
+                    controlarVisibilidadDinamica();
+
+                    l.fire('click');
+                    encontrado = true;
+                }
+            });
+        }
     });
 }
 
-function buscarDireccion() {
-    let nom = document.getElementById('input-calle').value.toUpperCase();
-    let match = listaCallesParaBusqueda.find(c => c.nombre === nom);
-    if (match) {
-        map.fitBounds(match.layer.getBounds(), { maxZoom: 16 });
-        match.layer.fire('click');
+function buscarPredictivoUbicacion(query) {
+    if (!query || query.length < 3) return [];
+    let cleanQuery = query.toUpperCase().trim();
+    let matches = [];
+
+    for (let i = 0; i < listaParcelasUbicacion.length; i++) {
+        let item = listaParcelasUbicacion[i];
+        if (item && item.texto && item.texto.startsWith(cleanQuery)) {
+            matches.push(item);
+            if (matches.length >= 10) break;
+        }
     }
+
+    if (matches.length < 10) {
+        for (let i = 0; i < listaParcelasUbicacion.length; i++) {
+            let item = listaParcelasUbicacion[i];
+            if (item && item.texto && !item.texto.startsWith(cleanQuery) && item.texto.includes(cleanQuery)) {
+                matches.push(item);
+                if (matches.length >= 12) break;
+            }
+        }
+    }
+    return matches;
 }
 
-// Buscador predictivo de calles por prefijo e insensible a capitalización
-function configurarBuscadorCalles() {
-    const input = document.getElementById('input-calle');
-    const sug = document.getElementById('sugerencias-calles');
-    input.addEventListener('input', () => {
-        let val = input.value.toUpperCase();
-        sug.innerHTML = '';
-        if (val.length < 2) { sug.style.display = 'none'; return; }
-        
-        let exactPrefixMatches = [];
-        let generalMatches = [];
-        
-        const uniqueNames = [...new Set(listaCallesParaBusqueda.map(c => c.nombre))];
-        
-        uniqueNames.forEach(n => {
-            if (n.startsWith(val)) {
-                exactPrefixMatches.push(n);
-            } else if (n.includes(val)) {
-                generalMatches.push(n);
-            }
-        });
+function configurarBuscadorUbicaciones() {
+    const input = document.getElementById('input-ubicacion');
+    const sug = document.getElementById('sugerencias-ubicacion');
 
-        let matches = [...exactPrefixMatches, ...generalMatches].slice(0, 6);
-        
+    input.addEventListener('input', () => {
+        let val = input.value;
+        sug.innerHTML = '';
+        if (val.length < 3) {
+            sug.style.display = 'none';
+            return;
+        }
+
+        let matches = buscarPredictivoUbicacion(val);
+
         if (matches.length > 0) {
             sug.style.display = 'block';
+            let textosAgregados = new Set();
+
             matches.forEach(m => {
-                let d = document.createElement('div');
-                d.className = 'sugerencia-item'; d.innerText = m;
-                d.onclick = () => { input.value = m; sug.style.display = 'none'; };
-                sug.appendChild(d);
+                if (m && m.texto && !textosAgregados.has(m.texto)) {
+                    textosAgregados.add(m.texto);
+                    let d = document.createElement('div');
+                    d.className = 'px-3 py-1.5 cursor-pointer text-xs text-slate-300 hover:bg-sky-600 hover:text-white border-b border-slate-800 last:border-none transition duration-150';
+                    d.innerText = m.texto;
+                    d.onclick = () => {
+                        input.value = m.texto;
+                        sug.style.display = 'none';
+                        
+                        if (m.layer) {
+                            map.fitBounds(m.layer.getBounds(), { maxZoom: 19 });
+                            document.getElementById('chk-parcelas').checked = true;
+                            controlarVisibilidadDinamica();
+                            m.layer.fire('click');
+                        }
+                    };
+                    sug.appendChild(d);
+                }
             });
-        } else { sug.style.display = 'none'; }
+        } else {
+            sug.style.display = 'none';
+        }
+    });
+
+    document.addEventListener('click', (e) => {
+        if (e.target !== input && e.target !== sug) {
+            sug.style.display = 'none';
+        }
     });
 }
 
@@ -585,41 +1394,244 @@ function buscarGoogle() {
                 const lat = parseFloat(data[0].lat);
                 const lon = parseFloat(data[0].lon);
                 map.setView([lat, lon], 18);
-                L.marker([lat, lon]).addTo(map).bindPopup(`<b>Resultado Google:</b><br>${val}`).openPopup();
+                L.marker([lat, lon]).addTo(map).bindPopup(`<b>Resultado Búsqueda:</b><br>${val}`).openPopup();
             }
+        }).catch(err => {
+            console.warn("Fallo al consultar Nominatim:", err);
         });
 }
 
-/* ================= LEYENDAS Y CONTROL DE CAPAS ================= */
-const overlays = {
-    "<span class='layer-legend-icon' style='background:rgba(255,107,107,0.15); border:2px solid #ff6b6b;'></span> Manzanas": grupoManzanas,
-    "<span class='layer-legend-icon' style='background:#FFFF00; height:4px; border:1px solid #000;'></span> Nombres de Calles": grupoCalles,
-    "<span class='layer-legend-icon' style='background:#2980b9'></span> Parcelas Catastrales": grupoParcelas
-};
 
-L.control.layers(
-    { "Mapa Oscuro": dark, "Híbrido": hibrido, "OpenStreetMap": osm }, 
-    overlays, 
-    { collapsed: false }
-).addTo(map);
+/* ================= HERRAMIENTA DE MEDICIÓN CATASTRAL ================= */
+var modoMedicion = null; // 'distancia', 'area', null
+var puntosMedicion = [];
+var capaGrupoMedicion = L.featureGroup().addTo(map);
+var lineaTempMedicion = null;
+var poligonoTempMedicion = null;
 
-// MODIFICACIÓN: Inicialización de la herramienta de medición (longitud y superficie) en español
-var measureControl = new L.Control.Measure({
-    primaryLengthUnit: 'meters',
-    secondaryLengthUnit: 'kilometers',
-    primaryAreaUnit: 'sqmeters',
-    secondaryAreaUnit: 'hectares',
-    activeColor: '#ff6b6b',
-    completedColor: '#2980b9',
-    localization: 'es',
-    popupOptions: {
-        className: 'leaflet-measure-popup',
-        autoPanPadding: [80, 80]
+function toggleWidgetMedicion() {
+    let widget = document.getElementById('widget-medicion');
+    if (widget.classList.contains('hidden')) {
+        widget.classList.remove('hidden');
+    } else {
+        cerrarMedicion();
     }
-});
-measureControl.addTo(map);
+}
 
-controlarVisibilidadDinamica();
+function cerrarMedicion() {
+    limpiarMedicion();
+    desactivarModoMedicion();
+    document.getElementById('widget-medicion').classList.add('hidden');
+}
+
+function desactivarModoMedicion() {
+    modoMedicion = null;
+    document.getElementById('map').style.cursor = '';
+    map.off('click', alHacerClicMapaMedicion);
+    map.off('mousemove', alMoverMouseMapaMedicion);
+    
+    document.getElementById('btn-medida-linea').className = 'bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded p-2 text-center transition duration-150 flex flex-col items-center justify-center gap-1';
+    document.getElementById('btn-medida-area').className = 'bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded p-2 text-center transition duration-150 flex flex-col items-center justify-center gap-1';
+}
+
+function activarModoMedicion(tipo) {
+    limpiarMedicion();
+    modoMedicion = tipo;
+    document.getElementById('map').style.cursor = 'crosshair';
+    
+    if (tipo === 'distancia') {
+        document.getElementById('btn-medida-linea').className = 'bg-sky-600 hover:bg-sky-500 border border-sky-400 rounded p-2 text-center transition duration-150 flex flex-col items-center justify-center gap-1';
+        document.getElementById('btn-medida-area').className = 'bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded p-2 text-center transition duration-150 flex flex-col items-center justify-center gap-1';
+    } else {
+        document.getElementById('btn-medida-linea').className = 'bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded p-2 text-center transition duration-150 flex flex-col items-center justify-center gap-1';
+        document.getElementById('btn-medida-area').className = 'bg-emerald-600 hover:bg-emerald-500 border border-emerald-400 rounded p-2 text-center transition duration-150 flex flex-col items-center justify-center gap-1';
+    }
+
+    map.on('click', alHacerClicMapaMedicion);
+    map.on('mousemove', alMoverMouseMapaMedicion);
+}
+
+// Haversine de precisión para distancias acumuladas terrestres
+function calcularDistanciaHaversine(latlng1, latlng2) {
+    const R = 6371000; 
+    const dLat = (latlng2.lat - latlng1.lat) * Math.PI / 180;
+    const dLng = (latlng2.lng - latlng1.lng) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(latlng1.lat * Math.PI / 180) * Math.cos(latlng2.lat * Math.PI / 180) *
+              Math.sin(dLng/2) * Math.sin(dLng/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+}
+
+// Conversión Mercator plana local para calcular superficies precisas en m² / ha
+function latLngToMeters(latlng) {
+    const R = 6378137; 
+    const x = latlng.lng * Math.PI / 180 * R;
+    const y = Math.log(Math.tan((90 + latlng.lat) * Math.PI / 360)) * R;
+    return { x: x, y: y };
+}
+
+function calcularAreaPoligono(puntos) {
+    if (puntos.length < 3) return 0;
+    let area = 0;
+    let proyectados = puntos.map(latLngToMeters);
+    let numPoints = proyectados.length;
+    
+    for (let i = 0; i < numPoints; i++) {
+        let j = (i + 1) % numPoints;
+        area += proyectados[i].x * proyectados[j].y;
+        area -= proyectados[j].x * proyectados[i].y;
+    }
+    
+    let centroLat = puntos.reduce((sum, p) => sum + p.lat, 0) / numPoints;
+    let cosLat = Math.cos(centroLat * Math.PI / 180);
+    
+    area = Math.abs(area) / 2;
+    return area * cosLat * cosLat; 
+}
+
+function alHacerClicMapaMedicion(e) {
+    let latlng = e.latlng;
+    puntosMedicion.push(latlng);
+    
+    L.circleMarker(latlng, {
+        radius: 4.5,
+        color: modoMedicion === 'distancia' ? '#38bdf8' : '#10b981',
+        fillColor: '#ffffff',
+        fillOpacity: 1,
+        weight: 2
+    }).addTo(capaGrupoMedicion);
+
+    if (puntosMedicion.length > 1) {
+        document.getElementById('btn-finalizar-medida').disabled = false;
+        document.getElementById('btn-finalizar-medida').className = 'flex-1 bg-sky-600 hover:bg-sky-500 text-white font-bold text-[9px] uppercase tracking-wide py-1.5 rounded transition shadow cursor-pointer';
+    }
+
+    actualizarCapasMedicion(latlng, true);
+    actualizarPanelMedicion();
+}
+
+function alMoverMouseMapaMedicion(e) {
+    if (puntosMedicion.length === 0) return;
+    actualizarCapasMedicion(e.latlng, false);
+}
+
+function actualizarCapasMedicion(mouseLatLng, esClick) {
+    if (lineaTempMedicion) capaGrupoMedicion.removeLayer(lineaTempMedicion);
+    if (poligonoTempMedicion) capaGrupoMedicion.removeLayer(poligonoTempMedicion);
+
+    let puntosConMouse = [...puntosMedicion];
+    if (!esClick) {
+        puntosConMouse.push(mouseLatLng);
+    }
+
+    if (modoMedicion === 'distancia') {
+        lineaTempMedicion = L.polyline(puntosConMouse, {
+            color: '#38bdf8',
+            weight: 3,
+            dashArray: esClick ? null : '4, 4'
+        }).addTo(capaGrupoMedicion);
+    } else if (modoMedicion === 'area') {
+        poligonoTempMedicion = L.polygon(puntosConMouse, {
+            color: '#10b981',
+            fillColor: '#10b981',
+            fillOpacity: 0.18,
+            weight: 2,
+            dashArray: esClick ? null : '4, 4'
+        }).addTo(capaGrupoMedicion);
+    }
+}
+
+function calcularResultadosMedicion() {
+    let dist = 0;
+    for (let i = 0; i < puntosMedicion.length - 1; i++) {
+        dist += calcularDistanciaHaversine(puntosMedicion[i], puntosMedicion[i+1]);
+    }
+    
+    let area = 0;
+    if (modoMedicion === 'area' && puntosMedicion.length >= 3) {
+        area = calcularAreaPoligono(puntosMedicion);
+    }
+    
+    return { distancia: dist, area: area };
+}
+
+function actualizarPanelMedicion() {
+    let res = calcularResultadosMedicion();
+    document.getElementById('medida-puntos').innerText = puntosMedicion.length;
+    
+    if (res.distancia >= 1000) {
+        document.getElementById('medida-distancia').innerText = (res.distancia / 1000).toFixed(3) + ' km';
+    } else {
+        document.getElementById('medida-distancia').innerText = res.distancia.toFixed(2) + ' m';
+    }
+
+    if (res.area >= 10000) {
+        document.getElementById('medida-superficie').innerText = (res.area / 10000).toFixed(3) + ' ha';
+    } else {
+        document.getElementById('medida-superficie').innerText = res.area.toFixed(2) + ' m²';
+    }
+}
+
+function finalizarMedicion() {
+    if (puntosMedicion.length < 2) return;
+    
+    if (modoMedicion === 'area' && puntosMedicion.length >= 3) {
+        if (poligonoTempMedicion) capaGrupoMedicion.removeLayer(poligonoTempMedicion);
+        poligonoTempMedicion = L.polygon(puntosMedicion, {
+            color: '#10b981',
+            fillColor: '#10b981',
+            fillOpacity: 0.25,
+            weight: 3
+        }).addTo(capaGrupoMedicion);
+    }
+    
+    let res = calcularResultadosMedicion();
+    let popupMsg = `<div class="p-1 font-sans text-xs text-slate-850"><b class="text-sky-650 uppercase tracking-wide block border-b border-slate-200 pb-1 mb-1 text-[10px]">Resultado Final</b>`;
+    
+    if (modoMedicion === 'distancia') {
+        let dStr = res.distancia >= 1000 ? (res.distancia / 1000).toFixed(3) + ' km' : res.distancia.toFixed(2) + ' m';
+        popupMsg += `Distancia: <b class="text-slate-900">${dStr}</b>`;
+    } else {
+        let aStr = res.area >= 10000 ? (res.area / 10000).toFixed(3) + ' ha' : res.area.toFixed(2) + ' m²';
+        let dStr = res.distancia >= 1000 ? (res.distancia / 1000).toFixed(3) + ' km' : res.distancia.toFixed(2) + ' m';
+        popupMsg += `Perímetro: <b>${dStr}</b><br>Superficie: <b class="text-emerald-600">${aStr}</b>`;
+    }
+    popupMsg += `</div>`;
+
+    let finalLatLng = puntosMedicion[puntosMedicion.length - 1];
+    L.popup()
+        .setLatLng(finalLatLng)
+        .setContent(popupMsg)
+        .openOn(map);
+
+    desactivarModoMedicion();
+}
+
+function limpiarMedicion() {
+    puntosMedicion = [];
+    capaGrupoMedicion.clearLayers();
+    lineaTempMedicion = null;
+    poligonoTempMedicion = null;
+    
+    document.getElementById('medida-puntos').innerText = '0';
+    document.getElementById('medida-distancia').innerText = '0.00 m';
+    document.getElementById('medida-superficie').innerText = '0.00 m²';
+    
+    document.getElementById('btn-finalizar-medida').disabled = true;
+    document.getElementById('btn-finalizar-medida').className = 'flex-1 bg-slate-700 text-slate-400 font-bold text-[9px] uppercase tracking-wide py-1.5 rounded transition cursor-not-allowed';
+    
+    if (modoMedicion) {
+        activarModoMedicion(modoMedicion);
+    }
+}
+
+
+/* ================= EVENTO INICIALIZADOR DE PÁGINA ================= */
+window.onload = function () {
+    configurarBuscadorUbicaciones();
+    controlarVisibilidadDinamica();
+}
 </script>
 </body>
 </html>
