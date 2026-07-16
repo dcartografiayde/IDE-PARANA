@@ -1,0 +1,296 @@
+{
+  "type": "FeatureCollection",
+  "name": "Codigo_Urbano_Parana_Distritos",
+  "crs": {
+    "type": "name",
+    "properties": {
+      "name": "urn:ogc:def:crs:OGC:1.3:CRS84"
+    }
+  },
+  "metadata": {
+    "normativa_base": "Ordenanza N° 8563",
+    "modificatorias_incluidas": "Ord. 10187, Ord. 8748, Ord. 8232, Decreto 918/2013, Decreto 2028/2020",
+    "referencias_usos": {
+      "P": "Uso permitido",
+      "NP": "Uso no permitido",
+      "1": "Requiere autorización expresa del organismo de aplicación.",
+      "2": "Requiere estudio técnico para determinar conveniencia y autorización expresa.",
+      "3": "Uso condicionado con permiso temporario.",
+      "4": "Sólo oficinas de informes turísticos.",
+      "5": "Superficie cubierta máxima 40 m2.",
+      "6": "Superficie cubierta máxima 200 m2.",
+      "7": "Superficie cubierta máxima 500 m2.",
+      "8": "Superficie cubierta máxima 1500 m2.",
+      "11": "Se exige espacio para carga y descarga dentro del predio. Prohibido en vía pública.",
+      "12": "El organismo determinará exigencias de estacionamiento según el caso."
+    }
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "id": "UCC1",
+      "properties": {
+        "distrito": "UCC1",
+        "nombre": "Distrito Urbano Central Comercial 1",
+        "caracter": "Sector central, comercial y administrativo con alta concentración financiera y edificios de valor patrimonial.",
+        "subdivision_del_suelo": "Frente mínimo: 10,00 m. Superficie mínima: 300,00 m2. Lotes internos (pasillo A = L x 0,02 + 2,50m).",
+        "tejido_urbano": "FOS comercial: 100% hasta 12,50 metros desde cota de parcela. Fachada obligatoria sobre línea municipal con perfiles peatonales.",
+        "usos_permitidos": "Comercial, Financiero y Administrativo de escala urbana (P). Residencial alta densidad (P). Logística y Depósitos mayores (NP).",
+        "restricciones_relevantes": "Retiro de LE sobre fachada obligatoria: 4 metros (exceptuando esquinas con calles anchas). Estricta preservación patrimonial."
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "id": "C1",
+      "properties": {
+        "distrito": "C1",
+        "nombre": "Distrito Central 1",
+        "caracter": "Área central adyacente al casco histórico, destinada a actividades administrativas, comerciales e institucionales con alta densidad residencial.",
+        "subdivision_del_suelo": "Frente mínimo: 10,00 m. Superficie mínima: 300,00 m2. Lotes internos (Dto 918/2013).",
+        "tejido_urbano": "Alta densidad. FOS máximo: 0.8. FOT máximo: 3.0. Alturas máximas reguladas según perfil de la vía.",
+        "usos_permitidos": "Residencial (P). Comercial minorista y servicios (P). Institucional (P). Industrias (NP).",
+        "restricciones_relevantes": "Art. 110: Loteos requieren donación del 10% del remanente para reserva municipal."
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "id": "UR1",
+      "properties": {
+        "distrito": "UR1",
+        "nombre": "Urbano Residencial 1",
+        "caracter": "Zona predominantemente residencial de alta densidad, circundante al área central, consolidando el tejido edilicio en altura.",
+        "subdivision_del_suelo": "Frente mínimo: 10,00 m. Superficie mínima: 300,00 m2.",
+        "tejido_urbano": "Alta densidad. FOS y FOT altos. Edificación entre medianeras y perímetro libre permitido.",
+        "usos_permitidos": "Residencial unifamiliar y multifamiliar (P). Comercial vecinal y de escala urbana menor (P).",
+        "restricciones_relevantes": "Obligación de cumplimentar dotación de cocheras según unidades residenciales."
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "id": "UR2",
+      "properties": {
+        "distrito": "UR2",
+        "nombre": "Urbano Residencial 2",
+        "caracter": "Zonas residenciales de densidad media-alta, actuando como transición entre el centro y los barrios tradicionales.",
+        "subdivision_del_suelo": "Frente mínimo: 10,00 m. Superficie mínima: 300,00 m2.",
+        "tejido_urbano": "Densidad Media-Alta. Regulaciones orientadas a mantener el perfil urbano barrial.",
+        "usos_permitidos": "Residencial (P). Comercial de uso diario (P). Servicios compatibles con residencia (1).",
+        "restricciones_relevantes": "Sujeto a verificación de continuidad vial (Art. 105) en casos de englobamiento o loteo."
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "id": "UR3",
+      "properties": {
+        "distrito": "UR3",
+        "nombre": "Urbano Residencial 3",
+        "caracter": "Zonas de uso predominantemente residencial de densidad media, fomentando la consolidación del tejido urbano tradicional.",
+        "subdivision_del_suelo": "Frente mínimo: 10,00 m. Superficie mínima: 300,00 m2.",
+        "tejido_urbano": "Densidad Media. FOS máximo: 0.6. FOT regulado según ancho de calle.",
+        "usos_permitidos": "Residencial (P). Comercial vecinal (P hasta restricciones 6 o 7). Talleres artesanales (1 o 2). Industrias y Depósitos molestos (NP).",
+        "restricciones_relevantes": "Uso Conforme Previo obligatorio (Dto. 2028/2020). Prohibición de cul-de-sacs sin justificación física (Art. 105)."
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "id": "UR4",
+      "properties": {
+        "distrito": "UR4",
+        "nombre": "Urbano Residencial 4",
+        "caracter": "Áreas de tejido residencial tradicional consolidado, destinadas a preservar la escala barrial y la calidad ambiental.",
+        "subdivision_del_suelo": "Frente mínimo: 10,00 m. Superficie mínima: 300,00 m2.",
+        "tejido_urbano": "Densidad Media. Alturas limitadas a perfiles bajos/medios.",
+        "usos_permitidos": "Residencial (P). Comercio minorista de proximidad (P condicionado a Sup. Máx.).",
+        "restricciones_relevantes": "Donación del 10% de reserva en loteos de magnitud, debiendo ser de morfología regular."
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "id": "UR5",
+      "properties": {
+        "distrito": "UR5",
+        "nombre": "Urbano Residencial 5",
+        "caracter": "Sectores urbanos de residencia mixta, con presencia de equipamientos barriales y espacios verdes distribuidos.",
+        "subdivision_del_suelo": "Frente mínimo: 10,00 m. Superficie mínima: 300,00 m2.",
+        "tejido_urbano": "Densidad Media. FOS máximo estandarizado, priorizando suelo absorbente en centros de manzana.",
+        "usos_permitidos": "Residencial (P). Equipamiento educacional y deportivo (P).",
+        "restricciones_relevantes": "Controles estrictos sobre la instalación de usos que generen molestias sonoras o de tráfico."
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "id": "UR6",
+      "properties": {
+        "distrito": "UR6",
+        "nombre": "Urbano Residencial 6",
+        "caracter": "Zonas de uso residencial de densidad media a baja, con tejido semiabierto y requerimientos de consolidación de trama en bordes urbanos.",
+        "subdivision_del_suelo": "Frente mínimo: 10,00 m. Superficie mínima: 300,00 m2.",
+        "tejido_urbano": "Densidad Media a Baja. Espacios abiertos predominantes.",
+        "usos_permitidos": "Residencial unifamiliar y multifamiliar de baja escala (P). Pequeños comercios diarios (P condicionado).",
+        "restricciones_relevantes": "Regularización de cotas y pendientes requerida. Aprobación condicionada a viabilidad hídrica e integración funcional de reservas municipales."
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "id": "UR7",
+      "properties": {
+        "distrito": "UR7",
+        "nombre": "Urbano Residencial 7",
+        "caracter": "Barrios en proceso de consolidación, orientados a la vivienda unifamiliar y mejora de infraestructura básica.",
+        "subdivision_del_suelo": "Frente mínimo: 10,00 m. Superficie mínima: 300,00 m2.",
+        "tejido_urbano": "Densidad Baja. FOS bajo, incentivando frentes parquizados.",
+        "usos_permitidos": "Residencial unifamiliar (P).",
+        "restricciones_relevantes": "Restricciones de subdivisión sujetas a provisión efectiva de servicios públicos."
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "id": "UR8",
+      "properties": {
+        "distrito": "UR8",
+        "nombre": "Urbano Residencial 8",
+        "caracter": "Sectores periféricos residenciales con alta proporción de espacios naturales a integrar al entorno urbano.",
+        "subdivision_del_suelo": "Frente mínimo: 10,00 m. Superficie mínima: 300,00 m2.",
+        "tejido_urbano": "Densidad Baja. Predominancia de construcciones exentas.",
+        "usos_permitidos": "Residencial (P).",
+        "restricciones_relevantes": "Obligatoriedad de mantener especies arbóreas nativas según lo indique Medio Ambiente."
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "id": "UR9",
+      "properties": {
+        "distrito": "UR9",
+        "nombre": "Urbano Residencial 9",
+        "caracter": "Zonas de borde urbano, destinadas a uso residencial de baja densidad, con requerimientos especiales para consolidación vial y protección de cuencas.",
+        "subdivision_del_suelo": "Frente mínimo: 10,00 m. Superficie mínima: 300,00 m2. Se admiten loteos condicionados a la apertura de trama.",
+        "tejido_urbano": "Densidad Baja. FOS y FOT limitados para garantizar mayor suelo absorbente.",
+        "usos_permitidos": "Residencial individual (P). Comercios de cercanía (P condicionado a Sup. Máx. 6). Agropecuarias (NP).",
+        "restricciones_relevantes": "Art. 106 y 107: Restricciones de no inundabilidad (retiro mínimo 20m desde cursos de agua). Art. 110: Donación de 10% en morfología regular."
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "id": "URT",
+      "properties": {
+        "distrito": "URT",
+        "nombre": "Urbano Residencial Turístico",
+        "caracter": "Sectores adyacentes a recursos paisajísticos (ej. borde costero), destinados a vivienda de baja densidad y turismo.",
+        "subdivision_del_suelo": "Frente mínimo: 15,00 m. Área mínima: 450,00 m2.",
+        "tejido_urbano": "Densidad Baja. FOS: 0.5. Prioridad de áreas parquizadas y retiros de frente y fondo obligatorios.",
+        "usos_permitidos": "Residencial (P). Alojamiento turístico y gastronomía (P). Clubes (P). Industrias (NP). Oficinas turísticas (4).",
+        "restricciones_relevantes": "Fuerte control sobre impacto visual. Todo fraccionamiento debe presentar estudio de impacto hídrico y ambiental. Donación de reserva no inundable."
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "id": "CEU",
+      "properties": {
+        "distrito": "CEU",
+        "nombre": "Complementario de Ensanche Urbano",
+        "caracter": "Zona de reserva para futuras ampliaciones del área urbana, incorporando urbanizaciones anteriores diseminadas en el Área Rural (Ord. 10187).",
+        "subdivision_del_suelo": "Según Ord. 10187: Frente 20,00 m, Área 600,00 m2. Excepción con servicios (agua/luz): Frente 10,00 m y Área 300,00 m2.",
+        "tejido_urbano": "Transición de rural a urbano. Tejido abierto. Construcciones exentas.",
+        "usos_permitidos": "Residencial unifamiliar (P). Comercios barriales (P condicionado a Sup. 5 o 6). Logística bajo impacto (1 o 2).",
+        "restricciones_relevantes": "Art. 104: Obligación de donar media calle si colinda con trazado proyectado. Art. 111: Reserva municipal reubicable si se propone en bajos naturales."
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "id": "EUR",
+      "properties": {
+        "distrito": "EUR",
+        "nombre": "Extra Urbano Residencial",
+        "caracter": "Zonas periféricas destinadas a residencias de muy baja densidad, casas quintas y actividades primarias compatibles.",
+        "subdivision_del_suelo": "Lote mínimo - Frente: 100,00 m. Área: 10.000,00 m2 (1 Hectárea). Prohibida apertura de calles (salvo Art. 96).",
+        "tejido_urbano": "Tejido rural o semi-rural. Muy bajo FOS.",
+        "usos_permitidos": "Residencial unifamiliar (P). Viveros (P). Clubes (P). Usos comerciales intensivos o industria molesta (NP).",
+        "restricciones_relevantes": "Altamente restrictivo para loteos urbanos. Excepciones de subdivisión menores solo con proyectos de interés social justificados (Art. 96)."
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "id": "UE",
+      "properties": {
+        "distrito": "UE",
+        "nombre": "Urbano Equipamiento",
+        "caracter": "Áreas destinadas a la localización de grandes equipamientos institucionales, de salud, educativos, de seguridad o abastecimiento a escala ciudad/región.",
+        "subdivision_del_suelo": "Condicionada a las necesidades del equipamiento a localizar y su proyecto específico.",
+        "tejido_urbano": "Regulado por el impacto urbanístico del equipamiento. Retiros y espacios de amortiguación obligatorios.",
+        "usos_permitidos": "Hospitales, Universidades, Centros Cívicos, Terminales (P o sujeto a evaluación 1/2). Residencial exclusivo (NP).",
+        "restricciones_relevantes": "Obligatoriedad de presentar Estudios de Impacto Ambiental y de Tránsito."
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "id": "EUE",
+      "properties": {
+        "distrito": "EUE",
+        "nombre": "Extra Urbano Equipamiento",
+        "caracter": "Sectores linderos al Parque Industrial o en grandes accesos para actividades complementarias, logísticas y de servicios pesados.",
+        "subdivision_del_suelo": "Frente mínimo: 50,00 m. Superficie mínima: 2.500,00 m2.",
+        "tejido_urbano": "Tejido semi-industrial abierto. Altura máxima permitida: 9,50 metros.",
+        "usos_permitidos": "Servicios industriales (P). Depósitos Clase 1 a 5 (condición 11: carga obligatoria en predio). Industrias Clase 1 y 2 (P).",
+        "restricciones_relevantes": "Prohibición estricta de estacionamiento y maniobras de carga/descarga de gran porte en la vía pública."
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "id": "EUPI",
+      "properties": {
+        "distrito": "EUPI",
+        "nombre": "Extra Urbano Parque Industrial",
+        "caracter": "Área específica para la radicación industrial (Parque Industrial Gral. Belgrano).",
+        "subdivision_del_suelo": "Frente mínimo: 25,00 m. Superficie mínima: 1.250,00 m2.",
+        "tejido_urbano": "Tejido Industrial. Alturas máximas condicionadas a procesos. Amplios retiros de Línea Municipal.",
+        "usos_permitidos": "Industrias Clases 1 a 4 (P). Depósitos mayoristas (P con condición 11). Residencial (NP).",
+        "restricciones_relevantes": "Estricto control de efluentes y categorización ambiental. Obligatoriedad de áreas de maniobra dentro de la parcela."
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "id": "UOU",
+      "properties": {
+        "distrito": "UOU",
+        "nombre": "Urbano Otros Usos",
+        "caracter": "Distrito aplicable a parcelas de carácter singular y de grandes dimensiones que requieren normativas especiales (ej. ex-predios militares o instalaciones singulares no asimilables a otros distritos).",
+        "subdivision_del_suelo": "Subdivisión congelada o condicionada a planes maestros aprobados por el Concejo Deliberante.",
+        "tejido_urbano": "Sujeto a normas particulares dictadas para la parcela.",
+        "usos_permitidos": "Usos preexistentes o aquellos que se determinen mediante Ordenanzas Específicas.",
+        "restricciones_relevantes": "Para nuevos desarrollos exige Proyecto Integral y dictamen de Comisiones Asesoras (similar al caso Ord 8232)."
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "id": "URRC1",
+      "properties": {
+        "distrito": "URRC1",
+        "nombre": "Urbano Recreacional Residencial Comercial 1",
+        "caracter": "Sector especial (ex Hipódromo Almafuerte - Ord 8748), corredor comercial dinámico interactuando con barrios residenciales. Predio de interés urbanístico e histórico (Ord 8232).",
+        "subdivision_del_suelo": "Sujeto a Proyecto Integral para la totalidad del predio (Ord. 8232). Subdivisión tradicional suspendida.",
+        "tejido_urbano": "Debe contemplar la accesibilidad pública y uso como espacio verde urbano integrado.",
+        "usos_permitidos": "Uso recreativo, deportivo y público. Residencial y Comercial subordinado a Proyecto Integral aprobado por Concurso.",
+        "restricciones_relevantes": "Declarado de Interés Público. Prohibida la modificación, subdivisión o nuevos usos sin un Proyecto Integral avalado por el HCD."
+      },
+      "geometry": null
+    }
+  ]
+}
