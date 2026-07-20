@@ -199,22 +199,6 @@
             text-shadow: 0px 1px 1px rgba(0,0,0,0.5);
         }
 
-        .etiqueta-manzana {
-            background: rgba(255, 255, 255, 0.95) !important;
-            border: 2px solid #ff6b6b !important;
-            color: #1e293b !important;
-            font-weight: 800 !important;
-            font-size: 10px !important;
-            border-radius: 50% !important; 
-            width: 28px !important;
-            height: 28px !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            pointer-events: none !important; 
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
-        }
-
         /* Etiquetas sutiles y finas sobre el parcelario para no obstruir planos catastrales */
         .etiqueta-rotada-parcela {
             font-family: 'Inter', sans-serif;
@@ -1129,26 +1113,7 @@ fetchGeoJSON(BASE_URL + "catastro/manzana.geojson").then(data => {
             interactive: true 
         },
         onEachFeature: (f, l) => {
-            let propNum = obtenerNumeroManzana(f);
-
-            if (propNum) {
-                const numStr = String(propNum).trim();
-                if (!manzanasEtiquetadas.has(numStr)) {
-                    manzanasEtiquetadas.add(numStr);
-                    try {
-                        let center = l.getBounds().getCenter();
-                        L.marker(center, {
-                            icon: L.divIcon({
-                                className: 'etiqueta-manzana',
-                                html: `<div>${decodificarTexto(numStr)}</div>`,
-                                iconSize: [28, 28]
-                            }),
-                            interactive: false 
-                        }).addTo(grupoEtiquetasManzanas); 
-                    } catch(e) {}
-                }
-            }
-
+            // Nota de diseño: Se ha eliminado la generación de marcadores circulares 'etiqueta-manzana' para limpiar el plano como se solicitó.
             l.on('click', (e) => {
                 if (modoSeleccionManzana) {
                     L.DomEvent.stopPropagation(e);
@@ -1312,14 +1277,11 @@ function obtenerCentroideFeature(feature) {
 }
 
 /*
-  Función quirúrgica clave: Calcula un punto interior visible para posicionar la etiqueta.
-  Si el centroide global está fuera de la pantalla, busca la intersección de los límites del polígono
-  con los límites visibles del mapa, asegurándose de posicionar la etiqueta dentro del polígono en todo momento.
+  Función de fallback para posicionar etiquetas en el interior si la frontera no es visible
 */
 function obtenerPuntoInteriorVisible(feature, mapBounds) {
     if (!feature || !feature.geometry) return null;
     
-    // Si el centroide global es visible y está dentro del distrito, lo priorizamos
     let globalCenter = obtenerCentroideFeature(feature);
     if (globalCenter && mapBounds.contains(globalCenter)) {
         if (isPointInFeature([globalCenter.lng, globalCenter.lat], feature)) {
@@ -1327,7 +1289,6 @@ function obtenerPuntoInteriorVisible(feature, mapBounds) {
         }
     }
     
-    // Obtener los límites del distrito (con cache)
     if (!feature._bounds) {
         try {
             feature._bounds = L.geoJSON(feature).getBounds();
@@ -1339,7 +1300,6 @@ function obtenerPuntoInteriorVisible(feature, mapBounds) {
     let fBounds = feature._bounds;
     if (!fBounds || !mapBounds.intersects(fBounds)) return null;
     
-    // Calcular el rectángulo de la intersección visible
     let south = Math.max(mapBounds.getSouth(), fBounds.getSouth());
     let north = Math.min(mapBounds.getNorth(), fBounds.getNorth());
     let west = Math.max(mapBounds.getWest(), fBounds.getWest());
@@ -1348,12 +1308,10 @@ function obtenerPuntoInteriorVisible(feature, mapBounds) {
     let intersectBounds = L.latLngBounds([south, west], [north, east]);
     let intersectCenter = intersectBounds.getCenter();
     
-    // 1. Probar centro de la intersección visible
     if (isPointInFeature([intersectCenter.lng, intersectCenter.lat], feature)) {
         return intersectCenter;
     }
     
-    // 2. Probar centroide de los vértices que se encuentran actualmente visibles
     let coords = feature.geometry.coordinates;
     let pts = [];
     if (feature.geometry.type === "Polygon") {
@@ -1381,28 +1339,87 @@ function obtenerPuntoInteriorVisible(feature, mapBounds) {
         }
     }
     
-    // 3. Probar cuadrícula regular (3x3) dentro del área visible de intersección para encontrar un punto interior
-    let latStep = (north - south) / 4;
-    let lngStep = (east - west) / 4;
-    for (let i = 1; i <= 3; i++) {
-        for (let j = 1; j <= 3; j++) {
-            let testLat = south + i * latStep;
-            let testLng = west + j * lngStep;
-            if (isPointInFeature([testLng, testLat], feature)) {
-                return L.latLng(testLat, testLng);
+    return intersectCenter;
+}
+
+function obtenerPuntoBordeInterior(feature, mapBounds) {
+    if (!feature || !feature.geometry) return null;
+    let coords = feature.geometry.coordinates;
+    let type = feature.geometry.type;
+    
+    let bestPoint = null;
+    let bestDistToCenter = Infinity;
+    let viewCenter = mapBounds.getCenter();
+    
+    // Función auxiliar para procesar un anillo de coordenadas (borde exterior)
+    function procesarAnillo(ring) {
+        for (let i = 0; i < ring.length - 1; i++) {
+            let p1 = ring[i];
+            let p2 = ring[i+1];
+            
+            // Punto medio del segmento del borde
+            let midLng = (p1[0] + p2[0]) / 2;
+            let midLat = (p1[1] + p2[1]) / 2;
+            let midLatLng = L.latLng(midLat, midLng);
+            
+            // Evaluamos si el punto medio está en el viewport
+            if (mapBounds.contains(midLatLng)) {
+                let dist = midLatLng.distanceTo(viewCenter);
+                if (dist < bestDistToCenter) {
+                    // Vector director del segmento
+                    let dx = p2[0] - p1[0];
+                    let dy = p2[1] - p1[1];
+                    let len = Math.sqrt(dx*dx + dy*dy);
+                    if (len > 0) {
+                        // Vector normal normalizado
+                        let nx = -dy / len;
+                        let ny = dx / len;
+                        
+                        // El desplazamiento (offset) en grados se adapta al zoom
+                        let z = map.getZoom();
+                        let offsetDegrees = 0.00018; // ~20 metros en zoom 16
+                        if (z >= 19) offsetDegrees = 0.00004;
+                        else if (z >= 18) offsetDegrees = 0.00007;
+                        else if (z >= 17) offsetDegrees = 0.00012;
+                        
+                        let test1 = [midLng + nx * offsetDegrees, midLat + ny * offsetDegrees];
+                        let test2 = [midLng - nx * offsetDegrees, midLat - ny * offsetDegrees];
+                        
+                        let targetPt = null;
+                        // Comprobamos cuál de las proyecciones normales cae DENTRO del distrito y sigue siendo visible
+                        if (isPointInFeature(test1, feature) && mapBounds.contains(L.latLng(test1[1], test1[0]))) {
+                            targetPt = L.latLng(test1[1], test1[0]);
+                        } else if (isPointInFeature(test2, feature) && mapBounds.contains(L.latLng(test2[1], test2[0]))) {
+                            targetPt = L.latLng(test2[1], test2[0]);
+                        }
+                        
+                        if (targetPt) {
+                            bestPoint = targetPt;
+                            bestDistToCenter = dist;
+                        }
+                    }
+                }
             }
         }
     }
     
-    // Fallback: Retorna el promedio de los vértices visibles en pantalla
-    if (count > 0) {
-        return L.latLng(latSum / count, lngSum / count);
+    if (type === "Polygon") {
+        procesarAnillo(coords[0]);
+    } else if (type === "MultiPolygon") {
+        coords.forEach(poly => {
+            if (poly && poly[0]) {
+                procesarAnillo(poly[0]);
+            }
+        });
     }
     
-    return intersectCenter;
+    // Si no logramos encontrar un punto de borde visible en el viewport, hacemos un fallback al centroide interior visible
+    if (!bestPoint) {
+        return obtenerPuntoInteriorVisible(feature, mapBounds);
+    }
+    return bestPoint;
 }
 
-// Función que redibuja las etiquetas de los distritos dinámicamente en pantalla
 function actualizarEtiquetasDistritosDinamicas() {
     grupoEtiquetasDistritos.clearLayers();
     const chkDistritos = document.getElementById('chk-distritos') ? document.getElementById('chk-distritos').checked : true;
@@ -1412,10 +1429,11 @@ function actualizarEtiquetasDistritosDinamicas() {
     distritosFeaturesGlobal.forEach((f, idx) => {
         let cod = f.properties.distrito || f.properties.codigo || f.properties.cod || f.properties.zona || f.properties.cod_zona || f.properties.nom_dis || f.properties.nombre || "";
         if (cod) {
-            let center = obtenerPuntoInteriorVisible(f, mapBounds);
+            // Buscamos un punto interior adaptado al límite visible para la etiqueta
+            let center = obtenerPuntoBordeInterior(f, mapBounds);
             if (center) {
                 L.marker(center, {
-                    pane: 'atlasLabelsPane', // Lo posiciona por encima de las parcelas para máxima legibilidad
+                    pane: 'atlasLabelsPane', // Para mantenerlo siempre encima de las parcelas
                     icon: L.divIcon({
                         className: 'etiqueta-distrito',
                         html: `<div>${decodificarTexto(String(cod)).toUpperCase()}</div>`,
@@ -1432,7 +1450,7 @@ function actualizarEtiquetasDistritosDinamicas() {
 fetchGeoJSON("https://raw.githubusercontent.com/dcartografiayde/IDE-PARANA/main/usos_permitidos/distritos.geojson.json").then(data => {
     distritosFeaturesGlobal = data.features || [];
     
-    // Calcular límites para optimizar intersecciones rápidas de etiquetas
+    // Pre-calcular límites de distritos
     distritosFeaturesGlobal.forEach(f => {
         try {
             f._bounds = L.geoJSON(f).getBounds();
@@ -1441,7 +1459,6 @@ fetchGeoJSON("https://raw.githubusercontent.com/dcartografiayde/IDE-PARANA/main/
         }
     });
     
-    // Generar listado estructurado para dropdowns del popup catastral
     listaDistritosUnicos = distritosFeaturesGlobal.map((f, idx) => {
         let cod = f.properties.distrito || f.properties.codigo || f.properties.cod || f.properties.zona || f.properties.cod_zona || f.properties.nom_dis || f.properties.nombre || `Distrito ${idx + 1}`;
         let desc = f.properties.caracter || f.properties.descripcion || f.properties.descripcio || f.properties.usos || "";
@@ -1459,14 +1476,12 @@ fetchGeoJSON("https://raw.githubusercontent.com/dcartografiayde/IDE-PARANA/main/
         interactive: false, 
         style: {
             color: "#a855f7",
-            weight: 1.5,
+            weight: 4.5, // Hacemos la línea del distrito notablemente más gruesa para que se entienda el límite entre UR9 y CEU
             fillColor: "#a855f7",
-            fillOpacity: 0.05,
-            dashArray: "3, 3"
+            fillOpacity: 0.04
         }
     }).addTo(grupoDistritos);
 
-    // Renderizamos las etiquetas de forma dinámica
     actualizarEtiquetasDistritosDinamicas();
     controlarVisibilidadDinamica();
 }).catch(err => console.error("Error al cargar la capa de distritos:", err));
@@ -1501,7 +1516,7 @@ function resaltarDistritoEnMapa(feature) {
     L.geoJSON(feature, {
         style: {
             color: "#a855f7",
-            weight: 3.5,
+            weight: 5.5,
             fillColor: "#a855f7",
             fillOpacity: 0.15,
             dashArray: "4, 4"
@@ -1804,14 +1819,9 @@ function controlarVisibilidadDinamica() {
     const chkManzanas = document.getElementById('chk-manzanas').checked;
     if (chkManzanas && zoomActual >= 14) {
         if (!map.hasLayer(grupoManzanas)) map.addLayer(grupoManzanas);
-        if (zoomActual >= 15) {
-            if (!map.hasLayer(grupoEtiquetasManzanas)) map.addLayer(grupoEtiquetasManzanas);
-        } else {
-            if (map.hasLayer(grupoEtiquetasManzanas)) map.removeLayer(grupoEtiquetasManzanas);
-        }
+        // Nota: se ha quitado la visibilidad de etiquetas de manzana
     } else {
         if (map.hasLayer(grupoManzanas)) map.removeLayer(grupoManzanas);
-        if (map.hasLayer(grupoEtiquetasManzanas)) map.removeLayer(grupoEtiquetasManzanas);
     }
 
     const chkCalles = document.getElementById('chk-calles').checked;
