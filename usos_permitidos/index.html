@@ -181,6 +181,24 @@
             white-space: nowrap !important;
         }
 
+        /* Estilo para las etiquetas de distritos urbanos fijos en pantalla */
+        .etiqueta-distrito {
+            background: rgba(168, 85, 247, 0.95) !important;
+            border: 2px solid #a855f7 !important;
+            color: #ffffff !important;
+            font-weight: 800 !important;
+            font-size: 9px !important;
+            border-radius: 4px !important;
+            padding: 2px 5px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            pointer-events: none !important; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3) !important;
+            white-space: nowrap !important;
+            text-shadow: 0px 1px 1px rgba(0,0,0,0.5);
+        }
+
         .etiqueta-manzana {
             background: rgba(255, 255, 255, 0.95) !important;
             border: 2px solid #ff6b6b !important;
@@ -1254,10 +1272,174 @@ Promise.allSettled(
 });
 
 var grupoDistritos = L.layerGroup().addTo(map);
+var grupoEtiquetasDistritos = L.layerGroup().addTo(map); // Capa para las etiquetas siempre visibles
 var capaHighlightDistrito = L.layerGroup().addTo(map);
+
+// Métodos para calcular centroides y colocar etiquetas dentro de los límites
+function obtenerCentroidePolygon(coords) {
+    let latSum = 0, lngSum = 0, count = 0;
+    coords.forEach(pt => {
+        if (pt && pt.length >= 2) {
+            lngSum += pt[0];
+            latSum += pt[1];
+            count++;
+        }
+    });
+    if (count > 0) return L.latLng(latSum / count, lngSum / count);
+    return null;
+}
+
+function obtenerCentroideFeature(feature) {
+    if (!feature || !feature.geometry) return null;
+    let type = feature.geometry.type;
+    let coords = feature.geometry.coordinates;
+    if (type === "Polygon") {
+        return obtenerCentroidePolygon(coords[0]);
+    } else if (type === "MultiPolygon") {
+        let latSum = 0, lngSum = 0, count = 0;
+        coords.forEach(poly => {
+            if (poly && poly[0]) {
+                poly[0].forEach(pt => {
+                    lngSum += pt[0];
+                    latSum += pt[1];
+                    count++;
+                });
+            }
+        });
+        if (count > 0) return L.latLng(latSum / count, lngSum / count);
+    }
+    return null;
+}
+
+/*
+  Función quirúrgica clave: Calcula un punto interior visible para posicionar la etiqueta.
+  Si el centroide global está fuera de la pantalla, busca la intersección de los límites del polígono
+  con los límites visibles del mapa, asegurándose de posicionar la etiqueta dentro del polígono en todo momento.
+*/
+function obtenerPuntoInteriorVisible(feature, mapBounds) {
+    if (!feature || !feature.geometry) return null;
+    
+    // Si el centroide global es visible y está dentro del distrito, lo priorizamos
+    let globalCenter = obtenerCentroideFeature(feature);
+    if (globalCenter && mapBounds.contains(globalCenter)) {
+        if (isPointInFeature([globalCenter.lng, globalCenter.lat], feature)) {
+            return globalCenter;
+        }
+    }
+    
+    // Obtener los límites del distrito (con cache)
+    if (!feature._bounds) {
+        try {
+            feature._bounds = L.geoJSON(feature).getBounds();
+        } catch(e) {
+            feature._bounds = null;
+        }
+    }
+    
+    let fBounds = feature._bounds;
+    if (!fBounds || !mapBounds.intersects(fBounds)) return null;
+    
+    // Calcular el rectángulo de la intersección visible
+    let south = Math.max(mapBounds.getSouth(), fBounds.getSouth());
+    let north = Math.min(mapBounds.getNorth(), fBounds.getNorth());
+    let west = Math.max(mapBounds.getWest(), fBounds.getWest());
+    let east = Math.min(mapBounds.getEast(), fBounds.getEast());
+    
+    let intersectBounds = L.latLngBounds([south, west], [north, east]);
+    let intersectCenter = intersectBounds.getCenter();
+    
+    // 1. Probar centro de la intersección visible
+    if (isPointInFeature([intersectCenter.lng, intersectCenter.lat], feature)) {
+        return intersectCenter;
+    }
+    
+    // 2. Probar centroide de los vértices que se encuentran actualmente visibles
+    let coords = feature.geometry.coordinates;
+    let pts = [];
+    if (feature.geometry.type === "Polygon") {
+        pts = coords[0];
+    } else if (feature.geometry.type === "MultiPolygon") {
+        coords.forEach(poly => {
+            if (poly && poly[0]) pts.push(...poly[0]);
+        });
+    }
+    
+    let latSum = 0, lngSum = 0, count = 0;
+    pts.forEach(pt => {
+        let latlng = L.latLng(pt[1], pt[0]);
+        if (mapBounds.contains(latlng)) {
+            latSum += pt[1];
+            lngSum += pt[0];
+            count++;
+        }
+    });
+    
+    if (count > 0) {
+        let avgPt = L.latLng(latSum / count, lngSum / count);
+        if (isPointInFeature([avgPt.lng, avgPt.lat], feature)) {
+            return avgPt;
+        }
+    }
+    
+    // 3. Probar cuadrícula regular (3x3) dentro del área visible de intersección para encontrar un punto interior
+    let latStep = (north - south) / 4;
+    let lngStep = (east - west) / 4;
+    for (let i = 1; i <= 3; i++) {
+        for (let j = 1; j <= 3; j++) {
+            let testLat = south + i * latStep;
+            let testLng = west + j * lngStep;
+            if (isPointInFeature([testLng, testLat], feature)) {
+                return L.latLng(testLat, testLng);
+            }
+        }
+    }
+    
+    // Fallback: Retorna el promedio de los vértices visibles en pantalla
+    if (count > 0) {
+        return L.latLng(latSum / count, lngSum / count);
+    }
+    
+    return intersectCenter;
+}
+
+// Función que redibuja las etiquetas de los distritos dinámicamente en pantalla
+function actualizarEtiquetasDistritosDinamicas() {
+    grupoEtiquetasDistritos.clearLayers();
+    const chkDistritos = document.getElementById('chk-distritos') ? document.getElementById('chk-distritos').checked : true;
+    if (!chkDistritos) return;
+
+    let mapBounds = map.getBounds();
+    distritosFeaturesGlobal.forEach((f, idx) => {
+        let cod = f.properties.distrito || f.properties.codigo || f.properties.cod || f.properties.zona || f.properties.cod_zona || f.properties.nom_dis || f.properties.nombre || "";
+        if (cod) {
+            let center = obtenerPuntoInteriorVisible(f, mapBounds);
+            if (center) {
+                L.marker(center, {
+                    pane: 'atlasLabelsPane', // Lo posiciona por encima de las parcelas para máxima legibilidad
+                    icon: L.divIcon({
+                        className: 'etiqueta-distrito',
+                        html: `<div>${decodificarTexto(String(cod)).toUpperCase()}</div>`,
+                        iconSize: [48, 18],
+                        iconAnchor: [24, 9]
+                    }),
+                    interactive: false
+                }).addTo(grupoEtiquetasDistritos);
+            }
+        }
+    });
+}
 
 fetchGeoJSON("https://raw.githubusercontent.com/dcartografiayde/IDE-PARANA/main/usos_permitidos/distritos.geojson.json").then(data => {
     distritosFeaturesGlobal = data.features || [];
+    
+    // Calcular límites para optimizar intersecciones rápidas de etiquetas
+    distritosFeaturesGlobal.forEach(f => {
+        try {
+            f._bounds = L.geoJSON(f).getBounds();
+        } catch(e) {
+            f._bounds = null;
+        }
+    });
     
     // Generar listado estructurado para dropdowns del popup catastral
     listaDistritosUnicos = distritosFeaturesGlobal.map((f, idx) => {
@@ -1272,23 +1454,20 @@ fetchGeoJSON("https://raw.githubusercontent.com/dcartografiayde/IDE-PARANA/main/
         };
     }).sort((a, b) => a.codigo.localeCompare(b.codigo));
 
+    // Deshabilitamos consultas directas en la capa (interactive: false) para que sea completamente transparente
     L.geoJSON(data, {
+        interactive: false, 
         style: {
             color: "#a855f7",
             weight: 1.5,
             fillColor: "#a855f7",
             fillOpacity: 0.05,
             dashArray: "3, 3"
-        },
-        onEachFeature: (f, l) => {
-            l.on('click', (e) => {
-                if (modoMedicion || modoSeleccionManzana) return;
-                let latlng = e.latlng || l.getBounds().getCenter();
-                mostrarPopupDistrito(f, latlng);
-            });
         }
     }).addTo(grupoDistritos);
-    
+
+    // Renderizamos las etiquetas de forma dinámica
+    actualizarEtiquetasDistritosDinamicas();
     controlarVisibilidadDinamica();
 }).catch(err => console.error("Error al cargar la capa de distritos:", err));
 
@@ -1422,57 +1601,6 @@ function cambiarDistritoSeleccionadoPopup(newIdx, lat, lng) {
     let container = document.getElementById('distrito-info-container');
     if (container) {
         container.innerHTML = renderizarSeccionDistrito(idx, L.latLng(lat, lng));
-    }
-}
-
-function mostrarPopupDistrito(f, latlng) {
-    let cod = f.properties.distrito || f.properties.codigo || f.properties.cod || f.properties.zona || f.properties.cod_zona || f.properties.nom_dis || f.properties.nombre || "Distrito";
-    let content = `<div class="popup-custom"><div class="popup-header" style="border-bottom: 2px solid #a855f7; color: #a855f7;">DISTRITO URBANO: ${decodificarTexto(String(cod))}</div>`;
-    content += `<table class="table-info">`;
-    for (let [k, v] of Object.entries(f.properties)) {
-        if (v && v !== "0") {
-            content += `<tr><td>${decodificarTexto(k).toUpperCase()}</td><td>${decodificarTexto(String(v))}</td></tr>`;
-        }
-    }
-    content += `</table>`;
-    
-    // Botón para consultar la parcela ubicada debajo del punto del distrito
-    content += `
-        <button onclick="consultarParcelaEnCoordenadas(${latlng.lat}, ${latlng.lng})" class="w-full mt-2 bg-blue-600 hover:bg-blue-500 text-white font-bold py-1.5 px-2 rounded text-[9px] tracking-wider uppercase transition flex items-center justify-center gap-1 shadow-md">
-            <span>🔍 Consultar Parcela Debajo</span>
-        </button>
-    `;
-    
-    content += `</div>`;
-    L.popup({ autoPanPadding: L.point(10, 110) })
-        .setLatLng(latlng)
-        .setContent(content)
-        .openOn(map);
-}
-
-function consultarParcelaEnCoordenadas(lat, lng) {
-    let latlng = L.latLng(lat, lng);
-    let point = [lng, lat];
-    let encontrada = null;
-
-    // Buscar en parcelasFeaturesGlobal
-    for (let i = 0; i < parcelasFeaturesGlobal.length; i++) {
-        let f = parcelasFeaturesGlobal[i];
-        if (isPointInFeature(point, f)) {
-            encontrada = f;
-            break;
-        }
-    }
-
-    if (encontrada) {
-        map.closePopup();
-        mostrarPopupDeParcela(encontrada, latlng);
-    } else {
-        // En lugar de alert() que está estrictamente prohibido, abrimos un popup de aviso en la ubicación
-        L.popup()
-            .setLatLng(latlng)
-            .setContent(`<div class="p-2.5 text-[10px] font-bold text-slate-800">⚠️ No se encontró ninguna parcela catastral cargada en esta posición exacta. Asegure que el zoom sea de nivel 16 o superior para habilitar el parcelario completo.</div>`)
-            .openOn(map);
     }
 }
 
@@ -1640,8 +1768,11 @@ function controlarVisibilidadDinamica() {
     const chkDistritos = document.getElementById('chk-distritos') ? document.getElementById('chk-distritos').checked : true;
     if (chkDistritos) {
         if (!map.hasLayer(grupoDistritos)) map.addLayer(grupoDistritos);
+        if (!map.hasLayer(grupoEtiquetasDistritos)) map.addLayer(grupoEtiquetasDistritos); // Mantener capa agregada
+        actualizarEtiquetasDistritosDinamicas(); // Recalcular posiciones dinámicamente según viewport
     } else {
         if (map.hasLayer(grupoDistritos)) map.removeLayer(grupoDistritos);
+        if (map.hasLayer(grupoEtiquetasDistritos)) map.removeLayer(grupoEtiquetasDistritos);
     }
 
     const chkSecciones = document.getElementById('chk-secciones').checked;
@@ -1704,7 +1835,11 @@ function controlarVisibilidadDinamica() {
     }
 }
 
-map.on('zoomend moveend', controlarVisibilidadDinamica);
+// Eventos de movimiento y zoom vinculados al recálculo dinámico de etiquetas
+map.on('zoomend moveend', () => {
+    controlarVisibilidadDinamica();
+    actualizarEtiquetasDistritosDinamicas();
+});
 
 function toggleSidebar() {
     const sidebar = document.getElementById('sidebar');
@@ -2447,6 +2582,60 @@ function imprimirMapa() {
     }, 1200);
 }
 
+// Transcribe todos los parámetros de zonificación de la capa en una tabla estructurada
+function obtenerTablaUsosTrancritos(properties) {
+    if (!properties) return "";
+    
+    // Filtramos claves que no corresponden a regulaciones o usos específicos
+    let excludedKeys = [
+        'fid', 'id', 'objectid', 'shape', 'geom', 'geometry', 'distrito', 'codigo', 
+        'cod', 'descrip', 'tipo', 'sup', 'color', 'capa', 'layer', 'path', 
+        'usos', 'usos_perm', 'uso', 'caracter', 'descripcion', 'descripcio'
+    ];
+    
+    let html = `
+        <div class="overflow-x-auto mt-3">
+            <table class="w-full text-[11px] text-left border-collapse bg-slate-900/30 rounded-lg overflow-hidden border border-slate-800">
+                <thead>
+                    <tr class="bg-slate-950/80 border-b border-slate-800 text-amber-400">
+                        <th class="px-3 py-2 font-black uppercase tracking-wider">Normativa / Rubro / Usos Permitidos</th>
+                        <th class="px-3 py-2 font-black uppercase tracking-wider">Permisibilidad / Parámetro</th>
+                    </tr>
+                </thead>
+                <tbody>
+    `;
+    
+    let count = 0;
+    for (let [k, v] of Object.entries(properties)) {
+        let kLower = k.toLowerCase().trim();
+        if (v && v !== "0" && String(v).trim() !== "" && !excludedKeys.some(ex => kLower === ex || kLower.includes(ex))) {
+            html += `
+                <tr class="border-b border-slate-850/60 hover:bg-slate-900/40">
+                    <td class="px-3 py-1.5 font-bold text-slate-300 uppercase">${decodificarTexto(k)}</td>
+                    <td class="px-3 py-1.5 text-slate-100 font-medium">${decodificarTexto(String(v))}</td>
+                </tr>
+            `;
+            count++;
+        }
+    }
+    
+    html += `
+                </tbody>
+            </table>
+        </div>
+    `;
+    
+    if (count === 0) {
+        return `
+            <div class="text-[11px] text-slate-400 italic bg-slate-900/20 p-3 rounded border border-slate-850 mt-2">
+                No se registraron parámetros específicos estructurados en las propiedades vectoriales de este distrito.
+            </div>
+        `;
+    }
+    
+    return html;
+}
+
 function abrirReporteZonificacion(distIndex) {
     if (distIndex === -1) {
         L.popup()
@@ -2576,16 +2765,22 @@ function abrirReporteZonificacion(distIndex) {
                 <div class="bg-slate-950/40 p-4 rounded-xl border border-slate-800">
                     
                     <!-- Mensaje de advertencia de verificación obligatoria solicitado -->
-                    <div class="bg-amber-950/40 border-l-4 border-amber-500 p-3 rounded-r-xl text-amber-200 text-[10.5px] mb-3 flex items-start gap-2.5">
+                    <div class="bg-amber-950/45 border-l-4 border-amber-500 p-3.5 rounded-r-xl text-amber-200 text-[10.5px] mb-4 flex items-start gap-2.5">
                         <span class="text-sm mt-0.5">⚠️</span>
                         <div class="leading-relaxed">
-                            <strong class="block uppercase tracking-wider text-[9px] text-amber-400 font-extrabold mb-0.5">Advertencia de Verificación Obligatoria</strong>
-                            Se advierte explícitamente al usuario que es requisito indispensable verificar formalmente la vigencia de estos datos, así como la aplicabilidad técnica concreta de todos los parámetros del distrito, con el área municipal correspondiente responsable de habilitaciones y planeamiento urbano antes de iniciar cualquier trámite, transacción comercial o inversión.
+                            <strong class="block uppercase tracking-wider text-[9px] text-amber-400 font-extrabold mb-1">Advertencia de Verificación Obligatoria</strong>
+                            Se advierte formal y explícitamente al usuario que es requisito indispensable verificar de forma directa la vigencia de estos datos, así como la aplicabilidad técnica concreta de todos los parámetros de zonificación y usos de este distrito, con el área municipal correspondiente responsable del planeamiento urbano y habilitaciones antes de iniciar cualquier trámite administrativo, transacción comercial, inversión o proyecto de obra.
                         </div>
                     </div>
 
-                    <!-- Transcripción de la capa de distritos -->
-                    <p class="text-xs text-slate-200 leading-relaxed font-medium bg-slate-900/50 p-3 rounded border border-slate-800/40 whitespace-pre-line">${decodificarTexto(String(usosText))}</p>
+                    <!-- Transcripción estructurada de la capa de distritos -->
+                    <div class="space-y-3">
+                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Transcripción de Parámetros Directos de la Capa Geográfica</span>
+                        ${obtenerTablaUsosTrancritos(distObj.properties)}
+                        
+                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mt-4">Detalle General de Usos</span>
+                        <p class="text-xs text-slate-200 leading-relaxed font-medium bg-slate-900/50 p-3 rounded border border-slate-800/40 whitespace-pre-line">${decodificarTexto(String(usosText))}</p>
+                    </div>
                 </div>
             </div>
             
@@ -2624,7 +2819,7 @@ function imprimirReporte() {
                     .text-slate-400 { color: #475569 !important; }
                     .text-amber-400 { color: #b45309 !important; }
                     .text-blue-400 { color: #1d4ed8 !important; }
-                    .bg-amber-950\\/40 { background-color: #fffbeb !important; border-left: 4px solid #d97706 !important; color: #78350f !important; }
+                    .bg-amber-950\\/45 { background-color: #fffbeb !important; border-left: 4px solid #d97706 !important; color: #78350f !important; }
                     .bg-indigo-600 { background-color: #1d4ed8 !important; color: #ffffff !important; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
                 }
             </style>
