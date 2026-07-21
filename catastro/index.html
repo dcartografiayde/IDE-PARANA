@@ -229,7 +229,7 @@
                 padding: 0 !important;
             }
             
-            #sidebar, .fixed, .adv-distrito, .leaflet-control-zoom, .leaflet-control-attribution, #toggle-icon, button, #consola-medicion {
+            #sidebar, .fixed, .adv-distrito, .leaflet-control-zoom, .leaflet-control-attribution, #toggle-icon, button, #consola-medicion, #modal-guia {
                 display: none !important;
             }
             .print-hidden {
@@ -342,6 +342,14 @@
     <div class="p-5 border-b border-slate-800 bg-slate-950/40">
         <h1 class="text-xs font-black text-blue-400 tracking-wider uppercase text-center">Visor Urbano Catastral</h1>
         <p class="text-[10px] text-slate-400 text-center font-bold mt-1">DIRECCIÓN DE CARTOGRAFÍA Y DATOS ESPACIALES</p>
+        
+        <!-- Botón de Acceso Directo a la Guía de Funcionamiento -->
+        <button onclick="abrirGuia()" class="w-full bg-blue-600/20 hover:bg-blue-600/40 text-blue-300 hover:text-white font-bold text-[11px] py-1.5 px-3 rounded-md transition border border-blue-500/30 flex items-center justify-center gap-2 mt-3 shadow">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            </svg>
+            <span>📖 Guía de Funcionamiento</span>
+        </button>
     </div>
 
     <div class="flex-1 overflow-y-auto p-5 space-y-6 scrollbar-custom">
@@ -560,8 +568,11 @@
             <h2 class="text-xs font-extrabold uppercase tracking-widest text-slate-400 border-b border-slate-800 pb-1.5">Información útil</h2>
             <div class="text-[11px] text-slate-400 space-y-1.5 leading-relaxed bg-slate-950/20 p-3 rounded-lg border border-slate-850">
                 <p>📏 Use el panel flotante derecho para realizar mediciones de distancia y área.</p>
-                <p>⚡ Las parcelas catastrales se cargan dinámicamente según la extensión del visor a partir del zoom 18 para optimizar el rendimiento.</p>
+                <p>⚡ Las parcelas catastrales se cargan dinámicamente según la extensión del visor a partir del zoom 16 para optimizar el rendimiento.</p>
                 <p>⚠️ Las posesiones se dibujan con bordes gruesos e interactúan directamente con las parcelas al realizar consultas.</p>
+                <button onclick="abrirGuia()" class="w-full text-left text-blue-400 hover:text-blue-300 font-bold underline mt-2 flex items-center gap-1 cursor-pointer">
+                    <span>📖 Consultar Guía Completa de Uso →</span>
+                </button>
             </div>
         </div>
 
@@ -609,7 +620,7 @@
     </div>
 </div>
 
-<!-- Panel Flotante de Herramientas de Medición -->
+<!-- Panel Flotante de Herramientas de Medición y Guía -->
 <div class="fixed right-4 top-4 flex flex-col gap-2 z-[1000] bg-slate-900/95 border border-slate-800 p-2 rounded-xl shadow-2xl transition-all duration-300">
     <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest text-center mb-1 border-b border-slate-800/60 pb-1.5">Herramientas</div>
     
@@ -632,6 +643,16 @@
             <span>Superficie</span>
         </span>
     </button>
+
+    <!-- Botón Flotante para Guía de Funcionamiento -->
+    <button id="btn-guia-flotante" onclick="abrirGuia()" class="flex items-center justify-between gap-3 px-3 py-2 rounded-lg bg-blue-900/40 hover:bg-blue-800/60 text-blue-300 text-xs font-semibold transition border border-blue-500/30 hover:border-blue-400 focus:outline-none w-36 shadow-md" title="Guía de Funcionamiento">
+        <span class="flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            </svg>
+            <span>📖 Guía de Uso</span>
+        </span>
+    </button>
     
     <!-- Consola Dinámica de Resultados de Medición -->
     <div id="consola-medicion" class="hidden flex flex-col bg-slate-950 p-2.5 rounded-lg border border-slate-800 text-slate-300 mt-1 max-w-[144px]">
@@ -641,6 +662,160 @@
             <button onclick="finalizarMedicion()" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-[8px] py-1 rounded transition uppercase">Listo</button>
             <button onclick="limpiarMedicion()" class="flex-1 bg-rose-600 hover:bg-rose-500 text-white font-extrabold text-[8px] py-1 rounded transition uppercase">Limpiar</button>
         </div>
+    </div>
+</div>
+
+<!-- MODAL INTERACTIVO - GUÍA DE FUNCIONAMIENTO -->
+<div id="modal-guia" class="fixed inset-0 z-[3000] hidden flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4 print:hidden transition-opacity duration-300">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-3xl max-h-[85vh] flex flex-col text-slate-100 overflow-hidden">
+        
+        <!-- Header del Modal -->
+        <div class="px-6 py-4 border-b border-slate-800 bg-slate-950 flex justify-between items-center">
+            <div>
+                <h2 class="text-sm font-black text-blue-400 uppercase tracking-wider flex items-center gap-2">
+                    <span>📖 Guía de Funcionamiento — Visor Urbano Catastral</span>
+                </h2>
+                <p class="text-[10px] text-slate-400 font-semibold mt-0.5">Municipalidad de Paraná — Dirección de Cartografía y Datos Espaciales</p>
+            </div>
+            <button onclick="cerrarGuia()" class="text-slate-400 hover:text-white p-1.5 rounded-lg bg-slate-800/60 hover:bg-slate-700 transition" title="Cerrar Guía">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+
+        <!-- Contenido de la Guía (Scrollable) -->
+        <div class="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-custom text-xs leading-relaxed text-slate-300">
+            
+            <!-- Sección 1 -->
+            <div class="bg-slate-950/50 p-4 rounded-xl border border-slate-800/80 space-y-2">
+                <h3 class="text-xs font-bold text-blue-400 uppercase tracking-wide flex items-center gap-2">
+                    <span class="bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded text-[10px]">1</span>
+                    <span>Menú Principal y Navegación</span>
+                </h3>
+                <ul class="list-disc list-inside space-y-1 text-[11px] text-slate-300 pl-1">
+                    <li><strong class="text-white">Panel Lateral Colapsable:</strong> Ubicado a la izquierda. Se despliega u oculta con el botón flotante (<code class="bg-slate-800 px-1 rounded text-blue-300">◄</code> / <code class="bg-slate-800 px-1 rounded text-blue-300">►</code>).</li>
+                    <li><strong class="text-white">Visualización del Mapa:</strong> Permite desplazamiento por arrastre, zoom mediante rueda de ratón, gestos táctiles o botones de control.</li>
+                    <li><strong class="text-white">Indicador de Zoom:</strong> Muestra en tiempo real el nivel de zoom dinámico en el cuadro flotante inferior derecho.</li>
+                </ul>
+            </div>
+
+            <!-- Sección 2 -->
+            <div class="bg-slate-950/50 p-4 rounded-xl border border-slate-800/80 space-y-2">
+                <h3 class="text-xs font-bold text-amber-400 uppercase tracking-wide flex items-center gap-2">
+                    <span class="bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded text-[10px]">2</span>
+                    <span>Herramientas de Búsqueda</span>
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                    <div class="p-2.5 bg-slate-900/80 rounded-lg border border-slate-800">
+                        <p class="font-bold text-white text-[11px] mb-1">🔍 Por Partida (PM / NROPASD)</p>
+                        <p class="text-[10px] text-slate-400">Ingrese el número de partida y presione <em>Buscar</em>. El visor centrará el mapa automáticamente en la parcela y abrirá su ficha técnica.</p>
+                    </div>
+                    <div class="p-2.5 bg-slate-900/80 rounded-lg border border-slate-800">
+                        <p class="font-bold text-white text-[11px] mb-1">📍 Por Dirección Predictiva</p>
+                        <p class="text-[10px] text-slate-400">Escriba el nombre de la calle y altura (mínimo 3 caracteres) para desplegar sugerencias de direcciones coincidentes en tiempo real.</p>
+                    </div>
+                    <div class="p-2.5 bg-slate-900/80 rounded-lg border border-slate-800">
+                        <p class="font-bold text-white text-[11px] mb-1">🌐 Por Lugares de Interés</p>
+                        <p class="text-[10px] text-slate-400">Buscador global de geolocalización (ej. <em>"Plaza de Mayo"</em>) mediante integración directa con Nominatim / Google.</p>
+                    </div>
+                    <div class="p-2.5 bg-slate-900/80 rounded-lg border border-slate-800">
+                        <p class="font-bold text-white text-[11px] mb-1">🧱 Manzana Rápida desde Parcela</p>
+                        <p class="text-[10px] text-slate-400">Al hacer clic sobre cualquier parcela, se habilita el botón <em>📍 Seleccionar Manzana de esta Parcela</em> para ubicar toda la manzana contenedora.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sección 3 -->
+            <div class="bg-slate-950/50 p-4 rounded-xl border border-slate-800/80 space-y-2">
+                <h3 class="text-xs font-bold text-emerald-400 uppercase tracking-wide flex items-center gap-2">
+                    <span class="bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded text-[10px]">3</span>
+                    <span>Control de Capas y Mapas Base</span>
+                </h3>
+                <div class="space-y-2 text-[11px]">
+                    <p><strong class="text-white">Mapas Base:</strong></p>
+                    <ul class="list-disc list-inside text-[10px] text-slate-300 space-y-0.5 pl-2">
+                        <li><strong>Mapa Oscuro:</strong> Alto contraste optimizado para lectura nocturna o resaltado vectorial.</li>
+                        <li><strong>Híbrido (Satelital):</strong> Fotografía satelital ArcGIS World Imagery con red vial superpuesta.</li>
+                        <li><strong>OpenStreetMap (OSM):</strong> Cartografía vial urbana convencional.</li>
+                        <li><strong>Sin Mapa Base (Fondo Blanco):</strong> Oculta imágenes satelitales dejando lienzo limpio para exportación e impresión cartográfica.</li>
+                    </ul>
+                    <p><strong class="text-white">Capas Vectoriales Interactivas:</strong></p>
+                    <ul class="list-disc list-inside text-[10px] text-slate-300 space-y-0.5 pl-2">
+                        <li><strong>Posesiones (1 y 2):</strong> Trazados destacados en bordes rojos/rosados para terrenos con ocupación o registro activo.</li>
+                        <li><strong>Parcelas Catastrales:</strong> Visibles a partir de zoom 16. Distingue parcelas de dominio individual (azul) y Propiedad Horizontal - PH (púrpura).</li>
+                        <li><strong>Manzanas:</strong> Delimitación física con etiqueta numérica central (desde zoom 15).</li>
+                        <li><strong>Grupos y Secciones:</strong> Jurisdicciones catastrales principales (límites naranja y verde).</li>
+                        <li><strong>Nombres de Calles:</strong> Etiquetas dinámicas en amarillo que siguen la curvatura de las vías (desde zoom 15).</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Sección 4 -->
+            <div class="bg-slate-950/50 p-4 rounded-xl border border-slate-800/80 space-y-2">
+                <h3 class="text-xs font-bold text-indigo-400 uppercase tracking-wide flex items-center gap-2">
+                    <span class="bg-indigo-500/20 text-indigo-400 px-2 py-0.5 rounded text-[10px]">4</span>
+                    <span>Módulo de Etiquetado de Manzanas</span>
+                </h3>
+                <p class="text-[11px] text-slate-300">Permite rotar y rotular automáticamente todas las parcelas contenidas en una manzana seleccionada:</p>
+                <ol class="list-decimal list-inside text-[10px] text-slate-300 space-y-1 pl-1">
+                    <li><strong class="text-white">Selección:</strong> Ingrese el número de manzana o utilice el botón <em>📍 Seleccionar Gráficamente</em> para hacer clic directo sobre el mapa.</li>
+                    <li><strong class="text-white">Generar Etiquetas:</strong> Presione <em>🏷️ Etiquetar Partidas</em>. El visor calculará la orientación geométrica de cada lote y colocará el número de partida catastral alineado al lote.</li>
+                    <li><strong class="text-white">Impresión:</strong> El botón <em>🖨️ Configurar Impresión Plano</em> enfoca la manzana y habilita el encuadres de plano.</li>
+                </ol>
+            </div>
+
+            <!-- Sección 5 -->
+            <div class="bg-slate-950/50 p-4 rounded-xl border border-slate-800/80 space-y-2">
+                <h3 class="text-xs font-bold text-sky-400 uppercase tracking-wide flex items-center gap-2">
+                    <span class="bg-sky-500/20 text-sky-400 px-2 py-0.5 rounded text-[10px]">5</span>
+                    <span>Herramientas de Medición</span>
+                </h3>
+                <p class="text-[11px] text-slate-300">Ubicadas en la consola flotante de la esquina superior derecha:</p>
+                <ul class="list-disc list-inside text-[10px] text-slate-300 space-y-1 pl-1">
+                    <li><strong class="text-white">Medición de Distancia:</strong> Marque puntos en el mapa para trazar trayectorias continuas. Calcula la longitud acumulada en metros ($m$) o kilómetros ($km$).</li>
+                    <li><strong class="text-white">Medición de Superficie:</strong> Marque 3 o más puntos para delimitar un polígono. Calcula el área plana geodésica en metros cuadrados ($m^2$) o hectáreas ($ha$).</li>
+                    <li><strong class="text-white">Teclas rápidas:</strong> Presione <code class="bg-slate-800 px-1 rounded text-sky-300">ESC</code> para cancelar o finalizar cualquier medición activa.</li>
+                </ul>
+            </div>
+
+            <!-- Sección 6 -->
+            <div class="bg-slate-950/50 p-4 rounded-xl border border-slate-800/80 space-y-2">
+                <h3 class="text-xs font-bold text-purple-400 uppercase tracking-wide flex items-center gap-2">
+                    <span class="bg-purple-500/20 text-purple-400 px-2 py-0.5 rounded text-[10px]">6</span>
+                    <span>Módulo de Impresión Catastral y Exportación PDF</span>
+                </h3>
+                <ul class="list-disc list-inside text-[10px] text-slate-300 space-y-1 pl-1">
+                    <li><strong class="text-white">Configuración:</strong> Seleccione tamaño de hoja (A4, A3, Carta), orientación (Retrato/Apaisado) y escala normalizada ($1:500$, $1:1000$, $1:2000$, $1:5000$).</li>
+                    <li><strong class="text-white">Previsualización:</strong> Active <em>Ver Área de Impresión</em> para visualizar en pantalla el recuadro punteado que representa la cobertura exacta del papel.</li>
+                    <li><strong class="text-white">Atenuación de Satélite:</strong> La opción <em>Atenuar satélite al imprimir</em> ajusta automáticamente el fondo satelital al $50\%$ de opacidad en escala de grises para maximizar la legibilidad de las líneas vectoriales.</li>
+                    <li><strong class="text-white">Generación del PDF:</strong> Al presionar <em>🖨️ Imprimir / Exportar PDF</em>, el sistema aplica un cálculo de zoom geodésico exacto ($96\text{ DPI}$), adjunta la carátula y simbología oficial de Paraná y dispara la impresión.</li>
+                </ul>
+            </div>
+
+            <!-- Sección 7 -->
+            <div class="bg-slate-950/50 p-4 rounded-xl border border-slate-800/80 space-y-2">
+                <h3 class="text-xs font-bold text-rose-400 uppercase tracking-wide flex items-center gap-2">
+                    <span class="bg-rose-500/20 text-rose-400 px-2 py-0.5 rounded text-[10px]">7</span>
+                    <span>Consultas Interactivas y Street View</span>
+                </h3>
+                <ul class="list-disc list-inside text-[10px] text-slate-300 space-y-1 pl-1">
+                    <li><strong class="text-white">Ficha Informativa:</strong> Haga clic sobre cualquier parcela para consultar sus atributos registrados en la base de datos de la IDE.</li>
+                    <li><strong class="text-white">Alerta de Posesión:</strong> Si la parcela registra un reclamo u ocupación activa, se desplegará una alerta destacada en rojo en el encabezado de la ficha.</li>
+                    <li><strong class="text-white">Google Street View:</strong> Las fichas incorporan el botón <em>📍 STREET VIEW</em> para abrir una panorámica en 360° a nivel de calle en el punto seleccionado.</li>
+                </ul>
+            </div>
+
+        </div>
+
+        <!-- Footer del Modal -->
+        <div class="px-6 py-3 border-t border-slate-800 bg-slate-950 flex justify-between items-center">
+            <span class="text-[9px] text-slate-500 font-bold uppercase">IDE Paraná — Visor Catastral v2.0</span>
+            <button onclick="cerrarGuia()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs py-1.5 px-5 rounded-lg transition shadow">
+                Entendido
+            </button>
+        </div>
+
     </div>
 </div>
 
@@ -656,6 +831,21 @@ const DIMENSIONES_FISICAS = {
 
 // Variable global para almacenar la última parcela seleccionada o buscada
 var ultimaParcelaSeleccionada = null;
+
+// Funciones para Apertura y Cierre del Modal de la Guía
+function abrirGuia() {
+    const modal = document.getElementById('modal-guia');
+    if (modal) {
+        modal.classList.remove('hidden');
+    }
+}
+
+function cerrarGuia() {
+    const modal = document.getElementById('modal-guia');
+    if (modal) {
+        modal.classList.add('hidden');
+    }
+}
 
 function decodificarTexto(str) {
     if (!str || typeof str !== 'string') return str;
@@ -810,7 +1000,7 @@ function activarEtiquetasCalles() {
                         ly.setText(null);
                     } catch (e) {}
 
-                    if (activeOnMap && z >= 16 && ly._map && ly._renderer && ly.feature && ly.feature.properties.nombre) {
+                    if (activeOnMap && z >= 15 && ly._map && ly._renderer && ly.feature && ly.feature.properties.nombre) {
                         try {
                             if (map.getBounds().intersects(ly.getBounds())) {
                                 let nombreCalle = decodificarTexto(ly.feature.properties.nombre).toUpperCase();
@@ -1711,6 +1901,7 @@ document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
         if (modoMedicion) desactivarMedicion();
         if (modoSeleccionManzana) desactivarSeleccionGraficaManzana();
+        cerrarGuia();
     }
 });
 
