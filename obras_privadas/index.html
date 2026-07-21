@@ -9,14 +9,13 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/leaflet-textpath@1.2.3/leaflet.textpath.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- MODIFICACIÓN: Agregar FontAwesome para iconos modernos del menú lateral -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
 
     <style>
         body { margin:0; padding:0; font-family: 'Inter', sans-serif; background: #0f172a; overflow: hidden; }
         #map { height: 100vh; width: 100%; z-index: 1; }
 
-        /* MODIFICACIÓN: Nuevos estilos mejorados para la barra lateral interactiva */
+        /* Estilos de la barra lateral interactiva */
         .sidebar {
             position: absolute; top: 0; left: 0; height: 100vh; width: 360px;
             z-index: 999; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(8px);
@@ -41,7 +40,6 @@
         .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 3px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.4); }
 
-        /* MODIFICACIÓN: Sugerencias predictivas de direcciones */
         #sugerencias-direccion {
             position: absolute; left: 0; right: 0; background: #1e293b; 
             border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 6px; 
@@ -49,7 +47,6 @@
             display: none; margin-top: 2px; box-shadow: 0 8px 16px rgba(0,0,0,0.4);
         }
         
-        /* MODIFICACIÓN: Añadir estilos de contenedor para sugerencias de expediente */
         #sugerencias-expediente {
             position: absolute; left: 0; right: 0; background: #1e293b; 
             border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 6px; 
@@ -88,18 +85,20 @@
             border: 1px solid #333; 
             vertical-align: middle; 
             border-radius: 3px; 
+            flex-shrink: 0;
         }
 
         .etiqueta-distrito {
             background: rgba(255,255,255,0.9)!important; border: 1px solid #333!important;
             padding: 1px 4px!important; font-size: 10px!important; font-weight: bold!important; pointer-events: none;
         }
+
+        details summary::-webkit-details-marker { display:none; }
     </style>
 </head>
 
 <body>
 
-<!-- MODIFICACIÓN: Estructura de barra lateral premium que unifica todo de manera intuitiva -->
 <div class="sidebar-toggle" id="btn-toggle-sidebar" onclick="toggleSidebar()">
     <i class="fa-solid fa-chevron-left text-sm" id="toggle-icon"></i>
 </div>
@@ -136,7 +135,7 @@
                 </div>
             </div>
 
-            <!-- MODIFICACIÓN: Búsqueda Predictiva por Expediente (Multi-capa de obras) -->
+            <!-- Búsqueda Predictiva por Expediente (Multi-capa de obras) -->
             <div class="bg-slate-900/50 p-2.5 rounded-lg border border-slate-800 space-y-1.5 relative">
                 <label class="text-[9px] font-bold text-slate-300 uppercase block">Expediente de Obra</label>
                 <div class="flex gap-1.5">
@@ -193,7 +192,6 @@
                 <label class="text-[9px] font-bold text-slate-300 uppercase block border-b border-slate-800 pb-1">Capas Catastrales</label>
                 
                 <label class="flex items-center gap-2 cursor-pointer text-xs text-slate-300">
-                    <!-- MODIFICACIÓN: Atributos checked inicializados según el nivel de zoom inicial (13 -> distritos encendido, parcelas/calles apagados) -->
                     <input type="checkbox" id="chk-capa-distritos" checked class="rounded border-slate-800 bg-slate-950 text-blue-600 focus:ring-blue-500" onchange="toggleCapaPersonalizada('distritos', this.checked)">
                     <span class="layer-legend-icon" style="background:rgba(255,255,255,0.1); border:1px dashed white;"></span>
                     <span>Distritos (Trazos Ord. 8563)</span>
@@ -212,45 +210,100 @@
                 </label>
             </div>
 
-            <!-- Capas de Obras Privadas -->
-            <div class="bg-slate-900/50 p-2.5 rounded-lg border border-slate-800 space-y-2">
+            <!-- Capas de Obras Privadas por Subcarpetas -->
+            <div class="bg-slate-900/50 p-2.5 rounded-lg border border-slate-800 space-y-2.5">
                 <label class="text-[9px] font-bold text-slate-300 uppercase block border-b border-slate-800 pb-1">Obras Registradas</label>
                 
-                <label class="flex items-center gap-2 cursor-pointer text-xs text-slate-300">
-                    <input type="checkbox" id="chk-capa-historico" class="rounded border-slate-800 bg-slate-950 text-blue-600 focus:ring-blue-500" onchange="toggleCapaPersonalizada('historico', this.checked)">
-                    <span class="layer-legend-icon" style="background:#64748b; border-radius: 50%;"></span>
-                    <span>Histórico hasta 2004</span>
-                </label>
+                <!-- SUBSECCIÓN A: CAPAS EN ACTUALIZACIÓN PERMANENTE -->
+                <details open class="group bg-slate-950/60 rounded border border-slate-800/80 overflow-hidden">
+                    <summary class="flex items-center justify-between p-2 text-[10px] font-bold text-blue-400 cursor-pointer hover:bg-slate-800/40 select-none uppercase tracking-wide">
+                        <span class="flex items-center gap-1.5">
+                            <i class="fa-solid fa-arrows-rotate text-[9px]"></i>
+                            Capas en actualización permanente
+                        </span>
+                        <i class="fa-solid fa-chevron-down text-[9px] transition-transform group-open:rotate-180 text-slate-400"></i>
+                    </summary>
+                    <div class="p-2 pt-1 space-y-2.5 border-t border-slate-800/50 bg-slate-950/30">
+                        <!-- Capa: Obras Civiles (Trámite Digital) -->
+                        <div>
+                            <label class="flex items-start gap-2 cursor-pointer text-xs text-slate-300">
+                                <input type="checkbox" id="chk-capa-digitales" class="mt-0.5 rounded border-slate-800 bg-slate-950 text-blue-600 focus:ring-blue-500" onchange="toggleCapaPersonalizada('digitales', this.checked)">
+                                <span class="layer-legend-icon" style="background:#8b5cf6; border-radius: 50%;"></span>
+                                <span class="font-semibold text-[11px]">OBRAS CIVILES (Trámite Digital)</span>
+                            </label>
+                            <p class="text-[8px] text-slate-400 ml-6 mt-0.5 leading-tight">Registro de Obras Civiles desde la vigencia del trámite digital - año 2023</p>
+                        </div>
 
-                <label class="flex items-center gap-2 cursor-pointer text-xs text-slate-300">
-                    <input type="checkbox" id="chk-capa-edificios" class="rounded border-slate-800 bg-slate-950 text-blue-600 focus:ring-blue-500" onchange="toggleCapaPersonalizada('edificios', this.checked)">
-                    <span class="layer-legend-icon" style="background:#ef4444; border-radius: 50%;"></span>
-                    <span>Edificios de más de 3 Plantas</span>
-                </label>
+                        <!-- Capa: Obra Nueva desde 2019 -->
+                        <label class="flex items-center gap-2 cursor-pointer text-xs text-slate-300">
+                            <input type="checkbox" id="chk-capa-nuevas" class="rounded border-slate-800 bg-slate-950 text-blue-600 focus:ring-blue-500" onchange="toggleCapaPersonalizada('nuevas', this.checked)">
+                            <span class="layer-legend-icon" style="background:#3b82f6; border-radius: 50%;"></span>
+                            <span>Obra nueva desde 2019</span>
+                        </label>
 
-                <label class="flex items-center gap-2 cursor-pointer text-xs text-slate-300">
-                    <input type="checkbox" id="chk-capa-nuevas" class="rounded border-slate-800 bg-slate-950 text-blue-600 focus:ring-blue-500" onchange="toggleCapaPersonalizada('nuevas', this.checked)">
-                    <span class="layer-legend-icon" style="background:#3b82f6; border-radius: 50%;"></span>
-                    <span>Obra nueva desde 2019</span>
-                </label>
+                        <!-- Capa: Relevamientos desde 2019 -->
+                        <label class="flex items-center gap-2 cursor-pointer text-xs text-slate-300">
+                            <input type="checkbox" id="chk-capa-relevamientos" class="rounded border-slate-800 bg-slate-950 text-blue-600 focus:ring-blue-500" onchange="toggleCapaPersonalizada('relevamientos', this.checked)">
+                            <span class="layer-legend-icon" style="background:#10b981; border-radius: 50%;"></span>
+                            <span>Relevamientos desde 2019</span>
+                        </label>
+                    </div>
+                </details>
 
-                <label class="flex items-center gap-2 cursor-pointer text-xs text-slate-300">
-                    <input type="checkbox" id="chk-capa-particulares" class="rounded border-slate-800 bg-slate-950 text-blue-600 focus:ring-blue-500" onchange="toggleCapaPersonalizada('particulares', this.checked)">
-                    <span class="layer-legend-icon" style="background:#f59e0b; border-radius: 50%;"></span>
-                    <span>Particulares 2004-2019</span>
-                </label>
+                <!-- SUBSECCIÓN B: ANTECEDENTES -->
+                <details open class="group bg-slate-950/60 rounded border border-slate-800/80 overflow-hidden">
+                    <summary class="flex items-center justify-between p-2 text-[10px] font-bold text-amber-400 cursor-pointer hover:bg-slate-800/40 select-none uppercase tracking-wide">
+                        <span class="flex items-center gap-1.5">
+                            <i class="fa-solid fa-folder-open text-[9px]"></i>
+                            Antecedentes
+                        </span>
+                        <i class="fa-solid fa-chevron-down text-[9px] transition-transform group-open:rotate-180 text-slate-400"></i>
+                    </summary>
+                    <div class="p-2 pt-1 space-y-2 border-t border-slate-800/50 bg-slate-950/30">
+                        <!-- Capa: Archivo Histórico hasta 2004 -->
+                        <label class="flex items-center gap-2 cursor-pointer text-xs text-slate-300">
+                            <input type="checkbox" id="chk-capa-historico" class="rounded border-slate-800 bg-slate-950 text-blue-600 focus:ring-blue-500" onchange="toggleCapaPersonalizada('historico', this.checked)">
+                            <span class="layer-legend-icon" style="background:#64748b; border-radius: 50%;"></span>
+                            <span>Archivo Histórico hasta 2004</span>
+                        </label>
 
-                <label class="flex items-center gap-2 cursor-pointer text-xs text-slate-300">
-                    <input type="checkbox" id="chk-capa-digitales" class="rounded border-slate-800 bg-slate-950 text-blue-600 focus:ring-blue-500" onchange="toggleCapaPersonalizada('digitales', this.checked)">
-                    <span class="layer-legend-icon" style="background:#8b5cf6; border-radius: 50%;"></span>
-                    <span>Trámite Digital</span>
-                </label>
+                        <!-- Capa: Particulares 2004-2019 -->
+                        <label class="flex items-center gap-2 cursor-pointer text-xs text-slate-300">
+                            <input type="checkbox" id="chk-capa-particulares" class="rounded border-slate-800 bg-slate-950 text-blue-600 focus:ring-blue-500" onchange="toggleCapaPersonalizada('particulares', this.checked)">
+                            <span class="layer-legend-icon" style="background:#f59e0b; border-radius: 50%;"></span>
+                            <span>Particulares 2004-2019</span>
+                        </label>
 
-                <label class="flex items-center gap-2 cursor-pointer text-xs text-slate-300">
-                    <input type="checkbox" id="chk-capa-relevamientos" class="rounded border-slate-800 bg-slate-950 text-blue-600 focus:ring-blue-500" onchange="toggleCapaPersonalizada('relevamientos', this.checked)">
-                    <span class="layer-legend-icon" style="background:#10b981; border-radius: 50%;"></span>
-                    <span>Relevamientos desde 2019</span>
-                </label>
+                        <!-- Capa: Obras Civiles y Urbanizaciones 2007-2022 -->
+                        <label class="flex items-center gap-2 cursor-pointer text-xs text-slate-300">
+                            <input type="checkbox" id="chk-capa-civiles" class="rounded border-slate-800 bg-slate-950 text-blue-600 focus:ring-blue-500" onchange="toggleCapaPersonalizada('civiles', this.checked)">
+                            <span class="layer-legend-icon" style="background:#ec4899; border-radius: 50%;"></span>
+                            <span>Obras Civiles y Urbaniz. 2007-2022</span>
+                        </label>
+                    </div>
+                </details>
+
+                <!-- SUBSECCIÓN C: REGISTRO DE EDIFICIOS EN ALTURA -->
+                <details open class="group bg-slate-950/60 rounded border border-slate-800/80 overflow-hidden">
+                    <summary class="flex items-center justify-between p-2 text-[10px] font-bold text-red-400 cursor-pointer hover:bg-slate-800/40 select-none uppercase tracking-wide">
+                        <span class="flex items-center gap-1.5">
+                            <i class="fa-solid fa-building text-[9px]"></i>
+                            Registro de Edificios en Altura
+                        </span>
+                        <i class="fa-solid fa-chevron-down text-[9px] transition-transform group-open:rotate-180 text-slate-400"></i>
+                    </summary>
+                    <div class="p-2 pt-1 space-y-2 border-t border-slate-800/50 bg-slate-950/30">
+                        <div>
+                            <label class="flex items-center gap-2 cursor-pointer text-xs text-slate-300">
+                                <input type="checkbox" id="chk-capa-edificios" class="rounded border-slate-800 bg-slate-950 text-blue-600 focus:ring-blue-500" onchange="toggleCapaPersonalizada('edificios', this.checked)">
+                                <span class="layer-legend-icon" style="background:#ef4444; border-radius: 50%;"></span>
+                                <span class="font-semibold text-[11px]">Edificios de más de 3 Plantas</span>
+                            </label>
+                            <p class="text-[8px] text-slate-400 ml-6 mt-0.5 leading-tight italic">Se registran los edificios de más de PB y 3 pisos</p>
+                        </div>
+                    </div>
+                </details>
+
             </div>
         </div>
     </div>
@@ -272,7 +325,6 @@ const BASE_URL = "https://raw.githubusercontent.com/dcartografiayde/IDE-PARANA/m
 const CARPETA_OBRAS_NUEVA = "obras_privadas/";
 const CARPETA_OBRAS_ANTIGUA = "obras%20privadas/";
 
-// MODIFICACIÓN: Listado para indexación predictiva global de parcelas catastrales (UBIPAR1)
 var listaParcelasDirecciones = [];
 
 /* ================= FUNCIONES DE LIMPIEZA Y DECODIFICACIÓN DE TEXTO ================= */
@@ -314,7 +366,6 @@ var map = L.map('map', {
     maxZoom: 22
 });
 
-// MODIFICACIÓN: Desplazar controles por defecto para que no los tape la barra lateral
 map.zoomControl.setPosition('topright');
 
 map.createPane('parcelasPane');
@@ -363,7 +414,6 @@ fetchGeoJSON(BASE_URL + "distritos.geojson").then(data => {
     }).addTo(grupoDistritos);
 });
 
-// MODIFICACIÓN: grupoCalles no se añade al mapa inmediatamente para que zoom < 14 empiece optimizado y apagado
 var grupoCalles = L.layerGroup();
 var listaCallesParaBusqueda = [];
 
@@ -382,7 +432,6 @@ fetchGeoJSON(BASE_URL + "calles.geojson").then(data => {
             }
         }
     }).addTo(grupoCalles);
-    // Configura el autocompletado en el cargador
     configurarBuscadorDireccionesPredictivas();
     activarEtiquetasCalles();
 });
@@ -489,25 +538,24 @@ window.mostrarInfoParcelaDesdePopup = function(lat, lng) {
             resultado.layer.fire('click', { latlng: latlng });
         }, 100);
     } else {
-        // MODIFICACIÓN: Mensaje amigable alternativo por si las capas aún se están cargando
         console.warn("La parcela aún no está cargada o no se intersecta.");
     }
 };
 
-/* ================= GLOBAL HELPER PARA CENTRAR Y ACTIVAR OBRA DESDE LA PARCELA ================= */
 window.centrarYVerObra = function(capaNombre, lat, lng) {
     const grupo = gruposObras[capaNombre];
     if (grupo) {
         if (!map.hasLayer(grupo)) {
             map.addLayer(grupo);
-            // MODIFICACIÓN: Actualizar visualmente la leyenda personalizada de la barra lateral
             const idCapaMap = {
                 "ARCHIVO HISTORICO HASTA 2004": "chk-capa-historico",
                 "EDIFICIOS DE MAS DE 3 PLANTAS": "chk-capa-edificios",
                 "OBRA NUEVA DESDE 2019": "chk-capa-nuevas",
                 "OBRAS PARTICULARES 2004-2019": "chk-capa-particulares",
+                "OBRAS CIVILES (TRAMITE DIGITAL)": "chk-capa-digitales",
                 "OBRAS CIVILES TRAMITE DIGITAL": "chk-capa-digitales",
-                "RELEVAMIENTOS DESDE 2019": "chk-capa-relevamientos"
+                "RELEVAMIENTOS DESDE 2019": "chk-capa-relevamientos",
+                "OBRAS CIVILES Y URBANIZACIONES 2007-2022": "chk-capa-civiles"
             };
             const chkId = idCapaMap[capaNombre];
             if (chkId) {
@@ -529,40 +577,50 @@ window.centrarYVerObra = function(capaNombre, lat, lng) {
     }
 };
 
-/* ================= BUSCADOR ESPACIAL DE OBRAS EN PARCELA ================= */
 function buscarObrasEnParcela(geomParcela) {
     const obrasDetectadas = [];
     if (!geomParcela) return obrasDetectadas;
 
     capasObrasConfig.forEach(cfg => {
+        // REQUISITO: Asociar la info de las capas agrupadas en las subcarpetas A y B solamente (asociarAParcela: true)
+        if (!cfg.asociarAParcela) return;
+
         const dataCapa = cachedObrasData[cfg.nombre];
         if (dataCapa && dataCapa.features) {
             dataCapa.features.forEach(f => {
-                if (f.geometry && f.geometry.type === "Point") {
-                    const pt = f.geometry.coordinates; // [lng, lat]
-                    let isInside = false;
-
-                    if (geomParcela.type === "Polygon") {
-                        if (geomParcela.coordinates && geomParcela.coordinates[0]) {
-                            if (pointInPoly(pt, geomParcela.coordinates[0])) isInside = true;
-                        }
-                    } else if (geomParcela.type === "MultiPolygon") {
-                        if (geomParcela.coordinates) {
-                            geomParcela.coordinates.forEach(poly => {
-                                if (poly && poly[0]) {
-                                    if (pointInPoly(pt, poly[0])) isInside = true;
-                                }
-                            });
-                        }
+                if (f.geometry) {
+                    let pt = null;
+                    if (f.geometry.type === "Point") {
+                        pt = f.geometry.coordinates; // [lng, lat]
+                    } else {
+                        pt = obtenerCentroGeometry(f.geometry);
                     }
 
-                    if (isInside) {
-                        obrasDetectadas.push({
-                            capa: cfg.nombre,
-                            color: cfg.color,
-                            properties: f.properties,
-                            latlng: { lat: pt[1], lng: pt[0] }
-                        });
+                    if (pt) {
+                        let isInside = false;
+
+                        if (geomParcela.type === "Polygon") {
+                            if (geomParcela.coordinates && geomParcela.coordinates[0]) {
+                                if (pointInPoly(pt, geomParcela.coordinates[0])) isInside = true;
+                            }
+                        } else if (geomParcela.type === "MultiPolygon") {
+                            if (geomParcela.coordinates) {
+                                geomParcela.coordinates.forEach(poly => {
+                                    if (poly && poly[0]) {
+                                        if (pointInPoly(pt, poly[0])) isInside = true;
+                                    }
+                                });
+                            }
+                        }
+
+                        if (isInside) {
+                            obrasDetectadas.push({
+                                capa: cfg.nombre,
+                                color: cfg.color,
+                                properties: f.properties,
+                                latlng: { lat: pt[1], lng: pt[0] }
+                            });
+                        }
                     }
                 }
             });
@@ -599,7 +657,6 @@ archivosCatastro.forEach(file => {
             pane: 'parcelasPane',
             style: f => ({ color: f.properties.esPH ? "#8e44ad" : "#2980b9", weight: 0.7, fillOpacity: 0.12 }),
             onEachFeature: (f, l) => {
-                // MODIFICACIÓN: Alimentar índice predictivo de direcciones con la información de UBIPAR1 de manera única
                 if (f.properties.ubicacion && f.properties.ubicacion !== "-") {
                     let dirNormalizada = decodificarTexto(f.properties.ubicacion).trim().toUpperCase();
                     if (dirNormalizada) {
@@ -640,6 +697,7 @@ archivosCatastro.forEach(file => {
                         content += `</table>`;
                     }
 
+                    // Se buscan las obras pertenecientes EXCLUSIVAMENTE a las subcarpetas A y B
                     const obrasEncontradas = buscarObrasEnParcela(f.geometry);
                     if (obrasEncontradas.length > 0) {
                         content += `<div style="margin-top: 6px; padding-top: 6px; border-top: 1px dashed #cbd5e1;">`;
@@ -674,7 +732,6 @@ archivosCatastro.forEach(file => {
     });
 });
 
-// MODIFICACIÓN: Se unifica la lógica de visibilidad de las parcelas, calles y distritos por zoom para garantizar excelente rendimiento
 function controlarVisibilidadCapasPorZoom() {
     let zoomActual = map.getZoom();
     const chkDistritos = document.getElementById('chk-capa-distritos');
@@ -682,7 +739,6 @@ function controlarVisibilidadCapasPorZoom() {
     const chkParcelas = document.getElementById('chk-capa-parcelas');
 
     if (zoomActual >= 14) {
-        // En zoom >= 14 se encienden las parcelas y nombres de calles
         if (!map.hasLayer(grupoParcelas)) {
             map.addLayer(grupoParcelas);
         }
@@ -690,17 +746,15 @@ function controlarVisibilidadCapasPorZoom() {
 
         if (!map.hasLayer(grupoCalles)) {
             map.addLayer(grupoCalles);
-            map.fire('moveend'); // Forzar renderizado de los nombres de las calles
+            map.fire('moveend');
         }
         if (chkCalles) chkCalles.checked = true;
 
-        // Se apaga la capa de distritos para óptimo rendimiento gráfico
         if (map.hasLayer(grupoDistritos)) {
             map.removeLayer(grupoDistritos);
         }
         if (chkDistritos) chkDistritos.checked = false;
     } else {
-        // En zoom < 14 se apagan las parcelas y calles
         if (map.hasLayer(grupoParcelas)) {
             map.removeLayer(grupoParcelas);
         }
@@ -711,54 +765,75 @@ function controlarVisibilidadCapasPorZoom() {
         }
         if (chkCalles) chkCalles.checked = false;
 
-        // Se enciende únicamente la capa de distritos
         if (!map.hasLayer(grupoDistritos)) {
             map.addLayer(grupoDistritos);
         }
         if (chkDistritos) chkDistritos.checked = true;
     }
 }
-// MODIFICACIÓN: Vinculación del evento zoomend a la nueva función optimizada de visibilidad por zoom
 map.on('zoomend', controlarVisibilidadCapasPorZoom);
 
-/* ================= CAPAS DE OBRAS PRIVADAS ================= */
 const capasObrasConfig = [
+    // a) SUBSECCIÓN: CAPAS EN ACTUALIZACIÓN PERMANENTE
     { 
-        file: "archivo_historico_hasta_2004.geojson", 
-        fallbacks: ["archivo%20historico%20hasta%202004.geojson"],
-        nombre: "ARCHIVO HISTORICO HASTA 2004", 
-        color: "#64748b" 
-    },
-    { 
-        // MODIFICACIÓN: Se estableció como archivo principal "edificios_mas_3%20plantas.geojson" para responder de forma directa al repositorio y asegurar su correcto funcionamiento.
-        file: "edificios_mas_3%20plantas.geojson", 
-        fallbacks: ["edificios_mas_3_plantas.geojson", "edificios_mas_de_3_plantas.geojson", "edificios%20de%20mas%20de%203%20plantas.geojson"],
-        nombre: "EDIFICIOS DE MAS DE 3 PLANTAS", 
-        color: "#ef4444" 
+        file: "obras_civiles_tramite_digital.geojson", 
+        fallbacks: ["obras%20civiles%20tramite%20digital.geojson"],
+        nombre: "OBRAS CIVILES (TRAMITE DIGITAL)", 
+        color: "#8b5cf6",
+        grupo: "a",
+        asociarAParcela: true
     },
     { 
         file: "proyectos_desde_2019.geojson", 
         fallbacks: ["obra_nueva_desde_2019.geojson", "obra%20nueva%20desde%202019.geojson"],
         nombre: "OBRA NUEVA DESDE 2019", 
-        color: "#3b82f6" 
-    },
-    { 
-        file: "obras_particulares_2004_2019.geojson", 
-        fallbacks: ["obras%20particulares%202004%202019.geojson"],
-        nombre: "OBRAS PARTICULARES 2004-2019", 
-        color: "#f59e0b" 
-    },
-    { 
-        file: "obras_civiles_tramite_digital.geojson", 
-        fallbacks: ["obras%20civiles%20tramite%20digital.geojson"],
-        nombre: "OBRAS CIVILES TRAMITE DIGITAL", 
-        color: "#8b5cf6" 
+        color: "#3b82f6",
+        grupo: "a",
+        asociarAParcela: true
     },
     { 
         file: "relevamientos_desde_2019.geojson", 
         fallbacks: ["relevamientos%20desde%202019.geojson"],
         nombre: "RELEVAMIENTOS DESDE 2019", 
-        color: "#10b981" 
+        color: "#10b981",
+        grupo: "a",
+        asociarAParcela: true
+    },
+
+    // b) SUBSECCIÓN: ANTECEDENTES
+    { 
+        file: "archivo_historico_hasta_2004.geojson", 
+        fallbacks: ["archivo%20historico%20hasta%202004.geojson"],
+        nombre: "ARCHIVO HISTORICO HASTA 2004", 
+        color: "#64748b",
+        grupo: "b",
+        asociarAParcela: true
+    },
+    { 
+        file: "obras_particulares_2004_2019.geojson", 
+        fallbacks: ["obras%20particulares%202004%202019.geojson"],
+        nombre: "OBRAS PARTICULARES 2004-2019", 
+        color: "#f59e0b",
+        grupo: "b",
+        asociarAParcela: true
+    },
+    {
+        file: "obras_civiles_2007-2022.geojson",
+        fallbacks: ["obras_civiles_2007_2022.geojson", "obras%20civiles%202007-2022.geojson"],
+        nombre: "OBRAS CIVILES Y URBANIZACIONES 2007-2022",
+        color: "#ec4899",
+        grupo: "b",
+        asociarAParcela: true
+    },
+
+    // c) SUBSECCIÓN: REGISTRO DE EDIFICIOS EN ALTURA
+    { 
+        file: "edificios_mas_3%20plantas.geojson", 
+        fallbacks: ["edificios_mas_3_plantas.geojson", "edificios_mas_de_3_plantas.geojson", "edificios%20de%20mas%20de%203%20plantas.geojson"],
+        nombre: "EDIFICIOS DE MAS DE 3 PLANTAS", 
+        color: "#ef4444",
+        grupo: "c",
+        asociarAParcela: false // NO se asocia al popup de parcela
     }
 ];
 
@@ -790,7 +865,9 @@ async function cargarCapaObraConResiliencia(cfg) {
             pointToLayer: (f, latlng) => {
                 return L.circleMarker(latlng, { radius: 6, fillColor: cfg.color, color: "#fff", weight: 1.5, fillOpacity: 0.9 });
             },
-            // MODIFICACIÓN: Crear el popup dinámicamente al abrirlo para evitar el problema de carga asíncrona de parcelas catastrales
+            style: (f) => {
+                return { color: cfg.color, weight: 2, fillColor: cfg.color, fillOpacity: 0.35 };
+            },
             onEachFeature: (f, l) => {
                 l.bindPopup((layer) => {
                     let latlng = layer.getLatLng ? layer.getLatLng() : layer.getBounds().getCenter();
@@ -802,14 +879,12 @@ async function cargarCapaObraConResiliencia(cfg) {
                     }
                     content += `</table>`;
                     
-                    // REQUISITO 2: Consultar la capa de parcelas catastrales dinámicamente sobre el punto de la obra privada
                     let parcelaEncontrada = obtenerInfoParcelaEnPunto(latlng);
                     if (parcelaEncontrada) {
                         content += `<hr style="margin: 6px 0; border-style: dashed; border-color: #cbd5e1;">`;
                         content += `<div class="text-[8px] text-slate-500 italic text-center mb-1">Hay una parcela catastral debajo.</div>`;
                         content += `<button onclick="window.mostrarInfoParcelaDesdePopup(${latlng.lat}, ${latlng.lng})" class="w-full text-center py-1 bg-blue-600 hover:bg-blue-700 text-white rounded font-bold text-[9px] uppercase transition-colors">👉 Ver Parcela Catastral debajo</button>`;
                     } else {
-                        // MODIFICACIÓN: Si las parcelas aún se están procesando u ocurre latencia, ofrece disparador espacial asíncrono
                         content += `<hr style="margin: 6px 0; border-style: dashed; border-color: #cbd5e1;">`;
                         content += `<button onclick="window.mostrarInfoParcelaDesdePopup(${latlng.lat}, ${latlng.lng})" class="w-full text-center py-1 bg-slate-600 hover:bg-slate-700 text-white rounded font-bold text-[9px] uppercase transition-colors">🔍 Forzar consulta de parcela debajo</button>`;
                     }
@@ -827,8 +902,6 @@ capasObrasConfig.forEach(cfg => {
     gruposObras[cfg.nombre] = L.layerGroup(); 
     cargarCapaObraConResiliencia(cfg);
 });
-
-/* ================= CONTROLES Y BÚSQUEDA ================= */
 
 function buscarPM() {
     let val = document.getElementById('input-pm').value.trim();
@@ -850,7 +923,6 @@ function buscarPM() {
     }
 }
 
-// MODIFICACIÓN: Buscador predictivo inteligente por campo de dirección catastral UBIPAR1
 function configurarBuscadorDireccionesPredictivas() {
     const input = document.getElementById('input-direccion-predictiva');
     const sugerenciasDiv = document.getElementById('sugerencias-direccion');
@@ -930,14 +1002,13 @@ function buscarDireccionPredictiva() {
     }
 }
 
-// MODIFICACIÓN: Extraer de forma resiliente el centro/coordenadas de cualquier tipo de geometría (Puntos, Polígonos, etc.)
 function obtenerCentroGeometry(geometry) {
     if (!geometry) return null;
     if (geometry.type === "Point") {
-        return geometry.coordinates; // [lng, lat]
+        return geometry.coordinates;
     } else if (geometry.type === "Polygon") {
         if (geometry.coordinates && geometry.coordinates[0] && geometry.coordinates[0][0]) {
-            return geometry.coordinates[0][0]; // Usa el primer vértice como fallback aproximado
+            return geometry.coordinates[0][0];
         }
     } else if (geometry.type === "MultiPolygon") {
         if (geometry.coordinates && geometry.coordinates[0] && geometry.coordinates[0][0] && geometry.coordinates[0][0][0]) {
@@ -947,12 +1018,9 @@ function obtenerCentroGeometry(geometry) {
     return null;
 }
 
-// MODIFICACIÓN: Detector y normalizador de campos de expediente robusto (Soporta EXPE_NRO, EXPT., EXPTE_NO y EXPTE)
 function obtenerValorExpediente(properties) {
     if (!properties) return null;
-    // MODIFICACIÓN: Se añaden las nuevas variaciones del campo de expediente
     const keys = ['expe_nro', 'expt.', 'expte_no', 'expte', 'expediente', 'nro_exp', 'nroexp', 'exp', 'nro_expediente', 'nro_registro', 'registro'];
-    // Convertir todas las claves de propiedades a minúsculas para comparar resilientemente
     const propLower = {};
     for (let k in properties) {
         if (properties[k] !== undefined && properties[k] !== null) {
@@ -968,7 +1036,6 @@ function obtenerValorExpediente(properties) {
     return null;
 }
 
-// MODIFICACIÓN: Buscador predictivo simultáneo de expedientes corregido y robustecido
 function configurarBuscadorExpedientes() {
     const input = document.getElementById('input-expediente');
     const sugerenciasDiv = document.getElementById('sugerencias-expediente');
@@ -984,7 +1051,6 @@ function configurarBuscadorExpedientes() {
         
         let coincidencias = [];
         
-        // Buscar simultáneamente en todos los buffers GeoJSON de obras en memoria
         for (let [capaNombre, data] of Object.entries(cachedObrasData)) {
             if (data && data.features) {
                 data.features.forEach(f => {
@@ -992,7 +1058,6 @@ function configurarBuscadorExpedientes() {
                     if (exp) {
                         let expUpper = exp.toUpperCase();
                         if (expUpper.includes(val)) {
-                            // MODIFICACIÓN: Obtención de coordenadas segura usando obtenerCentroGeometry
                             let coords = obtenerCentroGeometry(f.geometry);
                             if (coords && coords.length >= 2) {
                                 coincidencias.push({
@@ -1008,7 +1073,6 @@ function configurarBuscadorExpedientes() {
             }
         }
         
-        // Priorizar coincidencia basada en prefijos de manera case-insensitive
         coincidencias.sort((a, b) => {
             let aStarts = a.expediente.toUpperCase().startsWith(val);
             let bStarts = b.expediente.toUpperCase().startsWith(val);
@@ -1017,7 +1081,6 @@ function configurarBuscadorExpedientes() {
             return a.expediente.localeCompare(b.expediente);
         });
         
-        // Limitar a sugerencias únicas (máximo 10) para evitar duplicados inter-capa
         let yaAgregadas = new Set();
         let sugerenciasFiltradas = [];
         for (let item of coincidencias) {
@@ -1041,7 +1104,6 @@ function configurarBuscadorExpedientes() {
                 div.onclick = () => {
                     input.value = item.expediente;
                     sugerenciasDiv.style.display = 'none';
-                    // Activa automáticamente la capa si está apagada, enfoca e interactúa
                     window.centrarYVerObra(item.capa, item.lat, item.lng);
                 };
                 sugerenciasDiv.appendChild(div);
@@ -1051,7 +1113,6 @@ function configurarBuscadorExpedientes() {
         }
     });
     
-    // MODIFICACIÓN: Impedir que se oculten las sugerencias al hacer clic dentro de la caja o scrollbar del buscador
     document.addEventListener('click', (e) => {
         if (e.target !== input && !sugerenciasDiv.contains(e.target)) {
             sugerenciasDiv.style.display = 'none';
@@ -1059,7 +1120,6 @@ function configurarBuscadorExpedientes() {
     });
 }
 
-// MODIFICACIÓN: Búsqueda manual / Tecla "Ir" para número de expediente en todas las capas de obras
 function buscarExpedienteManual() {
     let inputVal = document.getElementById('input-expediente').value.toUpperCase().trim();
     if (!inputVal) return;
@@ -1112,7 +1172,6 @@ function buscarGoogle() {
         });
 }
 
-/* ================= CONTROL DE VISIBILIDAD DE CAPAS DESDE SIDEBAR ================= */
 function toggleCapaPersonalizada(idNombre, activado) {
     switch (idNombre) {
         case 'distritos':
@@ -1137,10 +1196,13 @@ function toggleCapaPersonalizada(idNombre, activado) {
             activado ? map.addLayer(gruposObras["OBRAS PARTICULARES 2004-2019"]) : map.removeLayer(gruposObras["OBRAS PARTICULARES 2004-2019"]);
             break;
         case 'digitales':
-            activado ? map.addLayer(gruposObras["OBRAS CIVILES TRAMITE DIGITAL"]) : map.removeLayer(gruposObras["OBRAS CIVILES TRAMITE DIGITAL"]);
+            activado ? map.addLayer(gruposObras["OBRAS CIVILES (TRAMITE DIGITAL)"]) : map.removeLayer(gruposObras["OBRAS CIVILES (TRAMITE DIGITAL)"]);
             break;
         case 'relevamientos':
             activado ? map.addLayer(gruposObras["RELEVAMIENTOS DESDE 2019"]) : map.removeLayer(gruposObras["RELEVAMIENTOS DESDE 2019"]);
+            break;
+        case 'civiles':
+            activado ? map.addLayer(gruposObras["OBRAS CIVILES Y URBANIZACIONES 2007-2022"]) : map.removeLayer(gruposObras["OBRAS CIVILES Y URBANIZACIONES 2007-2022"]);
             break;
     }
 }
@@ -1166,7 +1228,6 @@ function cambiarMapaBase(tipo) {
     }
 }
 
-/* ================= MANEJO INTERACTIVO DEL SIDEBAR (ABRIR/CERRAR) ================= */
 function toggleSidebar() {
     const sidebar = document.getElementById('sidebar');
     const toggleBtn = document.getElementById('btn-toggle-sidebar');
@@ -1183,10 +1244,7 @@ function toggleSidebar() {
     }
 }
 
-// MODIFICACIÓN: Inicialización de la indexación de expedientes
 configurarBuscadorExpedientes();
-
-// MODIFICACIÓN: Ejecutar el optimizador de capas y zoom por primera vez para inicializar correctamente el mapa
 controlarVisibilidadCapasPorZoom();
 </script>
 </body>
