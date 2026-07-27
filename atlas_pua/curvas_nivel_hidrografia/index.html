@@ -1,23 +1,23 @@
+```html
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VISOR URBANIZACIONES - MUNICIPALIDAD DE PARANA</title>
+    <title>CURVAS DE NIVEL E HIDROGRAFÍA - MUNICIPALIDAD DE PARANÁ</title>
 
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/leaflet-textpath@1.2.3/leaflet.textpath.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
 
+    <!-- MODIFICACIÓN: Integración de la librería de FlatGeobuf desde CDN -->
+    <script src="https://unpkg.com/flatgeobuf@3.22.0/dist/flatgeobuf-geojson.min.js"></script>
+
     <!-- MODIFICACIÓN: Agregado CSS de Leaflet Measure para las herramientas de medición -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-measure@3.1.0/dist/leaflet-measure.css"/>
     <!-- MODIFICACIÓN: Agregado JS de Leaflet Measure para habilitar los cálculos de longitud y superficie -->
     <script src="https://cdn.jsdelivr.net/npm/leaflet-measure@3.1.0/dist/leaflet-measure.js"></script>
-    <script type="module">
-import * as flatgeobuf from "https://unpkg.com/flatgeobuf@4.3.1/dist/flatgeobuf-geojson.min.js";
-window.flatgeobuf = flatgeobuf;
-</script>
 
     <style>
         body { margin:0; padding:0; font-family: 'Inter', sans-serif; background: #0f172a; overflow: hidden; }
@@ -197,7 +197,8 @@ window.flatgeobuf = flatgeobuf;
     
     <!-- Encabezado del visor -->
     <div class="p-5 border-b border-slate-800 bg-slate-950/40">
-        <h1 class="text-xs font-black text-blue-400 tracking-wider uppercase text-center">Visor Urbano Municipal</h1>
+        <!-- MODIFICACIÓN: Adaptación del título para el visor temático -->
+        <h1 class="text-xs font-black text-blue-400 tracking-wider uppercase text-center">Curvas de Nivel e Hidrografía</h1>
         <p class="text-[10px] text-slate-400 text-center font-bold mt-1">DIRECCIÓN DE CARTOGRAFÍA Y DATOS ESPACIALES</p>
     </div>
 
@@ -261,6 +262,22 @@ window.flatgeobuf = flatgeobuf;
             <div class="space-y-2 pt-2">
                 <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide">Capas vectoriales</span>
                 <div class="space-y-2">
+                    <!-- MODIFICACIÓN: Checkbox unificado para la capa de Curvas de Nivel (FlatGeobuf) -->
+                    <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
+                        <input type="checkbox" id="chk-curvas" checked onchange="toggleOverlay('curvas')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
+                        <span class="flex items-center gap-2">
+                            <span class="w-3.5 h-1 bg-[#d97706] inline-block"></span>
+                            <span>Curvas de nivel</span>
+                        </span>
+                    </label>
+                    <!-- MODIFICACIÓN: Checkbox independiente para la capa de Arroyos / Hidrografía -->
+                    <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
+                        <input type="checkbox" id="chk-arroyos" checked onchange="toggleOverlay('arroyos')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
+                        <span class="flex items-center gap-2">
+                            <span class="w-3.5 h-1 bg-[#06b6d4] inline-block"></span>
+                            <span>Arroyos</span>
+                        </span>
+                    </label>
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
                         <input type="checkbox" id="chk-manzanas" checked onchange="toggleOverlay('manzanas')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
                         <span class="flex items-center gap-2">
@@ -282,38 +299,6 @@ window.flatgeobuf = flatgeobuf;
                             <span>Parcelas Catastrales</span>
                         </span>
                     </label>
-                    <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
-
-    <input type="checkbox"
-           id="chk-curvas"
-           onchange="toggleOverlay('curvas')"
-           class="rounded bg-slate-800 border-slate-700 text-blue-500">
-
-    <span class="flex items-center gap-2">
-
-        <span class="w-3.5 h-1 bg-[#8B5A2B] inline-block"></span>
-
-        <span>Curvas de nivel</span>
-
-    </span>
-
-</label>
-                    <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
-
-    <input type="checkbox"
-           id="chk-arroyos"
-           onchange="toggleOverlay('arroyos')"
-           class="rounded bg-slate-800 border-slate-700 text-blue-500">
-
-    <span class="flex items-center gap-2">
-
-        <span class="w-3.5 h-1 bg-[#0099ff] inline-block"></span>
-
-        <span>Arroyos</span>
-
-    </span>
-
-</label>
                 </div>
             </div>
         </div>
@@ -347,8 +332,9 @@ window.flatgeobuf = flatgeobuf;
 
             <div style="width:100%;">
 
+                <!-- MODIFICACIÓN: Actualización del título en el panel informativo flotante -->
                 <div class="panel-titulo" id="titulo-mapa">
-                    CURVAS DE NIVEL - HIDROGRAFÍA
+                    CURVAS DE NIVEL E HIDROGRAFÍA
                 </div>
 
                 <div class="panel-zoom" style="text-align:center;">
@@ -369,8 +355,8 @@ window.flatgeobuf = flatgeobuf;
             id="descripcion-mapa"
             class="panel-descripcion">
 
-            En el plano se representa la configuración topográfica e hídrica de la ciudad de Paraná. Los niveles topográficos más bajos se dan a medida que se acercan al Río Paraná y además se observan grandes cursos de agua que atraviesan el ejido.
-       
+            Capas altimétricas e hidrológicas del tejido urbano de la ciudad de Paraná. Incluye la red de arroyos y curvas de nivel procesadas en formato FlatGeobuf de alto rendimiento.
+            
         </div>
 
         <hr style="margin:8px 0;">
@@ -398,7 +384,7 @@ function decodificarTexto(str) {
     try {
         const correcciones = {
             'Ã¡': 'á', 'Ã©': 'é', 'Ã­': 'í', 'Ã³': 'ó', 'Ãº': 'ú',
-            'Ã ': 'Á', 'Ã‰': 'É', 'Ã ': 'Í', 'Ã“': 'Ó', 'Ãš': 'Ú',
+            'Ã ': 'Á', 'Ã‰': 'É', 'Ã ': 'Í', 'Ã“': 'Ó', 'ÃŠ': 'Ú',
             'Ãñ': 'ñ', 'Ã‘': 'Ñ', 'Â°': '°', 'Ã¼': 'ü', 'Â¿': '¿'
         };
         let textoCorregido = str;
@@ -458,18 +444,31 @@ async function fetchGeoJSON(url) {
     return JSON.parse(text);
 }
 
-async function cargarFGB(url, grupo, opciones = {}) {
-
-    const capa = L.geoJSON(null, opciones);
-
-    for await (const feature of flatgeobuf.deserialize(url)) {
-        capa.addData(feature);
+// MODIFICACIÓN: Función genérica reutilizable para la carga asíncrona de archivos FlatGeobuf
+async function cargarFGB(url, options = {}) {
+    const layerGroup = L.layerGroup();
+    try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`Error HTTP: ${response.status} al cargar ${url}`);
+        
+        // Iteración sobre los elementos en streaming usando la API de flatgeobuf
+        for await (const feature of flatgeobuf.deserialize(response.body)) {
+            const defaultStyle = options.style ? (typeof options.style === 'function' ? options.style(feature) : options.style) : {};
+            const geojsonLayer = L.geoJSON(feature, {
+                pane: options.pane || 'overlayPane',
+                style: defaultStyle,
+                onEachFeature: (f, l) => {
+                    if (options.onEachFeature) {
+                        options.onEachFeature(f, l);
+                    }
+                }
+            });
+            layerGroup.addLayer(geojsonLayer);
+        }
+    } catch (err) {
+        console.error("Error al procesar FlatGeobuf:", err);
     }
-
-    grupo.addLayer(capa);
-
-    return capa;
-
+    return layerGroup;
 }
 
 // Inicio del mapa en Zoom 12 (vista completa de la ciudad)
@@ -504,6 +503,51 @@ var ref = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Refe
 var hibrido = L.layerGroup([sat, ref]);
 
 dark.addTo(map);
+
+// MODIFICACIÓN: Definición de capas para Curvas de Nivel e Hidrografía
+var grupoCurvasNivel = L.layerGroup().addTo(map);
+var grupoArroyos = L.layerGroup().addTo(map);
+
+// MODIFICACIÓN: Carga unificada de los dos archivos FlatGeobuf para Curvas de Nivel (curvas_nivel_i y curvas_nivel_p)
+const PATH_TEMATICO = BASE_URL + "atlas_pua/curvas_nivel_hidrografia/";
+
+const estiloCurva = (f) => {
+    let cota = f.properties ? (f.properties.cota || f.properties.COTA || f.properties.elevation || "") : "";
+    return {
+        color: "#d97706",
+        weight: 1.2,
+        opacity: 0.8
+    };
+};
+
+const onEachCurvaFeature = (f, l) => {
+    let cota = f.properties ? (f.properties.cota || f.properties.COTA || f.properties.elevation || "S/D") : "S/D";
+    l.bindPopup(`<div class="popup-custom"><div class="popup-header">CURVA DE NIVEL</div><table class="table-info"><tr><td>COTA</td><td>${cota} m</td></tr></table></div>`);
+};
+
+cargarFGB(PATH_TEMATICO + "curvas_nivel_i.fgb", { pane: 'atlasPane', style: estiloCurva, onEachFeature: onEachCurvaFeature })
+    .then(layer => grupoCurvasNivel.addLayer(layer));
+
+cargarFGB(PATH_TEMATICO + "curvas_nivel_p.fgb", { pane: 'atlasPane', style: estiloCurva, onEachFeature: onEachCurvaFeature })
+    .then(layer => grupoCurvasNivel.addLayer(layer));
+
+// MODIFICACIÓN: Carga independiente de la capa de Arroyos (GeoJSON)
+fetchGeoJSON(PATH_TEMATICO + "arroyos.geojson").then(data => {
+    L.geoJSON(data, {
+        pane: 'atlasPane',
+        style: {
+            color: "#06b6d4",
+            weight: 2.5,
+            opacity: 0.9
+        },
+        onEachFeature: (f, l) => {
+            let nombre = f.properties && f.properties.nombre ? decodificarTexto(f.properties.nombre) : "Arroyo";
+            l.bindPopup(`<div class="popup-custom"><div class="popup-header">HIDROGRAFÍA</div><table class="table-info"><tr><td>NOMBRE</td><td>${nombre.toUpperCase()}</td></tr></table></div>`);
+        }
+    }).addTo(grupoArroyos);
+}).catch(err => {
+    console.error("Error al cargar la capa de arroyos:", err);
+});
 
 // Calles cargadas asíncronamente
 var grupoCalles = L.layerGroup();
@@ -681,12 +725,7 @@ fetchGeoJSON(BASE_URL + "catastro/manzana.geojson").then(data => {
 
 // Capa de Parcelas (Totalmente Restituida)
 var grupoParcelas = L.layerGroup();
-    
 var parcelasLayers = [];
-
-var grupoCurvas = L.layerGroup();
-
-var grupoArroyos = L.layerGroup();
 
 // MODIFICACIÓN: Lista global e indexada para la búsqueda predictiva case-insensitive de ubicaciones (UBIPAR1 / calle y altura)
 var listaParcelasUbicacion = [];
@@ -771,47 +810,27 @@ archivosCatastro.forEach(file => {
     });
 });
 
-//=====================================================
-// CURVAS DE NIVEL (FLATGEOBUF)
-//=====================================================
-
-const estiloCurvas = {
-    color: "#8B5A2B",
-    weight: 0.8,
-    opacity: 0.9
-};
-
-await cargarFGB(
-
-    BASE_URL + "atlas_pua/curvas_nivel_hidrografia/curvas_nivel_i.fgb",
-
-    grupoCurvas,
-
-    {
-        pane: "overlayPane",
-        style: estiloCurvas
-    }
-
-);
-
-await cargarFGB(
-
-    BASE_URL + "atlas_pua/curvas_nivel_hidrografia/curvas_nivel_p.fgb",
-
-    grupoCurvas,
-
-    {
-        pane: "overlayPane",
-        style: estiloCurvas
-    }
-
-);
-
 // MODIFICACIÓN: Gestión unificada de visibilidad dinámica sincronizada con el nuevo panel de capas del menú lateral
 function controlarVisibilidadDinamica() {
     let zoomActual = map.getZoom();
     
     document.getElementById('zoom-indicator').innerText = zoomActual;
+
+    // MODIFICACIÓN: Visibilidad de Curvas de Nivel
+    const chkCurvas = document.getElementById('chk-curvas').checked;
+    if (chkCurvas) {
+        if (!map.hasLayer(grupoCurvasNivel)) map.addLayer(grupoCurvasNivel);
+    } else {
+        if (map.hasLayer(grupoCurvasNivel)) map.removeLayer(grupoCurvasNivel);
+    }
+
+    // MODIFICACIÓN: Visibilidad de Arroyos
+    const chkArroyos = document.getElementById('chk-arroyos').checked;
+    if (chkArroyos) {
+        if (!map.hasLayer(grupoArroyos)) map.addLayer(grupoArroyos);
+    } else {
+        if (map.hasLayer(grupoArroyos)) map.removeLayer(grupoArroyos);
+    }
 
     // 1. Visibilidad de Manzanas y etiquetas
     const chkManzanas = document.getElementById('chk-manzanas').checked;
@@ -1035,3 +1054,5 @@ controlarVisibilidadDinamica();
 </script>
 </body>
 </html>
+
+```
