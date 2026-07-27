@@ -635,7 +635,12 @@ fetchGeoJSON(BASE_URL + "catastro/manzana.geojson").then(data => {
 
 // Capa de Parcelas (Totalmente Restituida)
 var grupoParcelas = L.layerGroup();
+    
 var parcelasLayers = [];
+
+var grupoCurvas = L.layerGroup();
+
+var grupoArroyos = L.layerGroup();
 
 // MODIFICACIÓN: Lista global e indexada para la búsqueda predictiva case-insensitive de ubicaciones (UBIPAR1 / calle y altura)
 var listaParcelasUbicacion = [];
