@@ -1,0 +1,1312 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VISOR URBANIZACIONES Y RIESGO AMBIENTAL - MUNICIPALIDAD DE PARANA</title>
+
+    <!-- Leaflet & Tailwind CSS CDN -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet-textpath@1.2.3/leaflet.textpath.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Leaflet Measure para herramientas de medición -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-measure@3.1.0/dist/leaflet-measure.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet-measure@3.1.0/dist/leaflet-measure.js"></script>
+
+    <style>
+        body { margin:0; padding:0; font-family: 'Inter', sans-serif; background: #0f172a; overflow: hidden; }
+        #map { height: 100vh; width: 100%; z-index: 1; }
+
+        /* Scrollbar personalizada del menú lateral */
+        .scrollbar-custom::-webkit-scrollbar {
+            width: 6px;
+        }
+        .scrollbar-custom::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        .scrollbar-custom::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 4px;
+        }
+        .scrollbar-custom::-webkit-scrollbar-thumb:hover {
+            background: #334155;
+        }
+
+        /* Estilos mejorados para el Popup Informativo con divisiones horizontales claras */
+        .popup-custom { 
+            font-size: 11px; 
+            line-height: 1.35; 
+            min-width: 260px; 
+            max-width: 320px;
+            max-height: 320px; 
+            overflow-y: auto; 
+            padding: 4px; 
+        }
+        .popup-header { 
+            text-align: center; 
+            font-weight: 800; 
+            border-bottom: 2px solid #cbd5e1; 
+            padding-bottom: 6px; 
+            margin-bottom: 6px; 
+            color: #ef4444; 
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.03em;
+        }
+        .table-info { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-bottom: 8px; 
+        }
+        /* Línea horizontal divisoria entre cada campo de información */
+        .table-info tr { 
+            border-bottom: 1px solid #e2e8f0; 
+        }
+        .table-info tr:last-child {
+            border-bottom: none;
+        }
+        .table-info td { 
+            padding: 5px 4px; 
+            font-size: 10px; 
+            vertical-align: top; 
+        }
+        .table-info tr td:first-child { 
+            font-weight: 800; 
+            color: #334155; 
+            width: 42%; 
+            text-transform: uppercase; 
+            padding-right: 6px;
+            letter-spacing: 0.02em;
+        }
+        .table-info tr td:last-child { 
+            color: #0f172a; 
+            font-weight: 600;
+            word-break: break-word;
+        }
+
+        .btn-streetview {
+            display: block; 
+            margin: 8px auto 4px; 
+            padding: 7px 12px; 
+            border-radius: 6px;
+            background: #3b82f6; 
+            color: white !important; 
+            text-align: center;
+            text-decoration: none; 
+            font-weight: 800; 
+            font-size: 10px;
+            letter-spacing: 0.05em;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+            transition: background 0.2s ease;
+        }
+        .btn-streetview:hover {
+            background: #2563eb;
+        }
+        
+        .adv-sv { font-size: 9px; color: #64748b; text-align: center; font-style: italic; margin-top: 4px; line-height: 1.2; }
+        
+        .adv-distrito {
+            position: absolute;
+            bottom: 35px;
+            right: 15px;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(0, 0, 0, 0.12);
+            border-radius: 10px;
+            padding: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            font-size: 9px;
+            color: #4a5568;
+            pointer-events: auto;
+        }
+        
+        .panel-info-mapa {
+            width: 280px;
+            max-width: 32vw;
+            background: transparent;
+            border: none;
+            box-shadow: none;
+            position: relative;
+            bottom: auto;
+            right: auto;
+            overflow: hidden;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 12px;
+        }
+
+        .panel-titulo {
+            font-size: 12px;
+            font-weight: 800;
+            color: #1e293b;
+            text-transform: uppercase;
+            line-height: 1.2;
+            text-align: center;
+        }
+
+        .panel-zoom {
+            margin-top: 4px;
+            font-size: 10px;
+            color: #64748b;
+            font-weight: 600;
+        }
+
+        .panel-descripcion {
+            padding: 0 12px 12px 12px;
+            font-size: 10px;
+            color: #475569;
+            line-height: 1.45;
+            text-align: justify;
+            max-height: 220px;
+            overflow-y: auto;
+            transition: all .3s ease;
+        }
+
+        .panel-descripcion.oculto {
+            max-height: 0;
+            padding: 0 12px;
+            overflow: hidden;
+        }
+
+        #btn-descripcion {
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            color: #475569;
+        }
+
+        .leaflet-control-measure {
+            border: none !important;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+            border-radius: 8px !important;
+            font-family: 'Inter', sans-serif !important;
+        }
+        .leaflet-control-measure a.has-measurements {
+            background-color: #2980b9 !important;
+        }
+        .leaflet-control-measure .js-toggle {
+            border-radius: 8px !important;
+        }
+
+        /* Estilos para etiquetas de PUNTOS DE AFECTACIÓN con ajuste multilínea (Máx 20 caracteres por línea) */
+        .etiqueta-punto-riesgo {
+            background: rgba(15, 23, 42, 0.92) !important;
+            border: 1.5px solid #ffffff !important;
+            color: #ffffff !important;
+            font-weight: 800 !important;
+            font-size: 10px !important;
+            padding: 3px 7px !important;
+            border-radius: 5px !important;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.6) !important;
+            text-align: center !important;
+            line-height: 1.25 !important;
+            white-space: normal !important;
+            max-width: 170px !important;
+            pointer-events: none !important;
+        }
+
+        /* Ocultar etiquetas de puntos cuando el nivel de zoom es menor a 16 */
+        .ocultar-etiquetas .etiqueta-punto-riesgo {
+            display: none !important;
+        }
+
+        .leaflet-tooltip {
+            pointer-events: none !important;
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- Menú lateral colapsable en tonos oscuros con búsquedas, capas y resumen -->
+<div id="sidebar" class="fixed top-0 left-0 h-full w-[360px] max-w-[85vw] bg-slate-900 border-r border-slate-800 text-slate-100 flex flex-col z-[1000] shadow-2xl transition-transform duration-300 ease-in-out transform">
+    
+    <!-- Encabezado del visor -->
+    <div class="p-4 border-b border-slate-800 bg-slate-950/40">
+        <h1 class="text-xs font-black text-blue-400 tracking-wider uppercase text-center">Visor Urbano y Riesgo Ambiental</h1>
+        <p class="text-[10px] text-slate-400 text-center font-bold mt-1">DIRECCIÓN DE CARTOGRAFÍA Y DATOS ESPACIALES</p>
+    </div>
+
+    <!-- Contenido Scrollable -->
+    <div class="flex-1 overflow-y-auto p-4 space-y-5 scrollbar-custom">
+        
+        <!-- Bloque de Búsquedas -->
+        <div class="space-y-3">
+            <h2 class="text-xs font-extrabold uppercase tracking-widest text-slate-400 border-b border-slate-800 pb-1.5">Búsquedas catastrales</h2>
+            
+            <!-- Búsqueda por Partida (PM) -->
+            <div class="space-y-1">
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Buscar por Partida (PM)</label>
+                <div class="flex gap-2">
+                    <input type="text" id="input-pm" placeholder="Partida (p. ej. 13245)" class="flex-1 bg-slate-850 border border-slate-700 rounded-md px-3 py-1.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                    <button class="bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs px-4 rounded-md transition shadow" onclick="buscarPM()">Buscar</button>
+                </div>
+            </div>
+
+            <!-- Búsqueda por Dirección Predictiva -->
+            <div class="space-y-1 relative">
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Dirección (Calle y Altura - Predictivo)</label>
+                <input type="text" id="input-ubicacion" placeholder="Buscar dirección (p. ej. San Martín 123)..." class="w-full bg-slate-850 border border-slate-700 rounded-md px-3 py-1.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition" autocomplete="off">
+                <div id="sugerencias-ubicacion" class="absolute left-0 right-0 bg-slate-800 border border-slate-700 rounded-md max-h-52 overflow-y-auto mt-1 hidden z-[2000] shadow-2xl scrollbar-custom"></div>
+            </div>
+
+            <!-- Búsqueda de Lugares en Google / Nominatim -->
+            <div class="space-y-1">
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Buscar Lugares o Puntos de interés</label>
+                <div class="flex gap-2">
+                    <input type="text" id="input-google" placeholder="Lugar (p. ej. Plaza de Mayo)..." class="flex-1 bg-slate-850 border border-slate-700 rounded-md px-3 py-1.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                    <button class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs px-4 rounded-md transition shadow" onclick="buscarGoogle()">Google</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bloque de Capas -->
+        <div class="space-y-3">
+            <h2 class="text-xs font-extrabold uppercase tracking-widest text-slate-400 border-b border-slate-800 pb-1.5">Control de capas</h2>
+            
+            <!-- Selector de Mapas Base -->
+            <div class="space-y-1.5">
+                <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide">Mapa Base</span>
+                <div class="space-y-1">
+                    <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
+                        <input type="radio" name="basemap" value="dark" checked onchange="cambiarBaseMap('dark')" class="bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
+                        <span>Mapa Oscuro</span>
+                    </label>
+                    <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
+                        <input type="radio" name="basemap" value="hibrido" onchange="cambiarBaseMap('hibrido')" class="bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
+                        <span>Híbrido (Satelital)</span>
+                    </label>
+                    <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
+                        <input type="radio" name="basemap" value="osm" onchange="cambiarBaseMap('osm')" class="bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
+                        <span>OpenStreetMap</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Capas Base Urbanas -->
+            <div class="space-y-1.5 pt-1">
+                <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide">Capas Urbanas y Catastro</span>
+                <div class="space-y-1.5">
+                    <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
+                        <input type="checkbox" id="chk-manzanas" checked onchange="toggleOverlay('manzanas')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
+                        <span class="flex items-center gap-2">
+                            <span class="w-3.5 h-3.5 rounded border border-[#ff6b6b] bg-[rgba(255,107,107,0.15)] inline-block"></span>
+                            <span>Manzanas</span>
+                        </span>
+                    </label>
+                    <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
+                        <input type="checkbox" id="chk-calles" checked onchange="toggleOverlay('calles')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
+                        <span class="flex items-center gap-2">
+                            <span class="w-3.5 h-1 bg-[#FFFF00] inline-block"></span>
+                            <span>Nombres de Calles</span>
+                        </span>
+                    </label>
+                    <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
+                        <input type="checkbox" id="chk-parcelas" checked onchange="toggleOverlay('parcelas')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
+                        <span class="flex items-center gap-2">
+                            <span class="w-3.5 h-3.5 rounded bg-[#2980b9] inline-block"></span>
+                            <span>Parcelas Catastrales</span>
+                        </span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- CAPAS: Riesgo Socioambiental -->
+            <div class="space-y-2 pt-2 border-t border-slate-800">
+                <span class="block text-[10px] font-bold text-red-400 uppercase tracking-wide">⚠️ Capas de Riesgo Socioambiental</span>
+                
+                <!-- Polígonos de Riesgo -->
+                <div class="space-y-1">
+                    <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
+                        <input type="checkbox" id="chk-riesgo-poligonos" checked onchange="toggleOverlay('riesgo-poligonos')" class="rounded bg-slate-800 border-slate-700 text-purple-500 focus:ring-purple-500">
+                        <span class="font-bold">Polígonos de Riesgo</span>
+                    </label>
+                    <div class="pl-6 space-y-1 text-[10px] text-slate-400">
+                        <div class="flex items-center gap-2">
+                            <span class="w-3 h-3 rounded border border-white bg-slate-700 inline-block"></span>
+                            <span>Color según clasificación de Riesgo (Alto, Medio, Bajo, Residual)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Puntos de Riesgo / Afectación -->
+                <div class="space-y-1 pt-1">
+                    <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
+                        <input type="checkbox" id="chk-riesgo-puntos" checked onchange="toggleOverlay('riesgo-puntos')" class="rounded bg-slate-800 border-slate-700 text-amber-500 focus:ring-amber-500">
+                        <span class="font-bold">Puntos de Afectación (por Criterio)</span>
+                    </label>
+                    <div class="pl-6 space-y-1 text-[10px] text-slate-400">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-red-500 inline-block"></span>
+                            <span><b>Alto:</b> Inestabilidad / Relocalización</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-orange-500 inline-block"></span>
+                            <span><b>Medio:</b> Mitigación / Prevención</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-yellow-400 inline-block"></span>
+                            <span><b>Bajo:</b> Mantenimiento menor</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-blue-500 inline-block"></span>
+                            <span><b>Residual:</b> Seguimiento continuo</span>
+                        </div>
+                        <div class="flex items-center gap-2 text-slate-300 pt-0.5">
+                            <span class="w-2 h-2 rounded-full bg-white inline-block"></span>
+                            <span><b>Etiquetas:</b> Visibles en Zoom ≥ 16 (Máx 20 chars/línea)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BLOQUE: Resumen Ejecutivo del Informe de Riesgo Socioambiental -->
+        <div class="space-y-2 pt-2 border-t border-slate-800">
+            <h2 class="text-xs font-extrabold uppercase tracking-widest text-amber-400 border-b border-slate-800 pb-1.5 flex justify-between items-center">
+                <span>📋 Resumen del Informe</span>
+                <span class="text-[9px] bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded font-normal">Julio 2026</span>
+            </h2>
+            <div class="bg-slate-950/40 p-3 rounded-lg border border-slate-800 text-[10px] text-slate-300 space-y-2 leading-relaxed">
+                <p class="font-bold text-slate-100 text-xs border-b border-slate-800 pb-1">Priorización Territorial para la Gestión del Riesgo Socioambiental</p>
+                <p class="text-slate-400">Identificación preliminar de amenazas y sectores de exposición en el ejido urbano de Paraná (Secretaría de Planificación e Infraestructura - UEM).</p>
+                
+                <div class="bg-slate-900/90 p-2 rounded border border-slate-800 space-y-1">
+                    <p class="font-bold text-amber-300">📊 Diagnóstico & Cifras Clave:</p>
+                    <ul class="list-disc pl-3 text-slate-300 space-y-0.5">
+                        <li><b>~1.105 viviendas</b> potencialmente expuestas a amenazas socioambientales.</li>
+                        <li>Análisis integrado con SIG, registros institucionales e imágenes satelitales.</li>
+                    </ul>
+                </div>
+
+                <div class="space-y-1">
+                    <p class="font-bold text-blue-300">🌊 Principal Tipología de Amenazas:</p>
+                    <div class="grid grid-cols-1 gap-1 pl-1">
+                        <div class="flex items-start gap-1.5">
+                            <span class="text-blue-400">▪</span>
+                            <span><b>Márgenes de Arroyos:</b> Erosión, crecidas e inestabilidad del terreno.</span>
+                        </div>
+                        <div class="flex items-start gap-1.5">
+                            <span class="text-indigo-400">▪</span>
+                            <span><b>Borde Costero:</b> Exposición a inundaciones, erosión y socavación.</span>
+                        </div>
+                        <div class="flex items-start gap-1.5">
+                            <span class="text-amber-400">▪</span>
+                            <span><b>Barrancas:</b> Deslizamientos, desprendimientos e inestabilidad de suelo.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-1">
+                    <p class="font-bold text-slate-200">🚦 Niveles de Prioridad Territorial:</p>
+                    <div class="space-y-1 text-[9px]">
+                        <div class="flex items-center gap-2 bg-red-950/40 p-1 rounded border border-red-900/50">
+                            <span class="w-2.5 h-2.5 rounded-full bg-red-500 shrink-0"></span>
+                            <span><b>Alto:</b> Procesos activos e inestabilidad importante. Evaluación de relocalización.</span>
+                        </div>
+                        <div class="flex items-center gap-2 bg-orange-950/40 p-1 rounded border border-orange-900/50">
+                            <span class="w-2.5 h-2.5 rounded-full bg-orange-500 shrink-0"></span>
+                            <span><b>Medio:</b> Exposición moderada. Requiere obras preventivas/mitigación.</span>
+                        </div>
+                        <div class="flex items-center gap-2 bg-yellow-950/40 p-1 rounded border border-yellow-900/50">
+                            <span class="w-2.5 h-2.5 rounded-full bg-yellow-400 shrink-0"></span>
+                            <span><b>Bajo:</b> Exposición limitada. Mantenimiento e intervenciones menores.</span>
+                        </div>
+                        <div class="flex items-center gap-2 bg-blue-950/40 p-1 rounded border border-blue-900/50">
+                            <span class="w-2.5 h-2.5 rounded-full bg-blue-500 shrink-0"></span>
+                            <span><b>Residual:</b> Sin exposición significativa identificada. Bajo seguimiento.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <p class="text-[8px] text-slate-500 pt-1 border-t border-slate-800/80">
+                    Elaborado por: Ing. Amb. Lucia Kriger (Área Ambiental UEM) & Mgtr. Lic. Yanina Ramirez (Área Social UEM)
+                </p>
+            </div>
+        </div>
+
+        <!-- Leyenda / Información del Visor -->
+        <div class="space-y-3 pt-1">
+            <h2 class="text-xs font-extrabold uppercase tracking-widest text-slate-400 border-b border-slate-800 pb-1.5">Información útil</h2>
+            <div class="text-[11px] text-slate-400 space-y-1.5 leading-relaxed bg-slate-950/20 p-3 rounded-lg border border-slate-850">
+                <p>📏 Use la regla en el margen superior derecho para realizar mediciones de longitud y área.</p>
+                <p>⚡ Las parcelas catastrales y los nombres de las calles se visualizan automáticamente a niveles de zoom cercanos (Zoom >= 15/16).</p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- BOTÓN DE COLAPSO -->
+    <button onclick="toggleSidebar()" class="absolute top-3 left-full ml-3 bg-slate-900 border border-slate-800 text-slate-300 p-2.5 rounded-lg shadow-xl hover:text-white hover:bg-slate-800 transition-colors focus:outline-none z-[1010]" title="Mostrar/Ocultar Menú">
+        <svg id="toggle-icon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transform transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg>
+    </button>
+</div>
+
+<!-- Cuadro Informativo de Distritos con indicador de Zoom -->
+<div class="adv-distrito">
+    <div id="panel-info-mapa" class="panel-info-mapa">
+        <div class="panel-header">
+            <div style="width:100%;">
+                <div class="panel-titulo" id="titulo-mapa">
+                    GESTIÓN DEL RIESGO SOCIOAMBIENTAL
+                </div>
+                <div class="panel-zoom" style="text-align:center;">
+                    Zoom: <span id="zoom-indicator">12</span>
+                </div>
+            </div>
+            <button onclick="toggleDescripcionMapa()" id="btn-descripcion">▼</button>
+        </div>
+
+        <div id="descripcion-mapa" class="panel-descripcion">
+            <b>Diagnóstico Preliminar de Riesgo Socioambiental (Julio 2026)</b><br>
+            Estudio elaborado por la Secretaría de Planificación e Infraestructura (UEM) para identificar sectores vulnerables por amenazas de arroyos, borde costero y barrancas. Se estiman ~1.105 viviendas expuestas.<br><br>
+            <b>Criterios de Prioridad:</b><br>
+            🔴 <b>Alto:</b> Relocalización / Obras urgentes.<br>
+            🟠 <b>Medio:</b> Mitigación / Prevención.<br>
+            🟡 <b>Bajo:</b> Mantenimiento menor.<br>
+            🔵 <b>Residual:</b> Monitoreo continuo.
+        </div>
+
+        <hr style="margin:8px 0;">
+
+        <div class="text-[9px] text-slate-500">
+            IDE Paraná - Límites indicativos (Ord. 8563). Zoom Máx: 22.
+        </div>
+
+        <div class="text-[8px] text-slate-400 font-semibold mt-1">
+            Elaborado por Dirección de Cartografía y Datos Espaciales & UEM
+        </div>
+    </div>
+</div>
+
+<div id="map"></div>
+
+<script>
+const BASE_URL = "https://raw.githubusercontent.com/dcartografiayde/IDE-PARANA/main/";
+
+/* ================= FUNCIONES DE LIMPIEZA Y DECODIFICACIÓN DE TEXTO ================= */
+function decodificarTexto(str) {
+    if (!str || typeof str !== 'string') return str;
+    try {
+        let textoCorregido = str;
+
+        // Correcciones de secuencias utf-8 dobles / windows-1252
+        const correcciones = {
+            'Ã¡': 'á', 'Ã©': 'é', 'Ã­': 'í', 'Ã³': 'ó', 'Ãº': 'ú',
+            'Ã ': 'Á', 'Ã‰': 'É', 'Ã ': 'Í', 'Ã“': 'Ó', 'Ãš': 'Ú',
+            'Ãñ': 'ñ', 'Ã‘': 'Ñ', 'Â°': '°', 'Ã¼': 'ü', 'Â¿': '¿',
+            'Â': ''
+        };
+        for (let mal in correcciones) {
+            textoCorregido = textoCorregido.split(mal).join(correcciones[mal]);
+        }
+
+        // Corrección de símbolo de grado en coordenadas (p. ej. 31ï¿½43'57"S -> 31°43'57"S)
+        textoCorregido = textoCorregido.replace(/(\d+)\s*[ïÏ\uFFFD]¿?½?\s*(\d+)/g, '$1°$2');
+
+        const reemplazosClave = [
+            { mal: /TORRE[ïÏ\uFFFD]¿?½?N/gi, bien: 'TORREÓN' },
+            { mal: /Torre[ïÏ\uFFFD]¿?½?n/gi, bien: 'Torreón' },
+            { mal: /APROBACI[ïÏ\uFFFD]¿?½?N/gi, bien: 'APROBACIÓN' },
+            { mal: /Aprobaci[ïÏ\uFFFD]¿?½?n/gi, bien: 'Aprobación' },
+            { mal: /ASOCIACI[ïÏ\uFFFD]¿?½?N/gi, bien: 'ASOCIACIÓN' },
+            { mal: /Asociaci[ïÏ\uFFFD]¿?½?n/gi, bien: 'Asociación' },
+            { mal: /CONSTITUCI[ïÏ\uFFFD]¿?½?N/gi, bien: 'CONSTITUCIÓN' },
+            { mal: /Constituci[ïÏ\uFFFD]¿?½?n/gi, bien: 'Constitución' },
+            { mal: /DECLARACI[ïÏ\uFFFD]¿?½?N/gi, bien: 'DECLARACIÓN' },
+            { mal: /Declaraci[ïÏ\uFFFD]¿?½?n/gi, bien: 'Declaración' },
+            { mal: /URBANIZACI[ïÏ\uFFFD]¿?½?N/gi, bien: 'URBANIZACIÓN' },
+            { mal: /Urbanizaci[ïÏ\uFFFD]¿?½?n/gi, bien: 'Urbanización' },
+            { mal: /PROLONGACI[ïÏ\uFFFD]¿?½?N/gi, bien: 'PROLONGACIÓN' },
+            { mal: /Prolongaci[ïÏ\uFFFD]¿?½?n/gi, bien: 'Prolongación' },
+            { mal: /SECCI[ïÏ\uFFFD]¿?½?N/gi, bien: 'SECCIÓN' },
+            { mal: /Secci[ïÏ\uFFFD]¿?½?n/gi, bien: 'Sección' },
+            { mal: /ESTACI[ïÏ\uFFFD]¿?½?N/gi, bien: 'ESTACIÓN' },
+            { mal: /Estaci[ïÏ\uFFFD]¿?½?n/gi, bien: 'Estación' },
+            { mal: /REVOLUCI[ïÏ\uFFFD]¿?½?N/gi, bien: 'REVOLUCIÓN' },
+            { mal: /Revoluci[ïÏ\uFFFD]¿?½?n/gi, bien: 'Revolución' },
+            { mal: /N[ïÏ\uFFFD]¿?½?/g, bien: 'Nº' },
+            { mal: /n[ïÏ\uFFFD]¿?½?/g, bien: 'nº' },
+            { mal: /PARAN[ïÏ\uFFFD]¿?½?/gi, bien: 'PARANÁ' },
+            { mal: /Paran[ïÏ\uFFFD]¿?½?/gi, bien: 'Paraná' },
+            { mal: /CI[ïÏ\uFFFD]¿?½?N/g, bien: 'CIÓN' },
+            { mal: /ci[ïÏ\uFFFD]¿?½?n/g, bien: 'ción' }
+        ];
+
+        for (let r of reemplazosClave) {
+            textoCorregido = textoCorregido.replace(r.mal, r.bien);
+        }
+
+        // Limpieza final de cualquier caracter de reemplazo utf8 remanente
+        textoCorregido = textoCorregido.replace(/[ïÏ]¿½/g, '°').replace(/\uFFFD/g, '°');
+
+        return textoCorregido;
+    } catch (e) { return str; }
+}
+
+function normalizarId(val) {
+    if (val === null || val === undefined) return "";
+    let s = String(val).trim();
+    if (s.toLowerCase() === "null" || s === "0") return "";
+    return s.replace(/\.0$/, "");
+}
+
+/* Función para formatear textos largos en líneas de máximo 20 caracteres por renglón */
+function formatearTextoEtiqueta(texto, maxChars = 20) {
+    if (!texto) return "";
+    let str = String(texto).trim();
+
+    // Separar por renglones HTML preexistentes si los hubiera
+    let lineasOriginales = str.split(/<br\s*\/?>/i);
+    let lineasFinales = [];
+
+    lineasOriginales.forEach(subStr => {
+        let palabras = subStr.split(/\s+/);
+        let lineaActual = "";
+
+        palabras.forEach(palabra => {
+            if ((lineaActual + " " + palabra).trim().length <= maxChars) {
+                lineaActual = (lineaActual + " " + palabra).trim();
+            } else {
+                if (lineaActual) lineasFinales.push(lineaActual);
+                lineaActual = palabra;
+            }
+        });
+        if (lineaActual) lineasFinales.push(lineaActual);
+    });
+
+    return lineasFinales.join("<br>");
+}
+
+async function fetchGeoJSON(url) {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    const arrayBuffer = await response.arrayBuffer();
+    
+    const decoderUTF8 = new TextDecoder('utf-8');
+    let text = decoderUTF8.decode(arrayBuffer);
+    
+    if (text.includes('\uFFFD')) {
+        const decoderANSI = new TextDecoder('windows-1252');
+        text = decoderANSI.decode(arrayBuffer);
+    }
+    return JSON.parse(text);
+}
+
+// Inicialización del mapa en Paraná
+var map = L.map('map', { 
+    center: [-31.745, -60.51], 
+    zoom: 12, 
+    zoomControl: true,
+    maxZoom: 22
+});
+
+// Creación explícita de paneles ordenados por Z-Index
+map.createPane('manzanasPane');
+map.getPane('manzanasPane').style.zIndex = 300;
+map.getPane('manzanasPane').style.pointerEvents = 'none';
+
+map.createPane('parcelasPane');
+map.getPane('parcelasPane').style.zIndex = 350;
+map.getPane('parcelasPane').style.pointerEvents = 'auto';
+
+map.createPane('riesgoPoligonosPane');
+map.getPane('riesgoPoligonosPane').style.zIndex = 380;
+map.getPane('riesgoPoligonosPane').style.pointerEvents = 'auto';
+
+map.createPane('riesgoPuntosPane');
+map.getPane('riesgoPuntosPane').style.zIndex = 400;
+map.getPane('riesgoPuntosPane').style.pointerEvents = 'auto';
+
+map.createPane('atlasPane');
+map.getPane('atlasPane').style.zIndex = 320;
+map.getPane('atlasPane').style.pointerEvents = 'auto';
+
+map.createPane('atlasLabelsPane');
+map.getPane('atlasLabelsPane').style.zIndex = 650;
+map.getPane('atlasLabelsPane').style.pointerEvents = 'none';
+
+var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 22, maxNativeZoom: 19 });
+var dark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 22, maxNativeZoom: 20 });
+var sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 22, maxNativeZoom: 18 });
+var ref = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}', { maxZoom: 22, maxNativeZoom: 18 });
+var hibrido = L.layerGroup([sat, ref]);
+
+dark.addTo(map);
+
+// Calles cargadas asíncronamente
+var grupoCalles = L.layerGroup();
+var listaCallesParaBusqueda = [];
+
+fetchGeoJSON(BASE_URL + "calles.geojson").then(data => {
+    L.geoJSON(data, {
+        style: { color: "#FFFF00", weight: 6, opacity: 0.01 },
+        onEachFeature: (f, l) => {
+            if (f.properties.nombre) {
+                let nombreCalle = decodificarTexto(f.properties.nombre);
+                listaCallesParaBusqueda.push({ nombre: nombreCalle.toUpperCase(), layer: l });
+                l.on('click', (e) => {
+                    let latlng = e.latlng || l.getBounds().getCenter();
+                    let sv = `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${latlng.lat},${latlng.lng}`;
+                    l.bindPopup(`<b>Calle:</b> ${nombreCalle.toUpperCase()}<br><a href="${sv}" target="_blank" class="btn-streetview">📍 STREET VIEW</a>`).openPopup();
+                });
+            }
+        }
+    }).addTo(grupoCalles);
+    activarEtiquetasCalles();
+});
+
+function toggleDescripcionMapa() {
+    const descripcion = document.getElementById("descripcion-mapa");
+    const boton = document.getElementById("btn-descripcion");
+
+    if (!descripcion || !boton) return;
+
+    descripcion.classList.toggle("oculto");
+    boton.innerHTML = descripcion.classList.contains("oculto") ? "►" : "▼";
+}
+
+function activarEtiquetasCalles() {
+    const renderLabels = () => {
+        let z = map.getZoom();
+        const activeOnMap = map.hasLayer(grupoCalles);
+
+        let etiquetasColocadas = {}; 
+
+        grupoCalles.eachLayer(geoJsonGroup => {
+            geoJsonGroup.eachLayer(ly => {
+                if (ly.setText) {
+                    try { ly.setText(null); } catch (e) {}
+
+                    if (activeOnMap && z >= 16 && ly._map && ly._renderer && ly.feature && ly.feature.properties.nombre) {
+                        try {
+                            if (map.getBounds().intersects(ly.getBounds())) {
+                                let nombreCalle = decodificarTexto(ly.feature.properties.nombre).toUpperCase();
+
+                                let latlngs = ly.getLatLngs();
+                                if (Array.isArray(latlngs[0])) latlngs = latlngs.flat(2);
+                                
+                                let largoMetros = 0;
+                                for (let i = 0; i < latlngs.length - 1; i++) {
+                                    if (latlngs[i] && latlngs[i+1]) {
+                                        largoMetros += latlngs[i].distanceTo(latlngs[i+1]);
+                                    }
+                                }
+
+                                if (largoMetros < 70) return;
+
+                                let centro = ly.getBounds().getCenter();
+
+                                let duplicadoCercano = false;
+                                if (etiquetasColocadas[nombreCalle]) {
+                                    for (let pt of etiquetasColocadas[nombreCalle]) {
+                                        if (centro.distanceTo(pt) < 200) {
+                                            duplicadoCercano = true;
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                if (!duplicadoCercano) {
+                                    if (!etiquetasColocadas[nombreCalle]) {
+                                        etiquetasColocadas[nombreCalle] = [];
+                                    }
+                                    etiquetasColocadas[nombreCalle].push(centro);
+
+                                    ly.setText(nombreCalle, {
+                                        repeat: false,
+                                        center: true, 
+                                        orientation: 'flip',
+                                        offset: 0,
+                                        attributes: { 
+                                            fill: '#FFFF00', 
+                                            'font-weight': 'bold', 
+                                            'font-size': z >= 18 ? '13' : '10',
+                                            'stroke': 'black', 
+                                            'stroke-width': '2px', 
+                                            'paint-order': 'stroke'
+                                        }
+                                    });
+                                }
+                            }
+                        } catch (err) {}
+                    }
+                }
+            });
+        });
+    };
+
+    map.on('zoomend moveend', renderLabels);
+    map.on('layeradd layerremove', (e) => {
+        if (e.layer === grupoCalles) {
+            renderLabels();
+        }
+    });
+
+    renderLabels();
+}
+
+// Capa de Manzanas
+var grupoManzanas = L.layerGroup().addTo(map);
+
+fetchGeoJSON(BASE_URL + "catastro/manzana.geojson").then(data => {
+    L.geoJSON(data, {
+        pane: 'manzanasPane', 
+        filter: (f) => f && f.geometry && f.geometry.coordinates && f.geometry.coordinates.length > 0,
+        style: {
+            color: "#ff6b6b", 
+            weight: 1,         
+            fillColor: "transparent",
+            fillOpacity: 0,
+            interactive: false 
+        }
+    }).addTo(grupoManzanas);
+    controlarVisibilidadDinamica(); 
+}).catch(err => {
+    console.error("Error al cargar la capa de manzanas:", err);
+});
+
+// Capa de Parcelas
+var grupoParcelas = L.layerGroup();
+var parcelasLayers = [];
+var listaParcelasUbicacion = [];
+
+function pointInPoly(point, vs) {
+    var x = point[0], y = point[1];
+    var inside = false;
+    for (var i = 0, j = vs.length - 1; i < vs.length; j = i++) {
+        var xi = vs[i][0], yi = vs[i][1];
+        var xj = vs[j][0], yj = vs[j][1];
+        var intersect = ((yi > y) != (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+        if (intersect) inside = !inside;
+    }
+    return inside;
+}
+
+const archivosCatastro = ["parcela1_4.geojson", "parcela5_7.geojson", "parcela8_15.geojson"];
+archivosCatastro.forEach(file => {
+    fetchGeoJSON(BASE_URL + "catastro/" + file).then(data => {
+        let grupos = {};
+        data.features.forEach(f => {
+            if (!f.geometry || !f.geometry.coordinates) return;
+            let key = JSON.stringify(f.geometry.coordinates);
+            if (!grupos[key]) grupos[key] = [];
+            grupos[key].push(f);
+        });
+
+        let featuresProcesadas = Object.values(grupos).map(g => {
+            let base = g[0];
+            return {
+                type: "Feature", geometry: base.geometry,
+                properties: {
+                    esPH: g.length > 1,
+                    partidas: g.map(x => String(x.properties.nropasd || x.properties.nropas || "").trim()),
+                    ubicacion: base.properties.ubipar1 || "-",
+                    full: base.properties
+                }
+            };
+        });
+
+        let ly = L.geoJSON(featuresProcesadas, {
+            pane: 'parcelasPane', 
+            style: f => ({ color: f.properties.esPH ? "#8e44ad" : "#2980b9", weight: 0.7, fillOpacity: 0.12 }),
+            onEachFeature: (f, l) => {
+                l.on('click', e => {
+                    let latlng = e.latlng || l.getBounds().getCenter();
+                    let p = f.properties;
+                    let sv = `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${latlng.lat},${latlng.lng}`;
+
+                    let content = `<div class="popup-custom"><div class="popup-header">DATOS DE LA PARCELA</div>`;
+                    
+                    if (p.esPH) {
+                        content += `<div style="padding:2px; font-size:9px;"><b>PH DETECTADA</b><br><b>PARTIDAS:</b> ${p.partidas.join(", ")}<br><b>UBICACIÓN:</b> ${decodificarTexto(p.ubicacion)}</div>`;
+                    } else {
+                        content += `<table class="table-info">`;
+                        for (let [k, v] of Object.entries(p.full)) { 
+                            if (v && v !== "0") content += `<tr><td>${decodificarTexto(k).toUpperCase()}</td><td>${decodificarTexto(String(v))}</td></tr>`; 
+                        }
+                        content += `</table>`;
+                    }
+                    content += `<a href="${sv}" target="_blank" class="btn-streetview">📍 STREET VIEW</a>`;
+                    content += `<div class="adv-sv">Para mejor orientación, haga clic en el frente de la parcela.</div>`;
+                    content += `</div>`;
+                    
+                    l.bindPopup(content, { autoPanPadding: L.point(10, 110) }).openPopup(latlng);
+                });
+
+                if (f.properties.ubicacion && f.properties.ubicacion !== "-" && f.properties.ubicacion.trim() !== "") {
+                    let ubiClean = decodificarTexto(f.properties.ubicacion).toUpperCase().trim();
+                    listaParcelasUbicacion.push({
+                        texto: ubiClean,
+                        layer: l
+                    });
+                }
+            }
+        });
+        parcelasLayers.push(ly);
+        grupoParcelas.addLayer(ly);
+    }).catch(err => {
+        console.error("Error al cargar archivo de catastro: " + file, err);
+    });
+});
+
+/* ================= LÓGICA Y CLASIFICACIÓN PRECISA DE PUNTOS Y POLÍGONOS DE RIESGO =================
+   🔴 Alto: Rojo (#ef4444)
+   🟠 Medio: Naranja (#f97316)
+   🟡 Bajo: Amarillo (#facc15)
+   🔵 Residual: Azul (#3b82f6)
+*/
+function obtenerColorPuntoRiesgo(props) {
+    if (!props) return '#ef4444';
+    
+    let valCriterio = '';
+
+    // Búsqueda prioritaria de la propiedad "CRITERIOS DE CLASIFICACIÓN" o variantes específicas
+    for (let k in props) {
+        if (!props[k]) continue;
+        let kClean = k.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+        if (kClean.includes('criterio') || kClean === 'clasificacion' || kClean.includes('clasificaci')) {
+            let strVal = decodificarTexto(String(props[k])).toLowerCase().trim();
+            if (strVal.includes('alto') || strVal.includes('alta') || strVal.includes('medio') || strVal.includes('media') || strVal.includes('bajo') || strVal.includes('baja') || strVal.includes('residual')) {
+                valCriterio = strVal;
+                break;
+            }
+        }
+    }
+
+    // Si no encontró en un campo directo con la palabra 'criterio', buscar en los valores directos
+    if (!valCriterio) {
+        for (let k in props) {
+            if (!props[k]) continue;
+            let strVal = decodificarTexto(String(props[k])).toLowerCase().trim();
+            if (strVal === 'alto' || strVal === 'alta' || strVal === 'medio' || strVal === 'media' || strVal === 'bajo' || strVal === 'baja' || strVal === 'residual') {
+                valCriterio = strVal;
+                break;
+            }
+        }
+    }
+
+    // Evaluación directa del criterio de clasificación
+    if (valCriterio.includes('alto') || valCriterio.includes('alta')) return '#ef4444';    // Rojo
+    if (valCriterio.includes('medio') || valCriterio.includes('media')) return '#f97316';  // Naranja
+    if (valCriterio.includes('bajo') || valCriterio.includes('baja')) return '#facc15';   // Amarillo
+    if (valCriterio.includes('residual')) return '#3b82f6';                               // Azul
+    
+    return '#ef4444'; // Fallback por defecto (Alto)
+}
+
+function obtenerColorPoligonoRiesgo(props) {
+    if (!props) return '#f43f5e';
+
+    let valName = props.name || props.NAME || props.id || props.ID;
+    let idNorm = normalizarId(valName);
+
+    // Si coincide con un Punto de Afectación identificado, toma su color exacto de clasificación
+    if (idNorm && mapaColoresPuntosPorId[idNorm]) {
+        return mapaColoresPuntosPorId[idNorm];
+    }
+
+    // O bien, evalúa si sus propiedades contienen el nivel de riesgo directamente
+    for (let k in props) {
+        if (!props[k]) continue;
+        let strVal = decodificarTexto(String(props[k])).toLowerCase().trim();
+        if (strVal.includes('alto') || strVal.includes('alta')) return '#ef4444';
+        if (strVal.includes('medio') || strVal.includes('media')) return '#f97316';
+        if (strVal.includes('bajo') || strVal.includes('baja')) return '#facc15';
+        if (strVal.includes('residual')) return '#3b82f6';
+    }
+
+    return '#f43f5e'; // Fallback
+}
+
+var grupoRiesgoPuntos = L.layerGroup().addTo(map);
+var mapaColoresPuntosPorId = {}; 
+var grupoRiesgoPoligonos = L.layerGroup().addTo(map);
+
+// Carga sincronizada de Puntos y Polígonos de Riesgo
+Promise.all([
+    fetchGeoJSON(BASE_URL + "riesgo_ambiental/riesgo_ambiental_puntos.geojson"),
+    fetchGeoJSON(BASE_URL + "riesgo_ambiental/riesgo_ambiental_poligonos.geojson")
+]).then(([dataPuntos, dataPoligonos]) => {
+    
+    // 1. Procesar Puntos de Riesgo: Asignación de Color, Etiquetas y Popups
+    L.geoJSON(dataPuntos, {
+        pane: 'riesgoPuntosPane',
+        pointToLayer: (f, latlng) => {
+            let p = f.properties || {};
+            let col = obtenerColorPuntoRiesgo(p);
+
+            let idPunto = normalizarId(p.NAME || p.name || p.id || p.ID);
+            if (idPunto) {
+                mapaColoresPuntosPorId[idPunto] = col;
+            }
+
+            return L.circleMarker(latlng, {
+                radius: 8,
+                fillColor: col,
+                color: '#ffffff',
+                weight: 2.5,
+                opacity: 1,
+                fillOpacity: 0.95
+            });
+        },
+        onEachFeature: (f, l) => {
+            let p = f.properties || {};
+            let colorRiesgo = obtenerColorPuntoRiesgo(p);
+
+            // A. Construcción del texto de la etiqueta del Punto
+            let idPunto = normalizarId(p.NAME || p.name || p.id || p.ID);
+            let barrio = p["BARRIO/VECINAL"] || p["BARRIO"] || p["barrio"] || p["VECINAL"] || p["vecinal"] || "";
+            if (barrio) barrio = decodificarTexto(String(barrio)).trim();
+
+            let textoBaseEtiqueta = "";
+            if (idPunto) {
+                textoBaseEtiqueta = `Nº ${idPunto}`;
+                if (barrio && barrio.toLowerCase() !== "null" && barrio !== idPunto) {
+                    textoBaseEtiqueta += `<br>${barrio}`;
+                }
+            } else if (barrio) {
+                textoBaseEtiqueta = barrio;
+            } else {
+                for (let k in p) {
+                    let valStr = String(p[k] || "").trim();
+                    if (valStr && valStr.toLowerCase() !== "null" && valStr !== "0") {
+                        textoBaseEtiqueta = decodificarTexto(valStr);
+                        break;
+                    }
+                }
+            }
+
+            // B. Aplicación del formateo multilínea de Máximo 20 caracteres
+            if (textoBaseEtiqueta) {
+                let textoEtiquetaFormateado = formatearTextoEtiqueta(textoBaseEtiqueta, 20);
+                l.bindTooltip(textoEtiquetaFormateado, {
+                    permanent: true,
+                    direction: 'top',
+                    offset: [0, -8],
+                    className: 'etiqueta-punto-riesgo'
+                });
+            }
+
+            // C. Interaction y Popups con formato limpio y divisores horizontales
+            l.on('click', e => {
+                let latlng = e.latlng;
+                let sv = `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${latlng.lat},${latlng.lng}`;
+
+                let content = `<div class="popup-custom">
+                    <div class="popup-header" style="color:${colorRiesgo};">📍 PUNTO DE AFECTACIÓN / RIESGO</div>
+                    <table class="table-info">`;
+                
+                for (let [k, v] of Object.entries(p)) {
+                    if (v !== undefined && v !== null && v !== "0" && String(v).trim() !== "null") {
+                        let claveDeco = decodificarTexto(k).toUpperCase();
+                        let valorDeco = decodificarTexto(String(v));
+                        content += `<tr><td>${claveDeco}</td><td>${valorDeco}</td></tr>`;
+                    }
+                }
+                
+                content += `</table>
+                    <a href="${sv}" target="_blank" class="btn-streetview">📍 STREET VIEW</a>
+                </div>`;
+
+                l.bindPopup(content, { autoPanPadding: L.point(10, 110) }).openPopup(latlng);
+            });
+        }
+    }).addTo(grupoRiesgoPuntos);
+
+    // 2. Procesar Polígonos de Riesgo
+    L.geoJSON(dataPoligonos, {
+        pane: 'riesgoPoligonosPane',
+        style: f => {
+            let p = f.properties || {};
+            let colorPoligono = obtenerColorPoligonoRiesgo(p);
+
+            let valName = null;
+            for (let k in p) {
+                if (k.toLowerCase() === 'name' || k.toLowerCase() === 'id') {
+                    valName = p[k];
+                    break;
+                }
+            }
+            let idPoligono = normalizarId(valName);
+
+            if (idPoligono || colorPoligono !== '#f43f5e') {
+                return {
+                    color: colorPoligono,
+                    fillColor: colorPoligono,
+                    weight: 2.5,
+                    opacity: 0.95,
+                    fillOpacity: 0.35,
+                    dashArray: null
+                };
+            } else {
+                return {
+                    color: '#f43f5e',
+                    fillColor: '#f43f5e',
+                    weight: 2,
+                    opacity: 0.9,
+                    fillOpacity: 0.1,
+                    dashArray: '6, 6'
+                };
+            }
+        },
+        onEachFeature: (f, l) => {
+            let p = f.properties || {};
+
+            l.on('click', e => {
+                let latlng = e.latlng || l.getBounds().getCenter();
+                let colorRiesgo = obtenerColorPoligonoRiesgo(p);
+                let sv = `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${latlng.lat},${latlng.lng}`;
+
+                let content = `<div class="popup-custom">
+                    <div class="popup-header" style="color:${colorRiesgo};">⚠️ POLÍGONO DE RIESGO SOCIOAMBIENTAL</div>
+                    <table class="table-info">`;
+                
+                for (let [k, v] of Object.entries(p)) {
+                    if (v !== undefined && v !== null && v !== "0" && String(v).trim() !== "null") {
+                        content += `<tr><td>${decodificarTexto(k).toUpperCase()}</td><td>${decodificarTexto(String(v))}</td></tr>`;
+                    }
+                }
+                
+                content += `</table>
+                    <a href="${sv}" target="_blank" class="btn-streetview">📍 STREET VIEW</a>
+                    <div class="adv-sv">Consulte el resumen ejecutivo en el menú lateral.</div>
+                </div>`;
+
+                l.bindPopup(content, { autoPanPadding: L.point(10, 110) }).openPopup(latlng);
+            });
+        }
+    }).addTo(grupoRiesgoPoligonos);
+
+    controlarVisibilidadDinamica();
+}).catch(err => {
+    console.error("Error al cargar capas de riesgo ambiental:", err);
+});
+
+// Gestión unificada de visibilidad dinámica
+function controlarVisibilidadDinamica() {
+    let zoomActual = map.getZoom();
+    
+    document.getElementById('zoom-indicator').innerText = zoomActual;
+
+    // Control de visibilidad de etiquetas de puntos (Visibles a partir de zoom >= 16)
+    const mapContainer = map.getContainer();
+    if (zoomActual >= 16) {
+        mapContainer.classList.remove('ocultar-etiquetas');
+    } else {
+        mapContainer.classList.add('ocultar-etiquetas');
+    }
+
+    // 1. Visibilidad de Manzanas
+    const chkManzanas = document.getElementById('chk-manzanas').checked;
+    if (chkManzanas) {
+        if (!map.hasLayer(grupoManzanas)) map.addLayer(grupoManzanas);
+    } else {
+        if (map.hasLayer(grupoManzanas)) map.removeLayer(grupoManzanas);
+    }
+
+    // 2. Visibilidad de Calles (Zoom >= 15)
+    const chkCalles = document.getElementById('chk-calles').checked;
+    if (chkCalles && zoomActual >= 15) {
+        if (!map.hasLayer(grupoCalles)) map.addLayer(grupoCalles);
+    } else {
+        if (map.hasLayer(grupoCalles)) map.removeLayer(grupoCalles);
+    }
+
+    // 3. Visibilidad de Parcelas Catastrales (Zoom >= 16)
+    const chkParcelas = document.getElementById('chk-parcelas').checked;
+    if (chkParcelas && zoomActual >= 16) {
+        if (!map.hasLayer(grupoParcelas)) map.addLayer(grupoParcelas);
+    } else {
+        if (map.hasLayer(grupoParcelas)) map.removeLayer(grupoParcelas);
+    }
+
+    // 4. Visibilidad de Polígonos de Riesgo Ambiental
+    const chkRiesgoPoligonos = document.getElementById('chk-riesgo-poligonos').checked;
+    if (chkRiesgoPoligonos) {
+        if (!map.hasLayer(grupoRiesgoPoligonos)) map.addLayer(grupoRiesgoPoligonos);
+    } else {
+        if (map.hasLayer(grupoRiesgoPoligonos)) map.removeLayer(grupoRiesgoPoligonos);
+    }
+
+    // 5. Visibilidad de Puntos de Riesgo Ambiental
+    const chkRiesgoPuntos = document.getElementById('chk-riesgo-puntos').checked;
+    if (chkRiesgoPuntos) {
+        if (!map.hasLayer(grupoRiesgoPuntos)) map.addLayer(grupoRiesgoPuntos);
+    } else {
+        if (map.hasLayer(grupoRiesgoPuntos)) map.removeLayer(grupoRiesgoPuntos);
+    }
+}
+
+map.on('zoomend', controlarVisibilidadDinamica);
+map.on('layeradd layerremove', controlarVisibilidadDinamica); 
+
+/* ================= CONTROLES Y BÚSQUEDA DEL MENÚ LATERAL ================= */
+
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const toggleIcon = document.getElementById('toggle-icon');
+
+    if (sidebar.classList.contains('-translate-x-full')) {
+        sidebar.classList.remove('-translate-x-full');
+        toggleIcon.classList.remove('rotate-180');
+    } else {
+        sidebar.classList.add('-translate-x-full');
+        toggleIcon.classList.add('rotate-180');
+    }
+}
+
+function cambiarBaseMap(tipo) {
+    map.removeLayer(dark);
+    map.removeLayer(hibrido);
+    map.removeLayer(osm);
+    
+    if (tipo === 'dark') dark.addTo(map);
+    if (tipo === 'hibrido') hibrido.addTo(map);
+    if (tipo === 'osm') osm.addTo(map);
+}
+
+function toggleOverlay(capa) {
+    controlarVisibilidadDinamica();
+}
+
+function buscarPM() {
+    let val = document.getElementById('input-pm').value.trim();
+    if (!val) return;
+    let encontrado = false;
+    parcelasLayers.forEach(ly => {
+        ly.eachLayer(l => {
+            if (l.feature.properties.partidas.includes(val)) {
+                map.fitBounds(l.getBounds(), { maxZoom: 19 });
+                
+                document.getElementById('chk-parcelas').checked = true;
+                controlarVisibilidadDinamica();
+
+                l.fire('click');
+                encontrado = true;
+            }
+        });
+    });
+}
+
+function buscarPredictivoUbicacion(query) {
+    if (!query || query.length < 3) return [];
+    let cleanQuery = query.toUpperCase().trim();
+    let matches = [];
+
+    for (let i = 0; i < listaParcelasUbicacion.length; i++) {
+        let item = listaParcelasUbicacion[i];
+        if (item.texto.startsWith(cleanQuery)) {
+            matches.push(item);
+            if (matches.length >= 10) break;
+        }
+    }
+
+    if (matches.length < 10) {
+        for (let i = 0; i < listaParcelasUbicacion.length; i++) {
+            let item = listaParcelasUbicacion[i];
+            if (!item.texto.startsWith(cleanQuery) && item.texto.includes(cleanQuery)) {
+                matches.push(item);
+                if (matches.length >= 12) break;
+            }
+        }
+    }
+    return matches;
+}
+
+function configurarBuscadorUbicaciones() {
+    const input = document.getElementById('input-ubicacion');
+    const sug = document.getElementById('sugerencias-ubicacion');
+
+    input.addEventListener('input', () => {
+        let val = input.value;
+        sug.innerHTML = '';
+        if (val.length < 3) {
+            sug.style.display = 'none';
+            return;
+        }
+
+        let matches = buscarPredictivoUbicacion(val);
+
+        if (matches.length > 0) {
+            sug.style.display = 'block';
+            let textosAgregados = new Set();
+
+            matches.forEach(m => {
+                if (!textosAgregados.has(m.texto)) {
+                    textosAgregados.add(m.texto);
+                    let d = document.createElement('div');
+                    d.className = 'px-3 py-1.5 cursor-pointer text-xs text-slate-300 hover:bg-blue-600 hover:text-white border-b border-slate-800 last:border-none transition duration-150';
+                    d.innerText = m.texto;
+                    d.onclick = () => {
+                        input.value = m.texto;
+                        sug.style.display = 'none';
+                        
+                        if (m.layer) {
+                            map.fitBounds(m.layer.getBounds(), { maxZoom: 19 });
+                            document.getElementById('chk-parcelas').checked = true;
+                            controlarVisibilidadDinamica();
+                            m.layer.fire('click');
+                        }
+                    };
+                    sug.appendChild(d);
+                }
+            });
+        } else {
+            sug.style.display = 'none';
+        }
+    });
+
+    document.addEventListener('click', (e) => {
+        if (e.target !== input && e.target !== sug) {
+            sug.style.display = 'none';
+        }
+    });
+}
+
+function buscarGoogle() {
+    let val = document.getElementById('input-google').value.trim();
+    if (!val) return;
+    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(val + ", Paraná, Entre Ríos")}`)
+        .then(r => r.json()).then(data => {
+            if (data && data.length > 0) {
+                const lat = parseFloat(data[0].lat);
+                const lon = parseFloat(data[0].lon);
+                map.setView([lat, lon], 18);
+                L.marker([lat, lon]).addTo(map).bindPopup(`<b>Resultado Google:</b><br>${val}`).openPopup();
+            }
+        });
+}
+
+// Inicialización de la herramienta de medición (longitud y superficie) en español
+var measureControl = new L.Control.Measure({
+    primaryLengthUnit: 'meters',
+    secondaryLengthUnit: 'kilometers',
+    primaryAreaUnit: 'sqmeters',
+    secondaryAreaUnit: 'hectares',
+    activeColor: '#ff6b6b',
+    completedColor: '#2980b9',
+    localization: 'es',
+    popupOptions: {
+        className: 'leaflet-measure-popup',
+        autoPanPadding: [80, 80]
+    }
+});
+measureControl.addTo(map);
+
+// Inicializar buscadores y controles dinámicos al cargar
+configurarBuscadorUbicaciones();
+controlarVisibilidadDinamica();
+</script>
+</body>
+</html>
