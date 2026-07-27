@@ -282,6 +282,38 @@ window.flatgeobuf = flatgeobuf;
                             <span>Parcelas Catastrales</span>
                         </span>
                     </label>
+                    <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
+
+    <input type="checkbox"
+           id="chk-curvas"
+           onchange="toggleOverlay('curvas')"
+           class="rounded bg-slate-800 border-slate-700 text-blue-500">
+
+    <span class="flex items-center gap-2">
+
+        <span class="w-3.5 h-1 bg-[#8B5A2B] inline-block"></span>
+
+        <span>Curvas de nivel</span>
+
+    </span>
+
+</label>
+                    <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
+
+    <input type="checkbox"
+           id="chk-arroyos"
+           onchange="toggleOverlay('arroyos')"
+           class="rounded bg-slate-800 border-slate-700 text-blue-500">
+
+    <span class="flex items-center gap-2">
+
+        <span class="w-3.5 h-1 bg-[#0099ff] inline-block"></span>
+
+        <span>Arroyos</span>
+
+    </span>
+
+</label>
                 </div>
             </div>
         </div>
@@ -424,6 +456,20 @@ async function fetchGeoJSON(url) {
         text = decoderANSI.decode(arrayBuffer);
     }
     return JSON.parse(text);
+}
+
+async function cargarFGB(url, grupo, opciones = {}) {
+
+    const capa = L.geoJSON(null, opciones);
+
+    for await (const feature of flatgeobuf.deserialize(url)) {
+        capa.addData(feature);
+    }
+
+    grupo.addLayer(capa);
+
+    return capa;
+
 }
 
 // Inicio del mapa en Zoom 12 (vista completa de la ciudad)
