@@ -54,7 +54,6 @@
         </div>
 
         <div id="visores" class="tab-content active">
-            <!-- MODIFICACIÓN: Leyenda añadida para sección Visores -->
             <div class="mb-8 p-6 bg-slate-800/50 border-l-4 border-muni-green rounded-r-xl">
                 <h3 class="font-bold text-white mb-2">Visores de la Infraestructura de Datos Espaciales (IDE)</h3>
                 <p class="text-sm text-slate-300 leading-relaxed italic">
@@ -65,7 +64,6 @@
         </div>
 
         <div id="atlas" class="tab-content">
-            <!-- MODIFICACIÓN: Leyenda añadida para sección Atlas -->
             <div class="mb-8 p-6 bg-slate-800/50 border-l-4 border-muni-green rounded-r-xl">
                 <h3 class="font-bold text-white mb-2">Atlas del Plan Urbano Ambiental (PUA)</h3>
                 <p class="text-sm text-slate-300 leading-relaxed italic">
@@ -76,7 +74,6 @@
         </div>
     </div>
 
-    <!-- [Modal code remains unchanged] -->
     <div id="pua-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden" onclick="closePuaModalOnOutsideClick(event)">
         <div id="modal-container" class="bg-card-dark border border-slate-700 rounded-2xl max-w-xl w-full p-6 md:p-8 shadow-2xl space-y-6 transform scale-95 opacity-0 transition-all duration-300">
             <div class="flex justify-between items-start border-b border-slate-800 pb-4">
@@ -136,7 +133,6 @@
             { title: "Vecinales", desc: "Límites jurisdiccionales de comisiones vecinales.", link: "https://dcartografiayde.github.io/IDE-PARANA/backdoor/vecinales/", icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>` },
             { title: "Servicios por Calle", desc: "Cobertura de servicios públicos por red vial.", link: "https://dcartografiayde.github.io/IDE-PARANA/servicios/", icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>` },
             { title: "Posicion Georeferenciada de lotes", desc: "Cálculo de centro de manzana y Línea de Frente Interno.", link: "https://dcartografiayde.github.io/IDE-PARANA/posicion_georeferenciada/", icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" /><path stroke-linecap="round" stroke-linejoin="round" d="M12 2v3m0 14v3M2 12h3m14 0h3M12 8a4 4 0 110 8 4 4 0 010-8z" /></svg>` },
-            // MODIFICACIÓN: 1- Botón "BARRIOS IAPV" agregado en Visores IDE con enlace directo
             { title: "Barrios IAPV", desc: "Loteos y viviendas sociales de la provincia.", link: "https://dcartografiayde.github.io/IDE-PARANA/IAPV/index.html", icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2" /></svg>` }
         ];
 
@@ -157,10 +153,11 @@
             { title: "Equipamientos e Infraestructuras", desc: "Usos del suelo (Salud, Recreación, Comercio).", icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5" /></svg>` },
             { title: "Asentamientos Informales", desc: "Localización RENABAP 2023 y análisis territorial.", link: "https://dcartografiayde.github.io/IDE-PARANA/atlas_pua/asentamientos_informales/", icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2" /></svg>` },
             { title: "Áreas de Influencia", desc: "Accesibilidad a equipamientos públicos y educativos.", icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><circle cx="12" cy="12" r="5" /><circle cx="12" cy="12" r="1" /></svg>` },
-            // MODIFICACIÓN: 2- Se activa el enlace para "Barrios IAPV" en Atlas PUA y se remueve de estado "en desarrollo"
             { title: "Barrios IAPV", desc: "Loteos construidos por el IAPV desde 1954.", link: "https://dcartografiayde.github.io/IDE-PARANA/IAPV/index.html", icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2" /></svg>` },
             { title: "Protección Patrimonial", desc: "Edificios con declaratoria de protección.", link: "https://github.com/dcartografiayde/IDE-PARANA/blob/main/preservacion/index.html", icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>` },
-            { title: "Espacios Verdes Públicos", desc: "Distribución, accesibilidad y cobertura de áreas verdes de la ciudad.", link: "https://dcartografiayde.github.io/IDE-PARANA/atlas_pua/espacios_verdes_publicos/", icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19V22M12 15C15 15 17 12 17 9C17 5 14 2 12 2C10 2 7 5 7 9C7 12 9 15 12 15Z" /></svg>` }
+            { title: "Espacios Verdes Públicos", desc: "Distribución, accesibilidad y cobertura de áreas verdes de la ciudad.", link: "https://dcartografiayde.github.io/IDE-PARANA/atlas_pua/espacios_verdes_publicos/", icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19V22M12 15C15 15 17 12 17 9C17 5 14 2 12 2C10 2 7 5 7 9C7 12 9 15 12 15Z" /></svg>` },
+            /* CONFIGURACIÓN DIRECTA DEL ENLACE AL VISOR DE RIESGO AMBIENTAL EN GITHUB PAGES (NO AL REPOSITORIO CÓDIGO) */
+            { title: "Mapa de Riesgo Ambiental", desc: "Priorización territorial para la gestión del riesgo socioambiental y sectores expuestos.", link: "https://dcartografiayde.github.io/IDE-PARANA/riesgo_ambiental/visor_urbano_y_riesgo_ambiental_paran%20(3).html", icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>` }
         ];
 
         const mapExplanations = {
@@ -192,7 +189,12 @@
             "Áreas de Influencia": { what: "Análisis espacial de accesibilidad física y cobertura de isócronas que calcula los tiempos de traslado peatonal y vehicular hacia equipamientos esenciales.", use: "Te ayuda a medir la calidad urbana de tu barrio, analizando si contás con una plaza, escuela o centro de salud a una distancia segura para ir caminando." },
             "Barrios IAPV": { what: "Registro georreferenciado e histórico de los polígonos residenciales proyectados, construidos y adjudicados por el Instituto Provincial de la Vivienda desde 1954.", use: "Te sirve para conocer la historia habitacional y el origen de una gran cantidad de los barrios residenciales consolidados que hoy componen Paraná." },
             "Protección Patrimonial": { what: "Parcelario georreferenciado de inmuebles que cuentan con declaratoria municipal de protección arquitectónica, fachada o valor patrimonial monumental.", use: "Te ayuda a resguardar la identidad histórica de tu barrio y denunciar demoliciones no autorizadas sobre construcciones tradicionales de la ciudad." },
-            "Espacios Verdes Públicos": { what: "Relevamiento poligonal, cálculo de superficies parquizadas y categorización de plazas, parques y paseos en Paraná para el análisis del indicador de m² verdes por habitante.", use: "Te sirve para descubrir nuevas plazas, reservas o parques infantiles en la ciudad para disfrutar al aire libre el fin de semana en familia." }
+            "Espacios Verdes Públicos": { what: "Relevamiento poligonal, cálculo de superficies parquizadas y categorización de plazas, parques y paseos en Paraná para el análisis del indicador de m² verdes por habitante.", use: "Te sirve para descubrir nuevas plazas, reservas o parques infantiles en la ciudad para disfrutar al aire libre el fin de semana en familia." },
+            /* SÍNTESIS SEGÚN INFORME OFICIAL DE LA UNIDAD EJECUTORA MUNICIPAL (UEM) */
+            "Mapa de Riesgo Ambiental": { 
+                what: "Diagnóstico socioambiental preliminar elaborado por la Unidad Ejecutora Municipal (UEM - Julio 2026). Delimita sectores expuestos a amenazas físicas (márgenes de arroyos, borde costero, barrancas e inundaciones pluviales) e integra una matriz con 4 niveles de priorización (Alto, Medio, Bajo, Residual) contabilizando aproximadamente 1.105 viviendas expuestas para orientar obras de mitigación o relocalización.", 
+                use: "Te permite verificar si tu propiedad o zona se encuentra expuesta a erosión, desprendimientos de barrancas o anegamientos pluviales, ayudándote a tomar decisiones sobre obras preventivas y seguridad habitacional." 
+            }
         };
 
         function renderCards(data, containerId) {
