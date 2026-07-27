@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -11,7 +10,7 @@
     <script src="https://cdn.jsdelivr.net/npm/leaflet-textpath@1.2.3/leaflet.textpath.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- MODIFICACIÓN: Integración de la librería de FlatGeobuf desde CDN -->
+    <!-- MODIFICACIÓN: Carga de la librería FlatGeobuf -->
     <script src="https://unpkg.com/flatgeobuf@3.22.0/dist/flatgeobuf-geojson.min.js"></script>
 
     <!-- MODIFICACIÓN: Agregado CSS de Leaflet Measure para las herramientas de medición -->
@@ -197,7 +196,7 @@
     
     <!-- Encabezado del visor -->
     <div class="p-5 border-b border-slate-800 bg-slate-950/40">
-        <!-- MODIFICACIÓN: Adaptación del título para el visor temático -->
+        <!-- MODIFICACIÓN: Título del visor temático -->
         <h1 class="text-xs font-black text-blue-400 tracking-wider uppercase text-center">Curvas de Nivel e Hidrografía</h1>
         <p class="text-[10px] text-slate-400 text-center font-bold mt-1">DIRECCIÓN DE CARTOGRAFÍA Y DATOS ESPACIALES</p>
     </div>
@@ -262,7 +261,7 @@
             <div class="space-y-2 pt-2">
                 <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide">Capas vectoriales</span>
                 <div class="space-y-2">
-                    <!-- MODIFICACIÓN: Checkbox unificado para la capa de Curvas de Nivel (FlatGeobuf) -->
+                    <!-- MODIFICACIÓN: Checkbox unificado para la capa de Curvas de Nivel -->
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
                         <input type="checkbox" id="chk-curvas" checked onchange="toggleOverlay('curvas')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
                         <span class="flex items-center gap-2">
@@ -270,7 +269,7 @@
                             <span>Curvas de nivel</span>
                         </span>
                     </label>
-                    <!-- MODIFICACIÓN: Checkbox independiente para la capa de Arroyos / Hidrografía -->
+                    <!-- MODIFICACIÓN: Checkbox independiente para la capa de Arroyos -->
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
                         <input type="checkbox" id="chk-arroyos" checked onchange="toggleOverlay('arroyos')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
                         <span class="flex items-center gap-2">
@@ -332,7 +331,6 @@
 
             <div style="width:100%;">
 
-                <!-- MODIFICACIÓN: Actualización del título en el panel informativo flotante -->
                 <div class="panel-titulo" id="titulo-mapa">
                     CURVAS DE NIVEL E HIDROGRAFÍA
                 </div>
@@ -444,31 +442,27 @@ async function fetchGeoJSON(url) {
     return JSON.parse(text);
 }
 
-// MODIFICACIÓN: Función genérica reutilizable para la carga asíncrona de archivos FlatGeobuf
-async function cargarFGB(url, options = {}) {
-    const layerGroup = L.layerGroup();
+// MODIFICACIÓN: Función genérica optimizada para la carga en streaming de FlatGeobuf sin desbordamiento de memoria
+async function cargarFGB(url, options = {}, targetGeoJsonLayer = null) {
+    const layer = targetGeoJsonLayer || L.geoJSON(null, {
+        pane: options.pane || 'overlayPane',
+        style: options.style,
+        onEachFeature: options.onEachFeature
+    });
+
     try {
         const response = await fetch(url);
         if (!response.ok) throw new Error(`Error HTTP: ${response.status} al cargar ${url}`);
         
-        // Iteración sobre los elementos en streaming usando la API de flatgeobuf
-        for await (const feature of flatgeobuf.deserialize(response.body)) {
-            const defaultStyle = options.style ? (typeof options.style === 'function' ? options.style(feature) : options.style) : {};
-            const geojsonLayer = L.geoJSON(feature, {
-                pane: options.pane || 'overlayPane',
-                style: defaultStyle,
-                onEachFeature: (f, l) => {
-                    if (options.onEachFeature) {
-                        options.onEachFeature(f, l);
-                    }
-                }
-            });
-            layerGroup.addLayer(geojsonLayer);
+        // MODIFICACIÓN: Iteración streaming usando addData directamente en la capa GeoJSON
+        const iter = flatgeobuf.deserialize(response.body);
+        for await (const feature of iter) {
+            layer.addData(feature);
         }
     } catch (err) {
         console.error("Error al procesar FlatGeobuf:", err);
     }
-    return layerGroup;
+    return layer;
 }
 
 // Inicio del mapa en Zoom 12 (vista completa de la ciudad)
@@ -504,15 +498,16 @@ var hibrido = L.layerGroup([sat, ref]);
 
 dark.addTo(map);
 
-// MODIFICACIÓN: Definición de capas para Curvas de Nivel e Hidrografía
+// MODIFICACIÓN: Capa contenedora unificada de Curvas de Nivel
 var grupoCurvasNivel = L.layerGroup().addTo(map);
+
+// MODIFICACIÓN: Capa independiente de Arroyos
 var grupoArroyos = L.layerGroup().addTo(map);
 
-// MODIFICACIÓN: Carga unificada de los dos archivos FlatGeobuf para Curvas de Nivel (curvas_nivel_i y curvas_nivel_p)
 const PATH_TEMATICO = BASE_URL + "atlas_pua/curvas_nivel_hidrografia/";
 
+// MODIFICACIÓN: Configuración e instanciación única de la capa de Curvas de Nivel
 const estiloCurva = (f) => {
-    let cota = f.properties ? (f.properties.cota || f.properties.COTA || f.properties.elevation || "") : "";
     return {
         color: "#d97706",
         weight: 1.2,
@@ -525,11 +520,17 @@ const onEachCurvaFeature = (f, l) => {
     l.bindPopup(`<div class="popup-custom"><div class="popup-header">CURVA DE NIVEL</div><table class="table-info"><tr><td>COTA</td><td>${cota} m</td></tr></table></div>`);
 };
 
-cargarFGB(PATH_TEMATICO + "curvas_nivel_i.fgb", { pane: 'atlasPane', style: estiloCurva, onEachFeature: onEachCurvaFeature })
-    .then(layer => grupoCurvasNivel.addLayer(layer));
+// Crear una sola capa L.geoJSON compartida para ambos archivos FlatGeobuf
+const capaUnificadaCurvas = L.geoJSON(null, {
+    pane: 'atlasPane',
+    style: estiloCurva,
+    onEachFeature: onEachCurvaFeature
+});
+grupoCurvasNivel.addLayer(capaUnificadaCurvas);
 
-cargarFGB(PATH_TEMATICO + "curvas_nivel_p.fgb", { pane: 'atlasPane', style: estiloCurva, onEachFeature: onEachCurvaFeature })
-    .then(layer => grupoCurvasNivel.addLayer(layer));
+// Cargar ambos archivos .fgb de manera segura en la misma capa
+cargarFGB(PATH_TEMATICO + "curvas_nivel_i.fgb", {}, capaUnificadaCurvas);
+cargarFGB(PATH_TEMATICO + "curvas_nivel_p.fgb", {}, capaUnificadaCurvas);
 
 // MODIFICACIÓN: Carga independiente de la capa de Arroyos (GeoJSON)
 fetchGeoJSON(PATH_TEMATICO + "arroyos.geojson").then(data => {
@@ -810,13 +811,13 @@ archivosCatastro.forEach(file => {
     });
 });
 
-// MODIFICACIÓN: Gestión unificada de visibilidad dinámica sincronizada con el nuevo panel de capas del menú lateral
+// MODIFICACIÓN: Gestión unificada de visibilidad dinámica sincronizada con el panel de capas del menú lateral
 function controlarVisibilidadDinamica() {
     let zoomActual = map.getZoom();
     
     document.getElementById('zoom-indicator').innerText = zoomActual;
 
-    // MODIFICACIÓN: Visibilidad de Curvas de Nivel
+    // Visibilidad de Curvas de Nivel
     const chkCurvas = document.getElementById('chk-curvas').checked;
     if (chkCurvas) {
         if (!map.hasLayer(grupoCurvasNivel)) map.addLayer(grupoCurvasNivel);
@@ -824,7 +825,7 @@ function controlarVisibilidadDinamica() {
         if (map.hasLayer(grupoCurvasNivel)) map.removeLayer(grupoCurvasNivel);
     }
 
-    // MODIFICACIÓN: Visibilidad de Arroyos
+    // Visibilidad de Arroyos
     const chkArroyos = document.getElementById('chk-arroyos').checked;
     if (chkArroyos) {
         if (!map.hasLayer(grupoArroyos)) map.addLayer(grupoArroyos);
@@ -1054,5 +1055,3 @@ controlarVisibilidadDinamica();
 </script>
 </body>
 </html>
-
-```
