@@ -348,7 +348,7 @@ window.flatgeobuf = flatgeobuf;
             <div style="width:100%;">
 
                 <div class="panel-titulo" id="titulo-mapa">
-                    TÍTULO DEL MAPA
+                    CURVAS DE NIVEL - HIDROGRAFÍA
                 </div>
 
                 <div class="panel-zoom" style="text-align:center;">
@@ -369,8 +369,8 @@ window.flatgeobuf = flatgeobuf;
             id="descripcion-mapa"
             class="panel-descripcion">
 
-            Aquí va la descripción del mapa. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur iaculis nulla sed diam porttitor gravida. Mauris sodales sit amet tellus commodo luctus. Proin arcu erat, consequat vitae tortor et, rutrum consectetur neque.
-            
+            En el plano se representa la configuración topográfica e hídrica de la ciudad de Paraná. Los niveles topográficos más bajos se dan a medida que se acercan al Río Paraná y además se observan grandes cursos de agua que atraviesan el ejido.
+       
         </div>
 
         <hr style="margin:8px 0;">
@@ -770,6 +770,42 @@ archivosCatastro.forEach(file => {
         console.error("Error al cargar archivo de catastro: " + file, err);
     });
 });
+
+//=====================================================
+// CURVAS DE NIVEL (FLATGEOBUF)
+//=====================================================
+
+const estiloCurvas = {
+    color: "#8B5A2B",
+    weight: 0.8,
+    opacity: 0.9
+};
+
+await cargarFGB(
+
+    BASE_URL + "atlas_pua/curvas_nivel_hidrografia/curvas_nivel_i.fgb",
+
+    grupoCurvas,
+
+    {
+        pane: "overlayPane",
+        style: estiloCurvas
+    }
+
+);
+
+await cargarFGB(
+
+    BASE_URL + "atlas_pua/curvas_nivel_hidrografia/curvas_nivel_p.fgb",
+
+    grupoCurvas,
+
+    {
+        pane: "overlayPane",
+        style: estiloCurvas
+    }
+
+);
 
 // MODIFICACIÓN: Gestión unificada de visibilidad dinámica sincronizada con el nuevo panel de capas del menú lateral
 function controlarVisibilidadDinamica() {
