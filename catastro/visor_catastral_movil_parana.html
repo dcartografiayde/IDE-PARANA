@@ -1,0 +1,1109 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>IDE Paraná Mobile - Catastro</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        emerald: {
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Leaflet CSS & JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+    <!-- Leaflet TextPath Plugin for Aligned Text along PolyLines -->
+    <script src="https://cdn.jsdelivr.net/npm/leaflet-textpath@1.2.3/leaflet.textpath.min.js"></script>
+
+    <!-- FlatGeobuf Library -->
+    <script src="https://unpkg.com/flatgeobuf@3.32.0/dist/flatgeobuf-geojson.min.js"></script>
+
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+
+    <!-- Google Fonts Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            touch-action: manipulation;
+            overscroll-behavior: none;
+            overflow: hidden;
+        }
+        #map {
+            height: 100vh;
+            width: 100vw;
+            z-index: 1;
+        }
+        .glass-header {
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+        }
+        .dark .glass-header {
+            background: rgba(15, 23, 42, 0.92);
+        }
+        .bottom-sheet {
+            transition: transform 0.3s cubic-bezier(0.1, 0.9, 0.2, 1);
+        }
+        .touch-btn {
+            min-width: 44px;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(156, 163, 175, 0.5);
+            border-radius: 4px;
+        }
+        .street-label-marker {
+            background: transparent;
+            border: none;
+            white-space: nowrap;
+            font-family: 'Inter', sans-serif;
+            font-weight: 700;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+            pointer-events: none;
+        }
+        .leaflet-interactive {
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-800 dark:text-slate-100 h-full w-full fixed">
+
+    <!-- Top Mobile Header Bar -->
+    <header class="fixed top-0 left-0 right-0 z-20 p-2 sm:p-3 pointer-events-none">
+        <div class="max-w-lg mx-auto flex items-center gap-2">
+            <!-- Search & Title Container -->
+            <div class="flex-1 glass-header border border-white/60 dark:border-slate-800/80 shadow-lg rounded-2xl flex items-center px-3 py-1.5 pointer-events-auto">
+                <i class="fa-solid fa-magnifying-glass text-slate-400 text-sm mr-2.5"></i>
+                <input type="text" id="mobileSearchInput" placeholder="Buscar parcela, ID o calle..." class="w-full bg-transparent text-sm text-slate-800 dark:text-slate-100 focus:outline-none placeholder-slate-400">
+                <button id="clearSearchBtn" class="hidden text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1">
+                    <i class="fa-solid fa-xmark text-sm"></i>
+                </button>
+            </div>
+
+            <!-- Quick Action Buttons -->
+            <button id="themeToggleBtn" aria-label="Cambiar Tema" class="touch-btn glass-header border border-white/60 dark:border-slate-800/80 rounded-2xl text-slate-700 dark:text-slate-200 shadow-lg pointer-events-auto active:scale-95 transition">
+                <i class="fa-solid fa-moon dark:hidden text-slate-600"></i>
+                <i class="fa-solid fa-sun hidden dark:block text-amber-400"></i>
+            </button>
+
+            <button id="openLayersBtn" aria-label="Capas" class="touch-btn bg-emerald-600 text-white rounded-2xl shadow-lg shadow-emerald-600/30 pointer-events-auto active:scale-95 transition">
+                <i class="fa-solid fa-layer-group text-sm"></i>
+            </button>
+        </div>
+
+        <!-- Search Results Floating Dropdown -->
+        <div id="mobileSearchResults" class="hidden max-w-lg mx-auto mt-2 glass-header border border-slate-200 dark:border-slate-800 shadow-xl rounded-2xl max-h-56 overflow-y-auto custom-scrollbar p-1 pointer-events-auto"></div>
+    </header>
+
+    <!-- Floating Action Buttons (Right Bottom Controls) -->
+    <div class="fixed right-3 bottom-20 z-20 flex flex-col gap-2">
+        <button id="locateMeBtn" aria-label="Mi Ubicación" class="touch-btn glass-header border border-white/60 dark:border-slate-800/80 rounded-2xl text-slate-700 dark:text-slate-200 shadow-xl active:scale-95 transition">
+            <i class="fa-solid fa-location-crosshairs text-base text-emerald-600 dark:text-emerald-400"></i>
+        </button>
+
+        <button id="zoomInBtn" aria-label="Acercar" class="touch-btn glass-header border border-white/60 dark:border-slate-800/80 rounded-2xl text-slate-700 dark:text-slate-200 shadow-xl active:scale-95 transition">
+            <i class="fa-solid fa-plus text-sm"></i>
+        </button>
+
+        <button id="zoomOutBtn" aria-label="Alejar" class="touch-btn glass-header border border-white/60 dark:border-slate-800/80 rounded-2xl text-slate-700 dark:text-slate-200 shadow-xl active:scale-95 transition">
+            <i class="fa-solid fa-minus text-sm"></i>
+        </button>
+    </div>
+
+    <!-- Map Canvas Container -->
+    <div id="map"></div>
+
+    <!-- Mobile Bottom Sheet Drawer -->
+    <div id="bottomSheet" class="bottom-sheet fixed bottom-0 left-0 right-0 z-30 glass-header border-t border-slate-200 dark:border-slate-800 rounded-t-3xl shadow-2xl translate-y-full max-h-[75vh] flex flex-col">
+        
+        <!-- Sheet Handle Drag Bar -->
+        <div class="w-full py-2.5 flex justify-center cursor-pointer" id="sheetHandle">
+            <div class="w-10 h-1 bg-slate-300 dark:bg-slate-700 rounded-full"></div>
+        </div>
+
+        <!-- Sheet Header -->
+        <div class="px-4 pb-2 border-b border-slate-200/80 dark:border-slate-800 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <i id="sheetIcon" class="fa-solid fa-vector-square text-emerald-600 dark:text-emerald-400"></i>
+                <h2 id="sheetTitle" class="font-bold text-sm sm:text-base text-slate-900 dark:text-white">Ficha Catastral</h2>
+            </div>
+            <button id="closeSheetBtn" class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 touch-btn">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+        </div>
+
+        <!-- Sheet Content Scrollable Area -->
+        <div id="sheetContent" class="p-4 overflow-y-auto custom-scrollbar space-y-4 flex-1">
+            <!-- Dynamic Content loaded here (Inspector or Layers) -->
+        </div>
+    </div>
+
+    <!-- Layers Modal/Sheet Template (Hidden by default) -->
+    <template id="layersTemplate">
+        <div class="space-y-4 text-xs">
+            <!-- Layers Status Summary -->
+            <div class="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/50 rounded-xl p-3 flex items-center justify-between">
+                <div>
+                    <p class="font-semibold text-emerald-900 dark:text-emerald-300">Catastro IDE Paraná</p>
+                    <p class="text-[11px] text-emerald-700 dark:text-emerald-400">Formato ultra-rápido FlatGeobuf</p>
+                </div>
+                <div class="text-right">
+                    <span id="totalParcelsBadge" class="font-mono font-bold text-emerald-700 dark:text-emerald-300 text-sm">0</span>
+                    <p class="text-[10px] text-slate-500">parcelas</p>
+                </div>
+            </div>
+
+            <!-- Layer 1 Switch -->
+            <div class="bg-white/60 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl p-3 space-y-2">
+                <div class="flex items-center justify-between">
+                    <label class="flex items-center gap-2 font-medium text-slate-800 dark:text-slate-200">
+                        <input type="checkbox" id="toggleLayer1" checked class="w-4 h-4 accent-emerald-600 rounded">
+                        <span>Secciones 1 a 6</span>
+                    </label>
+                    <span id="badge1" class="font-mono text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300">Cargando</span>
+                </div>
+                <div class="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
+                    <div id="bar1" class="bg-emerald-500 h-full w-0 transition-all"></div>
+                </div>
+                <div class="flex items-center justify-between pt-1 text-[11px] text-slate-500">
+                    <span>Color: <input type="color" id="color1" value="#10b981" class="w-5 h-5 rounded align-middle border-0 bg-transparent"></span>
+                    <span>Opacidad: <input type="range" id="opacity1" min="0.1" max="1" step="0.1" value="0.7" class="w-20 accent-emerald-600 align-middle"></span>
+                </div>
+            </div>
+
+            <!-- Layer 2 Switch -->
+            <div class="bg-white/60 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl p-3 space-y-2">
+                <div class="flex items-center justify-between">
+                    <label class="flex items-center gap-2 font-medium text-slate-800 dark:text-slate-200">
+                        <input type="checkbox" id="toggleLayer2" checked class="w-4 h-4 accent-indigo-600 rounded">
+                        <span>Secciones 7 a 15</span>
+                    </label>
+                    <span id="badge2" class="font-mono text-[10px] px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300">Cargando</span>
+                </div>
+                <div class="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
+                    <div id="bar2" class="bg-indigo-500 h-full w-0 transition-all"></div>
+                </div>
+                <div class="flex items-center justify-between pt-1 text-[11px] text-slate-500">
+                    <span>Color: <input type="color" id="color2" value="#6366f1" class="w-5 h-5 rounded align-middle border-0 bg-transparent"></span>
+                    <span>Opacidad: <input type="range" id="opacity2" min="0.1" max="1" step="0.1" value="0.7" class="w-20 accent-indigo-600 align-middle"></span>
+                </div>
+            </div>
+
+            <!-- Streets Layer Switch -->
+            <div class="bg-white/60 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl p-3 space-y-2">
+                <div class="flex items-center justify-between">
+                    <label class="flex items-center gap-2 font-medium text-slate-800 dark:text-slate-200">
+                        <input type="checkbox" id="toggleStreets" checked class="w-4 h-4 accent-amber-600 rounded">
+                        <span>Calles (Zoom +15)</span>
+                    </label>
+                    <span id="badgeStreets" class="font-mono text-[10px] px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300">Cargando</span>
+                </div>
+                <div class="flex items-center justify-between pt-1 text-[11px] text-slate-500">
+                    <span>Color Texto: <input type="color" id="colorStreets" value="#f59e0b" class="w-5 h-5 rounded align-middle border-0 bg-transparent"></span>
+                </div>
+            </div>
+
+            <!-- Basemaps Selection -->
+            <div>
+                <label class="block font-semibold text-slate-500 dark:text-slate-400 text-[11px] uppercase tracking-wider mb-2">Mapa Base</label>
+                <div class="grid grid-cols-2 gap-2">
+                    <button data-bm="carto-light" class="bm-btn active bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-500 text-emerald-700 dark:text-emerald-300 p-2.5 rounded-xl font-medium flex items-center gap-2 justify-center">
+                        <i class="fa-solid fa-sun text-amber-500"></i> Claro
+                    </button>
+                    <button data-bm="carto-dark" class="bm-btn bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 p-2.5 rounded-xl font-medium flex items-center gap-2 justify-center">
+                        <i class="fa-solid fa-moon text-indigo-400"></i> Oscuro
+                    </button>
+                    <button data-bm="esri-sat" class="bm-btn bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 p-2.5 rounded-xl font-medium flex items-center gap-2 justify-center">
+                        <i class="fa-solid fa-satellite text-blue-500"></i> Satélite
+                    </button>
+                    <button data-bm="osm" class="bm-btn bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 p-2.5 rounded-xl font-medium flex items-center gap-2 justify-center">
+                        <i class="fa-solid fa-map text-emerald-500"></i> OSM
+                    </button>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Raw Data URLs
+            const URL_LAYER1 = 'https://raw.githubusercontent.com/dcartografiayde/IDE-PARANA/main/catastro/parcela1_6.fgb';
+            const URL_LAYER2 = 'https://raw.githubusercontent.com/dcartografiayde/IDE-PARANA/main/catastro/parcela7_15.fgb';
+            const URL_STREETS = 'https://raw.githubusercontent.com/dcartografiayde/IDE-PARANA/main/catastro/calles_2026.geojson';
+
+            const PARANA_CENTER = [-31.733, -60.528];
+            const INITIAL_ZOOM = 14;
+
+            // Mobile performance optimization: Canvas for parcels
+            const map = L.map('map', {
+                center: PARANA_CENTER,
+                zoom: INITIAL_ZOOM,
+                zoomControl: false,
+                preferCanvas: true,
+                bounceAtZoomLimits: false
+            });
+
+            // Dedicated SVG Renderer for text paths along polyline streets
+            const svgStreetRenderer = L.svg({ pane: 'overlayPane' });
+
+            const basemaps = {
+                'carto-light': L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 20, subdomains: 'abcd' }),
+                'carto-dark': L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 20, subdomains: 'abcd' }),
+                'esri-sat': L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19 }),
+                'osm': L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 })
+            };
+
+            let activeBasemapKey = 'carto-light';
+            let activeBasemap = basemaps[activeBasemapKey].addTo(map);
+
+            const state = {
+                layer1: {
+                    group: L.geoJSON(null, { style: (f) => getFeatureStyle(f, 1), onEachFeature: bindFeatureEvents }).addTo(map),
+                    features: [], color: '#10b981', opacity: 0.7, visible: true
+                },
+                layer2: {
+                    group: L.geoJSON(null, { style: (f) => getFeatureStyle(f, 2), onEachFeature: bindFeatureEvents }).addTo(map),
+                    features: [], color: '#6366f1', opacity: 0.7, visible: true
+                },
+                streets: {
+                    group: L.layerGroup().addTo(map),
+                    features: [], color: '#f59e0b', opacity: 0.8, visible: true
+                },
+                selectedLayer: null,
+                userLocationMarker: null
+            };
+
+            /**
+             * Looks up property values flexibly across various casing and name variations.
+             * Prioritizes exact matches then fallback options.
+             */
+            function getPropValue(props, possibleKeys) {
+                if (!props) return null;
+                for (const k of possibleKeys) {
+                    if (props[k] !== undefined && props[k] !== null && props[k] !== '') {
+                        return props[k];
+                    }
+                }
+                const lowerKeys = possibleKeys.map(k => k.toLowerCase());
+                for (const key of Object.keys(props)) {
+                    if (lowerKeys.includes(key.toLowerCase())) {
+                        if (props[key] !== undefined && props[key] !== null && props[key] !== '') {
+                            return props[key];
+                        }
+                    }
+                }
+                return null;
+            }
+
+            /**
+             * Extract nropasd specifically from feature properties
+             */
+            function getNroPasd(props) {
+                return getPropValue(props, [
+                    'nropasd', 'NROPASD', 'nro_pasd', 'NRO_PASD', 
+                    'pasd', 'PASD', 'subpartida', 'SUBPARTIDA'
+                ]);
+            }
+
+            /**
+             * Constructs a strict cadastral key (seccion + manzana + parcela) to uniquely identify a parcel/building
+             */
+            function getCadastralKey(props) {
+                if (!props) return null;
+                const sec = getPropValue(props, ['seccion', 'SECCION', 'sec', 'SEC']);
+                const mza = getPropValue(props, ['manzana', 'MANZANA', 'mza', 'MZA', 'manz']);
+                const parc = getPropValue(props, ['parcela', 'PARCELA', 'parc', 'PARC']);
+
+                if (sec && mza && parc) {
+                    return `${sec}_${mza}_${parc}`.toLowerCase().trim();
+                }
+
+                const idParc = getPropValue(props, ['id_parcela', 'ID_PARCELA', 'parcela_id']);
+                if (idParc) return String(idParc).trim().toLowerCase();
+
+                return null;
+            }
+
+            /**
+             * Ray-Casting algorithm to check if a point [lng, lat] is inside a polygon
+             */
+            function pointInPolygon(point, vs) {
+                const x = point[0], y = point[1];
+                let inside = false;
+                for (let i = 0, j = vs.length - 1; i < vs.length; j = i++) {
+                    const xi = vs[i][0], yi = vs[i][1];
+                    const xj = vs[j][0], yj = vs[j][1];
+                    const intersect = ((yi > y) !== (yj > y))
+                        && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+                    if (intersect) inside = !inside;
+                }
+                return inside;
+            }
+
+            /**
+             * Computes or retrieves cached bounding box [minLng, minLat, maxLng, maxLat] for fast rejection
+             */
+            function getFeatureBBox(feature) {
+                if (!feature._bbox) {
+                    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+                    const processCoords = (coords) => {
+                        for (const pt of coords) {
+                            if (typeof pt[0] === 'number') {
+                                if (pt[0] < minX) minX = pt[0];
+                                if (pt[0] > maxX) maxX = pt[0];
+                                if (pt[1] < minY) minY = pt[1];
+                                if (pt[1] > maxY) maxY = pt[1];
+                            } else {
+                                processCoords(pt);
+                            }
+                        }
+                    };
+                    if (feature.geometry && feature.geometry.coordinates) {
+                        processCoords(feature.geometry.coordinates);
+                    }
+                    feature._bbox = [minX, minY, maxX, maxY];
+                }
+                return feature._bbox;
+            }
+
+            /**
+             * Checks if a L.LatLng coordinate is contained within a GeoJSON Feature geometry
+             */
+            function isPointInFeature(latlng, feature) {
+                if (!feature || !feature.geometry || !latlng) return false;
+                const bbox = getFeatureBBox(feature);
+                const lng = latlng.lng, lat = latlng.lat;
+
+                // Quick bounding-box filter
+                if (lng < bbox[0] || lng > bbox[2] || lat < bbox[1] || lat > bbox[3]) {
+                    return false;
+                }
+
+                const pt = [lng, lat];
+                const geom = feature.geometry;
+
+                if (geom.type === 'Polygon') {
+                    if (!geom.coordinates || !geom.coordinates[0]) return false;
+                    return pointInPolygon(pt, geom.coordinates[0]);
+                } else if (geom.type === 'MultiPolygon') {
+                    if (!geom.coordinates) return false;
+                    for (const poly of geom.coordinates) {
+                        if (poly && poly[0] && pointInPolygon(pt, poly[0])) return true;
+                    }
+                }
+                return false;
+            }
+
+            /**
+             * Calculates style for parcel features.
+             * Attenuates fill color & opacity significantly if estado === 'H' so it doesn't obscure basemap.
+             */
+            function getFeatureStyle(feature, layerNum) {
+                const conf = layerNum === 1 ? state.layer1 : state.layer2;
+                const props = feature ? (feature.properties || {}) : {};
+                
+                const rawEstado = getPropValue(props, ['estado', 'ESTADO', 'Estado']) || '';
+                const isEstadoH = String(rawEstado).trim().toUpperCase() === 'H';
+
+                if (isEstadoH) {
+                    return {
+                        color: conf.color,
+                        weight: 0.8,
+                        fillColor: conf.color,
+                        fillOpacity: 0.08 // Attenuated color for Estado H
+                    };
+                }
+
+                return {
+                    color: conf.color,
+                    weight: 1,
+                    fillColor: conf.color,
+                    fillOpacity: conf.opacity * 0.4
+                };
+            }
+
+            function getStreetName(props) {
+                if (!props) return '';
+                return getPropValue(props, ['nombre', 'NOMBRE', 'calle', 'CALLE', 'name', 'NAME', 'nom_calle', 'NOM_CALLE', 'nomb_calle', 'nom', 'descripcio', 'DESCRIPCIO']) || '';
+            }
+
+            function bindStreetFeatureEvents(feature, layer) {
+                layer.on({
+                    click: (e) => {
+                        L.DomEvent.stopPropagation(e);
+                        selectFeature(feature, layer, 'calle');
+                    }
+                });
+            }
+
+            function bindFeatureEvents(feature, layer) {
+                layer.on({
+                    click: (e) => {
+                        L.DomEvent.stopPropagation(e);
+                        selectFeature(feature, layer, 'parcela', e.latlng);
+                    }
+                });
+            }
+
+            /**
+             * Renders transparent street lines and aligns labels along vector paths.
+             */
+            function updateStreetLabels() {
+                state.streets.group.clearLayers();
+
+                if (map.getZoom() < 15 || !state.streets.visible) {
+                    return;
+                }
+
+                const bounds = map.getBounds();
+                const isDark = document.documentElement.classList.contains('dark');
+                const labelColor = state.streets.color || '#f59e0b';
+                const haloColor = isDark ? '#0f172a' : '#ffffff';
+
+                const placedPoints = [];
+                const minPixelDistance = 160;
+
+                for (const feature of state.streets.features) {
+                    if (!feature.geometry) continue;
+                    const name = getStreetName(feature.properties);
+                    if (!name) continue;
+
+                    const geoms = feature.geometry.type === 'MultiLineString' 
+                        ? feature.geometry.coordinates 
+                        : [feature.geometry.coordinates];
+
+                    for (const coords of geoms) {
+                        if (!coords || coords.length < 2) continue;
+
+                        let latlngs = coords.map(c => [c[1], c[0]]);
+
+                        let inView = false;
+                        for (const pt of latlngs) {
+                            if (bounds.contains(pt)) {
+                                inView = true;
+                                break;
+                            }
+                        }
+                        if (!inView) continue;
+
+                        let lengthMeters = 0;
+                        for (let i = 0; i < latlngs.length - 1; i++) {
+                            lengthMeters += map.distance(latlngs[i], latlngs[i+1]);
+                        }
+
+                        if (lengthMeters < 35) continue;
+
+                        const pStart = latlngs[0];
+                        const pEnd = latlngs[latlngs.length - 1];
+                        
+                        const isWestbound = pEnd[1] < pStart[1];
+                        const isNearlyVertical = Math.abs(pEnd[1] - pStart[1]) < 0.0001;
+                        const isSouthbound = isNearlyVertical && (pEnd[0] < pStart[0]);
+
+                        if (isWestbound || isSouthbound) {
+                            latlngs = latlngs.slice().reverse();
+                        }
+
+                        const midIndex = Math.floor(latlngs.length / 2);
+                        const midLatLng = latlngs[midIndex];
+                        const containerPt = map.latLngToContainerPoint(midLatLng);
+
+                        let collision = false;
+                        for (const pt of placedPoints) {
+                            const dist = Math.hypot(pt.x - containerPt.x, pt.y - containerPt.y);
+                            if (dist < minPixelDistance) {
+                                collision = true;
+                                break;
+                            }
+                        }
+
+                        if (collision) continue;
+                        placedPoints.push(containerPt);
+
+                        const line = L.polyline(latlngs, {
+                            color: 'transparent',
+                            weight: 16,
+                            opacity: 0,
+                            interactive: true,
+                            renderer: svgStreetRenderer
+                        });
+
+                        bindStreetFeatureEvents(feature, line);
+                        state.streets.group.addLayer(line);
+
+                        let textPathSuccess = false;
+                        if (typeof line.setText === 'function') {
+                            try {
+                                line.setText(name, {
+                                    center: true,
+                                    orientation: 'flip',
+                                    attributes: {
+                                        'fill': labelColor,
+                                        'font-size': '11px',
+                                        'font-weight': '700',
+                                        'font-family': 'Inter, sans-serif',
+                                        'letter-spacing': '0.5px',
+                                        'stroke': haloColor,
+                                        'stroke-width': '3px',
+                                        'paint-order': 'stroke fill'
+                                    }
+                                });
+                                textPathSuccess = true;
+                            } catch (e) {
+                                textPathSuccess = false;
+                            }
+                        }
+
+                        if (!textPathSuccess) {
+                            const p1 = map.latLngToContainerPoint(latlngs[Math.max(0, midIndex - 1)]);
+                            const p2 = map.latLngToContainerPoint(latlngs[Math.min(latlngs.length - 1, midIndex + 1)]);
+                            let angle = Math.atan2(p2.y - p1.y, p2.x - p1.x) * (180 / Math.PI);
+                            if (angle > 90 || angle < -90) angle += 180;
+
+                            const labelMarker = L.marker(midLatLng, {
+                                icon: L.divIcon({
+                                    className: 'street-label-marker',
+                                    html: `<div style="transform: rotate(${angle}deg); color:${labelColor}; text-shadow: -1px -1px 0 ${haloColor}, 1px -1px 0 ${haloColor}, -1px 1px 0 ${haloColor}, 1px 1px 0 ${haloColor};">${name}</div>`,
+                                    iconSize: [120, 20],
+                                    iconAnchor: [60, 10]
+                                }),
+                                interactive: false
+                            });
+                            state.streets.group.addLayer(labelMarker);
+                        }
+                    }
+                }
+            }
+
+            map.on('zoomend moveend', updateStreetLabels);
+
+            async function loadFlatGeobuf(url, key, barId, badgeId) {
+                const layerObj = state[key];
+                const estTotal = 25000;
+                let count = 0;
+
+                try {
+                    const response = await fetch(url);
+                    if (!response.ok) throw new Error(`HTTP error ${response.status}`);
+
+                    const deserializeFn = (window.flatgeobuf && window.flatgeobuf.geojson && window.flatgeobuf.geojson.deserialize)
+                        ? window.flatgeobuf.geojson.deserialize
+                        : window.flatgeobuf.deserialize;
+
+                    const iter = deserializeFn(response.body);
+
+                    for await (const feature of iter) {
+                        count++;
+                        layerObj.features.push(feature);
+                        layerObj.group.addData(feature);
+
+                        if (count % 300 === 0) {
+                            updateLoadUI(barId, badgeId, count, estTotal);
+                        }
+                    }
+
+                    updateLoadUI(barId, badgeId, count, count, true);
+                } catch (err) {
+                    console.error('Error loading layer:', url, err);
+                    const badge = document.getElementById(badgeId);
+                    if (badge) badge.innerText = 'Error';
+                }
+            }
+
+            async function loadStreets(url) {
+                const badge = document.getElementById('badgeStreets');
+                try {
+                    const response = await fetch(url);
+                    if (!response.ok) throw new Error('HTTP ' + response.status);
+                    const geojson = await response.json();
+
+                    state.streets.features = geojson.features || [];
+                    if (badge) badge.innerText = `${state.streets.features.length.toLocaleString()}`;
+
+                    updateStreetLabels();
+                } catch (err) {
+                    console.error('Error cargando calles:', err);
+                    if (badge) badge.innerText = 'Error';
+                }
+            }
+
+            function updateLoadUI(barId, badgeId, count, total, isDone = false) {
+                const bar = document.getElementById(barId);
+                const badge = document.getElementById(badgeId);
+                const totalBadge = document.getElementById('totalParcelsBadge');
+
+                if (bar) bar.style.width = `${Math.min(100, Math.round((count / total) * 100))}%`;
+                if (badge) badge.innerText = `${count.toLocaleString()}`;
+                if (totalBadge) {
+                    const totalCount = state.layer1.features.length + state.layer2.features.length;
+                    totalBadge.innerText = totalCount.toLocaleString();
+                }
+            }
+
+            loadFlatGeobuf(URL_LAYER1, 'layer1', 'bar1', 'badge1');
+            loadFlatGeobuf(URL_LAYER2, 'layer2', 'bar2', 'badge2');
+            loadStreets(URL_STREETS);
+
+            // Locate GPS User
+            const locateMeBtn = document.getElementById('locateMeBtn');
+            locateMeBtn.addEventListener('click', () => {
+                if (!navigator.geolocation) {
+                    alert('La geolocalización no está soportada en tu navegador.');
+                    return;
+                }
+
+                locateMeBtn.classList.add('animate-pulse');
+
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => {
+                        locateMeBtn.classList.remove('animate-pulse');
+                        const latlng = [pos.coords.latitude, pos.coords.longitude];
+
+                        if (state.userLocationMarker) {
+                            state.userLocationMarker.setLatLng(latlng);
+                        } else {
+                            state.userLocationMarker = L.circleMarker(latlng, {
+                                radius: 8,
+                                fillColor: '#3b82f6',
+                                fillOpacity: 0.9,
+                                color: '#ffffff',
+                                weight: 3
+                            }).addTo(map);
+                        }
+
+                        map.setView(latlng, 17);
+                    },
+                    (err) => {
+                        locateMeBtn.classList.remove('animate-pulse');
+                        alert('No se pudo acceder a la ubicación GPS.');
+                    },
+                    { enableHighAccuracy: true }
+                );
+            });
+
+            // Map Zoom Buttons
+            document.getElementById('zoomInBtn').addEventListener('click', () => map.zoomIn());
+            document.getElementById('zoomOutBtn').addEventListener('click', () => map.zoomOut());
+
+            const bottomSheet = document.getElementById('bottomSheet');
+            const sheetContent = document.getElementById('sheetContent');
+            const sheetTitle = document.getElementById('sheetTitle');
+            const sheetIcon = document.getElementById('sheetIcon');
+
+            function openBottomSheet() {
+                bottomSheet.classList.remove('translate-y-full');
+            }
+
+            function closeBottomSheet() {
+                bottomSheet.classList.add('translate-y-full');
+            }
+
+            document.getElementById('closeSheetBtn').addEventListener('click', closeBottomSheet);
+            document.getElementById('sheetHandle').addEventListener('click', closeBottomSheet);
+
+            /**
+             * Inspects clicked feature.
+             * If estado === "H", queries all spatially coincident/overlapping parcel records 
+             * in that polygon and presents strictly the list of "nropasd" values.
+             */
+            function selectFeature(feature, layer, type = 'parcela', clickLatLng = null) {
+                state.selectedLayer = layer;
+                const props = feature.properties || {};
+
+                if (type === 'calle') {
+                    const streetName = getStreetName(props) || 'Calle sin nombre';
+                    sheetTitle.innerText = streetName;
+                    sheetIcon.className = "fa-solid fa-road text-amber-500";
+
+                    let rows = '';
+                    for (const [k, v] of Object.entries(props)) {
+                        if (v !== null && v !== undefined && v !== '') {
+                            rows += `
+                                <div class="flex items-center justify-between py-2 border-b border-slate-100 dark:border-slate-800 text-xs">
+                                    <span class="text-slate-500 capitalize">${k.replace(/_/g, ' ')}</span>
+                                    <span class="font-semibold text-slate-800 dark:text-slate-200 font-mono">${v}</span>
+                                </div>
+                            `;
+                        }
+                    }
+
+                    sheetContent.innerHTML = `
+                        <div class="space-y-3">
+                            <button id="focusFeatureBtn" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-medium py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 active:scale-95 transition shadow-md">
+                                <i class="fa-solid fa-crosshairs"></i> Enfocar en el Mapa
+                            </button>
+                            <div class="divide-y divide-slate-100 dark:divide-slate-800">
+                                ${rows || '<p class="text-slate-400 text-center py-4 text-xs">Sin atributos registrados</p>'}
+                            </div>
+                        </div>
+                    `;
+
+                    document.getElementById('focusFeatureBtn').addEventListener('click', () => {
+                        if (layer.getBounds) {
+                            map.fitBounds(layer.getBounds(), { maxZoom: 18, padding: [40, 40] });
+                        }
+                        closeBottomSheet();
+                    });
+
+                    openBottomSheet();
+                    return;
+                }
+
+                // Parcel Feature Logic
+                const rawEstado = getPropValue(props, ['estado', 'ESTADO', 'Estado']) || '';
+                const isEstadoH = String(rawEstado).trim().toUpperCase() === 'H';
+
+                if (isEstadoH) {
+                    sheetTitle.innerText = "Propiedad Horizontal (Estado H)";
+                    sheetIcon.className = "fa-solid fa-building-user text-indigo-500";
+
+                    const coincidentNroPasd = new Set();
+                    const allParcelFeatures = [...state.layer1.features, ...state.layer2.features];
+
+                    const targetKey = getCadastralKey(props);
+
+                    // Compute centroid/click point for spatial point-in-polygon matching
+                    let queryLatLng = clickLatLng;
+                    if (!queryLatLng && layer && layer.getBounds) {
+                        queryLatLng = layer.getBounds().getCenter();
+                    }
+
+                    for (const f of allParcelFeatures) {
+                        const fProps = f.properties || {};
+                        let matches = false;
+
+                        // 1. Check strict composite cadastral key equality if available
+                        const candidateKey = getCadastralKey(fProps);
+                        if (targetKey && candidateKey && targetKey === candidateKey) {
+                            matches = true;
+                        } 
+                        // 2. Spatial Point-in-Polygon check with click point
+                        else if (queryLatLng && isPointInFeature(queryLatLng, f)) {
+                            matches = true;
+                        }
+
+                        if (matches) {
+                            const val = getNroPasd(fProps);
+                            if (val !== null && val !== undefined && val !== '') {
+                                coincidentNroPasd.add(String(val).trim());
+                            }
+                        }
+                    }
+
+                    // Fallback to clicked feature's own nropasd if set was empty
+                    if (coincidentNroPasd.size === 0) {
+                        const val = getNroPasd(props);
+                        if (val) coincidentNroPasd.add(String(val).trim());
+                    }
+
+                    const subpartidasList = Array.from(coincidentNroPasd).sort((a, b) => {
+                        const numA = parseInt(a, 10);
+                        const numB = parseInt(b, 10);
+                        if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
+                        return a.localeCompare(b);
+                    });
+
+                    sheetContent.innerHTML = `
+                        <div class="space-y-3">
+                            <div class="bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-200 dark:border-indigo-800/60 rounded-xl p-3 flex items-center justify-between">
+                                <div>
+                                    <p class="font-bold text-indigo-900 dark:text-indigo-300 text-xs">Parcela en Estado H (PH)</p>
+                                    <p class="text-[11px] text-indigo-700 dark:text-indigo-400">Coincidencias en este polígono</p>
+                                </div>
+                                <span class="font-mono font-bold text-xs px-2.5 py-1 bg-indigo-200 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-200 rounded-full">
+                                    ${subpartidasList.length} ${subpartidasList.length === 1 ? 'unidad' : 'unidades'}
+                                </span>
+                            </div>
+
+                            <button id="focusFeatureBtn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2 rounded-xl text-xs flex items-center justify-center gap-2 active:scale-95 transition shadow-sm">
+                                <i class="fa-solid fa-crosshairs"></i> Enfocar Parcela
+                            </button>
+
+                            <div class="space-y-1">
+                                <label class="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1">Nº PASD (Subpartidas Coincidentes)</label>
+                                <div class="grid grid-cols-2 gap-2 max-h-52 overflow-y-auto custom-scrollbar p-1">
+                                    ${subpartidasList.length > 0 ? subpartidasList.map(nro => `
+                                        <div class="bg-white/80 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-2 flex items-center justify-between text-xs font-mono font-semibold text-slate-800 dark:text-slate-200 shadow-sm">
+                                            <span>${nro}</span>
+                                            <i class="fa-solid fa-hashtag text-[10px] text-indigo-400"></i>
+                                        </div>
+                                    `).join('') : '<p class="text-slate-400 text-center col-span-2 py-4 text-xs">No se registraron valores de nropasd</p>'}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+
+                    document.getElementById('focusFeatureBtn').addEventListener('click', () => {
+                        if (layer.getBounds) {
+                            map.fitBounds(layer.getBounds(), { maxZoom: 18, padding: [40, 40] });
+                        }
+                        closeBottomSheet();
+                    });
+
+                    openBottomSheet();
+                    return;
+                }
+
+                // Standard Parcel Inspector View (Non-H estado)
+                const title = props.parcela || props.id || props.GID || 'Parcela Catastral';
+                sheetTitle.innerText = title;
+                sheetIcon.className = "fa-solid fa-square-poll-vertical text-emerald-600 dark:text-emerald-400";
+
+                let rows = '';
+                for (const [k, v] of Object.entries(props)) {
+                    if (v !== null && v !== undefined && v !== '') {
+                        rows += `
+                            <div class="flex items-center justify-between py-2 border-b border-slate-100 dark:border-slate-800 text-xs">
+                                <span class="text-slate-500 capitalize">${k.replace(/_/g, ' ')}</span>
+                                <span class="font-semibold text-slate-800 dark:text-slate-200 font-mono">${v}</span>
+                            </div>
+                        `;
+                    }
+                }
+
+                sheetContent.innerHTML = `
+                    <div class="space-y-3">
+                        <button id="focusFeatureBtn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 active:scale-95 transition shadow-md">
+                            <i class="fa-solid fa-crosshairs"></i> Enfocar en el Mapa
+                        </button>
+                        <div class="divide-y divide-slate-100 dark:divide-slate-800">
+                            ${rows || '<p class="text-slate-400 text-center py-4 text-xs">Sin atributos registrados</p>'}
+                        </div>
+                    </div>
+                `;
+
+                document.getElementById('focusFeatureBtn').addEventListener('click', () => {
+                    if (layer.getBounds) {
+                        map.fitBounds(layer.getBounds(), { maxZoom: 18, padding: [40, 40] });
+                    }
+                    closeBottomSheet();
+                });
+
+                openBottomSheet();
+            }
+
+            // Open Layers Panel Sheet
+            document.getElementById('openLayersBtn').addEventListener('click', () => {
+                sheetTitle.innerText = 'Capas y Configuración';
+                sheetIcon.className = 'fa-solid fa-layer-group text-emerald-600 dark:text-emerald-400';
+
+                const tmpl = document.getElementById('layersTemplate').content.cloneNode(true);
+                sheetContent.innerHTML = '';
+                sheetContent.appendChild(tmpl);
+
+                bindSheetLayerControls();
+                openBottomSheet();
+            });
+
+            function bindSheetLayerControls() {
+                const totalBadge = document.getElementById('totalParcelsBadge');
+                if (totalBadge) {
+                    const totalCount = state.layer1.features.length + state.layer2.features.length;
+                    totalBadge.innerText = totalCount.toLocaleString();
+                }
+
+                const t1 = document.getElementById('toggleLayer1');
+                const t2 = document.getElementById('toggleLayer2');
+                const tSt = document.getElementById('toggleStreets');
+
+                if (t1) t1.checked = state.layer1.visible;
+                if (t2) t2.checked = state.layer2.visible;
+                if (tSt) tSt.checked = state.streets.visible;
+
+                const badgeSt = document.getElementById('badgeStreets');
+                if (badgeSt && state.streets.features.length) {
+                    badgeSt.innerText = `${state.streets.features.length.toLocaleString()}`;
+                }
+
+                updateLoadUI('bar1', 'badge1', state.layer1.features.length, 25000);
+                updateLoadUI('bar2', 'badge2', state.layer2.features.length, 25000);
+
+                if (t1) t1.onchange = (e) => {
+                    state.layer1.visible = e.target.checked;
+                    e.target.checked ? map.addLayer(state.layer1.group) : map.removeLayer(state.layer1.group);
+                };
+
+                if (t2) t2.onchange = (e) => {
+                    state.layer2.visible = e.target.checked;
+                    e.target.checked ? map.addLayer(state.layer2.group) : map.removeLayer(state.layer2.group);
+                };
+
+                if (tSt) tSt.onchange = (e) => {
+                    state.streets.visible = e.target.checked;
+                    updateStreetLabels();
+                };
+
+                const c1 = document.getElementById('color1');
+                const o1 = document.getElementById('opacity1');
+                if (c1) c1.oninput = (e) => { 
+                    state.layer1.color = e.target.value; 
+                    state.layer1.group.setStyle((f) => getFeatureStyle(f, 1)); 
+                };
+                if (o1) o1.oninput = (e) => { 
+                    state.layer1.opacity = parseFloat(e.target.value); 
+                    state.layer1.group.setStyle((f) => getFeatureStyle(f, 1)); 
+                };
+
+                const c2 = document.getElementById('color2');
+                const o2 = document.getElementById('opacity2');
+                if (c2) c2.oninput = (e) => { 
+                    state.layer2.color = e.target.value; 
+                    state.layer2.group.setStyle((f) => getFeatureStyle(f, 2)); 
+                };
+                if (o2) o2.oninput = (e) => { 
+                    state.layer2.opacity = parseFloat(e.target.value); 
+                    state.layer2.group.setStyle((f) => getFeatureStyle(f, 2)); 
+                };
+
+                const cSt = document.getElementById('colorStreets');
+                if (cSt) cSt.oninput = (e) => { 
+                    state.streets.color = e.target.value; 
+                    updateStreetLabels(); 
+                };
+
+                // Basemap selection buttons
+                document.querySelectorAll('.bm-btn').forEach(btn => {
+                    const key = btn.getAttribute('data-bm');
+                    if (key === activeBasemapKey) {
+                        btn.classList.add('bg-emerald-50', 'dark:bg-emerald-950/60', 'border-emerald-500', 'text-emerald-700', 'dark:text-emerald-300');
+                    } else {
+                        btn.classList.remove('bg-emerald-50', 'dark:bg-emerald-950/60', 'border-emerald-500', 'text-emerald-700', 'dark:text-emerald-300');
+                    }
+
+                    btn.onclick = () => {
+                        map.removeLayer(activeBasemap);
+                        activeBasemapKey = key;
+                        activeBasemap = basemaps[key].addTo(map);
+                        bindSheetLayerControls();
+                    };
+                });
+            }
+
+            const searchInput = document.getElementById('mobileSearchInput');
+            const searchResults = document.getElementById('mobileSearchResults');
+            const clearSearchBtn = document.getElementById('clearSearchBtn');
+
+            searchInput.addEventListener('input', (e) => {
+                const query = e.target.value.trim().toLowerCase();
+
+                if (query.length > 0) {
+                    clearSearchBtn.classList.remove('hidden');
+                } else {
+                    clearSearchBtn.classList.add('hidden');
+                    searchResults.classList.add('hidden');
+                    return;
+                }
+
+                if (query.length < 2) return;
+
+                const matches = [];
+                const all = [
+                    ...state.layer1.features.map(f => ({ f, group: state.layer1.group, type: 'parcela' })),
+                    ...state.layer2.features.map(f => ({ f, group: state.layer2.group, type: 'parcela' })),
+                    ...state.streets.features.map(f => ({ f, group: state.streets.group, type: 'calle' }))
+                ];
+
+                for (const item of all) {
+                    if (matches.length >= 8) break;
+                    const props = item.f.properties || {};
+                    if (Object.values(props).some(v => String(v).toLowerCase().includes(query))) {
+                        matches.push(item);
+                    }
+                }
+
+                if (matches.length > 0) {
+                    searchResults.innerHTML = matches.map((m, idx) => {
+                        const title = m.type === 'calle' 
+                            ? (getStreetName(m.f.properties) || `Calle ${idx + 1}`) 
+                            : (m.f.properties.parcela || m.f.properties.id || m.f.properties.GID || `Parcela ${idx + 1}`);
+                        const icon = m.type === 'calle' ? 'fa-road text-amber-500' : 'fa-vector-square text-emerald-500';
+                        return `
+                            <div data-idx="${idx}" class="search-res-item p-2.5 hover:bg-emerald-50 dark:hover:bg-slate-800 rounded-xl flex items-center justify-between text-xs cursor-pointer border-b border-slate-100 dark:border-slate-800/50 last:border-0">
+                                <div class="flex items-center gap-2">
+                                    <i class="fa-solid ${icon} text-xs"></i>
+                                    <span class="font-medium text-slate-800 dark:text-slate-200">${title}</span>
+                                </div>
+                                <i class="fa-solid fa-angle-right text-slate-400 text-[10px]"></i>
+                            </div>
+                        `;
+                    }).join('');
+
+                    searchResults.classList.remove('hidden');
+
+                    document.querySelectorAll('.search-res-item').forEach((el, idx) => {
+                        el.onclick = () => {
+                            const match = matches[idx];
+                            searchResults.classList.add('hidden');
+
+                            if (match.type === 'calle') {
+                                const coords = match.f.geometry.type === 'MultiLineString' 
+                                    ? match.f.geometry.coordinates.flat() 
+                                    : match.f.geometry.coordinates;
+                                const latlngs = coords.map(c => [c[1], c[0]]);
+                                const bounds = L.latLngBounds(latlngs);
+                                map.fitBounds(bounds, { maxZoom: 18, padding: [40, 40] });
+                                const tempLine = L.polyline(latlngs, { color: '#f59e0b', weight: 4 });
+                                selectFeature(match.f, tempLine, 'calle');
+                            } else {
+                                match.group.eachLayer(l => {
+                                    if (l.feature === match.f) {
+                                        map.fitBounds(l.getBounds(), { maxZoom: 18, padding: [40, 40] });
+                                        selectFeature(match.f, l, match.type);
+                                    }
+                                });
+                            }
+                        };
+                    });
+                } else {
+                    searchResults.innerHTML = `<div class="p-3 text-slate-400 text-center text-xs">Sin coincidencias</div>`;
+                    searchResults.classList.remove('hidden');
+                }
+            });
+
+            clearSearchBtn.onclick = () => {
+                searchInput.value = '';
+                clearSearchBtn.classList.add('hidden');
+                searchResults.classList.add('hidden');
+            };
+
+            // Theme Toggle
+            document.getElementById('themeToggleBtn').onclick = () => {
+                document.documentElement.classList.toggle('dark');
+                updateStreetLabels();
+            };
+        });
+    </script>
+</body>
+</html>
