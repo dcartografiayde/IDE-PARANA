@@ -10,19 +10,18 @@
     <script src="https://cdn.jsdelivr.net/npm/leaflet-textpath@1.2.3/leaflet.textpath.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- MODIFICACIÓN: Carga de la librería FlatGeobuf para soportar capas en formato .fgb -->
+    <!-- Carga de la librería FlatGeobuf para soportar capas en formato .fgb -->
     <script src="https://unpkg.com/flatgeobuf@3.22.0/dist/flatgeobuf-geojson.min.js"></script>
 
-    <!-- MODIFICACIÓN: Agregado CSS de Leaflet Measure para las herramientas de medición -->
+    <!-- Agregado CSS y JS de Leaflet Measure para las herramientas de medición -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-measure@3.1.0/dist/leaflet-measure.css"/>
-    <!-- MODIFICACIÓN: Agregado JS de Leaflet Measure para habilitar los cálculos de longitud y superficie -->
     <script src="https://cdn.jsdelivr.net/npm/leaflet-measure@3.1.0/dist/leaflet-measure.js"></script>
 
     <style>
         body { margin:0; padding:0; font-family: 'Inter', sans-serif; background: #0f172a; overflow: hidden; }
         #map { height: 100vh; width: 100%; z-index: 1; }
 
-        /* MODIFICACIÓN: Estilos personalizados para el scrollbar del menú lateral */
+        /* Estilos personalizados para el scrollbar del menú lateral */
         .scrollbar-custom::-webkit-scrollbar {
             width: 6px;
         }
@@ -130,16 +129,6 @@
             font-weight:bold;
             color:#475569;
         }
-        
-        .layer-legend-icon { 
-            display: inline-block; 
-            width: 14px; 
-            height: 14px; 
-            margin-right: 8px; 
-            border: 1px solid #333; 
-            vertical-align: middle; 
-            border-radius: 3px; 
-        }
 
         .etiqueta-manzana {
             background: rgba(255, 255, 255, 0.95) !important;
@@ -157,25 +146,16 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
         }
 
-        /* MODIFICACIÓN: Ajustes de diseño premium para adaptar la interfaz de Leaflet Measure al visor oscuro */
+        /* MODIFICACIÓN: Ocultar el control nativo predeterminado de Leaflet Measure ya que utilizaremos el panel personalizado */
         .leaflet-control-measure {
-            border: none !important;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
-            border-radius: 8px !important;
-            font-family: 'Inter', sans-serif !important;
-        }
-        .leaflet-control-measure a.has-measurements {
-            background-color: #2980b9 !important;
-        }
-        .leaflet-control-measure .js-toggle {
-            border-radius: 8px !important;
+            display: none !important;
         }
     </style>
 </head>
 
 <body>
 
-<!-- MODIFICACIÓN: Menú lateral premium colapsable en tonos oscuros con todas las búsquedas y capa controladas quirúrgicamente -->
+<!-- Menú lateral colapsable -->
 <div id="sidebar" class="fixed top-0 left-0 h-full w-[360px] max-w-[85vw] bg-slate-900 border-r border-slate-800 text-slate-100 flex flex-col z-[1000] shadow-2xl transition-transform duration-300 ease-in-out transform">
     
     <!-- Encabezado del visor -->
@@ -200,14 +180,14 @@
                 </div>
             </div>
 
-            <!-- Búsqueda por Dirección Predictiva (Por UBIPAR1 de las parcelas catastrales) -->
+            <!-- Búsqueda por Dirección Predictiva -->
             <div class="space-y-1 relative">
                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Dirección (Calle y Altura - Predictivo)</label>
                 <input type="text" id="input-ubicacion" placeholder="Buscar dirección (p. ej. San Martín 123)..." class="w-full bg-slate-850 border border-slate-700 rounded-md px-3 py-1.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition" autocomplete="off">
                 <div id="sugerencias-ubicacion" class="absolute left-0 right-0 bg-slate-800 border border-slate-700 rounded-md max-h-52 overflow-y-auto mt-1 hidden z-[2000] shadow-2xl scrollbar-custom"></div>
             </div>
 
-            <!-- Búsqueda de Lugares en Google / Nominatim -->
+            <!-- Búsqueda de Lugares -->
             <div class="space-y-1">
                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Buscar Lugares o Puntos de interés</label>
                 <div class="flex gap-2">
@@ -244,7 +224,6 @@
             <div class="space-y-2 pt-2">
                 <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide">Capas vectoriales</span>
                 <div class="space-y-2">
-                    <!-- MODIFICACIÓN: Checkbox incorporado para Curvas de Nivel (.fgb) -->
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
                         <input type="checkbox" id="chk-curvas" checked onchange="toggleOverlay('curvas')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
                         <span class="flex items-center gap-2">
@@ -252,7 +231,6 @@
                             <span>Curvas de nivel</span>
                         </span>
                     </label>
-                    <!-- MODIFICACIÓN: Checkbox incorporado para Arroyos / Hidrografía -->
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
                         <input type="checkbox" id="chk-arroyos" checked onchange="toggleOverlay('arroyos')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
                         <span class="flex items-center gap-2">
@@ -289,14 +267,14 @@
         <div class="space-y-3 pt-2">
             <h2 class="text-xs font-extrabold uppercase tracking-widest text-slate-400 border-b border-slate-800 pb-1.5">Información útil</h2>
             <div class="text-[11px] text-slate-400 space-y-1.5 leading-relaxed bg-slate-950/20 p-3 rounded-lg border border-slate-850">
-                <p>📏 Use la regla en el margen superior derecho para realizar mediciones de longitud y área.</p>
+                <p>📏 Use el panel de herramientas en la esquina superior derecha para realizar mediciones de distancia y área.</p>
                 <p>⚡ Las parcelas catastrales y los nombres de las calles se visualizan automáticamente a niveles de zoom cercanos (Zoom >= 15/16).</p>
             </div>
         </div>
 
     </div>
 
-    <!-- BOTÓN DE COLAPSO: Flota pegado al borde del panel lateral de manera responsive y dinámica -->
+    <!-- BOTÓN DE COLAPSO -->
     <button onclick="toggleSidebar()" class="absolute top-3 left-full ml-3 bg-slate-900 border border-slate-800 text-slate-300 p-2.5 rounded-lg shadow-xl hover:text-white hover:bg-slate-800 transition-colors focus:outline-none z-[1010]" title="Mostrar/Ocultar Menú">
         <svg id="toggle-icon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transform transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
@@ -304,7 +282,40 @@
     </button>
 </div>
 
-<!-- Cuadro Informativo de Distritos con indicador de Zoom -->
+<!-- MODIFICACIÓN: Panel de Herramientas exacto al diseño de la imagen en la esquina superior derecha -->
+<div class="fixed top-4 right-4 z-[1000] w-[230px] bg-[#0d1424]/95 backdrop-blur-md border border-slate-800/80 rounded-2xl p-4 shadow-2xl pointer-events-auto">
+    <div class="text-center font-extrabold text-slate-300 text-xs tracking-widest uppercase mb-3 pb-2 border-b border-slate-800/80">
+        HERRAMIENTAS
+    </div>
+    
+    <div class="space-y-2.5">
+        <!-- Botón Distancia -->
+        <button onclick="activarMedicion('distancia')" class="w-full flex items-center gap-3 bg-[#182238] hover:bg-[#202e4c] active:scale-[0.98] text-white px-3.5 py-2.5 rounded-xl transition duration-200 group border border-slate-700/40">
+            <svg class="w-5 h-5 text-blue-400 group-hover:text-blue-300 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            </svg>
+            <span class="text-xs font-bold tracking-wide">Distancia</span>
+        </button>
+
+        <!-- Botón Superficie -->
+        <button onclick="activarMedicion('superficie')" class="w-full flex items-center gap-3 bg-[#182238] hover:bg-[#202e4c] active:scale-[0.98] text-white px-3.5 py-2.5 rounded-xl transition duration-200 group border border-slate-700/40">
+            <svg class="w-5 h-5 text-emerald-400 group-hover:text-emerald-300 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+            </svg>
+            <span class="text-xs font-bold tracking-wide">Superficie</span>
+        </button>
+
+        <!-- Botón Guía de Uso -->
+        <button onclick="mostrarGuiaUso()" class="w-full flex items-center gap-3 bg-[#182238] hover:bg-[#202e4c] active:scale-[0.98] text-white px-3.5 py-2.5 rounded-xl transition duration-200 group border border-slate-700/40">
+            <svg class="w-5 h-5 text-slate-300 group-hover:text-white transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+            </svg>
+            <span class="text-xs font-bold tracking-wide">Guía de Uso</span>
+        </button>
+    </div>
+</div>
+
+<!-- Cuadro Informativo de Distritos -->
 <div class="adv-distrito">
 
     <div id="panel-info-mapa" class="panel-info-mapa">
@@ -331,7 +342,7 @@
         </div>
 
         <div id="descripcion-mapa" class="panel-descripcion">
-            En el plano se representa la configuración topográfica e hídrica de la ciudad de Paraná. Los niveles topográficos más bajos se dan a medida que se acercan al Río Paraná y además se observan grandes cursos de agua que atraviesan el ejido.
+            Capas altimétricas e hidrológicas del tejido urbano de la ciudad de Paraná. Incluye la red de arroyos y curvas de nivel procesadas en formato FlatGeobuf de alto rendimiento.
         </div>
 
         <hr style="margin:8px 0;">
@@ -419,7 +430,6 @@ async function fetchGeoJSON(url) {
     return JSON.parse(text);
 }
 
-// MODIFICACIÓN: Función genérica optimizada para la carga en streaming de FlatGeobuf sin desbordamiento de memoria
 async function cargarFGB(url, options = {}, targetGeoJsonLayer = null) {
     const layer = targetGeoJsonLayer || L.geoJSON(null, {
         pane: options.pane || 'overlayPane',
@@ -431,7 +441,6 @@ async function cargarFGB(url, options = {}, targetGeoJsonLayer = null) {
         const response = await fetch(url);
         if (!response.ok) throw new Error(`Error HTTP: ${response.status} al cargar ${url}`);
         
-        // MODIFICACIÓN: Iteración streaming usando addData directamente en la capa GeoJSON
         const iter = flatgeobuf.deserialize(response.body);
         for await (const feature of iter) {
             layer.addData(feature);
@@ -442,7 +451,7 @@ async function cargarFGB(url, options = {}, targetGeoJsonLayer = null) {
     return layer;
 }
 
-// Inicio del mapa en Zoom 12 (vista completa de la ciudad)
+// Inicio del mapa en Zoom 12
 var map = L.map('map', { 
     center: [-31.745, -60.51], 
     zoom: 12, 
@@ -450,14 +459,14 @@ var map = L.map('map', {
     maxZoom: 22
 });
 
-// Creación explícita de paneles ordenados por Z-Index
+// Paneles ordenados por Z-Index
 map.createPane('manzanasPane');
-map.getPane('manzanasPane').style.zIndex = 300; // Capa inferior de fondo
-map.getPane('manzanasPane').style.pointerEvents = 'none'; // Clics pasan de largo
+map.getPane('manzanasPane').style.zIndex = 300;
+map.getPane('manzanasPane').style.pointerEvents = 'none';
 
 map.createPane('parcelasPane');
-map.getPane('parcelasPane').style.zIndex = 350; // Capa superior
-map.getPane('parcelasPane').style.pointerEvents = 'auto'; // Captura clics
+map.getPane('parcelasPane').style.zIndex = 350;
+map.getPane('parcelasPane').style.pointerEvents = 'auto';
 
 map.createPane('atlasPane');
 map.getPane('atlasPane').style.zIndex = 320;
@@ -475,15 +484,11 @@ var hibrido = L.layerGroup([sat, ref]);
 
 dark.addTo(map);
 
-// MODIFICACIÓN: Capa contenedora unificada de Curvas de Nivel
 var grupoCurvasNivel = L.layerGroup().addTo(map);
-
-// MODIFICACIÓN: Capa independiente de Arroyos
 var grupoArroyos = L.layerGroup().addTo(map);
 
 const PATH_TEMATICO = BASE_URL + "atlas_pua/curvas_nivel_hidrografia/";
 
-// MODIFICACIÓN: Configuración e instanciación de la capa de Curvas de Nivel (.fgb)
 const estiloCurva = (f) => {
     return {
         color: "#d97706",
@@ -497,7 +502,6 @@ const onEachCurvaFeature = (f, l) => {
     l.bindPopup(`<div class="popup-custom"><div class="popup-header">CURVA DE NIVEL</div><table class="table-info"><tr><td>COTA</td><td>${cota} m</td></tr></table></div>`);
 };
 
-// Crear capa GeoJSON compartida e integrar deserialización de .fgb
 const capaUnificadaCurvas = L.geoJSON(null, {
     pane: 'atlasPane',
     style: estiloCurva,
@@ -508,7 +512,6 @@ grupoCurvasNivel.addLayer(capaUnificadaCurvas);
 cargarFGB(PATH_TEMATICO + "curvas_nivel_i.fgb", {}, capaUnificadaCurvas);
 cargarFGB(PATH_TEMATICO + "curvas_nivel_p.fgb", {}, capaUnificadaCurvas);
 
-// MODIFICACIÓN: Carga independiente de la capa de Arroyos
 fetchGeoJSON(PATH_TEMATICO + "arroyos.geojson").then(data => {
     L.geoJSON(data, {
         pane: 'atlasPane',
@@ -526,7 +529,6 @@ fetchGeoJSON(PATH_TEMATICO + "arroyos.geojson").then(data => {
     console.error("Error al cargar la capa de arroyos:", err);
 });
 
-// Calles cargadas asíncronamente
 var grupoCalles = L.layerGroup();
 var listaCallesParaBusqueda = [];
 
@@ -698,20 +700,7 @@ fetchGeoJSON(BASE_URL + "catastro/manzana.geojson").then(data => {
 // Capa de Parcelas
 var grupoParcelas = L.layerGroup();
 var parcelasLayers = [];
-
 var listaParcelasUbicacion = [];
-
-function pointInPoly(point, vs) {
-    var x = point[0], y = point[1];
-    var inside = false;
-    for (var i = 0, j = vs.length - 1; i < vs.length; j = i++) {
-        var xi = vs[i][0], yi = vs[i][1];
-        var xj = vs[j][0], yj = vs[j][1];
-        var intersect = ((yi > y) != (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
-        if (intersect) inside = !inside;
-    }
-    return inside;
-}
 
 const archivosCatastro = ["parcela1_4.geojson", "parcela5_7.geojson", "parcela8_15.geojson"];
 archivosCatastro.forEach(file => {
@@ -780,13 +769,11 @@ archivosCatastro.forEach(file => {
     });
 });
 
-// MODIFICACIÓN: Gestión unificada de visibilidad dinámica sincronizada con las capas temáticas
 function controlarVisibilidadDinamica() {
     let zoomActual = map.getZoom();
     
     document.getElementById('zoom-indicator').innerText = zoomActual;
 
-    // Visibilidad de Curvas de Nivel
     const chkCurvas = document.getElementById('chk-curvas').checked;
     if (chkCurvas) {
         if (!map.hasLayer(grupoCurvasNivel)) map.addLayer(grupoCurvasNivel);
@@ -794,7 +781,6 @@ function controlarVisibilidadDinamica() {
         if (map.hasLayer(grupoCurvasNivel)) map.removeLayer(grupoCurvasNivel);
     }
 
-    // Visibilidad de Arroyos
     const chkArroyos = document.getElementById('chk-arroyos').checked;
     if (chkArroyos) {
         if (!map.hasLayer(grupoArroyos)) map.addLayer(grupoArroyos);
@@ -802,7 +788,6 @@ function controlarVisibilidadDinamica() {
         if (map.hasLayer(grupoArroyos)) map.removeLayer(grupoArroyos);
     }
 
-    // 1. Visibilidad de Manzanas y etiquetas
     const chkManzanas = document.getElementById('chk-manzanas').checked;
     if (chkManzanas) {
         if (!map.hasLayer(grupoManzanas)) {
@@ -822,7 +807,6 @@ function controlarVisibilidadDinamica() {
         if (map.hasLayer(grupoEtiquetasManzanas)) map.removeLayer(grupoEtiquetasManzanas);
     }
 
-    // 2. Visibilidad de Calles (Zoom >= 15)
     const chkCalles = document.getElementById('chk-calles').checked;
     if (chkCalles && zoomActual >= 15) {
         if (!map.hasLayer(grupoCalles)) {
@@ -834,7 +818,6 @@ function controlarVisibilidadDinamica() {
         }
     }
 
-    // 3. Visibilidad de Parcelas Catastrales (Zoom >= 16)
     const chkParcelas = document.getElementById('chk-parcelas').checked;
     if (chkParcelas && zoomActual >= 16) {
         if (!map.hasLayer(grupoParcelas)) {
@@ -990,7 +973,7 @@ function buscarGoogle() {
         });
 }
 
-// MODIFICACIÓN: Inicialización de la herramienta de medición (longitud y superficie) en español
+// Inicialización oculta de la herramienta de medición para ser activada desde el panel custom
 var measureControl = new L.Control.Measure({
     primaryLengthUnit: 'meters',
     secondaryLengthUnit: 'kilometers',
@@ -998,15 +981,28 @@ var measureControl = new L.Control.Measure({
     secondaryAreaUnit: 'hectares',
     activeColor: '#ff6b6b',
     completedColor: '#2980b9',
-    localization: 'es',
-    popupOptions: {
-        className: 'leaflet-measure-popup',
-        autoPanPadding: [80, 80]
-    }
+    localization: 'es'
 });
 measureControl.addTo(map);
 
-// Inicializar el buscador predictivo al cargar el script
+// MODIFICACIÓN: Lógica de activación de herramientas desde el panel superior derecho
+function activarMedicion(tipo) {
+    if (measureControl && measureControl._tools) {
+        measureControl._startMeasure();
+    } else {
+        const toggleBtn = document.querySelector('.leaflet-control-measure-toggle');
+        if (toggleBtn) {
+            toggleBtn.click();
+        } else {
+            alert("Haga clic en el mapa para comenzar la medición.");
+        }
+    }
+}
+
+function mostrarGuiaUso() {
+    alert("GUÍA DE USO:\n\n1. Use 'Distancia' y 'Superficie' para medir en el mapa marcando puntos sucesivos.\n2. Busque parcelas por Número de Partida (PM) o dirección exacta desde el panel izquierdo.\n3. Las parcelas y nombres de calles se activan automáticamente al acercarse con el zoom.");
+}
+
 configurarBuscadorUbicaciones();
 controlarVisibilidadDinamica();
 </script>
