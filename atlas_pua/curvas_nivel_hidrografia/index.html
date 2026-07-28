@@ -3,14 +3,14 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CURVAS DE NIVEL E HIDROGRAFÍA - MUNICIPALIDAD DE PARANÁ</title>
+    <title>VISOR URBANIZACIONES E HIDROGRAFÍA - MUNICIPALIDAD DE PARANA</title>
 
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/leaflet-textpath@1.2.3/leaflet.textpath.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- MODIFICACIÓN: Carga de la librería FlatGeobuf -->
+    <!-- MODIFICACIÓN: Carga de la librería FlatGeobuf para soportar capas en formato .fgb -->
     <script src="https://unpkg.com/flatgeobuf@3.22.0/dist/flatgeobuf-geojson.min.js"></script>
 
     <!-- MODIFICACIÓN: Agregado CSS de Leaflet Measure para las herramientas de medición -->
@@ -55,97 +55,81 @@
         .adv-sv { font-size: 9px; color: #718096; text-align: center; font-style: italic; margin-top: 4px; line-height: 1.2; }
         .adv-legal { font-size: 8px; color: #a0aec0; margin-top: 6px; border-top: 1px dashed #cbd5e0; padding-top: 4px; line-height: 1.1; }
         
-         .adv-distrito{
-    position:absolute;
-    bottom:35px;
-    right:15px;
-    z-index:1000;
-
-    background:rgba(255,255,255,0.92);
-
-    border:1px solid rgba(0,0,0,0.12);
-    border-radius:10px;
-
-    padding:10px;
-
-    box-shadow:0 4px 12px rgba(0,0,0,0.15);
-
-    font-size:9px;
-    color:#4a5568;
-
-    pointer-events:auto;
-}
+        .adv-distrito {
+            position:absolute;
+            bottom:35px;
+            right:15px;
+            z-index:1000;
+            background:rgba(255,255,255,0.92);
+            border:1px solid rgba(0,0,0,0.12);
+            border-radius:10px;
+            padding:10px;
+            box-shadow:0 4px 12px rgba(0,0,0,0.15);
+            font-size:9px;
+            color:#4a5568;
+            pointer-events:auto;
+        }
         
-        .panel-info-mapa{
-    width:260px;
-    max-width:30vw;
+        .panel-info-mapa {
+            width:260px;
+            max-width:30vw;
+            background:transparent;
+            border:none;
+            box-shadow:none;
+            position:relative;
+            bottom:auto;
+            right:auto;
+            overflow:hidden;
+        }
 
-    background:transparent;
-    border:none;
-    box-shadow:none;
+        .panel-header {
+            display:flex;
+            justify-content:space-between;
+            align-items:flex-start;
+            padding:12px;
+        }
 
-    position:relative;
-    bottom:auto;
-    right:auto;
+        .panel-titulo {
+            font-size:13px;
+            font-weight:800;
+            color:#1e293b;
+            text-transform:uppercase;
+            line-height:1.2;
+            text-align:center;
+        }
 
-    overflow:hidden;
-}
+        .panel-zoom {
+            margin-top:4px;
+            font-size:10px;
+            color:#64748b;
+            font-weight:600;
+        }
 
-.panel-header{
-    display:flex;
-    justify-content:space-between;
-    align-items:flex-start;
+        .panel-descripcion {
+            padding:0 12px 12px 12px;
+            font-size:11px;
+            color:#475569;
+            line-height:1.45;
+            text-align:justify;
+            max-height:180px;
+            overflow-y:auto;
+            transition:all .3s ease;
+        }
 
-    padding:12px;
-}
+        .panel-descripcion.oculto {
+            max-height:0;
+            padding:0 12px;
+            overflow:hidden;
+        }
 
-.panel-titulo{
-    font-size:13px;
-    font-weight:800;
-    color:#1e293b;
-    text-transform:uppercase;
-    line-height:1.2;
-    text-align:center;
-}
-
-.panel-zoom{
-    margin-top:4px;
-    font-size:10px;
-    color:#64748b;
-    font-weight:600;
-}
-
-.panel-descripcion{
-    padding:0 12px 12px 12px;
-
-    font-size:11px;
-    color:#475569;
-
-    line-height:1.45;
-    text-align:justify;
-
-    max-height:180px;
-    overflow-y:auto;
-
-    transition:all .3s ease;
-}
-
-.panel-descripcion.oculto{
-    max-height:0;
-    padding:0 12px;
-    overflow:hidden;
-}
-
-#btn-descripcion{
-    border:none;
-    background:none;
-    cursor:pointer;
-
-    font-size:14px;
-    font-weight:bold;
-
-    color:#475569;
-}
+        #btn-descripcion {
+            border:none;
+            background:none;
+            cursor:pointer;
+            font-size:14px;
+            font-weight:bold;
+            color:#475569;
+        }
         
         .layer-legend-icon { 
             display: inline-block; 
@@ -196,8 +180,7 @@
     
     <!-- Encabezado del visor -->
     <div class="p-5 border-b border-slate-800 bg-slate-950/40">
-        <!-- MODIFICACIÓN: Título del visor temático -->
-        <h1 class="text-xs font-black text-blue-400 tracking-wider uppercase text-center">Curvas de Nivel e Hidrografía</h1>
+        <h1 class="text-xs font-black text-blue-400 tracking-wider uppercase text-center">Visor Urbano e Hidrografía</h1>
         <p class="text-[10px] text-slate-400 text-center font-bold mt-1">DIRECCIÓN DE CARTOGRAFÍA Y DATOS ESPACIALES</p>
     </div>
 
@@ -261,7 +244,7 @@
             <div class="space-y-2 pt-2">
                 <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide">Capas vectoriales</span>
                 <div class="space-y-2">
-                    <!-- MODIFICACIÓN: Checkbox unificado para la capa de Curvas de Nivel -->
+                    <!-- MODIFICACIÓN: Checkbox incorporado para Curvas de Nivel (.fgb) -->
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
                         <input type="checkbox" id="chk-curvas" checked onchange="toggleOverlay('curvas')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
                         <span class="flex items-center gap-2">
@@ -269,7 +252,7 @@
                             <span>Curvas de nivel</span>
                         </span>
                     </label>
-                    <!-- MODIFICACIÓN: Checkbox independiente para la capa de Arroyos -->
+                    <!-- MODIFICACIÓN: Checkbox incorporado para Arroyos / Hidrografía -->
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
                         <input type="checkbox" id="chk-arroyos" checked onchange="toggleOverlay('arroyos')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
                         <span class="flex items-center gap-2">
@@ -322,7 +305,6 @@
 </div>
 
 <!-- Cuadro Informativo de Distritos con indicador de Zoom -->
-<!-- Cuadro Informativo -->
 <div class="adv-distrito">
 
     <div id="panel-info-mapa" class="panel-info-mapa">
@@ -342,19 +324,14 @@
 
             </div>
 
-            <button onclick="toggleDescripcionMapa()"
-                id="btn-descripcion">
-            ▼
-        </button>
+            <button onclick="toggleDescripcionMapa()" id="btn-descripcion">
+                ▼
+            </button>
 
         </div>
 
-        <div
-            id="descripcion-mapa"
-            class="panel-descripcion">
-
+        <div id="descripcion-mapa" class="panel-descripcion">
             Capas altimétricas e hidrológicas del tejido urbano de la ciudad de Paraná. Incluye la red de arroyos y curvas de nivel procesadas en formato FlatGeobuf de alto rendimiento.
-            
         </div>
 
         <hr style="margin:8px 0;">
@@ -506,7 +483,7 @@ var grupoArroyos = L.layerGroup().addTo(map);
 
 const PATH_TEMATICO = BASE_URL + "atlas_pua/curvas_nivel_hidrografia/";
 
-// MODIFICACIÓN: Configuración e instanciación única de la capa de Curvas de Nivel
+// MODIFICACIÓN: Configuración e instanciación de la capa de Curvas de Nivel (.fgb)
 const estiloCurva = (f) => {
     return {
         color: "#d97706",
@@ -520,7 +497,7 @@ const onEachCurvaFeature = (f, l) => {
     l.bindPopup(`<div class="popup-custom"><div class="popup-header">CURVA DE NIVEL</div><table class="table-info"><tr><td>COTA</td><td>${cota} m</td></tr></table></div>`);
 };
 
-// Crear una sola capa L.geoJSON compartida para ambos archivos FlatGeobuf
+// Crear capa GeoJSON compartida e integrar deserialización de .fgb
 const capaUnificadaCurvas = L.geoJSON(null, {
     pane: 'atlasPane',
     style: estiloCurva,
@@ -528,11 +505,10 @@ const capaUnificadaCurvas = L.geoJSON(null, {
 });
 grupoCurvasNivel.addLayer(capaUnificadaCurvas);
 
-// Cargar ambos archivos .fgb de manera segura en la misma capa
 cargarFGB(PATH_TEMATICO + "curvas_nivel_i.fgb", {}, capaUnificadaCurvas);
 cargarFGB(PATH_TEMATICO + "curvas_nivel_p.fgb", {}, capaUnificadaCurvas);
 
-// MODIFICACIÓN: Carga independiente de la capa de Arroyos (GeoJSON)
+// MODIFICACIÓN: Carga independiente de la capa de Arroyos
 fetchGeoJSON(PATH_TEMATICO + "arroyos.geojson").then(data => {
     L.geoJSON(data, {
         pane: 'atlasPane',
@@ -573,7 +549,6 @@ fetchGeoJSON(BASE_URL + "calles.geojson").then(data => {
 });
 
 function toggleDescripcionMapa() {
-
     const descripcion = document.getElementById("descripcion-mapa");
     const boton = document.getElementById("btn-descripcion");
 
@@ -591,7 +566,6 @@ function activarEtiquetasCalles() {
         let z = map.getZoom();
         const activeOnMap = map.hasLayer(grupoCalles);
 
-        // Registro local para de-duplicación espacial de nombres de calle idénticos en el viewport
         let etiquetasColocadas = {}; 
 
         grupoCalles.eachLayer(geoJsonGroup => {
@@ -606,7 +580,6 @@ function activarEtiquetasCalles() {
                             if (map.getBounds().intersects(ly.getBounds())) {
                                 let nombreCalle = decodificarTexto(ly.feature.properties.nombre).toUpperCase();
 
-                                // Cálculo de longitud real de segmento en metros para descartar polilíneas enanas
                                 let latlngs = ly.getLatLngs();
                                 if (Array.isArray(latlngs[0])) latlngs = latlngs.flat(2);
                                 
@@ -617,12 +590,10 @@ function activarEtiquetasCalles() {
                                     }
                                 }
 
-                                // Ignorar tramos menores a 70 metros para evitar acumulación redundante en las esquinas
                                 if (largoMetros < 70) return;
 
                                 let centro = ly.getBounds().getCenter();
 
-                                // Validación espacial de proximidad. No dibuja si hay otra etiqueta igual a menos de 200 metros
                                 let duplicadoCercano = false;
                                 if (etiquetasColocadas[nombreCalle]) {
                                     for (let pt of etiquetasColocadas[nombreCalle]) {
@@ -724,11 +695,10 @@ fetchGeoJSON(BASE_URL + "catastro/manzana.geojson").then(data => {
     console.error("Error al cargar la capa de manzanas:", err);
 });
 
-// Capa de Parcelas (Totalmente Restituida)
+// Capa de Parcelas
 var grupoParcelas = L.layerGroup();
 var parcelasLayers = [];
 
-// MODIFICACIÓN: Lista global e indexada para la búsqueda predictiva case-insensitive de ubicaciones (UBIPAR1 / calle y altura)
 var listaParcelasUbicacion = [];
 
 function pointInPoly(point, vs) {
@@ -794,7 +764,6 @@ archivosCatastro.forEach(file => {
                     l.bindPopup(content, { autoPanPadding: L.point(10, 110) }).openPopup(latlng);
                 });
 
-                // MODIFICACIÓN: Alimentamos quirúrgicamente la lista global para búsqueda predictiva por UBIPAR1
                 if (f.properties.ubicacion && f.properties.ubicacion !== "-" && f.properties.ubicacion.trim() !== "") {
                     let ubiClean = decodificarTexto(f.properties.ubicacion).toUpperCase().trim();
                     listaParcelasUbicacion.push({
@@ -811,7 +780,7 @@ archivosCatastro.forEach(file => {
     });
 });
 
-// MODIFICACIÓN: Gestión unificada de visibilidad dinámica sincronizada con el panel de capas del menú lateral
+// MODIFICACIÓN: Gestión unificada de visibilidad dinámica sincronizada con las capas temáticas
 function controlarVisibilidadDinamica() {
     let zoomActual = map.getZoom();
     
@@ -883,7 +852,6 @@ map.on('layeradd layerremove', controlarVisibilidadDinamica);
 
 /* ================= CONTROLES Y BÚSQUEDA DEL MENÚ LATERAL ================= */
 
-// MODIFICACIÓN: Alternar visualización del menú lateral con transiciones fluidas de Tailwind CSS
 function toggleSidebar() {
     const sidebar = document.getElementById('sidebar');
     const toggleIcon = document.getElementById('toggle-icon');
@@ -897,7 +865,6 @@ function toggleSidebar() {
     }
 }
 
-// MODIFICACIÓN: Gestión dinámica de mapas base mediante los radios del menú lateral
 function cambiarBaseMap(tipo) {
     map.removeLayer(dark);
     map.removeLayer(hibrido);
@@ -908,7 +875,6 @@ function cambiarBaseMap(tipo) {
     if (tipo === 'osm') osm.addTo(map);
 }
 
-// MODIFICACIÓN: Alternador para el control manual de checkboxes de las capas vectoriales
 function toggleOverlay(capa) {
     controlarVisibilidadDinamica();
 }
@@ -922,7 +888,6 @@ function buscarPM() {
             if (l.feature.properties.partidas.includes(val)) {
                 map.fitBounds(l.getBounds(), { maxZoom: 19 });
                 
-                // Aseguramos que la capa de parcelas esté visible para renderizarse
                 document.getElementById('chk-parcelas').checked = true;
                 controlarVisibilidadDinamica();
 
@@ -933,22 +898,19 @@ function buscarPM() {
     });
 }
 
-// MODIFICACIÓN: Buscador predictivo case-insensitive y basado en prefijos/subcadenas para UBIPAR1
 function buscarPredictivoUbicacion(query) {
     if (!query || query.length < 3) return [];
     let cleanQuery = query.toUpperCase().trim();
     let matches = [];
 
-    // Priorizamos coincidencias de prefijo
     for (let i = 0; i < listaParcelasUbicacion.length; i++) {
         let item = listaParcelasUbicacion[i];
         if (item.texto.startsWith(cleanQuery)) {
             matches.push(item);
-            if (matches.length >= 10) break; // Límite sugerencias
+            if (matches.length >= 10) break;
         }
     }
 
-    // Si aún hay espacio, rellenamos con coincidencias de subcadena
     if (matches.length < 10) {
         for (let i = 0; i < listaParcelasUbicacion.length; i++) {
             let item = listaParcelasUbicacion[i];
@@ -961,7 +923,6 @@ function buscarPredictivoUbicacion(query) {
     return matches;
 }
 
-// MODIFICACIÓN: Vinculador de interacciones de autocompletado con el campo de entrada
 function configurarBuscadorUbicaciones() {
     const input = document.getElementById('input-ubicacion');
     const sug = document.getElementById('sugerencias-ubicacion');
@@ -979,7 +940,6 @@ function configurarBuscadorUbicaciones() {
         if (matches.length > 0) {
             sug.style.display = 'block';
             
-            // Eliminar duplicados textuales de sugerencia para mejor UI/UX
             let textosAgregados = new Set();
 
             matches.forEach(m => {
@@ -995,11 +955,9 @@ function configurarBuscadorUbicaciones() {
                         if (m.layer) {
                             map.fitBounds(m.layer.getBounds(), { maxZoom: 19 });
                             
-                            // Aseguramos que la capa esté visible
                             document.getElementById('chk-parcelas').checked = true;
                             controlarVisibilidadDinamica();
 
-                            // Ejecutar clic en el mapa para abrir Popup
                             m.layer.fire('click');
                         }
                     };
@@ -1011,7 +969,6 @@ function configurarBuscadorUbicaciones() {
         }
     });
 
-    // Cerrar sugerencias al cliquear afuera
     document.addEventListener('click', (e) => {
         if (e.target !== input && e.target !== sug) {
             sug.style.display = 'none';
