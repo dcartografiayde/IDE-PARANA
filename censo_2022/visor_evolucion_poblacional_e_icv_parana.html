@@ -1,0 +1,1340 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VISOR EVOLUCIÓN POBLACIONAL E ICV - MUNICIPALIDAD DE PARANA</title>
+
+    <!-- Leaflet & Extensions CSS / JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet-textpath@1.2.3/leaflet.textpath.min.js"></script>
+
+    <!-- Leaflet Draw CSS / JS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css"/>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+
+    <!-- Turf.js for Spatial GIS Intersection Queries -->
+    <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        body { margin:0; padding:0; font-family: 'Inter', sans-serif; background: #0f172a; overflow: hidden; }
+        #map { height: 100vh; width: 100%; z-index: 1; }
+
+        /* Panel Lateral Escamoteable (Collapsible Sidebar) */
+        .sidebar {
+            position: absolute; top: 0; left: 0; bottom: 0; width: 370px; z-index: 1000;
+            background: rgba(255, 255, 255, 0.96); backdrop-filter: blur(8px);
+            box-shadow: 4px 0 25px rgba(0,0,0,0.3); border-right: 1px solid rgba(0,0,0,0.1);
+            transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex; flex-direction: column; max-width: calc(100vw - 50px);
+        }
+        .sidebar.collapsed { transform: translateX(-100%); }
+
+        .sidebar-toggle-btn {
+            position: absolute; top: 14px; right: -42px; width: 42px; height: 42px;
+            background: #1e293b; color: white; border-radius: 0 10px 10px 0;
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
+            box-shadow: 4px 2px 10px rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.1);
+            font-size: 18px; font-weight: bold; z-index: 1001; transition: background 0.2s;
+        }
+        .sidebar-toggle-btn:hover { background: #0f172a; }
+
+        /* Timeline Controller Box */
+        .timeline-card {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            color: white; border-radius: 12px; padding: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        /* Inputs & Buttons Custom */
+        input[type="text"], input[type="number"] { 
+            padding: 6px 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 11px; outline: none; transition: 0.2s; 
+        }
+        input:focus { border-color: #2563eb; box-shadow: 0 0 0 2px rgba(37,99,235,0.2); }
+        
+        .btn-primary { background: #2563eb; color: white; padding: 6px 12px; cursor: pointer; border-radius: 6px; font-weight: 600; font-size: 11px; border: none; transition: 0.2s; }
+        .btn-primary:hover { background: #1d4ed8; }
+        
+        .btn-google { background: #4285F4; color: white; padding: 6px 10px; cursor: pointer; border-radius: 6px; font-weight: 600; font-size: 11px; border: none; }
+        .btn-google:hover { background: #3367d6; }
+
+        #sugerencias-calles {
+            position: absolute; background: white; border: 1px solid #ccc;
+            border-radius: 6px; max-height: 150px; overflow-y: auto; z-index: 2000;
+            width: 170px; display: none; margin-top: 36px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .sugerencia-item { padding: 6px 10px; cursor: pointer; font-size: 11px; border-bottom: 1px solid #f0f0f0; }
+        .sugerencia-item:hover { background: #f8f9fa; color: #2563eb; }
+
+        /* Custom Leaflet Popups */
+        .popup-custom { font-size: 10px; line-height: 1.3; min-width: 250px; max-height: 250px; overflow-y: auto; padding: 2px; }
+        .popup-header { 
+            text-align: center; font-weight: 800; border-bottom: 1px solid #eee; 
+            padding-bottom: 3px; margin-bottom: 4px; color: #1a202c; text-transform: uppercase;
+        }
+        .table-info { width: 100%; border-collapse: collapse; margin-bottom: 4px; }
+        .table-info td { border-bottom: 1px solid #edf2f7; padding: 3px 0; font-size: 9px; vertical-align: top; }
+        .table-info tr td:first-child { font-weight: 700; color: #4a5568; width: 55%; text-transform: uppercase; }
+
+        .btn-streetview {
+            display: block; margin: 8px auto 4px; padding: 6px; border-radius: 4px;
+            background: #4285F4; color: white !important; text-align: center;
+            text-decoration: none; font-weight: bold; font-size: 10px;
+        }
+        
+        .adv-sv { font-size: 9px; color: #718096; text-align: center; font-style: italic; margin-top: 4px; line-height: 1.2; }
+        .adv-distrito { position: absolute; bottom: 25px; right: 10px; z-index: 900; background: rgba(255,255,255,0.9); padding: 6px 10px; border-radius: 6px; font-size: 9px; color: #4a5568; pointer-events: none; border: 1px solid rgba(0,0,0,0.1); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+
+        /* Etiquetas para Censos */
+        .etiqueta-censo {
+            background: rgba(255, 255, 255, 0.92) !important; border: 1.5px solid #2563eb !important;
+            border-radius: 6px !important; box-shadow: 0 2px 5px rgba(0,0,0,0.2) !important;
+            display: flex !important; align-items: center !important; justify-content: center !important;
+            pointer-events: none !important; padding: 2px 4px !important; transition: all 0.2s;
+        }
+
+        /* Etiquetas dinámicas para capa ICV CONICET */
+        .etiqueta-icv {
+            background: rgba(255, 241, 242, 0.92) !important; border: 1.5px solid #be123c !important;
+            color: #881337 !important; border-radius: 6px !important; box-shadow: 0 2px 5px rgba(0,0,0,0.2) !important;
+            display: flex !important; align-items: center !important; justify-content: center !important;
+            pointer-events: none !important; padding: 1px 4px !important; font-weight: 800 !important;
+            font-size: 9px !important; transition: all 0.2s;
+        }
+
+        /* Modal Overlay */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(15, 23, 42, 0.75);
+            z-index: 3000; display: none; align-items: center; justify-content: center;
+            padding: 16px; backdrop-filter: blur(4px);
+        }
+    </style>
+</head>
+
+<body>
+
+<div id="sidebar" class="sidebar">
+    <button class="sidebar-toggle-btn" onclick="toggleSidebar()" title="Ocultar / Mostrar Panel Lateral">
+        <span id="sidebar-icon">⟨</span>
+    </button>
+
+    <!-- Header Panel -->
+    <div class="p-3 bg-slate-900 text-white border-b border-slate-800 flex justify-between items-center">
+        <div>
+            <div class="text-[9px] font-bold text-blue-400 uppercase tracking-widest mb-0.5">MUNICIPALIDAD DE PARANÁ - IDE</div>
+            <h1 class="text-xs font-black tracking-wide leading-tight uppercase">EVOLUCIÓN POBLACIONAL Y ICV</h1>
+        </div>
+        <button onclick="toggleGuiaModal()" class="bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-extrabold px-2.5 py-1.5 rounded-lg transition flex items-center gap-1 shadow">
+            <span>📘 Guía</span>
+        </button>
+    </div>
+
+    <!-- Scrollable Sidebar Content -->
+    <div class="flex-1 overflow-y-auto p-3 space-y-3">
+
+        <!-- 1. Buscadores de Direcciones -->
+        <div class="bg-white p-3 rounded-lg border border-slate-200 shadow-sm space-y-2">
+            <div class="text-[10px] font-extrabold text-slate-700 uppercase flex items-center gap-1">
+                <span>🔍 BUSCADOR DE DIRECCIONES Y LUGARES</span>
+            </div>
+            <div class="grid grid-cols-1 gap-2">
+                <div style="position:relative; display: flex; gap: 4px;">
+                    <input type="text" id="input-calle" placeholder="Nombre Calle..." class="flex-1" autocomplete="off">
+                    <input type="number" id="input-altura" placeholder="Alt." style="width:50px;">
+                    <button class="btn-primary" onclick="buscarDireccion()">Ir</button>
+                    <div id="sugerencias-calles"></div>
+                </div>
+                <div class="flex gap-1 pt-1 border-t border-slate-100">
+                    <input type="text" id="input-google" placeholder="Lugar o Punto de Interés..." class="flex-1">
+                    <button class="btn-google" onclick="buscarGoogle()">Google</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Árbol y Control de Capas Incorporado al Panel Lateral -->
+        <div class="bg-white p-3 rounded-lg border border-slate-200 shadow-sm space-y-2">
+            <div class="text-[10px] font-extrabold text-slate-800 uppercase flex items-center gap-1 border-b pb-1.5 border-slate-100">
+                <span>🗺️ CONTROL DE CAPAS Y MAPA BASE</span>
+            </div>
+            
+            <!-- Mapas Base -->
+            <div class="space-y-1">
+                <div class="text-[9px] font-bold text-slate-400 uppercase">Mapa Base:</div>
+                <div class="flex gap-3 text-[10px] font-semibold text-slate-700">
+                    <label class="flex items-center gap-1 cursor-pointer hover:text-blue-600">
+                        <input type="radio" name="basemap" value="dark" checked onchange="cambiarBaseMap('dark')"> Oscuro
+                    </label>
+                    <label class="flex items-center gap-1 cursor-pointer hover:text-blue-600">
+                        <input type="radio" name="basemap" value="hibrido" onchange="cambiarBaseMap('hibrido')"> Híbrido
+                    </label>
+                    <label class="flex items-center gap-1 cursor-pointer hover:text-blue-600">
+                        <input type="radio" name="basemap" value="osm" onchange="cambiarBaseMap('osm')"> OpenStreetMap
+                    </label>
+                </div>
+            </div>
+
+            <!-- Capas Temáticas -->
+            <div class="space-y-1.5 pt-2 border-t border-slate-100">
+                <div class="text-[9px] font-bold text-slate-400 uppercase">Capas Temáticas:</div>
+                <label class="flex items-center gap-2 text-[10px] font-bold text-rose-900 bg-rose-50 p-1.5 rounded border border-rose-200 cursor-pointer hover:bg-rose-100 transition">
+                    <input type="checkbox" id="chk-icv" onchange="toggleCapaICV(this.checked)">
+                    <span class="w-3.5 h-3.5 rounded border border-rose-900 flex-shrink-0" style="background: linear-gradient(to right, #fee0d2, #800020);"></span>
+                    <span>ICV CONICET (Calidad de Vida)</span>
+                </label>
+                <div class="text-[8px] text-rose-700 px-1 font-semibold">
+                    * Al activar ICV se ocultan automáticamente las capas censales para evitar superposición.
+                </div>
+                <label class="flex items-center gap-2 text-[10px] font-bold text-slate-700 cursor-pointer hover:text-red-600 pt-1">
+                    <input type="checkbox" id="chk-manzanas" checked onchange="toggleCapaManzanas(this.checked)">
+                    <span class="w-3.5 h-3.5 rounded border border-red-400 flex-shrink-0" style="background: rgba(255,107,107,0.2);"></span>
+                    <span>Manzanas Catastro</span>
+                </label>
+                <label class="flex items-center gap-2 text-[10px] font-bold text-slate-700 cursor-pointer hover:text-yellow-600">
+                    <input type="checkbox" id="chk-calles" onchange="toggleCapaCalles(this.checked)">
+                    <span class="w-3.5 h-1 bg-yellow-400 border border-black rounded-sm flex-shrink-0"></span>
+                    <span>Nombres de Calles</span>
+                </label>
+            </div>
+        </div>
+
+        <!-- 3. Control Temporal Interactivo de Censos (1970 - 2022) -->
+        <div class="timeline-card">
+            <div class="flex justify-between items-center mb-2">
+                <span class="text-[10px] font-extrabold text-blue-300 uppercase tracking-wider flex items-center gap-1.5">
+                    <span>⏱️ LÍNEA DE TIEMPO POBLACIONAL</span>
+                </span>
+                <span id="timeline-year-badge" class="text-xs px-2 py-0.5 bg-blue-600 text-white font-black rounded-md">2022</span>
+            </div>
+
+            <div class="flex items-center gap-2 mb-3">
+                <button id="btn-play-timeline" onclick="toggleTimelinePlay()" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 transition">
+                    <span id="play-icon">▶</span> <span id="play-text">Reproducir</span>
+                </button>
+                <div class="text-[9px] text-slate-300 flex-1">Secuencia histórica automática 1970 ➔ 2022</div>
+            </div>
+
+            <!-- Slider Temporal -->
+            <input type="range" id="timeline-slider" min="0" max="5" step="1" value="5" oninput="onTimelineSliderChange(this.value)" class="w-full cursor-pointer accent-blue-500 mb-2">
+
+            <!-- Marcas de Años -->
+            <div class="flex justify-between text-[9px] font-bold text-slate-400 px-1">
+                <span onclick="setTimelineIndex(0)" class="cursor-pointer hover:text-white">1970</span>
+                <span onclick="setTimelineIndex(1)" class="cursor-pointer hover:text-white">1980</span>
+                <span onclick="setTimelineIndex(2)" class="cursor-pointer hover:text-white">1991</span>
+                <span onclick="setTimelineIndex(3)" class="cursor-pointer hover:text-white">2001</span>
+                <span onclick="setTimelineIndex(4)" class="cursor-pointer hover:text-white">2010</span>
+                <span onclick="setTimelineIndex(5)" class="cursor-pointer hover:text-white">2022</span>
+            </div>
+        </div>
+
+        <!-- 4. Herramienta de Selección por Polígono -->
+        <div class="bg-blue-50 p-3 rounded-lg border border-blue-200 shadow-sm space-y-2">
+            <div class="flex justify-between items-center">
+                <span class="text-[10px] font-extrabold text-blue-900 uppercase flex items-center gap-1">
+                    <span>📐 CONSULTA ESPACIAL POR POLÍGONO</span>
+                </span>
+                <span class="text-[8px] bg-blue-200 text-blue-900 px-1.5 py-0.5 rounded font-bold">GIS</span>
+            </div>
+            <p class="text-[9.5px] text-blue-800 leading-snug">
+                Dibuje una zona en el mapa para calcular la evolución comparativa (1970-2022) en las fracciones que intercepta.
+            </p>
+            <div class="flex gap-2">
+                <button id="btn-draw-polygon" onclick="activarDibujoPoligono()" class="btn-primary flex-1 text-center font-bold text-[10px] py-1.5">
+                    ✏️ Dibujar Polígono
+                </button>
+                <button id="btn-clear-polygon" onclick="limpiarSeleccionPoligono()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-1.5 rounded-md font-bold text-[10px] transition" style="display:none;">
+                    🗑️ Limpiar
+                </button>
+            </div>
+        </div>
+
+        <!-- 5. Panel Estadístico Comparativo / Viewport -->
+        <div class="bg-white p-3 rounded-lg border border-slate-200 shadow-sm space-y-2">
+            <div class="flex justify-between items-center border-b pb-1.5 border-slate-100">
+                <span class="text-[10px] font-extrabold text-slate-800 uppercase" id="stats-title">📊 ESTADÍSTICAS VISIBLES</span>
+                <span id="count-fracciones" class="text-[9px] bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full font-bold">0 frac.</span>
+            </div>
+
+            <!-- Contenido Estadístico Dinámico -->
+            <div id="stats-content" class="text-[10px]">Cargando estadísticas...</div>
+
+            <!-- Leyenda visual integrada de densidades -->
+            <div class="mt-2 pt-1.5 border-t border-slate-200">
+                <div class="font-bold text-[9px] text-slate-500 mb-1 uppercase">Simbología Densidad (hab/ha):</div>
+                <div class="flex items-center gap-1 text-[8px] font-bold">
+                    <span class="w-3 h-3 border border-slate-300" style="background:#eff3ff"></span> 0
+                    <span class="w-3 h-3 border border-slate-300" style="background:#c6dbef"></span> 1-5
+                    <span class="w-3 h-3 border border-slate-300" style="background:#9ecae1"></span> 5-20
+                    <span class="w-3 h-3 border border-slate-300" style="background:#6baed6"></span> 20-50
+                    <span class="w-3 h-3 border border-slate-300" style="background:#4292c6"></span> 50-100
+                    <span class="w-3 h-3 border border-slate-300" style="background:#2171b5"></span> 100-150
+                    <span class="w-3 h-3 border border-slate-300" style="background:#084594"></span> +150
+                </div>
+            </div>
+        </div>
+
+        <!-- 6. Resumen Explicativo ICV CONICET -->
+        <div class="bg-rose-50 p-3 rounded-lg border border-rose-200 shadow-sm space-y-2">
+            <div class="flex justify-between items-center border-b border-rose-200 pb-1">
+                <span class="font-extrabold text-[10px] text-rose-900 uppercase flex items-center gap-1.5">
+                    <span class="w-2.5 h-2.5 rounded-full bg-rose-700 inline-block animate-pulse"></span>
+                    ÍNDICE CALIDAD DE VIDA (ICV)
+                </span>
+                <button onclick="toggleICVModal()" class="text-[9px] bg-rose-200 text-rose-900 hover:bg-rose-300 px-2 py-0.5 rounded font-bold transition">
+                    Explicación 📖
+                </button>
+            </div>
+            <div class="text-[9.5px] text-slate-700 leading-snug">
+                Estudio del <b>CONICET</b> que evalúa el bienestar en más de 52,000 radios censales (escala 0 a 10). Combina <b>60% indicadores socioeconómicos</b> y <b>40% ambientales</b>.
+            </div>
+            <div class="flex items-center justify-between text-[8.5px] pt-1">
+                <span class="font-bold text-slate-600">Simbología ICV:</span>
+                <div class="flex items-center gap-1 font-bold">
+                    <span class="text-rose-950">Rojo Oscuro (Mejor)</span>
+                    <span class="w-10 h-2 rounded bg-gradient-to-r from-rose-200 via-rose-500 to-rose-950"></span>
+                    <span class="text-rose-400">Claro (Peor)</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Modal 1: Guía Completa de Uso y Funcionamiento -->
+<div id="modal-guia" class="modal-overlay">
+    <div class="bg-white rounded-xl max-w-2xl w-full p-6 shadow-2xl border border-slate-200 relative max-h-[90vh] overflow-y-auto">
+        <button onclick="toggleGuiaModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 text-xl font-bold">&times;</button>
+        <div class="flex items-center gap-2 border-b pb-3 mb-4">
+            <span class="text-xl">📘</span>
+            <h3 class="text-base font-extrabold text-slate-800">Guía de Uso y Manual del Visor de Paraná</h3>
+        </div>
+        
+        <div class="space-y-4 text-xs text-slate-700 leading-relaxed">
+            <div class="bg-blue-50 p-3 rounded-lg border border-blue-200">
+                <h4 class="font-bold text-blue-900 text-sm mb-1">⏱️ 1. Línea de Tiempo Poblacional (1970 - 2022)</h4>
+                <p>Permite observar la expansión urbana e incremento de población de la Ciudad de Paraná a lo largo de seis censos históricos. Utilice el botón <b>▶ Reproducir</b> para una secuencia automática o arrastre el deslizador temporal.</p>
+            </div>
+
+            <div class="bg-indigo-50 p-3 rounded-lg border border-indigo-200">
+                <h4 class="font-bold text-indigo-900 text-sm mb-1">📐 2. Consulta Espacial por Polígono</h4>
+                <p>Haga clic en <b>✏️ Dibujar Polígono</b> para definir cualquier sector sobre la ciudad. El sistema calculará automáticamente la evolución de población, hogares y viviendas en todas las fracciones censales interceptadas entre 1970 y 2022.</p>
+            </div>
+
+            <div class="bg-rose-50 p-3 rounded-lg border border-rose-200">
+                <h4 class="font-bold text-rose-900 text-sm mb-1">🌹 3. Índice de Calidad de Vida (ICV CONICET)</h4>
+                <p>Estudio interactivo elaborado por investigadores del CONICET que pondera la calidad de vida en escala 0-10 con variables socioeconómicas (60%) y ambientales (40%). Al activarse, oculta las capas censales para una perfecta legibilidad e indica el valor exacto del ICV sobre cada radio.</p>
+            </div>
+
+            <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
+                <h4 class="font-bold text-slate-800 text-sm mb-1">🔍 4. Búsqueda y Herramientas Adicionales</h4>
+                <ul class="list-disc pl-4 space-y-1">
+                    <li><b>Buscador de Calles:</b> Ingrese el nombre de la calle y altura para centrar el mapa. Hacer clic sobre la calle abre acceso directo a <b>Google Street View</b>.</li>
+                    <li><b>Control de Capas:</b> En el panel lateral puede encender/apagar mapas base (Oscuro, Híbrido, OSM) y capas temáticas (ICV, Manzanas, Calles).</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 text-center mt-5">
+            <button onclick="toggleGuiaModal()" class="px-5 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-lg font-bold text-xs transition">
+                Entendido y Cerrar
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal 2: Explicación Detallada del ICV CONICET -->
+<div id="modal-icv" class="modal-overlay">
+    <div class="bg-white rounded-xl max-w-xl w-full p-6 shadow-2xl border border-slate-200 relative max-h-[90vh] overflow-y-auto">
+        <button onclick="toggleICVModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 text-xl font-bold">&times;</button>
+        <div class="flex items-center gap-2 border-b pb-3 mb-4">
+            <span class="w-4 h-4 rounded-full bg-rose-700 inline-block"></span>
+            <h3 class="text-base font-extrabold text-slate-800">Índice de Calidad de Vida (ICV) - CONICET</h3>
+        </div>
+        <p class="text-xs text-slate-700 leading-relaxed text-justify mb-4">
+            El <b>Índice de Calidad de Vida (ICV)</b> es un estudio del CONICET que busca evaluar el bienestar de la población argentina a través de un mapa interactivo. Este índice se basa en una escala numérica del cero al diez, permitiendo a los usuarios conocer la calidad de vida en más de 52,000 radios censales en los que se divide el país.
+        </p>
+        <p class="text-xs text-slate-700 leading-relaxed text-justify mb-4">
+            La investigación, que comenzó en la región pampeana y se ha expandido a nivel nacional, considera dos grandes grupos de indicadores: <b>socioeconómicos</b> (educación, salud y vivienda) y <b>ambientales</b> (contaminación, inundabilidad y recursos recreativos). Los colores del mapa indican la calidad de vida: <b>ROJO MÁS OSCURO</b> para las zonas con mejores condiciones y más claro para las peores.
+        </p>
+        <p class="text-xs text-slate-700 leading-relaxed text-justify mb-4">
+            El ICV también refleja la creciente importancia de los factores ambientales en el bienestar humano, con un <b>40% del peso del índice</b> atribuido a estos componentes. Este cambio responde a una mejor disponibilidad de datos y a un reconocimiento social creciente sobre su impacto en la calidad de vida. A través de este trabajo interdisciplinario, el CONICET busca ofrecer una herramienta útil para entender y mejorar las condiciones de vida en Argentina.
+        </p>
+        <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 text-center">
+            <button onclick="toggleICVModal()" class="px-5 py-2 bg-rose-700 hover:bg-rose-800 text-white rounded-lg font-bold text-xs transition">
+                Cerrar y Volver al Mapa
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Cuadro Informativo de Distritos con indicador de Zoom -->
+<div class="adv-distrito text-right">
+    <div class="font-bold text-slate-700">Zoom Vista: <span id="zoom-indicator" class="text-blue-600">12</span></div>
+    <div>IDE Paraná - Límites indicativos (Ord. 8563). Zoom Máx: 22.</div>
+    <div class="text-[8px] text-slate-500 font-semibold mt-0.5">Elaborado por Dirección de Cartografía y Datos Espaciales</div>
+</div>
+
+<div id="map"></div>
+
+<script>
+const BASE_URL = "https://raw.githubusercontent.com/dcartografiayde/IDE-PARANA/main/";
+
+/* ================= FUNCIONES DE LIMPIEZA Y DECODIFICACIÓN DE TEXTO ================= */
+function decodificarTexto(str) {
+    if (!str || typeof str !== 'string') return str;
+    try {
+        const correcciones = {
+            'Ã¡': 'á', 'Ã©': 'é', 'Ã­': 'í', 'Ã³': 'ó', 'Ãº': 'ú',
+            'Ã ': 'Á', 'Ã‰': 'É', 'Ã ': 'Í', 'Ã“': 'Ó', 'Ãš': 'Ú',
+            'Ãñ': 'ñ', 'Ã‘': 'Ñ', 'Â°': '°', 'Ã¼': 'ü', 'Â¿': '¿'
+        };
+        let textoCorregido = str;
+        for (let mal in correcciones) {
+            textoCorregido = textoCorregido.split(mal).join(correcciones[mal]);
+        }
+
+        const reemplazosClave = [
+            { mal: /TORRE[ïÏ]¿½N/gi, bien: 'TORREÓN' },
+            { mal: /Torre[ïÏ]¿½n/gi, bien: 'Torreón' },
+            { mal: /APROBACI[ïÏ]¿½N/gi, bien: 'APROBACIÓN' },
+            { mal: /Aprobaci[ïÏ]¿½n/gi, bien: 'Aprobación' },
+            { mal: /ASOCIACI[ïÏ]¿½N/gi, bien: 'ASOCIACIÓN' },
+            { mal: /Asociaci[ïÏ]¿½n/gi, bien: 'Asociación' },
+            { mal: /CONSTITUCI[ïÏ]¿½N/gi, bien: 'CONSTITUCIÓN' },
+            { mal: /Constituci[ïÏ]¿½n/gi, bien: 'Constitución' },
+            { mal: /DECLARACI[ïÏ]¿½N/gi, bien: 'DECLARACIÓN' },
+            { mal: /Declaraci[ïÏ]¿½n/gi, bien: 'Declaración' },
+            { mal: /URBANIZACI[ïÏ]¿½N/gi, bien: 'URBANIZACIÓN' },
+            { mal: /Urbanizaci[ïÏ]¿½n/gi, bien: 'Urbanización' },
+            { mal: /PROLONGACI[ïÏ]¿½N/gi, bien: 'PROLONGACIÓN' },
+            { mal: /Prolongaci[ïÏ]¿½n/gi, bien: 'Prolongación' },
+            { mal: /SECCI[ïÏ]¿½N/gi, bien: 'SECCIÓN' },
+            { mal: /Secci[ïÏ]¿½n/gi, bien: 'Sección' },
+            { mal: /ESTACI[ïÏ]¿½N/gi, bien: 'ESTACIÓN' },
+            { mal: /Estaci[ïÏ]¿½n/gi, bien: 'Estación' },
+            { mal: /REVOLUCI[ïÏ]¿½N/gi, bien: 'REVOLUCIÓN' },
+            { mal: /Revoluci[ïÏ]¿½n/gi, bien: 'Revolución' },
+            { mal: /N[ïÏ]¿½/g, bien: 'Nº' },
+            { mal: /n[ïÏ]¿½/g, bien: 'nº' },
+            { mal: /PARAN[ïÏ]¿½/gi, bien: 'PARANÁ' },
+            { mal: /Paran[ïÏ]¿½/gi, bien: 'Paraná' },
+            { mal: /CI[ïÏ]¿½N/g, bien: 'CIÓN' },
+            { mal: /ci[ïÏ]¿½n/g, bien: 'ción' }
+        ];
+
+        for (let r of reemplazosClave) {
+            textoCorregido = textoCorregido.replace(r.mal, r.bien);
+        }
+
+        return textoCorregido;
+    } catch (e) { return str; }
+}
+
+async function fetchGeoJSON(url) {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    const arrayBuffer = await response.arrayBuffer();
+    
+    const decoderUTF8 = new TextDecoder('utf-8');
+    let text = decoderUTF8.decode(arrayBuffer);
+    
+    if (text.includes('\uFFFD')) {
+        const decoderANSI = new TextDecoder('windows-1252');
+        text = decoderANSI.decode(arrayBuffer);
+    }
+    return JSON.parse(text);
+}
+
+function toggleICVModal() {
+    const modal = document.getElementById('modal-icv');
+    modal.style.display = (modal.style.display === 'flex') ? 'none' : 'flex';
+}
+
+function toggleGuiaModal() {
+    const modal = document.getElementById('modal-guia');
+    modal.style.display = (modal.style.display === 'flex') ? 'none' : 'flex';
+}
+
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const icon = document.getElementById('sidebar-icon');
+    sidebar.classList.toggle('collapsed');
+    icon.innerText = sidebar.classList.contains('collapsed') ? '⟩' : '⟨';
+}
+
+var map = L.map('map', { 
+    center: [-31.745, -60.51], 
+    zoom: 12, 
+    zoomControl: true,
+    maxZoom: 22
+});
+
+// Panes
+map.createPane('manzanasPane');
+map.getPane('manzanasPane').style.zIndex = 300;
+map.getPane('manzanasPane').style.pointerEvents = 'none';
+
+var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 22, maxNativeZoom: 19 });
+var dark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 22, maxNativeZoom: 20 });
+var sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 22, maxNativeZoom: 18 });
+var ref = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}', { maxZoom: 22, maxNativeZoom: 18 });
+var hibrido = L.layerGroup([sat, ref]);
+
+dark.addTo(map);
+
+/* Handler para cambio de Mapa Base desde el Panel Lateral */
+function cambiarBaseMap(tipo) {
+    if (map.hasLayer(dark)) map.removeLayer(dark);
+    if (map.hasLayer(hibrido)) map.removeLayer(hibrido);
+    if (map.hasLayer(osm)) map.removeLayer(osm);
+
+    if (tipo === 'dark') map.addLayer(dark);
+    else if (tipo === 'hibrido') map.addLayer(hibrido);
+    else if (tipo === 'osm') map.addLayer(osm);
+}
+
+// Capa de Resaltado para Fracción Seleccionada por Clic
+var featureHighlightGroup = L.layerGroup().addTo(map);
+
+// Capa de Resaltado para Fracciones Interceptadas por Consulta de Polígono
+var intersectedHighlightGroup = L.layerGroup().addTo(map);
+
+function destacarFraccionSeleccionada(layer) {
+    featureHighlightGroup.clearLayers();
+    if (layer && layer.feature) {
+        let highlight = L.geoJSON(layer.feature, {
+            style: {
+                color: '#38bdf8',
+                weight: 4,
+                fillColor: '#0284c7',
+                fillOpacity: 0.35,
+                interactive: false
+            }
+        });
+        featureHighlightGroup.addLayer(highlight);
+    }
+}
+
+var grupoCalles = L.layerGroup();
+var listaCallesParaBusqueda = [];
+
+fetchGeoJSON(BASE_URL + "calles.geojson").then(data => {
+    L.geoJSON(data, {
+        style: { color: "#FFFF00", weight: 6, opacity: 0.01 },
+        onEachFeature: (f, l) => {
+            if (f.properties && f.properties.nombre) {
+                let nombreCalle = decodificarTexto(f.properties.nombre);
+                listaCallesParaBusqueda.push({ nombre: nombreCalle.toUpperCase(), layer: l });
+                l.on('click', (e) => {
+                    let latlng = e.latlng || l.getBounds().getCenter();
+                    let sv = `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${latlng.lat},${latlng.lng}`;
+                    l.bindPopup(`<b>Calle:</b> ${nombreCalle.toUpperCase()}<br><a href="${sv}" target="_blank" class="btn-streetview">📍 STREET VIEW</a>`).openPopup();
+                });
+            }
+        }
+    }).addTo(grupoCalles);
+    configurarBuscadorCalles();
+    activarEtiquetasCalles();
+});
+
+function toggleCapaCalles(checked) {
+    if (checked) {
+        if (!map.hasLayer(grupoCalles)) map.addLayer(grupoCalles);
+    } else {
+        if (map.hasLayer(grupoCalles)) map.removeLayer(grupoCalles);
+    }
+}
+
+function activarEtiquetasCalles() {
+    const renderLabels = () => {
+        let z = map.getZoom();
+        const activeOnMap = map.hasLayer(grupoCalles);
+        let etiquetasColocadas = {}; 
+
+        grupoCalles.eachLayer(geoJsonGroup => {
+            if (geoJsonGroup.eachLayer) {
+                geoJsonGroup.eachLayer(ly => {
+                    if (ly.setText) {
+                        try { ly.setText(null); } catch (e) {}
+
+                        if (activeOnMap && z >= 16 && ly._map && ly._renderer && ly.feature && ly.feature.properties && ly.feature.properties.nombre) {
+                            try {
+                                if (map.getBounds().intersects(ly.getBounds())) {
+                                    let nombreCalle = decodificarTexto(ly.feature.properties.nombre).toUpperCase();
+                                    let latlngs = ly.getLatLngs();
+                                    if (Array.isArray(latlngs[0])) latlngs = latlngs.flat(2);
+                                    
+                                    let largoMetros = 0;
+                                    for (let i = 0; i < latlngs.length - 1; i++) {
+                                        if (latlngs[i] && latlngs[i+1]) {
+                                            largoMetros += latlngs[i].distanceTo(latlngs[i+1]);
+                                        }
+                                    }
+
+                                    if (largoMetros < 70) return;
+
+                                    let centro = ly.getBounds().getCenter();
+                                    let duplicadoCercano = false;
+                                    if (etiquetasColocadas[nombreCalle]) {
+                                        for (let pt of etiquetasColocadas[nombreCalle]) {
+                                            if (centro.distanceTo(pt) < 200) {
+                                                duplicadoCercano = true; break;
+                                            }
+                                        }
+                                    }
+
+                                    if (!duplicadoCercano) {
+                                        if (!etiquetasColocadas[nombreCalle]) etiquetasColocadas[nombreCalle] = [];
+                                        etiquetasColocadas[nombreCalle].push(centro);
+
+                                        ly.setText(nombreCalle, {
+                                            repeat: false, center: true, orientation: 'flip', offset: 0,
+                                            attributes: { 
+                                                fill: '#FFFF00', 'font-weight': 'bold', 
+                                                'font-size': z >= 18 ? '13' : '10',
+                                                'stroke': 'black', 'stroke-width': '2px', 'paint-order': 'stroke'
+                                            }
+                                        });
+                                    }
+                                }
+                            } catch (err) {}
+                        }
+                    }
+                });
+            }
+        });
+    };
+
+    map.on('zoomend moveend', renderLabels);
+}
+
+// Capa de Manzanas
+var grupoManzanas = L.layerGroup().addTo(map);
+
+fetchGeoJSON(BASE_URL + "catastro/manzana.geojson").then(data => {
+    L.geoJSON(data, {
+        pane: 'manzanasPane', 
+        filter: (f) => f && f.geometry && f.geometry.coordinates && f.geometry.coordinates.length > 0,
+        style: { color: "#ff6b6b", weight: 1, fillColor: "transparent", fillOpacity: 0, interactive: false }
+    }).addTo(grupoManzanas);
+    controlarVisibilidadDinamica(); 
+}).catch(err => console.error("Error al cargar la capa de manzanas:", err));
+
+function toggleCapaManzanas(checked) {
+    if (checked) {
+        if (!map.hasLayer(grupoManzanas)) map.addLayer(grupoManzanas);
+    } else {
+        if (map.hasLayer(grupoManzanas)) map.removeLayer(grupoManzanas);
+    }
+    controlarVisibilidadDinamica();
+}
+
+function calcularAreaHectareas(coordinates, type) {
+    let areaM2 = 0; const R = 6371000; 
+    function ringArea(coords) {
+        let area = 0;
+        if (coords && coords.length > 2) {
+            for (let i = 0; i < coords.length - 1; i++) {
+                let p1 = coords[i]; let p2 = coords[i + 1];
+                if (p1 && p2) {
+                    let x1 = p1[0] * Math.PI / 180 * Math.cos(-31.74 * Math.PI / 180) * R;
+                    let y1 = p1[1] * Math.PI / 180 * R;
+                    let x2 = p2[0] * Math.PI / 180 * Math.cos(-31.74 * Math.PI / 180) * R;
+                    let y2 = p2[1] * Math.PI / 180 * R;
+                    area += (x1 * y2 - x2 * y1);
+                }
+            }
+            area = Math.abs(area / 2);
+        }
+        return area;
+    }
+
+    if (type === "Polygon" && coordinates) areaM2 = ringArea(coordinates[0]);
+    else if (type === "MultiPolygon" && coordinates) {
+        coordinates.forEach(poly => { if (poly && poly[0]) areaM2 += ringArea(poly[0]); });
+    }
+    return areaM2 / 10000; 
+}
+
+function getColorDensity(d) {
+    return d > 150 ? '#084594' : 
+           d > 100 ? '#2171b5' : 
+           d > 50  ? '#4292c6' : 
+           d > 20  ? '#6baed6' : 
+           d > 5   ? '#9ecae1' : 
+           d > 0   ? '#c6dbef' : 
+                     '#eff3ff'; 
+}
+
+function normalizarKey(str) {
+    if (!str) return '';
+    let s = str.toString().toUpperCase();
+    s = s.replace(/¢/g, 'O').replace(/Ã‘/g, 'Ñ').replace(/Ã /g, 'Ñ')
+         .replace(/Ã³/g, 'O').replace(/Ã¡/g, 'A').replace(/Ã©/g, 'E').replace(/Ã­/g, 'I')
+         .replace(/Ãº/g, 'U').replace(/Â/g, '').replace(/¤/g, 'N').replace(/§/g, 'O');
+    return s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^A-Z0-9]/g, ""); 
+}
+
+function getPropValue(properties, targetKey) {
+    if (!properties) return undefined;
+    const targetNorm = normalizarKey(targetKey);
+    
+    // Paso 1: Coincidencia exacta de llave normalizada
+    for (let k in properties) {
+        if (normalizarKey(k) === targetNorm) {
+            return properties[k];
+        }
+    }
+    
+    // Paso 2: Coincidencia de subcadena unidireccional (evita falsos positivos de claves más cortas)
+    for (let k in properties) {
+        let kNorm = normalizarKey(k);
+        if (kNorm.includes(targetNorm)) {
+            return properties[k];
+        }
+    }
+    return undefined;
+}
+
+function parseValue(val) {
+    if (val === undefined || val === null) return 0;
+    if (typeof val === 'number') return val;
+    let str = String(val).trim();
+    if (str === '' || str === '-') return 0;
+    if (str.includes('.') && str.includes(',')) str = str.replace(/\./g, '').replace(/,/g, '.');
+    else if (str.includes(',')) str = str.replace(/,/g, '.');
+    else if (str.includes('.')) {
+        if ((str.match(/\./g) || []).length > 1 || /\.\d{3}$/.test(str)) str = str.replace(/\./g, '');
+    }
+    let num = parseFloat(str);
+    return isNaN(num) ? 0 : num;
+}
+
+function getPoblacionValue(p) {
+    if (!p) return 0;
+    
+    // 1. Claves prioritarias explícitas para población / número de personas
+    const priorityKeys = [
+        "PERSONAS", "PERSONA", "PERSONAS PRESENTES", "PERSONAS_TOT", "PERSONAS_TOTAL",
+        "POBLACION TOTAL EN HOGARES PARTICULARES", "POBLACION TOTAL", "POBLACION_TOTAL",
+        "POBLACION", "POB_TOT", "POBTOT", "POB_TOTAL", "HABITANTES", 
+        "POBLACI0N TOTAL EN HOGARES PARTICULARES", "POBLACI¢N TOTAL EN HOGARES PARTICULARES", 
+        "TOTAL_HAB", "TOTAL_PERSONAS", "TOTAL_POBLACION", "P_TOTAL", "P_TOT", "TOT_PERS", "TOT_POB"
+    ];
+    
+    for (let target of priorityKeys) {
+        let val = getPropValue(p, target);
+        if (val !== undefined && val !== null) {
+            let num = parseValue(val);
+            if (num > 0) return num;
+        }
+    }
+    
+    // 2. Suma explícita de Varones + Mujeres si ambas o alguna están presentes
+    let varones = parseValue(getPropValue(p, "VARONES") || getPropValue(p, "VARON") || getPropValue(p, "HOMBRES") || 0);
+    let mujeres = parseValue(getPropValue(p, "MUJERES") || getPropValue(p, "MUJER") || 0);
+    if (varones > 0 || mujeres > 0) {
+        return varones + mujeres;
+    }
+    
+    // 3. Búsqueda secundaria por coincidencia estricta sin incluir 'hogar' ni 'vivienda'
+    for (let k in p) {
+        let kNorm = normalizarKey(k);
+        if ((kNorm.includes("PERSONA") || kNorm.includes("POBLAC") || kNorm.includes("HABITAN") || kNorm.includes("POB")) && 
+            !kNorm.includes("HOGAR") && !kNorm.includes("VIVIENDA") && !kNorm.includes("VIV")) {
+            let num = parseValue(p[k]);
+            if (num > 0) return num;
+        }
+    }
+    return 0;
+}
+
+function getICVValue(p) {
+    if (!p) return 0;
+
+    const targetKeys = [
+        'icv', 'f_icv', 'icv_conicet', 'indice', 'valor', 'score', 
+        'calidad_vida', 'icv_radio', 'icv2010', 'icv_2010', 'icv2022', 
+        'icv_2022', 'f_icv_2010', 'f_icv_2022', 'icv_final', 'f_icv_final',
+        'icv_red', 'icv_escala'
+    ];
+    
+    for (let target of targetKeys) {
+        for (let k in p) {
+            let kLow = k.toLowerCase().trim();
+            if (kLow === target || kLow.includes(target)) {
+                let val = parseValue(p[k]);
+                if (!isNaN(val) && val > 0) {
+                    if (val <= 1) val = val * 10;
+                    return val;
+                }
+            }
+        }
+    }
+
+    const blacklistedKeys = [
+        'link', 'radio', 'id', 'cod', 'gid', 'objectid', 'prov', 'dep', 
+        'frac', 'mza', 'codigo', 'shape', 'area', 'length', 'perim'
+    ];
+
+    for (let k in p) {
+        let kLow = k.toLowerCase().trim();
+        let isBlacklisted = blacklistedKeys.some(b => kLow.includes(b));
+        if (!isBlacklisted) {
+            let val = parseValue(p[k]);
+            if (!isNaN(val) && val > 0 && val <= 10) {
+                if (val <= 1) val = val * 10;
+                return val;
+            }
+        }
+    }
+    return 0;
+}
+
+function getColorICV(val) {
+    let num = parseFloat(val);
+    if (isNaN(num) || num <= 0) return '#cbd5e1';
+    if (num <= 1 && num > 0) num = num * 10;
+    return num >= 8.5 ? '#66000d' :
+           num >= 7.5 ? '#99000d' :
+           num >= 6.5 ? '#cc181e' :
+           num >= 5.5 ? '#ef3b2c' :
+           num >= 4.5 ? '#fb6a4a' :
+           num >= 3.5 ? '#fc9272' :
+                        '#fee0d2';
+}
+
+const CENSUS_YEARS = [1970, 1980, 1991, 2001, 2010, 2022];
+const censoLayers = {};
+const censoEtiquetasLayers = {}; 
+const rawCensusGeoJSON = {}; 
+
+CENSUS_YEARS.forEach(year => {
+    censoLayers[year] = L.layerGroup();
+    censoEtiquetasLayers[year] = L.layerGroup();
+
+    const urlGeoJSON = (year === 2010)
+        ? `${BASE_URL}censo_2022/censo_2010_gran_parana.geojson`
+        : `${BASE_URL}censo_2022/censo_${year}.geojson`;
+
+    fetchGeoJSON(urlGeoJSON).then(data => {
+        rawCensusGeoJSON[year] = data; 
+
+        L.geoJSON(data, {
+            style: (feature) => {
+                let p = feature.properties;
+                let pob = getPoblacionValue(p);
+                let areaHectareas = feature.geometry ? calcularAreaHectareas(feature.geometry.coordinates, feature.geometry.type) : 0;
+                let densidad = areaHectareas > 0 ? (pob / areaHectareas) : 0;
+
+                return {
+                    fillColor: getColorDensity(densidad),
+                    fillOpacity: 0.65,
+                    color: year === 2022 ? "#1d4ed8" : "#2563eb", 
+                    weight: 1.8, 
+                    opacity: 0.9
+                };
+            },
+            onEachFeature: (f, l) => {
+                let p = f.properties;
+                let pob = getPoblacionValue(p);
+                let valHog = getPropValue(p, "TOTAL HOGARES PARTICULARES") || getPropValue(p, "HOGARES") || getPropValue(p, "VIVIENDAS") || 0;
+                let hog = parseValue(valHog);
+                let areaHectareas = f.geometry ? calcularAreaHectareas(f.geometry.coordinates, f.geometry.type) : 0;
+                let densidad = areaHectareas > 0 ? (pob / areaHectareas) : 0;
+
+                if (pob > 0 || hog > 0) {
+                    try {
+                        let center = l.getBounds().getCenter();
+                        L.marker(center, {
+                            icon: L.divIcon({
+                                className: 'etiqueta-censo',
+                                html: `<div style="text-align:center; font-size:8px; line-height:1.1; font-weight:bold; color:#0f172a;">
+                                         ${hog > 0 ? `<div>🏠 ${hog}</div>` : ''}
+                                         <div>👥 ${pob}</div>
+                                       </div>`,
+                                iconSize: [48, hog > 0 ? 26 : 16],
+                                iconAnchor: [24, hog > 0 ? 13 : 8]
+                            }),
+                            interactive: false
+                        }).addTo(censoEtiquetasLayers[year]);
+                    } catch(e) {}
+                }
+
+                l.on('click', () => destacarFraccionSeleccionada(l));
+
+                let html = `<div class="popup-custom">`;
+                html += `<div class="popup-header">Censo ${year} - Datos de Fracción</div>`;
+                html += `<table class="table-info">`;
+                html += `<tr><td>DENSIDAD CALCULADA</td><td><b>${densidad.toFixed(2)} hab/ha</b></td></tr>`;
+                if (areaHectareas > 0) html += `<tr><td>SUPERFICIE EST.</td><td>${areaHectareas.toFixed(2)} ha</td></tr>`;
+                
+                for (let [k, v] of Object.entries(p)) {
+                    let keySanitized = decodificarTexto(k).replace("POBLACI0N", "POBLACIÓN").replace("POBLACI¢N", "POBLACIÓN");
+                    let valSanitized = decodificarTexto(String(v));
+                    html += `<tr><td>${keySanitized}</td><td>${valSanitized}</td></tr>`;
+                }
+                html += `</table></div>`;
+                l.bindPopup(html, { maxWidth: 300 });
+            }
+        }).addTo(censoLayers[year]);
+
+        if (year === 2022) {
+            censoLayers[2022].addTo(map); 
+            actualizarEstadisticasVisibles();
+            controlarVisibilidadDinamica();
+        }
+    }).catch(err => console.warn(`Error cargando Censo ${year}:`, err));
+});
+
+var grupoICV = L.layerGroup();
+var grupoEtiquetasICV = L.layerGroup();
+
+fetchGeoJSON(BASE_URL + "censo_2022/icv.geojson").then(data => {
+    L.geoJSON(data, {
+        style: (feature) => {
+            let valICV = getICVValue(feature.properties);
+            return {
+                fillColor: getColorICV(valICV),
+                fillOpacity: 0.8, 
+                color: "#881337", 
+                weight: 1.2, 
+                opacity: 0.95
+            };
+        },
+        onEachFeature: (f, l) => {
+            let p = f.properties;
+            let valICV = getICVValue(p);
+
+            if (valICV > 0) {
+                try {
+                    let center = l.getBounds().getCenter();
+                    L.marker(center, {
+                        icon: L.divIcon({
+                            className: 'etiqueta-icv',
+                            html: `<div>${parseFloat(valICV).toFixed(2)}</div>`,
+                            iconSize: [36, 18],
+                            iconAnchor: [18, 9]
+                        }),
+                        interactive: false
+                    }).addTo(grupoEtiquetasICV);
+                } catch(e) {}
+            }
+
+            l.on('click', () => destacarFraccionSeleccionada(l));
+
+            let html = `<div class="popup-custom">`;
+            html += `<div class="popup-header" style="color:#9f1239;">ICV - CONICET</div>`;
+            html += `<div class="text-center font-bold text-slate-800 text-[11px] mb-2 bg-rose-50 p-1 rounded border border-rose-200">
+                        Índice de Calidad de Vida: <span class="text-rose-700 text-sm font-black">${parseFloat(valICV).toFixed(2)}</span> / 10
+                     </div>`;
+            html += `<table class="table-info">`;
+            for (let [k, v] of Object.entries(p)) {
+                let keySanitized = decodificarTexto(k);
+                let valSanitized = decodificarTexto(String(v));
+                html += `<tr><td>${keySanitized}</td><td>${valSanitized}</td></tr>`;
+            }
+            html += `</table>`;
+            html += `<div class="adv-sv mt-2">Rojo más oscuro: mejores condiciones.<br>Rojo más claro: peores condiciones.</div>`;
+            html += `</div>`;
+            l.bindPopup(html, { maxWidth: 280 });
+        }
+    }).addTo(grupoICV);
+}).catch(err => console.error("Error cargando capa ICV:", err));
+
+function toggleCapaICV(checked) {
+    if (checked) {
+        CENSUS_YEARS.forEach(y => {
+            if (map.hasLayer(censoLayers[y])) map.removeLayer(censoLayers[y]);
+            if (map.hasLayer(censoEtiquetasLayers[y])) map.removeLayer(censoEtiquetasLayers[y]);
+        });
+        if (!map.hasLayer(grupoICV)) map.addLayer(grupoICV);
+    } else {
+        if (map.hasLayer(grupoICV)) map.removeLayer(grupoICV);
+        if (map.hasLayer(grupoEtiquetasICV)) map.removeLayer(grupoEtiquetasICV);
+        let selectedYear = CENSUS_YEARS[currentTimelineIndex];
+        if (censoLayers[selectedYear] && !map.hasLayer(censoLayers[selectedYear])) {
+            map.addLayer(censoLayers[selectedYear]);
+        }
+    }
+    actualizarEstadisticasVisibles();
+    controlarVisibilidadDinamica();
+}
+
+let currentTimelineIndex = 5; // Default 2022
+let timelineInterval = null;
+
+function setTimelineIndex(index) {
+    const chkICV = document.getElementById('chk-icv');
+    if (chkICV && chkICV.checked) {
+        chkICV.checked = false;
+        if (map.hasLayer(grupoICV)) map.removeLayer(grupoICV);
+        if (map.hasLayer(grupoEtiquetasICV)) map.removeLayer(grupoEtiquetasICV);
+    }
+
+    currentTimelineIndex = parseInt(index);
+    let selectedYear = CENSUS_YEARS[currentTimelineIndex];
+    document.getElementById('timeline-slider').value = currentTimelineIndex;
+    document.getElementById('timeline-year-badge').innerText = selectedYear;
+
+    CENSUS_YEARS.forEach(y => {
+        if (map.hasLayer(censoLayers[y])) map.removeLayer(censoLayers[y]);
+        if (map.hasLayer(censoEtiquetasLayers[y])) map.removeLayer(censoEtiquetasLayers[y]);
+    });
+    
+    if (censoLayers[selectedYear]) {
+        map.addLayer(censoLayers[selectedYear]);
+    }
+
+    if (activeDrawnPolygon) {
+        calcularEstadisticasComparativasPoligono(activeDrawnPolygon);
+    } else {
+        actualizarEstadisticasVisibles();
+    }
+    
+    controlarVisibilidadDinamica();
+}
+
+function onTimelineSliderChange(val) {
+    if (timelineInterval) stopTimelinePlay();
+    setTimelineIndex(val);
+}
+
+function toggleTimelinePlay() {
+    if (timelineInterval) {
+        stopTimelinePlay();
+    } else {
+        startTimelinePlay();
+    }
+}
+
+function startTimelinePlay() {
+    document.getElementById('play-icon').innerText = '⏸';
+    document.getElementById('play-text').innerText = 'Pausar';
+    timelineInterval = setInterval(() => {
+        currentTimelineIndex = (currentTimelineIndex + 1) % CENSUS_YEARS.length;
+        setTimelineIndex(currentTimelineIndex);
+    }, 2200);
+}
+
+function stopTimelinePlay() {
+    if (timelineInterval) {
+        clearInterval(timelineInterval);
+        timelineInterval = null;
+    }
+    document.getElementById('play-icon').innerText = '▶';
+    document.getElementById('play-text').innerText = 'Reproducir';
+}
+
+let drawnItems = new L.FeatureGroup().addTo(map);
+let activeDrawnPolygon = null;
+
+function activarDibujoPoligono() {
+    if (activeDrawnPolygon) {
+        limpiarSeleccionPoligono();
+    }
+    
+    let drawer = new L.Draw.Polygon(map, {
+        shapeOptions: { color: '#2563eb', weight: 2.5, fillColor: '#3b82f6', fillOpacity: 0.25 }
+    });
+    drawer.enable();
+}
+
+map.on(L.Draw.Event.CREATED, function (e) {
+    let layer = e.layer;
+    drawnItems.clearLayers();
+    drawnItems.addLayer(layer);
+    activeDrawnPolygon = layer.toGeoJSON();
+    
+    document.getElementById('btn-clear-polygon').style.display = 'inline-block';
+    calcularEstadisticasComparativasPoligono(activeDrawnPolygon);
+});
+
+function limpiarSeleccionPoligono() {
+    drawnItems.clearLayers();
+    intersectedHighlightGroup.clearLayers();
+    activeDrawnPolygon = null;
+    document.getElementById('btn-clear-polygon').style.display = 'none';
+    document.getElementById('stats-title').innerText = '📊 ESTADÍSTICAS VISIBLES';
+    actualizarEstadisticasVisibles();
+}
+
+function calcularEstadisticasComparativasPoligono(polyGeoJSON) {
+    document.getElementById('stats-title').innerText = '📐 ANÁLISIS DE POLÍGONO';
+    intersectedHighlightGroup.clearLayers();
+
+    let results = {};
+
+    CENSUS_YEARS.forEach(year => {
+        results[year] = {
+            poblacion: 0,
+            hogares: 0,
+            viviendas: 0,
+            varones: 0,
+            mujeres: 0,
+            fraccionesCount: 0
+        };
+
+        if (rawCensusGeoJSON[year] && rawCensusGeoJSON[year].features) {
+            rawCensusGeoJSON[year].features.forEach(f => {
+                try {
+                    if (turf.booleanIntersects(polyGeoJSON, f)) {
+                        results[year].fraccionesCount++;
+                        let p = f.properties;
+
+                        let pobVal = getPoblacionValue(p);
+                        let hogVal = parseValue(getPropValue(p, "TOTAL HOGARES PARTICULARES") || getPropValue(p, "HOGARES") || 0);
+                        let vivVal = parseValue(getPropValue(p, "TOTAL VIVIENDAS PARTICULARES") || getPropValue(p, "VIVIENDAS") || 0);
+                        let varVal = parseValue(getPropValue(p, "VARONES") || 0);
+                        let mujVal = parseValue(getPropValue(p, "MUJERES") || 0);
+
+                        results[year].poblacion += pobVal;
+                        results[year].hogares += hogVal;
+                        results[year].viviendas += vivVal;
+                        results[year].varones += varVal;
+                        results[year].mujeres += mujVal;
+
+                        if (year === CENSUS_YEARS[currentTimelineIndex] && !document.getElementById('chk-icv').checked) {
+                            L.geoJSON(f, {
+                                style: { color: '#f59e0b', weight: 2.5, fillColor: '#f59e0b', fillOpacity: 0.2, interactive: false }
+                            }).addTo(intersectedHighlightGroup);
+                        }
+                    }
+                } catch(err){}
+            });
+        }
+    });
+
+    let currentFracCount = results[CENSUS_YEARS[currentTimelineIndex]].fraccionesCount;
+    document.getElementById('count-fracciones').innerText = `${currentFracCount} frac. int.`;
+
+    let html = `<div class="mb-2 text-[9px] font-bold text-blue-800 bg-blue-100 p-1.5 rounded text-center">
+                    Evolución Poblacional en el área seleccionada
+                </div>`;
+
+    html += `<table class="w-full text-[9.5px] border-collapse">`;
+    html += `<tr class="border-b border-slate-200 text-slate-500 text-left font-bold">
+                <th class="py-1">Año</th>
+                <th class="py-1 text-right">Población</th>
+                <th class="py-1 text-right">Hogares</th>
+                <th class="py-1 text-right">Viviendas</th>
+             </tr>`;
+
+    CENSUS_YEARS.forEach(yr => {
+        let isCurrent = yr === CENSUS_YEARS[currentTimelineIndex];
+        let rowClass = isCurrent ? "bg-blue-50 font-black text-blue-900 border-b border-blue-200" : "border-b border-slate-100 text-slate-700";
+        html += `<tr class="${rowClass}">
+                    <td class="py-1">${yr} ${isCurrent ? '👈' : ''}</td>
+                    <td class="py-1 text-right font-bold">${results[yr].poblacion > 0 ? results[yr].poblacion.toLocaleString('es-AR') : '-'}</td>
+                    <td class="py-1 text-right">${results[yr].hogares > 0 ? results[yr].hogares.toLocaleString('es-AR') : '-'}</td>
+                    <td class="py-1 text-right">${results[yr].viviendas > 0 ? results[yr].viviendas.toLocaleString('es-AR') : '-'}</td>
+                 </tr>`;
+    });
+    html += `</table>`;
+
+    let currData = results[CENSUS_YEARS[currentTimelineIndex]];
+    if (currData.varones > 0 || currData.mujeres > 0) {
+        html += `<div class="mt-2 pt-1.5 border-t border-slate-100 flex justify-between text-[9px] font-bold text-slate-600">
+                    <span>👨 Varones (${CENSUS_YEARS[currentTimelineIndex]}): ${currData.varones.toLocaleString('es-AR')}</span>
+                    <span>👩 Mujeres (${CENSUS_YEARS[currentTimelineIndex]}): ${currData.mujeres.toLocaleString('es-AR')}</span>
+                 </div>`;
+    }
+
+    document.getElementById('stats-content').innerHTML = html;
+}
+
+function actualizarEstadisticasVisibles() {
+    if (activeDrawnPolygon) {
+        calcularEstadisticasComparativasPoligono(activeDrawnPolygon);
+        return;
+    }
+
+    const icvActivo = document.getElementById('chk-icv') && document.getElementById('chk-icv').checked;
+
+    if (icvActivo) {
+        document.getElementById('count-fracciones').innerText = `ICV CONICET`;
+        document.getElementById('stats-content').innerHTML = `
+            <div class="bg-rose-50 border border-rose-200 text-rose-900 p-2 rounded text-center space-y-1">
+                <div class="font-extrabold text-[10px] uppercase">Capa Activa: Calidad de Vida</div>
+                <p class="text-[9px] text-slate-600 leading-tight">
+                    Las capas censales se han ocultado temporalmente para permitir una óptima lectura del mapa temático de bienestar socioeconómico y ambiental.
+                </p>
+            </div>`;
+        return;
+    }
+
+    let selectedYear = CENSUS_YEARS[currentTimelineIndex];
+    let currentLayerGroup = censoLayers[selectedYear];
+
+    if (!map.hasLayer(currentLayerGroup)) {
+        document.getElementById('count-fracciones').innerText = `0 frac.`;
+        document.getElementById('stats-content').innerHTML = `
+            <div class="text-slate-500 py-3 text-center italic font-medium">
+                Active la capa del censo correspondiente para ver estadísticas
+            </div>`;
+        return;
+    }
+
+    let bounds = map.getBounds();
+    let totalPoblacion = 0;
+    let totalStats = {
+        "TOTAL VIVIENDAS PARTICULARES": 0,
+        "CON PERSONAS PRESENTES": 0,
+        "SIN PERSONAS PRESENTES": 0,
+        "TOTAL HOGARES PARTICULARES": 0,
+        "MUJERES": 0,
+        "VARONES": 0
+    };
+    let countFracciones = 0;
+
+    currentLayerGroup.eachLayer(geoJsonLayer => {
+        if (geoJsonLayer.eachLayer) {
+            geoJsonLayer.eachLayer(layer => {
+                if (layer.getBounds && bounds.intersects(layer.getBounds())) {
+                    let p = layer.feature.properties;
+                    countFracciones++;
+                    
+                    totalPoblacion += getPoblacionValue(p);
+                    for (let key in totalStats) {
+                        let val = getPropValue(p, key);
+                        if (val !== undefined && val !== null) {
+                            totalStats[key] += parseValue(val);
+                        }
+                    }
+                }
+            });
+        }
+    });
+
+    document.getElementById('count-fracciones').innerText = `${countFracciones} frac.`;
+
+    let html = `<div class="mb-1 text-[9px] font-bold text-slate-500">AÑO ACTIVO EN VISTA: <span class="text-blue-700">${selectedYear}</span></div>`;
+    html += `<table class="w-full text-[10px] text-slate-700">`;
+    html += `<tr class="border-b border-slate-100 font-bold text-slate-900">
+                <td class="py-1 pr-2">POBLACIÓN TOTAL</td>
+                <td class="py-1 font-black text-right text-blue-700">${Math.round(totalPoblacion).toLocaleString('es-AR')}</td>
+             </tr>`;
+
+    for (let [key, val] of Object.entries(totalStats)) {
+        if (val > 0) {
+            let label = key.replace("POBLACI0N", "POBLACIÓN");
+            html += `
+            <tr class="border-b border-slate-100 last:border-none">
+                <td class="py-1 pr-2 font-medium">${label}</td>
+                <td class="py-1 font-bold text-right text-slate-900">${Math.round(val).toLocaleString('es-AR')}</td>
+            </tr>`;
+        }
+    }
+    html += `</table>`;
+    document.getElementById('stats-content').innerHTML = html;
+}
+
+function controlarVisibilidadDinamica() {
+    let zoomActual = map.getZoom();
+    document.getElementById('zoom-indicator').innerText = zoomActual;
+
+    const icvActivo = document.getElementById('chk-icv') && document.getElementById('chk-icv').checked;
+
+    if (icvActivo) {
+        CENSUS_YEARS.forEach(y => {
+            if (map.hasLayer(censoEtiquetasLayers[y])) map.removeLayer(censoEtiquetasLayers[y]);
+        });
+
+        if (zoomActual >= 14 && map.hasLayer(grupoICV)) {
+            if (!map.hasLayer(grupoEtiquetasICV)) map.addLayer(grupoEtiquetasICV);
+        } else {
+            if (map.hasLayer(grupoEtiquetasICV)) map.removeLayer(grupoEtiquetasICV);
+        }
+    } else {
+        if (map.hasLayer(grupoEtiquetasICV)) map.removeLayer(grupoEtiquetasICV);
+
+        if (zoomActual >= 15 && map.hasLayer(censoLayers[CENSUS_YEARS[currentTimelineIndex]])) {
+            let selectedYear = CENSUS_YEARS[currentTimelineIndex];
+            CENSUS_YEARS.forEach(y => {
+                if (y !== selectedYear && map.hasLayer(censoEtiquetasLayers[y])) {
+                    map.removeLayer(censoEtiquetasLayers[y]);
+                }
+            });
+            if (!map.hasLayer(censoEtiquetasLayers[selectedYear])) {
+                map.addLayer(censoEtiquetasLayers[selectedYear]);
+            }
+        } else {
+            CENSUS_YEARS.forEach(y => {
+                if (map.hasLayer(censoEtiquetasLayers[y])) map.removeLayer(censoEtiquetasLayers[y]);
+            });
+        }
+    }
+}
+
+map.on('moveend zoomend', () => {
+    actualizarEstadisticasVisibles();
+    controlarVisibilidadDinamica();
+});
+
+function buscarDireccion() {
+    let nom = document.getElementById('input-calle').value.toUpperCase().trim();
+    let match = listaCallesParaBusqueda.find(c => c.nombre === nom);
+    if (match) {
+        map.fitBounds(match.layer.getBounds(), { maxZoom: 16 });
+        match.layer.fire('click');
+    }
+}
+
+function configurarBuscadorCalles() {
+    const input = document.getElementById('input-calle');
+    const sug = document.getElementById('sugerencias-calles');
+    input.addEventListener('input', () => {
+        let val = input.value.toUpperCase().trim();
+        sug.innerHTML = '';
+        if (val.length < 2) { sug.style.display = 'none'; return; }
+        
+        let exactPrefixMatches = [];
+        let generalMatches = [];
+        const uniqueNames = [...new Set(listaCallesParaBusqueda.map(c => c.nombre))];
+        
+        uniqueNames.forEach(n => {
+            if (n.startsWith(val)) exactPrefixMatches.push(n);
+            else if (n.includes(val)) generalMatches.push(n);
+        });
+
+        let matches = [...exactPrefixMatches, ...generalMatches].slice(0, 6);
+        
+        if (matches.length > 0) {
+            sug.style.display = 'block';
+            matches.forEach(m => {
+                let d = document.createElement('div');
+                d.className = 'sugerencia-item'; d.innerText = m;
+                d.onclick = () => { input.value = m; sug.style.display = 'none'; buscarDireccion(); };
+                sug.appendChild(d);
+            });
+        } else { sug.style.display = 'none'; }
+    });
+
+    document.addEventListener('click', (e) => {
+        if (e.target !== input && e.target !== sug) sug.style.display = 'none';
+    });
+}
+
+function buscarGoogle() {
+    let val = document.getElementById('input-google').value.trim();
+    if (!val) return;
+    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(val + ", Paraná, Entre Ríos")}`)
+        .then(r => r.json()).then(data => {
+            if (data && data.length > 0) {
+                const lat = parseFloat(data[0].lat);
+                const lon = parseFloat(data[0].lon);
+                map.setView([lat, lon], 18);
+                L.marker([lat, lon]).addTo(map).bindPopup(`<b>Resultado Google:</b><br>${val}`).openPopup();
+            }
+        });
+}
+
+controlarVisibilidadDinamica();
+</script>
+</body>
+</html>
