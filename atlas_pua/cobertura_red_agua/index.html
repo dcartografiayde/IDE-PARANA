@@ -2,22 +2,23 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Mapa de Influencia y Red</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mapa de Red y Área de Influencia</title>
 
   <!-- Leaflet CSS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+  <!-- Turf.js para operaciones geoespaciales (Unión de polígonos) -->
+  <script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script>
 
   <style>
-    html, body {
-      height: 100%;
+    #map {
+      height: 100vh;
+      width: 100%;
+    }
+    body, html {
       margin: 0;
       padding: 0;
-      font-family: Arial, sans-serif;
-    }
-    #map {
-      width: 100%;
-      height: 100vh;
     }
   </style>
 </head>
@@ -29,77 +30,70 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <!-- FlatGeobuf JS -->
   <script src="https://unpkg.com/flatgeobuf@3.24.0/dist/flatgeobuf-geojson.min.js"></script>
-  <!-- Turf.js para fusión/unión de geometrías -->
-  <script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script>
 
   <script>
-    // 1. Inicialización del Mapa
+    // Inicialización del Mapa
     const map = L.map('map').setView([-34.6037, -58.3816], 12);
 
-    // Mapa base
+    // Capa Base
     const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
-      attribution: '&copy; OpenStreetMap contributors'
+      attribution: '© OpenStreetMap'
     }).addTo(map);
 
-    // Grupos de capas
-    const layerAreaInfluencia = L.geoJson(null, {
-      // MODIFICACIÓN: Se quita el borde (stroke: false) para que solo se vea el sombreado interno
-      style: function(feature) {
-        return {
-          color: "#ff7800",
-          stroke: false, // MODIFICACIÓN: Eliminado el contorno/borde
-          fillColor: "#ff7800",
-          fillOpacity: 0.35
-        };
-      }
-    }).addTo(map);
-
-    const layerRed = L.geoJson(null, {
-      style: function(feature) {
-        return {
-          color: "#0055ff",
-          weight: 3,
-          opacity: 0.8
-        };
-      }
-    }).addTo(map);
-
-    // MODIFICACIÓN: Nombres de capas limpios sin aclaraciones de FGB ni de 200 metros
-    const overlayMaps = {
-      "Área de influencia": layerAreaInfluencia, // MODIFICACIÓN: Nombre simplificado
-      "Red": layerRed                           // MODIFICACIÓN: Nombre simplificado
+    // Estilo para el área de influencia
+    const estiloAreaInfluencia = {
+      color: "#ff7800",
+      stroke: false,      // MODIFICACIÓN: Se elimina el borde externo/línea
+      weight: 0,          // MODIFICACIÓN: Grosor de borde en 0
+      fillColor: "#ff7800",
+      fillOpacity: 0.35
     };
 
-    L.control.layers(null, overlayMaps, { collapsed: false }).addTo(map);
+    // Estilo para la red
+    const estiloRed = {
+      color: "#0055ff",
+      weight: 3,
+      opacity: 0.8
+    };
 
-    // 2. Carga y Procesamiento del Área de Influencia (Fusionando geometrías superpuestas)
+    // Creación de capas GeoJSON
+    const layerAreaInfluencia = L.geoJson(null, { style: estiloAreaInfluencia }).addTo(map);
+    const layerRed = L.geoJson(null, { style: estiloRed }).addTo(map);
+
+    // Control de Capas
+    // MODIFICACIÓN: Nombres simplificados sin aclaraciones de "FGB" ni "200 metros"
+    const capasSuperpuestas = {
+      "Área de influencia": layerAreaInfluencia, // MODIFICACIÓN: Nombre limpio
+      "Red": layerRed                           // MODIFICACIÓN: Nombre limpio
+    };
+
+    L.control.layers(null, capasSuperpuestas, { collapsed: false }).addTo(map);
+
+    // Carga del Área de Influencia con FlatGeobuf y Unión de geometrías
     async function cargarAreaInfluencia() {
       try {
         const response = await fetch('area_influencia.fgb');
         const features = [];
-        
-        // Iterador asíncrono para deserializar FlatGeobuf
+
         for await (const feature of flatgeobuf.deserialize(response.body)) {
           features.push(feature);
         }
 
+        // MODIFICACIÓN: Se disuelven/unen las áreas coincidentes para que formen una sola geometría
         if (features.length > 0) {
-          // MODIFICACIÓN: Proceso de disolución/unión para evitar que las áreas se superpongan
-          let unionPoligonos = features[0];
+          let areaUnificada = features[0];
           for (let i = 1; i < features.length; i++) {
-            unionPoligonos = turf.union(unionPoligonos, features[i]);
+            areaUnificada = turf.union(areaUnificada, features[i]);
           }
-
-          // Añadir el resultado unificado a la capa
-          layerAreaInfluencia.addData(unionPoligonos);
+          layerAreaInfluencia.addData(areaUnificada);
         }
       } catch (error) {
-        console.error("Error al cargar el Área de Influencia:", error);
+        console.error("Error al cargar el área de influencia:", error);
       }
     }
 
-    // 3. Carga de la Red
+    // Carga de la Red con FlatGeobuf
     async function cargarRed() {
       try {
         const response = await fetch('red.fgb');
@@ -107,14 +101,13 @@
           layerRed.addData(feature);
         }
       } catch (error) {
-        console.error("Error al cargar la Red:", error);
+        console.error("Error al cargar la red:", error);
       }
     }
 
-    // Ejecutar la carga de capas
+    // Ejecución de cargas
     cargarAreaInfluencia();
     cargarRed();
-
   </script>
 </body>
 </html>
