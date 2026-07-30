@@ -321,7 +321,7 @@
                         <input type="checkbox" id="chk-red-agua" checked onchange="toggleOverlay('agua')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
                         <span class="flex items-center gap-2">
                             <span class="w-3.5 h-1 bg-[#007bff] inline-block"></span>
-                            <span>Red de Agua y Área de Influencia</span> <!-- MODIFICACIÓN: Removido (200m) -->
+                            <span>Red de Aguan</span> <!-- MODIFICACIÓN: Removido (200m) -->
                         </span>
                     </label>
                 </div>
@@ -624,19 +624,13 @@ fetchGeoJSON(URL_RED_AGUA).then(data => {
             let valorDatos = p.datos || p.Datos || p.DATOS || "-";
             valorDatos = decodificarTexto(String(valorDatos));
 
+            // MODIFICACIÓN: Se simplificó la construcción del popup para mostrar únicamente el Título y Cañerías
             let content = `<div class="popup-custom">` +
                 `<div class="popup-header">RED DE AGUA</div>` +
                 `<table class="table-info">` +
-                `<tr><td>CAÑERÍA</td><td>${valorDatos}</td></tr>`;
+                `<tr><td>CAÑERÍA</td><td>${valorDatos}</td></tr>` +
+                `</table></div>`;
 
-            for (let [k, v] of Object.entries(p)) {
-                let kUpper = decodificarTexto(k).toUpperCase();
-                if (kUpper !== "DATOS" && v && v !== "0") {
-                    content += `<tr><td>${kUpper}</td><td>${decodificarTexto(String(v))}</td></tr>`;
-                }
-            }
-
-            content += `</table></div>`;
             l.bindPopup(content, { autoPanPadding: L.point(10, 110) });
         }
     }).addTo(grupoRedAgua);
