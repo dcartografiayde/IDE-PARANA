@@ -291,7 +291,6 @@
             </div>
 
             <!-- Toggles de Capas de Información -->
-            <!-- MODIFICACIÓN: Se actualizan los colores en los indicadores visuales del menú -->
             <div class="space-y-2 pt-2">
                 <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide">Capas vectoriales</span>
                 <div class="space-y-2">
@@ -319,14 +318,15 @@
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
                         <input type="checkbox" id="chk-red-agua" checked onchange="toggleOverlay('agua')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
                         <span class="flex items-center gap-2">
-                            <span class="w-3.5 h-3.5 rounded bg-[#007bff]/40 border border-[#007bff] inline-block"></span>
+                            <!-- MODIFICACIÓN: Indicadores en el menú sin bordes externos -->
+                            <span class="w-3.5 h-3.5 rounded bg-[#007bff]/40 inline-block"></span>
                             <span>Red de Agua</span>
                         </span>
                     </label>
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
                         <input type="checkbox" id="chk-red-gas" onchange="toggleOverlay('gas')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
                         <span class="flex items-center gap-2">
-                            <span class="w-3.5 h-3.5 rounded bg-[#28a745]/40 border border-[#28a745] inline-block"></span>
+                            <span class="w-3.5 h-3.5 rounded bg-[#28a745]/40 inline-block"></span>
                             <span>Red de Gas</span>
                         </span>
                     </label>
@@ -340,14 +340,14 @@
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
                         <input type="checkbox" id="chk-red-cloaca" onchange="toggleOverlay('cloaca')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
                         <span class="flex items-center gap-2">
-                            <span class="w-3.5 h-3.5 rounded bg-[#dc3545]/40 border border-[#dc3545] inline-block"></span>
+                            <span class="w-3.5 h-3.5 rounded bg-[#dc3545]/40 inline-block"></span>
                             <span>Red de Cloaca</span>
                         </span>
                     </label>
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
                         <input type="checkbox" id="chk-alumbrado" onchange="toggleOverlay('alumbrado')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
                         <span class="flex items-center gap-2">
-                            <span class="w-3.5 h-3.5 rounded bg-[#fd7e14]/40 border border-[#fd7e14] inline-block"></span>
+                            <span class="w-3.5 h-3.5 rounded bg-[#fd7e14]/40 inline-block"></span>
                             <span>Cobertura de Alumbrado Público</span>
                         </span>
                     </label>
@@ -595,7 +595,7 @@ fetchGeoJSON(BASE_URL + "calles.geojson").then(data => {
     console.warn("No se pudo cargar la capa de calles:", err);
 });
 
-// MODIFICACIÓN: Función adaptada para cargar polígonos precalculados sin popups
+// MODIFICACIÓN: Se quitan los bordes (stroke: false) de las capas de polígonos conservando únicamente el relleno
 function cargarCapaServicioPoligonos({ url, grupo, color }) {
     fetchGeoJSON(url).then(data => {
         L.geoJSON(data, {
@@ -612,8 +612,7 @@ function cargarCapaServicioPoligonos({ url, grupo, color }) {
 
 /* ================= INICIALIZACIÓN DE CAPAS DE SERVICIOS ================= */
 
-// 1. Red de Agua (Polígono buffer - Azul)
-// MODIFICACIÓN: Se utiliza el archivo cargado como polígono con color azul y sin popups
+// 1. Red de Agua (Polígono - Azul sin bordes)
 var grupoRedAgua = L.layerGroup().addTo(map);
 cargarCapaServicioPoligonos({
     url: "https://raw.githubusercontent.com/dcartografiayde/IDE-PARANA/main/atlas_pua/cobertura_servicios/red_de_agua.geojson",
@@ -621,8 +620,7 @@ cargarCapaServicioPoligonos({
     color: "#007bff"
 });
 
-// 2. Red de Gas (Polígono buffer - Verde)
-// MODIFICACIÓN: Se utiliza el archivo cargado como polígono con color verde y sin popups
+// 2. Red de Gas (Polígono - Verde sin bordes)
 var grupoRedGas = L.layerGroup();
 cargarCapaServicioPoligonos({
     url: "https://raw.githubusercontent.com/dcartografiayde/IDE-PARANA/main/atlas_pua/cobertura_servicios/red_de_gas.geojson",
@@ -631,7 +629,6 @@ cargarCapaServicioPoligonos({
 });
 
 // 3. Red de Drenaje (Líneas - Amarillo)
-// MODIFICACIÓN: Carga como líneas amarillas y sin popups
 var grupoRedDrenaje = L.layerGroup();
 fetchGeoJSON("https://raw.githubusercontent.com/dcartografiayde/IDE-PARANA/main/atlas_pua/cobertura_servicios/red_de_drenaje.geojson").then(data => {
     L.geoJSON(data, {
@@ -645,8 +642,8 @@ fetchGeoJSON("https://raw.githubusercontent.com/dcartografiayde/IDE-PARANA/main/
     }).addTo(grupoRedDrenaje);
 }).catch(err => console.error("Error al cargar la capa de Red de Drenaje:", err));
 
-// 4. Red de Cloaca (Polígono buffer - Rojo / Archivo GeoJSON)
-// MODIFICACIÓN: Pasa de .fgb a .geojson, renderizado como polígono rojo y sin popups
+// 4. Red de Cloaca (Polígono - Rojo sin bordes / Archivo .geojson)
+// MODIFICACIÓN: Apunta correctamente a la URL raw del GeoJSON cargado sin lectura binaria FlatGeobuf
 var grupoRedCloaca = L.layerGroup();
 cargarCapaServicioPoligonos({
     url: "https://raw.githubusercontent.com/dcartografiayde/IDE-PARANA/main/atlas_pua/cobertura_servicios/red_de_cloaca.geojson",
@@ -654,20 +651,13 @@ cargarCapaServicioPoligonos({
     color: "#dc3545"
 });
 
-// 5. Cobertura de Alumbrado Público (Polígono buffer - Naranja)
-// MODIFICACIÓN: Color cambiado a naranja (#fd7e14) y se removió la vinculación del popup
+// 5. Cobertura de Alumbrado Público (Polígono - Naranja sin bordes)
 var grupoAlumbrado = L.layerGroup();
-fetchGeoJSON("https://raw.githubusercontent.com/dcartografiayde/IDE-PARANA/main/atlas_pua/cobertura_servicios/cobertura_alumbrado.geojson").then(data => {
-    L.geoJSON(data, {
-        pane: 'serviciosBufferPane',
-        style: {
-            stroke: false,
-            fillColor: '#fd7e14',
-            fillOpacity: 0.35,
-            interactive: false
-        }
-    }).addTo(grupoAlumbrado);
-}).catch(err => console.error("Error al cargar la capa de Cobertura de Alumbrado:", err));
+cargarCapaServicioPoligonos({
+    url: "https://raw.githubusercontent.com/dcartografiayde/IDE-PARANA/main/atlas_pua/cobertura_servicios/cobertura_alumbrado.geojson",
+    grupo: grupoAlumbrado,
+    color: "#fd7e14"
+});
 
 function toggleDescripcionMapa() {
     const descripcion = document.getElementById("descripcion-mapa");
