@@ -294,7 +294,6 @@
             <div class="space-y-2 pt-2">
                 <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide">Capas vectoriales</span>
                 <div class="space-y-2">
-                    <!-- MODIFICACIÓN: Desmarcado 'checked' para iniciar apagada -->
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
                         <input type="checkbox" id="chk-manzanas" onchange="toggleOverlay('manzanas')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
                         <span class="flex items-center gap-2">
@@ -302,7 +301,6 @@
                             <span>Manzanas</span>
                         </span>
                     </label>
-                    <!-- MODIFICACIÓN: Desmarcado 'checked' para iniciar apagada -->
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
                         <input type="checkbox" id="chk-calles" onchange="toggleOverlay('calles')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
                         <span class="flex items-center gap-2">
@@ -310,7 +308,6 @@
                             <span>Nombres de Calles</span>
                         </span>
                     </label>
-                    <!-- MODIFICACIÓN: Desmarcado 'checked' para iniciar apagada -->
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
                         <input type="checkbox" id="chk-parcelas" onchange="toggleOverlay('parcelas')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
                         <span class="flex items-center gap-2">
@@ -318,7 +315,6 @@
                             <span>Parcelas Catastrales</span>
                         </span>
                     </label>
-                    <!-- MODIFICACIÓN: Se mantiene únicamente 'checked' para abrir activa -->
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
                         <input type="checkbox" id="chk-red-agua" checked onchange="toggleOverlay('agua')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
                         <span class="flex items-center gap-2">
@@ -326,7 +322,6 @@
                             <span>Red de Agua</span>
                         </span>
                     </label>
-                    <!-- MODIFICACIÓN: Desmarcado 'checked' para iniciar apagada -->
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
                         <input type="checkbox" id="chk-red-gas" onchange="toggleOverlay('gas')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
                         <span class="flex items-center gap-2">
@@ -334,7 +329,6 @@
                             <span>Red de Gas</span>
                         </span>
                     </label>
-                    <!-- MODIFICACIÓN: Desmarcado 'checked' para iniciar apagada -->
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
                         <input type="checkbox" id="chk-red-drenaje" onchange="toggleOverlay('drenaje')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
                         <span class="flex items-center gap-2">
@@ -342,7 +336,6 @@
                             <span>Red de Drenaje</span>
                         </span>
                     </label>
-                    <!-- MODIFICACIÓN: Desmarcado 'checked' para iniciar apagada -->
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
                         <input type="checkbox" id="chk-red-cloaca" onchange="toggleOverlay('cloaca')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
                         <span class="flex items-center gap-2">
@@ -350,7 +343,6 @@
                             <span>Red de Cloaca</span>
                         </span>
                     </label>
-                    <!-- MODIFICACIÓN: Desmarcado 'checked' para iniciar apagada -->
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
                         <input type="checkbox" id="chk-alumbrado" onchange="toggleOverlay('alumbrado')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
                         <span class="flex items-center gap-2">
@@ -602,41 +594,45 @@ fetchGeoJSON(BASE_URL + "calles.geojson").then(data => {
     console.warn("No se pudo cargar la capa de calles:", err);
 });
 
-function cargarCapaServicio({ url, grupo, color, tituloPopup, esFgb = false, extraerAtributos = null }) {
+// MODIFICACIÓN: Se agrega la opción de un parámetro 'bufferDist' (distancia en km para el buffer)
+function cargarCapaServicio({ url, grupo, color, tituloPopup, esFgb = false, extraerAtributos = null, bufferDist = 0.2 }) {
     const procesarGeoJSON = (data) => {
-        // 1. Generar Buffer y Unificar
-        try {
-            let buffers = [];
-            if (data && data.features) {
-                data.features.forEach(feat => {
-                    try {
-                        let buf = turf.buffer(feat, 0.2, { units: 'kilometers' });
-                        if (buf) buffers.push(buf);
-                    } catch (e) {}
-                });
-            }
-
-            if (buffers.length > 0) {
-                let unionBuffer = buffers[0];
-                for (let i = 1; i < buffers.length; i++) {
-                    try {
-                        unionBuffer = turf.union(unionBuffer, buffers[i]);
-                    } catch (errUnion) {}
+        // 1. Generar Buffer y Unificar (Solo si bufferDist es mayor a 0)
+        // MODIFICACIÓN: Saltear el proceso de cálculo de buffer si bufferDist es <= 0
+        if (bufferDist > 0) {
+            try {
+                let buffers = [];
+                if (data && data.features) {
+                    data.features.forEach(feat => {
+                        try {
+                            let buf = turf.buffer(feat, bufferDist, { units: 'kilometers' });
+                            if (buf) buffers.push(buf);
+                        } catch (e) {}
+                    });
                 }
 
-                L.geoJSON(unionBuffer, {
-                    pane: 'serviciosBufferPane',
-                    style: {
-                        stroke: false,
-                        weight: 0,
-                        fillColor: color,
-                        fillOpacity: 0.35,
-                        interactive: false
+                if (buffers.length > 0) {
+                    let unionBuffer = buffers[0];
+                    for (let i = 1; i < buffers.length; i++) {
+                        try {
+                            unionBuffer = turf.union(unionBuffer, buffers[i]);
+                        } catch (errUnion) {}
                     }
-                }).addTo(grupo);
+
+                    L.geoJSON(unionBuffer, {
+                        pane: 'serviciosBufferPane',
+                        style: {
+                            stroke: false,
+                            weight: 0,
+                            fillColor: color,
+                            fillOpacity: 0.35,
+                            interactive: false
+                        }
+                    }).addTo(grupo);
+                }
+            } catch (e) {
+                console.warn(`Error al calcular buffer de ${tituloPopup}:`, e);
             }
-        } catch (e) {
-            console.warn(`Error al calcular buffer de ${tituloPopup}:`, e);
         }
 
         // 2. Trazado de Líneas/Geometría Principal con Popup
@@ -684,7 +680,7 @@ function cargarCapaServicio({ url, grupo, color, tituloPopup, esFgb = false, ext
 
 /* ================= INICIALIZACIÓN DE CAPAS DE SERVICIOS ================= */
 
-// 1. Red de Agua (Única agregada al mapa de forma predeterminada `.addTo(map)`)
+// 1. Red de Agua (Buffer por defecto de 200 m / 0.2 km)
 var grupoRedAgua = L.layerGroup().addTo(map);
 cargarCapaServicio({
     url: "https://raw.githubusercontent.com/dcartografiayde/IDE-PARANA/main/atlas_pua/cobertura_servicios/red_de_agua.geojson",
@@ -697,14 +693,15 @@ cargarCapaServicio({
     }
 });
 
-// MODIFICACIÓN: Las demás capas de servicios se crean pero no se agregan al mapa al inicio
 // 2. Red de Gas
+// MODIFICACIÓN: Buffer reducido a 100 m (0.1 km)
 var grupoRedGas = L.layerGroup();
 cargarCapaServicio({
     url: "https://raw.githubusercontent.com/dcartografiayde/IDE-PARANA/main/atlas_pua/cobertura_servicios/red_de_gas.geojson",
     grupo: grupoRedGas,
     color: "#e67e22",
     tituloPopup: "RED DE GAS",
+    bufferDist: 0.1,
     extraerAtributos: (p) => {
         let v = decodificarTexto(String(p.canieria || p.Canieria || p.CANIERIA || "-"));
         return `<tr><td>CAÑERÍAS</td><td>${v}</td></tr>`;
@@ -712,22 +709,26 @@ cargarCapaServicio({
 });
 
 // 3. Red de Drenaje
+// MODIFICACIÓN: Buffer completamente eliminado configurando bufferDist: 0
 var grupoRedDrenaje = L.layerGroup();
 cargarCapaServicio({
     url: "https://raw.githubusercontent.com/dcartografiayde/IDE-PARANA/main/atlas_pua/cobertura_servicios/red_de_drenaje.geojson",
     grupo: grupoRedDrenaje,
     color: "#17a2b8",
-    tituloPopup: "RED DE DRENAJE"
+    tituloPopup: "RED DE DRENAJE",
+    bufferDist: 0
 });
 
 // 4. Red de Cloaca
+// MODIFICACIÓN: Buffer reducido a 100 m (0.1 km)
 var grupoRedCloaca = L.layerGroup();
 cargarCapaServicio({
     url: "https://raw.githubusercontent.com/dcartografiayde/IDE-PARANA/main/atlas_pua/cobertura_servicios/red_de_cloaca.fgb",
     grupo: grupoRedCloaca,
     color: "#6f42c1",
     tituloPopup: "RED DE CLOACA",
-    esFgb: true
+    esFgb: true,
+    bufferDist: 0.1
 });
 
 // 5. Cobertura de Alumbrado Público
@@ -828,7 +829,6 @@ function activarEtiquetasCalles() {
     renderLabels();
 }
 
-// MODIFICACIÓN: Manzanas se crea pero NO se agrega por defecto con .addTo(map)
 var grupoManzanas = L.layerGroup();
 var grupoEtiquetasManzanas = L.layerGroup(); 
 
