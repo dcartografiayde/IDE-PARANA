@@ -291,6 +291,7 @@
             </div>
 
             <!-- Toggles de Capas de Información -->
+            <!-- MODIFICACIÓN: Se actualizan los colores en los indicadores visuales del menú -->
             <div class="space-y-2 pt-2">
                 <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide">Capas vectoriales</span>
                 <div class="space-y-2">
@@ -318,35 +319,35 @@
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
                         <input type="checkbox" id="chk-red-agua" checked onchange="toggleOverlay('agua')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
                         <span class="flex items-center gap-2">
-                            <span class="w-3.5 h-1 bg-[#007bff] inline-block"></span>
+                            <span class="w-3.5 h-3.5 rounded bg-[#007bff]/40 border border-[#007bff] inline-block"></span>
                             <span>Red de Agua</span>
                         </span>
                     </label>
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
                         <input type="checkbox" id="chk-red-gas" onchange="toggleOverlay('gas')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
                         <span class="flex items-center gap-2">
-                            <span class="w-3.5 h-1 bg-[#e67e22] inline-block"></span>
+                            <span class="w-3.5 h-3.5 rounded bg-[#28a745]/40 border border-[#28a745] inline-block"></span>
                             <span>Red de Gas</span>
                         </span>
                     </label>
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
                         <input type="checkbox" id="chk-red-drenaje" onchange="toggleOverlay('drenaje')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
                         <span class="flex items-center gap-2">
-                            <span class="w-3.5 h-1 bg-[#17a2b8] inline-block"></span>
+                            <span class="w-3.5 h-1 bg-[#ffc107] inline-block"></span>
                             <span>Red de Drenaje</span>
                         </span>
                     </label>
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
                         <input type="checkbox" id="chk-red-cloaca" onchange="toggleOverlay('cloaca')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
                         <span class="flex items-center gap-2">
-                            <span class="w-3.5 h-1 bg-[#6f42c1] inline-block"></span>
+                            <span class="w-3.5 h-3.5 rounded bg-[#dc3545]/40 border border-[#dc3545] inline-block"></span>
                             <span>Red de Cloaca</span>
                         </span>
                     </label>
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
                         <input type="checkbox" id="chk-alumbrado" onchange="toggleOverlay('alumbrado')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
                         <span class="flex items-center gap-2">
-                            <span class="w-3.5 h-3.5 rounded bg-[#f1c40f] inline-block"></span>
+                            <span class="w-3.5 h-3.5 rounded bg-[#fd7e14]/40 border border-[#fd7e14] inline-block"></span>
                             <span>Cobertura de Alumbrado Público</span>
                         </span>
                     </label>
@@ -594,157 +595,76 @@ fetchGeoJSON(BASE_URL + "calles.geojson").then(data => {
     console.warn("No se pudo cargar la capa de calles:", err);
 });
 
-// MODIFICACIÓN: Se agrega la opción de un parámetro 'bufferDist' (distancia en km para el buffer)
-function cargarCapaServicio({ url, grupo, color, tituloPopup, esFgb = false, extraerAtributos = null, bufferDist = 0.2 }) {
-    const procesarGeoJSON = (data) => {
-        // 1. Generar Buffer y Unificar (Solo si bufferDist es mayor a 0)
-        // MODIFICACIÓN: Saltear el proceso de cálculo de buffer si bufferDist es <= 0
-        if (bufferDist > 0) {
-            try {
-                let buffers = [];
-                if (data && data.features) {
-                    data.features.forEach(feat => {
-                        try {
-                            let buf = turf.buffer(feat, bufferDist, { units: 'kilometers' });
-                            if (buf) buffers.push(buf);
-                        } catch (e) {}
-                    });
-                }
-
-                if (buffers.length > 0) {
-                    let unionBuffer = buffers[0];
-                    for (let i = 1; i < buffers.length; i++) {
-                        try {
-                            unionBuffer = turf.union(unionBuffer, buffers[i]);
-                        } catch (errUnion) {}
-                    }
-
-                    L.geoJSON(unionBuffer, {
-                        pane: 'serviciosBufferPane',
-                        style: {
-                            stroke: false,
-                            weight: 0,
-                            fillColor: color,
-                            fillOpacity: 0.35,
-                            interactive: false
-                        }
-                    }).addTo(grupo);
-                }
-            } catch (e) {
-                console.warn(`Error al calcular buffer de ${tituloPopup}:`, e);
-            }
-        }
-
-        // 2. Trazado de Líneas/Geometría Principal con Popup
+// MODIFICACIÓN: Función adaptada para cargar polígonos precalculados sin popups
+function cargarCapaServicioPoligonos({ url, grupo, color }) {
+    fetchGeoJSON(url).then(data => {
         L.geoJSON(data, {
-            pane: 'serviciosLinePane',
+            pane: 'serviciosBufferPane',
             style: {
-                color: color,
-                weight: 2.5,
-                opacity: 0.9
-            },
-            onEachFeature: (f, l) => {
-                let content = `<div class="popup-custom"><div class="popup-header">${tituloPopup}</div>`;
-                if (extraerAtributos) {
-                    let filas = extraerAtributos(f.properties || {});
-                    if (filas) {
-                        content += `<table class="table-info">${filas}</table>`;
-                    }
-                }
-                content += `</div>`;
-                l.bindPopup(content, { autoPanPadding: L.point(10, 110) });
+                stroke: false,
+                fillColor: color,
+                fillOpacity: 0.35,
+                interactive: false
             }
         }).addTo(grupo);
-    };
-
-    if (esFgb) {
-        fetch(url).then(r => r.arrayBuffer()).then(buffer => {
-            const deserialize = (window.flatgeobuf && window.flatgeobuf.deserialize) 
-                ? window.flatgeobuf.deserialize 
-                : (window.flatgeobuf && window.flatgeobuf.geojson ? window.flatgeobuf.geojson.deserialize : null);
-            if (!deserialize) return;
-
-            const features = [];
-            const iter = deserialize(new Uint8Array(buffer));
-            (async () => {
-                for await (const feat of iter) {
-                    features.push(feat);
-                }
-                procesarGeoJSON({ type: "FeatureCollection", features: features });
-            })();
-        }).catch(err => console.error(`Error al cargar FGB (${tituloPopup}):`, err));
-    } else {
-        fetchGeoJSON(url).then(data => procesarGeoJSON(data)).catch(err => console.error(`Error al cargar GeoJSON (${tituloPopup}):`, err));
-    }
+    }).catch(err => console.error(`Error al cargar capa de servicios:`, err));
 }
 
 /* ================= INICIALIZACIÓN DE CAPAS DE SERVICIOS ================= */
 
-// 1. Red de Agua (Buffer por defecto de 200 m / 0.2 km)
+// 1. Red de Agua (Polígono buffer - Azul)
+// MODIFICACIÓN: Se utiliza el archivo cargado como polígono con color azul y sin popups
 var grupoRedAgua = L.layerGroup().addTo(map);
-cargarCapaServicio({
+cargarCapaServicioPoligonos({
     url: "https://raw.githubusercontent.com/dcartografiayde/IDE-PARANA/main/atlas_pua/cobertura_servicios/red_de_agua.geojson",
     grupo: grupoRedAgua,
-    color: "#007bff",
-    tituloPopup: "RED DE AGUA",
-    extraerAtributos: (p) => {
-        let v = decodificarTexto(String(p.datos || p.Datos || p.DATOS || "-"));
-        return `<tr><td>CAÑERÍA</td><td>${v}</td></tr>`;
-    }
+    color: "#007bff"
 });
 
-// 2. Red de Gas
-// MODIFICACIÓN: Buffer reducido a 100 m (0.1 km)
+// 2. Red de Gas (Polígono buffer - Verde)
+// MODIFICACIÓN: Se utiliza el archivo cargado como polígono con color verde y sin popups
 var grupoRedGas = L.layerGroup();
-cargarCapaServicio({
+cargarCapaServicioPoligonos({
     url: "https://raw.githubusercontent.com/dcartografiayde/IDE-PARANA/main/atlas_pua/cobertura_servicios/red_de_gas.geojson",
     grupo: grupoRedGas,
-    color: "#e67e22",
-    tituloPopup: "RED DE GAS",
-    bufferDist: 0.1,
-    extraerAtributos: (p) => {
-        let v = decodificarTexto(String(p.canieria || p.Canieria || p.CANIERIA || "-"));
-        return `<tr><td>CAÑERÍAS</td><td>${v}</td></tr>`;
-    }
+    color: "#28a745"
 });
 
-// 3. Red de Drenaje
-// MODIFICACIÓN: Buffer completamente eliminado configurando bufferDist: 0
+// 3. Red de Drenaje (Líneas - Amarillo)
+// MODIFICACIÓN: Carga como líneas amarillas y sin popups
 var grupoRedDrenaje = L.layerGroup();
-cargarCapaServicio({
-    url: "https://raw.githubusercontent.com/dcartografiayde/IDE-PARANA/main/atlas_pua/cobertura_servicios/red_de_drenaje.geojson",
-    grupo: grupoRedDrenaje,
-    color: "#17a2b8",
-    tituloPopup: "RED DE DRENAJE",
-    bufferDist: 0
-});
+fetchGeoJSON("https://raw.githubusercontent.com/dcartografiayde/IDE-PARANA/main/atlas_pua/cobertura_servicios/red_de_drenaje.geojson").then(data => {
+    L.geoJSON(data, {
+        pane: 'serviciosLinePane',
+        style: {
+            color: '#ffc107',
+            weight: 2.5,
+            opacity: 0.9,
+            interactive: false
+        }
+    }).addTo(grupoRedDrenaje);
+}).catch(err => console.error("Error al cargar la capa de Red de Drenaje:", err));
 
-// 4. Red de Cloaca
-// MODIFICACIÓN: Buffer reducido a 100 m (0.1 km)
+// 4. Red de Cloaca (Polígono buffer - Rojo / Archivo GeoJSON)
+// MODIFICACIÓN: Pasa de .fgb a .geojson, renderizado como polígono rojo y sin popups
 var grupoRedCloaca = L.layerGroup();
-cargarCapaServicio({
-    url: "https://raw.githubusercontent.com/dcartografiayde/IDE-PARANA/main/atlas_pua/cobertura_servicios/red_de_cloaca.fgb",
+cargarCapaServicioPoligonos({
+    url: "https://raw.githubusercontent.com/dcartografiayde/IDE-PARANA/main/atlas_pua/cobertura_servicios/red_de_cloaca.geojson",
     grupo: grupoRedCloaca,
-    color: "#6f42c1",
-    tituloPopup: "RED DE CLOACA",
-    esFgb: true,
-    bufferDist: 0.1
+    color: "#dc3545"
 });
 
-// 5. Cobertura de Alumbrado Público
+// 5. Cobertura de Alumbrado Público (Polígono buffer - Naranja)
+// MODIFICACIÓN: Color cambiado a naranja (#fd7e14) y se removió la vinculación del popup
 var grupoAlumbrado = L.layerGroup();
 fetchGeoJSON("https://raw.githubusercontent.com/dcartografiayde/IDE-PARANA/main/atlas_pua/cobertura_servicios/cobertura_alumbrado.geojson").then(data => {
     L.geoJSON(data, {
         pane: 'serviciosBufferPane',
         style: {
             stroke: false,
-            fillColor: '#f1c40f',
+            fillColor: '#fd7e14',
             fillOpacity: 0.35,
-            interactive: true
-        },
-        onEachFeature: (f, l) => {
-            let content = `<div class="popup-custom"><div class="popup-header">COBERTURA DE ALUMBRADO PÚBLICO</div></div>`;
-            l.bindPopup(content, { autoPanPadding: L.point(10, 110) });
+            interactive: false
         }
     }).addTo(grupoAlumbrado);
 }).catch(err => console.error("Error al cargar la capa de Cobertura de Alumbrado:", err));
