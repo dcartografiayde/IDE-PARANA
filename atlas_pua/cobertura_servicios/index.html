@@ -3,7 +3,6 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- MODIFICACIÓN: Título principal de la página ajustado -->
     <title>COBERTURA DE SERVICIOS - MUNICIPALIDAD DE PARANA</title>
 
     <!-- Leaflet CSS y JS -->
@@ -295,27 +294,31 @@
             <div class="space-y-2 pt-2">
                 <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide">Capas vectoriales</span>
                 <div class="space-y-2">
+                    <!-- MODIFICACIÓN: Desmarcado 'checked' para iniciar apagada -->
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
-                        <input type="checkbox" id="chk-manzanas" checked onchange="toggleOverlay('manzanas')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
+                        <input type="checkbox" id="chk-manzanas" onchange="toggleOverlay('manzanas')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
                         <span class="flex items-center gap-2">
                             <span class="w-3.5 h-3.5 rounded border border-[#ff6b6b] bg-[rgba(255,107,107,0.15)] inline-block"></span>
                             <span>Manzanas</span>
                         </span>
                     </label>
+                    <!-- MODIFICACIÓN: Desmarcado 'checked' para iniciar apagada -->
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
-                        <input type="checkbox" id="chk-calles" checked onchange="toggleOverlay('calles')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
+                        <input type="checkbox" id="chk-calles" onchange="toggleOverlay('calles')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
                         <span class="flex items-center gap-2">
                             <span class="w-3.5 h-1 bg-[#FFFF00] inline-block"></span>
                             <span>Nombres de Calles</span>
                         </span>
                     </label>
+                    <!-- MODIFICACIÓN: Desmarcado 'checked' para iniciar apagada -->
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
-                        <input type="checkbox" id="chk-parcelas" checked onchange="toggleOverlay('parcelas')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
+                        <input type="checkbox" id="chk-parcelas" onchange="toggleOverlay('parcelas')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
                         <span class="flex items-center gap-2">
                             <span class="w-3.5 h-3.5 rounded bg-[#2980b9] inline-block"></span>
                             <span>Parcelas Catastrales</span>
                         </span>
                     </label>
+                    <!-- MODIFICACIÓN: Se mantiene únicamente 'checked' para abrir activa -->
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
                         <input type="checkbox" id="chk-red-agua" checked onchange="toggleOverlay('agua')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
                         <span class="flex items-center gap-2">
@@ -323,30 +326,33 @@
                             <span>Red de Agua</span>
                         </span>
                     </label>
-                    <!-- MODIFICACIÓN: Nuevas capas de servicios agregadas al control de capas -->
+                    <!-- MODIFICACIÓN: Desmarcado 'checked' para iniciar apagada -->
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
-                        <input type="checkbox" id="chk-red-gas" checked onchange="toggleOverlay('gas')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
+                        <input type="checkbox" id="chk-red-gas" onchange="toggleOverlay('gas')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
                         <span class="flex items-center gap-2">
                             <span class="w-3.5 h-1 bg-[#e67e22] inline-block"></span>
                             <span>Red de Gas</span>
                         </span>
                     </label>
+                    <!-- MODIFICACIÓN: Desmarcado 'checked' para iniciar apagada -->
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
-                        <input type="checkbox" id="chk-red-drenaje" checked onchange="toggleOverlay('drenaje')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
+                        <input type="checkbox" id="chk-red-drenaje" onchange="toggleOverlay('drenaje')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
                         <span class="flex items-center gap-2">
                             <span class="w-3.5 h-1 bg-[#17a2b8] inline-block"></span>
                             <span>Red de Drenaje</span>
                         </span>
                     </label>
+                    <!-- MODIFICACIÓN: Desmarcado 'checked' para iniciar apagada -->
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
-                        <input type="checkbox" id="chk-red-cloaca" checked onchange="toggleOverlay('cloaca')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
+                        <input type="checkbox" id="chk-red-cloaca" onchange="toggleOverlay('cloaca')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
                         <span class="flex items-center gap-2">
                             <span class="w-3.5 h-1 bg-[#6f42c1] inline-block"></span>
                             <span>Red de Cloaca</span>
                         </span>
                     </label>
+                    <!-- MODIFICACIÓN: Desmarcado 'checked' para iniciar apagada -->
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
-                        <input type="checkbox" id="chk-alumbrado" checked onchange="toggleOverlay('alumbrado')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
+                        <input type="checkbox" id="chk-alumbrado" onchange="toggleOverlay('alumbrado')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
                         <span class="flex items-center gap-2">
                             <span class="w-3.5 h-3.5 rounded bg-[#f1c40f] inline-block"></span>
                             <span>Cobertura de Alumbrado Público</span>
@@ -422,7 +428,6 @@
     <div id="panel-info-mapa" class="panel-info-mapa">
         <div class="panel-header">
             <div style="width:100%;">
-                <!-- MODIFICACIÓN: Título del panel actualizado -->
                 <div class="panel-titulo" id="titulo-mapa">COBERTURA DE SERVICIOS</div>
                 <div class="panel-zoom" style="text-align:center;">
                     Zoom: <span id="zoom-indicator">12</span>
@@ -431,7 +436,6 @@
             <button onclick="toggleDescripcionMapa()" id="btn-descripcion">▼</button>
         </div>
 
-        <!-- MODIFICACIÓN: Descripción del panel actualizada -->
         <div id="descripcion-mapa" class="panel-descripcion">
             El plano muestra la cobertura del servicio de áreas servida con red de desagüe cloacal, red de gas, red de agua potable, alumbrado público y la huella urbana del año 2023. La red existente evidencia una amplia cobertura en el área central y consolidada de la ciudad, donde la trama urbana presenta mayor densidad. En contraste, se identifican sectores periféricos con menor cobertura actual.
         </div>
@@ -598,8 +602,6 @@ fetchGeoJSON(BASE_URL + "calles.geojson").then(data => {
     console.warn("No se pudo cargar la capa de calles:", err);
 });
 
-/* ================= MODIFICACIÓN: FUNCIÓN REUTILIZABLE PARA GENERAR CAPAS CON BUFFER Y POPUPS PERSONALIZADOS ================= */
-// MODIFICACIÓN: La opacidad de llenado fue incrementada a 0.35 para hacer los buffers menos transparentes
 function cargarCapaServicio({ url, grupo, color, tituloPopup, esFgb = false, extraerAtributos = null }) {
     const procesarGeoJSON = (data) => {
         // 1. Generar Buffer y Unificar
@@ -628,7 +630,7 @@ function cargarCapaServicio({ url, grupo, color, tituloPopup, esFgb = false, ext
                         stroke: false,
                         weight: 0,
                         fillColor: color,
-                        fillOpacity: 0.35, // MODIFICACIÓN: Menos transparente que el 0.18 anterior
+                        fillOpacity: 0.35,
                         interactive: false
                     }
                 }).addTo(grupo);
@@ -660,7 +662,6 @@ function cargarCapaServicio({ url, grupo, color, tituloPopup, esFgb = false, ext
     };
 
     if (esFgb) {
-        // Carga de archivo .fgb usando FlatGeobuf
         fetch(url).then(r => r.arrayBuffer()).then(buffer => {
             const deserialize = (window.flatgeobuf && window.flatgeobuf.deserialize) 
                 ? window.flatgeobuf.deserialize 
@@ -677,14 +678,13 @@ function cargarCapaServicio({ url, grupo, color, tituloPopup, esFgb = false, ext
             })();
         }).catch(err => console.error(`Error al cargar FGB (${tituloPopup}):`, err));
     } else {
-        // Carga de archivo GeoJSON estándar
         fetchGeoJSON(url).then(data => procesarGeoJSON(data)).catch(err => console.error(`Error al cargar GeoJSON (${tituloPopup}):`, err));
     }
 }
 
-/* ================= MODIFICACIÓN: INICIALIZACIÓN DE TODAS LAS CAPAS DE SERVICIOS ================= */
+/* ================= INICIALIZACIÓN DE CAPAS DE SERVICIOS ================= */
 
-// 1. Red de Agua (MODIFICACIÓN: Nuevo dominio asignado)
+// 1. Red de Agua (Única agregada al mapa de forma predeterminada `.addTo(map)`)
 var grupoRedAgua = L.layerGroup().addTo(map);
 cargarCapaServicio({
     url: "https://raw.githubusercontent.com/dcartografiayde/IDE-PARANA/main/atlas_pua/cobertura_servicios/red_de_agua.geojson",
@@ -697,8 +697,9 @@ cargarCapaServicio({
     }
 });
 
-// 2. Red de Gas (MODIFICACIÓN: Muestra Título y campo 'canieria' con nombre 'Cañerías')
-var grupoRedGas = L.layerGroup().addTo(map);
+// MODIFICACIÓN: Las demás capas de servicios se crean pero no se agregan al mapa al inicio
+// 2. Red de Gas
+var grupoRedGas = L.layerGroup();
 cargarCapaServicio({
     url: "https://raw.githubusercontent.com/dcartografiayde/IDE-PARANA/main/atlas_pua/cobertura_servicios/red_de_gas.geojson",
     grupo: grupoRedGas,
@@ -710,8 +711,8 @@ cargarCapaServicio({
     }
 });
 
-// 3. Red de Drenaje (MODIFICACIÓN: Solo muestra Título en popup)
-var grupoRedDrenaje = L.layerGroup().addTo(map);
+// 3. Red de Drenaje
+var grupoRedDrenaje = L.layerGroup();
 cargarCapaServicio({
     url: "https://raw.githubusercontent.com/dcartografiayde/IDE-PARANA/main/atlas_pua/cobertura_servicios/red_de_drenaje.geojson",
     grupo: grupoRedDrenaje,
@@ -719,8 +720,8 @@ cargarCapaServicio({
     tituloPopup: "RED DE DRENAJE"
 });
 
-// 4. Red de Cloaca (MODIFICACIÓN: Dominio FGB, solo muestra Título en popup)
-var grupoRedCloaca = L.layerGroup().addTo(map);
+// 4. Red de Cloaca
+var grupoRedCloaca = L.layerGroup();
 cargarCapaServicio({
     url: "https://raw.githubusercontent.com/dcartografiayde/IDE-PARANA/main/atlas_pua/cobertura_servicios/red_de_cloaca.fgb",
     grupo: grupoRedCloaca,
@@ -729,15 +730,15 @@ cargarCapaServicio({
     esFgb: true
 });
 
-// 5. Cobertura de Alumbrado Público (MODIFICACIÓN: Capa poligonal/buffer con popup solo Título)
-var grupoAlumbrado = L.layerGroup().addTo(map);
+// 5. Cobertura de Alumbrado Público
+var grupoAlumbrado = L.layerGroup();
 fetchGeoJSON("https://raw.githubusercontent.com/dcartografiayde/IDE-PARANA/main/atlas_pua/cobertura_servicios/cobertura_alumbrado.geojson").then(data => {
     L.geoJSON(data, {
         pane: 'serviciosBufferPane',
         style: {
             stroke: false,
             fillColor: '#f1c40f',
-            fillOpacity: 0.35, // MODIFICACIÓN: Misma opacidad homogénea
+            fillOpacity: 0.35,
             interactive: true
         },
         onEachFeature: (f, l) => {
@@ -827,7 +828,8 @@ function activarEtiquetasCalles() {
     renderLabels();
 }
 
-var grupoManzanas = L.layerGroup().addTo(map);
+// MODIFICACIÓN: Manzanas se crea pero NO se agrega por defecto con .addTo(map)
+var grupoManzanas = L.layerGroup();
 var grupoEtiquetasManzanas = L.layerGroup(); 
 
 fetchGeoJSON(BASE_URL + "catastro/manzana.geojson").then(data => {
@@ -1124,7 +1126,6 @@ function controlarVisibilidadDinamica() {
         if (map.hasLayer(grupoParcelas)) map.removeLayer(grupoParcelas);
     }
 
-    // MODIFICACIÓN: Gestión de visibilidad dinámica para todas las capas de servicios
     const capas = [
         { id: 'chk-red-agua', grupo: grupoRedAgua },
         { id: 'chk-red-gas', grupo: grupoRedGas },
