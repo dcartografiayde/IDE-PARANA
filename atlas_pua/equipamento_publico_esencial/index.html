@@ -320,7 +320,6 @@
                         <input type="checkbox" id="chk-parcelas" checked onchange="toggleOverlay('parcelas')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
                         <span class="flex items-center gap-2">
                             <span class="w-3.5 h-3.5 rounded bg-[#2980b9] inline-block"></span>
-                            <!-- MODIFICACIÓN: Se removió la aclaración (.FGB) del nombre de la capa -->
                             <span>Parcelas Catastrales</span>
                         </span>
                     </label>
@@ -579,10 +578,16 @@ map.createPane('parcelasPane');
 map.getPane('parcelasPane').style.zIndex = 350; 
 map.getPane('parcelasPane').style.pointerEvents = 'auto';
 
-// MODIFICACIÓN: Creación de pane para buffers por debajo de los iconos
-map.createPane('buffersPane');
-map.getPane('buffersPane').style.zIndex = 380;
-map.getPane('buffersPane').style.pointerEvents = 'none';
+// MODIFICACIÓN: Creación de panes independientes con opacidad CSS global para eliminar la superposición oscura de buffers
+map.createPane('buffers1000Pane');
+map.getPane('buffers1000Pane').style.zIndex = 370;
+map.getPane('buffers1000Pane').style.pointerEvents = 'none';
+map.getPane('buffers1000Pane').style.opacity = '0.12';
+
+map.createPane('buffers500Pane');
+map.getPane('buffers500Pane').style.zIndex = 380;
+map.getPane('buffers500Pane').style.pointerEvents = 'none';
+map.getPane('buffers500Pane').style.opacity = '0.28';
 
 map.createPane('equipamientoPane');
 map.getPane('equipamientoPane').style.zIndex = 400;
@@ -1012,27 +1017,27 @@ function crearIconoPOI(tipo) {
     });
 }
 
-// MODIFICACIÓN: Función auxiliar para generar anillos de cobertura (buffers) sin superposición interna
+// MODIFICACIÓN: Asignación de buffers a panes independientes con fillOpacity 1 para evitar superposición oscura entre anillos
 function agregarBuffersAnidados(layerGrupo, latlng, colorHex) {
-    // Buffer de 1000m (menos intenso)
+    // Buffer de 1000m asignado a buffers1000Pane
     L.circle(latlng, {
-        pane: 'buffersPane',
+        pane: 'buffers1000Pane',
         radius: 1000,
         color: colorHex,
         stroke: false,
         fillColor: colorHex,
-        fillOpacity: 0.12,
+        fillOpacity: 1,
         interactive: false
     }).addTo(layerGrupo);
 
-    // Buffer de 500m (más intenso, se superpone al de 1000m para dar mayor densidad)
+    // Buffer de 500m asignado a buffers500Pane
     L.circle(latlng, {
-        pane: 'buffersPane',
+        pane: 'buffers500Pane',
         radius: 500,
         color: colorHex,
         stroke: false,
         fillColor: colorHex,
-        fillOpacity: 0.28,
+        fillOpacity: 1,
         interactive: false
     }).addTo(layerGrupo);
 }
@@ -1047,7 +1052,6 @@ fetchGeoJSON(EQUIPAMIENTO_URL + "hospitales.geojson").then(data => {
     L.geoJSON(data, {
         pane: 'equipamientoPane',
         pointToLayer: (feature, latlng) => {
-            // MODIFICACIÓN: Agregado implícito de buffers de 500m y 1000m
             agregarBuffersAnidados(grupoHospitales, latlng, '#dc2626');
             return L.marker(latlng, { icon: crearIconoPOI('hospital') });
         },
@@ -1062,7 +1066,6 @@ fetchGeoJSON(EQUIPAMIENTO_URL + "centro_salud.geojson").then(data => {
     L.geoJSON(data, {
         pane: 'equipamientoPane',
         pointToLayer: (feature, latlng) => {
-            // MODIFICACIÓN: Agregado implícito de buffers de 500m y 1000m
             agregarBuffersAnidados(grupoCentrosSalud, latlng, '#10b981');
             return L.marker(latlng, { icon: crearIconoPOI('centro_salud') });
         },
@@ -1093,7 +1096,6 @@ fetchGeoJSON(EQUIPAMIENTO_URL + "mapa_educativo.geojson").then(data => {
     L.geoJSON(dataJardines, {
         pane: 'equipamientoPane',
         pointToLayer: (feature, latlng) => {
-            // MODIFICACIÓN: Agregado implícito de buffers de 500m y 1000m
             agregarBuffersAnidados(grupoJardines, latlng, '#f59e0b');
             return L.marker(latlng, { icon: crearIconoPOI('jardin') });
         },
@@ -1106,7 +1108,6 @@ fetchGeoJSON(EQUIPAMIENTO_URL + "mapa_educativo.geojson").then(data => {
     L.geoJSON(dataEscuelas, {
         pane: 'equipamientoPane',
         pointToLayer: (feature, latlng) => {
-            // MODIFICACIÓN: Agregado implícito de buffers de 500m y 1000m
             agregarBuffersAnidados(grupoEscuelas, latlng, '#4f46e5');
             return L.marker(latlng, { icon: crearIconoPOI('escuela') });
         },
@@ -1121,7 +1122,6 @@ fetchGeoJSON(EQUIPAMIENTO_URL + "instituciones_universitarias.geojson").then(dat
     L.geoJSON(data, {
         pane: 'equipamientoPane',
         pointToLayer: (feature, latlng) => {
-            // MODIFICACIÓN: Agregado implícito de buffers de 500m y 1000m
             agregarBuffersAnidados(grupoUniversidades, latlng, '#9333ea');
             return L.marker(latlng, { icon: crearIconoPOI('universidad') });
         },
