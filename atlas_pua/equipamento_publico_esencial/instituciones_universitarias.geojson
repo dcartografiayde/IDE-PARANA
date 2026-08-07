@@ -1,0 +1,25 @@
+{
+"type": "FeatureCollection",
+"name": "instituciones_universitarias",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "id": 1, "ogc_fid": 1, "id_univers": "2117", "universida": "Universidad AutÃ³noma de Entre RÃ­os" }, "geometry": { "type": "Point", "coordinates": [ -60.5344, -31.731 ] } },
+{ "type": "Feature", "properties": { "id": 2, "ogc_fid": 2, "id_univers": "2117", "universida": "Universidad AutÃ³noma de Entre RÃ­os" }, "geometry": { "type": "Point", "coordinates": [ -60.5331, -31.731 ] } },
+{ "type": "Feature", "properties": { "id": 3, "ogc_fid": 3, "id_univers": "32", "universida": "Pontificia Universidad CatÃ³lica Argentina Santa MarÃ­a de los Buenos Aires" }, "geometry": { "type": "Point", "coordinates": [ -60.5306, -31.7291 ] } },
+{ "type": "Feature", "properties": { "id": 4, "ogc_fid": 4, "id_univers": "39", "universida": "Universidad Nacional de Entre RÃ­os" }, "geometry": { "type": "Point", "coordinates": [ -60.5302, -31.7264 ] } },
+{ "type": "Feature", "properties": { "id": 5, "ogc_fid": 5, "id_univers": "2117", "universida": "Universidad AutÃ³noma de Entre RÃ­os" }, "geometry": { "type": "Point", "coordinates": [ -60.529, -31.7327 ] } },
+{ "type": "Feature", "properties": { "id": 6, "ogc_fid": 6, "id_univers": "2117", "universida": "Universidad AutÃ³noma de Entre RÃ­os" }, "geometry": { "type": "Point", "coordinates": [ -60.5287, -31.7327 ] } },
+{ "type": "Feature", "properties": { "id": 7, "ogc_fid": 7, "id_univers": "2117", "universida": "Universidad AutÃ³noma de Entre RÃ­os" }, "geometry": { "type": "Point", "coordinates": [ -60.5325, -31.7367 ] } },
+{ "type": "Feature", "properties": { "id": 8, "ogc_fid": 8, "id_univers": "2117", "universida": "Universidad AutÃ³noma de Entre RÃ­os" }, "geometry": { "type": "Point", "coordinates": [ -60.5325, -31.7367 ] } },
+{ "type": "Feature", "properties": { "id": 9, "ogc_fid": 9, "id_univers": "74", "universida": "Universidad de ConcepciÃ³n del Uruguay" }, "geometry": { "type": "Point", "coordinates": [ -60.529, -31.7369 ] } },
+{ "type": "Feature", "properties": { "id": 10, "ogc_fid": 10, "id_univers": "39", "universida": "Universidad Nacional de Entre RÃ­os" }, "geometry": { "type": "Point", "coordinates": [ -60.524, -31.7343 ] } },
+{ "type": "Feature", "properties": { "id": 11, "ogc_fid": 11, "id_univers": "2117", "universida": "Universidad AutÃ³noma de Entre RÃ­os" }, "geometry": { "type": "Point", "coordinates": [ -60.5237, -31.7443 ] } },
+{ "type": "Feature", "properties": { "id": 12, "ogc_fid": 12, "id_univers": "39", "universida": "Universidad Nacional de Entre RÃ­os" }, "geometry": { "type": "Point", "coordinates": [ -60.5188, -31.8312 ] } },
+{ "type": "Feature", "properties": { "id": 13, "ogc_fid": 13, "id_univers": "39", "universida": "Universidad Nacional de Entre RÃ­os" }, "geometry": { "type": "Point", "coordinates": [ -60.5188, -31.8312 ] } },
+{ "type": "Feature", "properties": { "id": 14, "ogc_fid": 14, "id_univers": "2117", "universida": "Universidad AutÃ³noma de Entre RÃ­os" }, "geometry": { "type": "Point", "coordinates": [ -60.5188, -31.8312 ] } },
+{ "type": "Feature", "properties": { "id": 15, "ogc_fid": 15, "id_univers": "2117", "universida": "Universidad AutÃ³noma de Entre RÃ­os" }, "geometry": { "type": "Point", "coordinates": [ -60.5188, -31.8312 ] } },
+{ "type": "Feature", "properties": { "id": 16, "ogc_fid": 16, "id_univers": "39", "universida": "Universidad Nacional de Entre RÃ­os" }, "geometry": { "type": "Point", "coordinates": [ -60.5164, -31.7379 ] } },
+{ "type": "Feature", "properties": { "id": 17, "ogc_fid": 17, "id_univers": "2117", "universida": "Universidad AutÃ³noma de Entre RÃ­os" }, "geometry": { "type": "Point", "coordinates": [ -60.5058, -31.7402 ] } },
+{ "type": "Feature", "properties": { "id": 18, "ogc_fid": 18, "id_univers": "57", "universida": "Universidad TecnolÃ³gica Nacional" }, "geometry": { "type": "Point", "coordinates": [ -60.5039, -31.7495 ] } }
+]
+}
