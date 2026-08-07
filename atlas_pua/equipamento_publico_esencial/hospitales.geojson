@@ -1,0 +1,14 @@
+{
+"type": "FeatureCollection",
+"name": "hospitales",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "id": 1, "nombre": "HOSPITAL SAN MARTIN" }, "geometry": { "type": "MultiPoint", "coordinates": [ [ -60.523777666882928, -31.740322332630186 ] ] } },
+{ "type": "Feature", "properties": { "id": 4, "nombre": "HOSPITAL SAN ROQUE" }, "geometry": { "type": "MultiPoint", "coordinates": [ [ -60.521520034761167, -31.730180919168379 ] ] } },
+{ "type": "Feature", "properties": { "id": 5, "nombre": "HOSPITAL GERARDO DOMAGCK" }, "geometry": { "type": "MultiPoint", "coordinates": [ [ -60.566966552669882, -31.707220535864273 ] ] } },
+{ "type": "Feature", "properties": { "id": 6, "nombre": "HOSPITAL ANTONIO ROBALLOS" }, "geometry": { "type": "MultiPoint", "coordinates": [ [ -60.497264388001128, -31.724256048394942 ] ] } },
+{ "type": "Feature", "properties": { "id": 7, "nombre": "HOSPITAL DEL BICENTENARIO" }, "geometry": { "type": "MultiPoint", "coordinates": [ [ -60.533314932361563, -31.753990915323769 ] ] } },
+{ "type": "Feature", "properties": { "id": 8, "nombre": "HOSPITAL MILITAR" }, "geometry": { "type": "MultiPoint", "coordinates": [ [ -60.536843603649658, -31.750790040038151 ] ] } },
+{ "type": "Feature", "properties": { "id": 2, "nombre": "HOSPITAL PASCUAL PALMA" }, "geometry": { "type": "MultiPoint", "coordinates": [ [ -60.503560763238227, -31.734453154911961 ] ] } }
+]
+}

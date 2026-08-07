@@ -1,0 +1,32 @@
+{
+"type": "FeatureCollection",
+"name": "centro_salud",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "id": 7, "nombre": "HERMANA CATALINA" }, "geometry": { "type": "MultiPoint", "coordinates": [ [ -60.486504224059821, -31.742903010838383 ] ] } },
+{ "type": "Feature", "properties": { "id": 8, "nombre": "DR. CARLOS REYNOSO" }, "geometry": { "type": "MultiPoint", "coordinates": [ [ -60.486505713951772, -31.75171055768044 ] ] } },
+{ "type": "Feature", "properties": { "id": 9, "nombre": "MALVINAS ARGENTINAS" }, "geometry": { "type": "MultiPoint", "coordinates": [ [ -60.493333913305513, -31.74484256938862 ] ] } },
+{ "type": "Feature", "properties": { "id": 10, "nombre": "DR. ARTURO OÑATIVIA" }, "geometry": { "type": "MultiPoint", "coordinates": [ [ -60.49931680261097, -31.764395774813845 ] ] } },
+{ "type": "Feature", "properties": { "id": 11, "nombre": "EL CHARRUA" }, "geometry": { "type": "MultiPoint", "coordinates": [ [ -60.469034040211447, -31.756619629408878 ] ] } },
+{ "type": "Feature", "properties": { "id": 12, "nombre": "DR. JOSE ALCAIN" }, "geometry": { "type": "MultiPoint", "coordinates": [ [ -60.50174702109998, -31.729222598456982 ] ] } },
+{ "type": "Feature", "properties": { "id": 13, "nombre": "CECILIA GRIERSON" }, "geometry": { "type": "MultiPoint", "coordinates": [ [ -60.497021409263809, -31.734315040002542 ] ] } },
+{ "type": "Feature", "properties": { "id": 14, "nombre": "ESTANISLAO ZEBALLOS" }, "geometry": { "type": "MultiPoint", "coordinates": [ [ -60.507690531388441, -31.740752038841883 ] ] } },
+{ "type": "Feature", "properties": { "id": 16, "nombre": "BELGRANO" }, "geometry": { "type": "MultiPoint", "coordinates": [ [ -60.528701003789124, -31.748701880947923 ] ] } },
+{ "type": "Feature", "properties": { "id": 17, "nombre": "HUMBERTO D'ANGELO" }, "geometry": { "type": "MultiPoint", "coordinates": [ [ -60.554142160714882, -31.744385888087248 ] ] } },
+{ "type": "Feature", "properties": { "id": 18, "nombre": "RAMON CARRILLO" }, "geometry": { "type": "MultiPoint", "coordinates": [ [ -60.54531125328576, -31.732733284299378 ] ] } },
+{ "type": "Feature", "properties": { "id": 20, "nombre": "OSINALDE" }, "geometry": { "type": "MultiPoint", "coordinates": [ [ -60.541210503642148, -31.72021449221462 ] ] } },
+{ "type": "Feature", "properties": { "id": 21, "nombre": "PABLO BALBI" }, "geometry": { "type": "MultiPoint", "coordinates": [ [ -60.543383103232252, -31.728326220349416 ] ] } },
+{ "type": "Feature", "properties": { "id": 22, "nombre": "PUERTO VIEJO" }, "geometry": { "type": "MultiPoint", "coordinates": [ [ -60.541049836735745, -31.714835444402375 ] ] } },
+{ "type": "Feature", "properties": { "id": 23, "nombre": "SAN MARTIN" }, "geometry": { "type": "MultiPoint", "coordinates": [ [ -60.558999533637319, -31.726188382042825 ] ] } },
+{ "type": "Feature", "properties": { "id": 24, "nombre": "SELIG GOLDING" }, "geometry": { "type": "MultiPoint", "coordinates": [ [ -60.514805360426379, -31.723011638471284 ] ] } },
+{ "type": "Feature", "properties": { "id": 28, "nombre": "PAGANI" }, "geometry": { "type": "MultiPoint", "coordinates": [ [ -60.499052514790719, -31.743922047961185 ] ] } },
+{ "type": "Feature", "properties": { "id": 29, "nombre": "PADRE KENTENICH" }, "geometry": { "type": "MultiPoint", "coordinates": [ [ -60.532934672553274, -31.763282067121672 ] ] } },
+{ "type": "Feature", "properties": { "id": 1, "nombre": "LA MILAGROSA" }, "geometry": { "type": "MultiPoint", "coordinates": [ [ -60.492552040863998, -31.75150062074901 ] ] } },
+{ "type": "Feature", "properties": { "id": 2, "nombre": "PAPA FRANCISCO" }, "geometry": { "type": "MultiPoint", "coordinates": [ [ -60.479819901105948, -31.766968391835256 ] ] } },
+{ "type": "Feature", "properties": { "id": 15, "nombre": "SANTA LUCIA" }, "geometry": { "type": "MultiPoint", "coordinates": [ [ -60.519645226173843, -31.768438039472411 ] ] } },
+{ "type": "Feature", "properties": { "id": 25, "nombre": "JORGE NEWBERY" }, "geometry": { "type": "MultiPoint", "coordinates": [ [ -60.487117531429433, -31.777973476016975 ] ] } },
+{ "type": "Feature", "properties": { "id": 27, "nombre": "EL BRETE" }, "geometry": { "type": "MultiPoint", "coordinates": [ [ -60.50837478267659, -31.73196738585543 ] ] } },
+{ "type": "Feature", "properties": { "id": 31, "nombre": "ANTARTIDA ARGENTINA" }, "geometry": { "type": "MultiPoint", "coordinates": [ [ -60.552868290518802, -31.731241043635951 ] ] } },
+{ "type": "Feature", "properties": { "id": 3, "nombre": "HOSPITAL MUNICIPAL ARTURO ILLIA" }, "geometry": { "type": "MultiPoint", "coordinates": [ [ -60.516610282182675, -31.757104340431347 ] ] } }
+]
+}
