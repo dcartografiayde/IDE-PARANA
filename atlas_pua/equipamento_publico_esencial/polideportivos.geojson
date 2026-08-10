@@ -1,0 +1,32 @@
+{
+"type": "FeatureCollection",
+"name": "polideportivos",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "id": 1, "polideportivo": "Parque Escolar Enrique Berduc", "disciplina": "Atletismo-Basquet-Voley-Rugby" }, "geometry": { "type": "MultiPoint", "coordinates": [ [ -60.52004012632225, -31.726164842944851 ] ] } },
+{ "type": "Feature", "properties": { "id": 2, "polideportivo": "Polideportivo Centro Educacion Fisica", "disciplina": "Futbol-Voley-Basquet-Softbol-Patin" }, "geometry": { "type": "MultiPoint", "coordinates": [ [ -60.539678440616079, -31.747204151504121 ] ] } },
+{ "type": "Feature", "properties": { "id": 3, "polideportivo": "Anacleto Medina", "disciplina": "Voley" }, "geometry": { "type": "MultiPoint", "coordinates": [ [ -60.553481470596424, -31.744969741321658 ] ] } },
+{ "type": "Feature", "properties": { "id": 4, "polideportivo": "Polideportivo AATRA III y IV", "disciplina": "Voley - Basquet" }, "geometry": { "type": "MultiPoint", "coordinates": [ [ -60.48664159342281, -31.742942351684761 ] ] } },
+{ "type": "Feature", "properties": { "id": 5, "polideportivo": "Polideportivo Parana V", "disciplina": "Futbol" }, "geometry": { "type": "MultiPoint", "coordinates": [ [ -60.504828589922106, -31.756704585444716 ] ] } },
+{ "type": "Feature", "properties": { "id": 6, "polideportivo": "Villa Mabel", "disciplina": null }, "geometry": { "type": "MultiPoint", "coordinates": [ [ -60.516767883136481, -31.757113535402105 ] ] } },
+{ "type": "Feature", "properties": { "id": 7, "polideportivo": "Parque Gazzano", "disciplina": null }, "geometry": { "type": "MultiPoint", "coordinates": [ [ -60.500326372668638, -31.767768794004631 ] ] } },
+{ "type": "Feature", "properties": { "id": 8, "polideportivo": "Francisco Ramirez", "disciplina": "Voley" }, "geometry": { "type": "MultiPoint", "coordinates": [ [ -60.542339480689172, -31.724188406940847 ] ] } },
+{ "type": "Feature", "properties": { "id": 9, "polideportivo": "Polideportivo Bº Lomas del Mirador", "disciplina": "Futbol" }, "geometry": { "type": "MultiPoint", "coordinates": [ [ -60.488154116328936, -31.749948394095249 ] ] } },
+{ "type": "Feature", "properties": { "id": 10, "polideportivo": "Bº Parana XIV", "disciplina": "Futbol - Basquet" }, "geometry": { "type": "MultiPoint", "coordinates": [ [ -60.492573165279346, -31.744584127721883 ] ] } },
+{ "type": "Feature", "properties": { "id": 11, "polideportivo": "Bº Parana XX - XXI", "disciplina": "Voley" }, "geometry": { "type": "MultiPoint", "coordinates": [ [ -60.487714771188188, -31.755740217210832 ] ] } },
+{ "type": "Feature", "properties": { "id": 12, "polideportivo": "Lomas del Mirador 2", "disciplina": null }, "geometry": { "type": "MultiPoint", "coordinates": [ [ -60.489127243271426, -31.751386590182314 ] ] } },
+{ "type": "Feature", "properties": { "id": 13, "polideportivo": "Bº 1 de Julio", "disciplina": "Boxeo" }, "geometry": { "type": "MultiPoint", "coordinates": [ [ -60.508293264575748, -31.73118221344528 ] ] } },
+{ "type": "Feature", "properties": { "id": 14, "polideportivo": "Bº 33 Orientales", "disciplina": "Basquet" }, "geometry": { "type": "MultiPoint", "coordinates": [ [ -60.541114596889742, -31.73361089124203 ] ] } },
+{ "type": "Feature", "properties": { "id": 15, "polideportivo": "Bº El Sol", "disciplina": null }, "geometry": { "type": "MultiPoint", "coordinates": [ [ -60.542361911755691, -31.738163660185762 ] ] } },
+{ "type": "Feature", "properties": { "id": 16, "polideportivo": "Bº Jose Hernandez", "disciplina": "Basquet - Voley" }, "geometry": { "type": "MultiPoint", "coordinates": [ [ -60.494317101553278, -31.7267482767617 ] ] } },
+{ "type": "Feature", "properties": { "id": 17, "polideportivo": "Lomas del Sur", "disciplina": "Rugby - Basquet" }, "geometry": { "type": "MultiPoint", "coordinates": [ [ -60.524683699071012, -31.763907020359603 ] ] } },
+{ "type": "Feature", "properties": { "id": 18, "polideportivo": "Lopez Jordan", "disciplina": "-----" }, "geometry": { "type": "MultiPoint", "coordinates": [ [ -60.485578459179706, -31.751550471121373 ] ] } },
+{ "type": "Feature", "properties": { "id": 19, "polideportivo": "Barrio Parana XII", "disciplina": null }, "geometry": { "type": "MultiPoint", "coordinates": [ [ -60.554270606369407, -31.737494249761866 ] ] } },
+{ "type": "Feature", "properties": { "id": 20, "polideportivo": "Barrio parana XVI", "disciplina": null }, "geometry": { "type": "MultiPoint", "coordinates": [ [ -60.554018972918634, -31.736784715605044 ] ] } },
+{ "type": "Feature", "properties": { "id": 21, "polideportivo": "Barrio Parque Mayor", "disciplina": "Ciclismo" }, "geometry": { "type": "MultiPoint", "coordinates": [ [ -60.505373196008428, -31.772484297665336 ] ] } },
+{ "type": "Feature", "properties": { "id": 22, "polideportivo": "Bº Mariano Moreno", "disciplina": "Voley" }, "geometry": { "type": "MultiPoint", "coordinates": [ [ -60.49703870996737, -31.734303408264182 ] ] } },
+{ "type": "Feature", "properties": { "id": 23, "polideportivo": "Culandrillo", "disciplina": "-----" }, "geometry": { "type": "MultiPoint", "coordinates": [ [ -60.50971468727203, -31.735729896981606 ] ] } },
+{ "type": "Feature", "properties": { "id": 24, "polideportivo": "Puerto Viejo", "disciplina": "Voley" }, "geometry": { "type": "MultiPoint", "coordinates": [ [ -60.551465176888222, -31.718033017337216 ] ] } },
+{ "type": "Feature", "properties": { "id": 25, "polideportivo": "Polidep. Vec. Mitre", "disciplina": "Voley - Basquet - Ajedrez" }, "geometry": { "type": "MultiPoint", "coordinates": [ [ -60.534750211078723, -31.742181817349849 ] ] } }
+]
+}
