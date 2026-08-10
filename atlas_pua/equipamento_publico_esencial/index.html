@@ -1245,13 +1245,11 @@ fetchGeoJSON(EQUIPAMIENTO_URL + "clubes.geojson").then(data => {
         pane: 'equipamientoPane',
         pointToLayer: (feature, latlng) => {
             agregarBuffersAnidados(grupoClubes, latlng, '#f97316');
-            // MODIFICACIÓN: Se utiliza exclusivamente la propiedad 'nombre'
             let nombre = feature.properties && feature.properties.nombre ? feature.properties.nombre : "";
             registrarPuntoEtiqueta(grupoClubes, latlng, nombre);
             return L.marker(latlng, { icon: crearIconoPOI('club') });
         },
         onEachFeature: (f, l) => {
-            // MODIFICACIÓN: Se utiliza exclusivamente la propiedad 'nombre'
             let nombre = f.properties && f.properties.nombre ? decodificarTexto(f.properties.nombre) : "Sin nombre";
             l.bindPopup(`
                 <div class="popup-custom">
@@ -1433,23 +1431,30 @@ function buscarPM() {
     });
 }
 
+// MODIFICACIÓN: Algoritmo de búsqueda predictiva con coincidencia basada en prefijos (prefix-based matching) e insensibilidad estricta a mayúsculas/minúsculas
 function buscarPredictivoUbicacion(query) {
-    if (!query || query.length < 3) return [];
-    let cleanQuery = query.toUpperCase().trim();
+    if (!query || query.trim().length < 3) return [];
+    
+    // Normalización insensible a mayúsculas/minúsculas y acentos
+    let cleanQuery = query.toLowerCase().normalize("NFD").replace(/[\u0300-\u06ff]/g, "").trim();
     let matches = [];
 
+    // Prioridad 1: Coincidencia por prefijo (prefix-based matching)
     for (let i = 0; i < listaParcelasUbicacion.length; i++) {
         let item = listaParcelasUbicacion[i];
-        if (item.texto.startsWith(cleanQuery)) {
+        let itemNormalized = item.texto.toLowerCase().normalize("NFD").replace(/[\u0300-\u06ff]/g, "");
+        if (itemNormalized.startsWith(cleanQuery)) {
             matches.push(item);
             if (matches.length >= 10) break; 
         }
     }
 
+    // Prioridad 2: Subcadena posterior si no se alcanzaron las 10 sugerencias
     if (matches.length < 10) {
         for (let i = 0; i < listaParcelasUbicacion.length; i++) {
             let item = listaParcelasUbicacion[i];
-            if (!item.texto.startsWith(cleanQuery) && item.texto.includes(cleanQuery)) {
+            let itemNormalized = item.texto.toLowerCase().normalize("NFD").replace(/[\u0300-\u06ff]/g, "");
+            if (!itemNormalized.startsWith(cleanQuery) && itemNormalized.includes(cleanQuery)) {
                 matches.push(item);
                 if (matches.length >= 12) break;
             }
