@@ -1241,19 +1241,42 @@ Promise.all([
 }).catch(err => console.warn("No se pudo cargar la capa unificada de polideportivos:", err));
 
 fetchGeoJSON(EQUIPAMIENTO_URL + "clubes.geojson").then(data => {
+
     L.geoJSON(data, {
+
         pane: 'equipamientoPane',
+
         pointToLayer: (feature, latlng) => {
+
             agregarBuffersAnidados(grupoClubes, latlng, '#f97316');
-            let nombre = feature.properties && feature.properties.nombre ? feature.properties.nombre : "";
+
+            let nombre = feature.properties && feature.properties.propietario
+                ? decodificarTexto(feature.properties.propietario)
+                : "";
+
             registrarPuntoEtiqueta(grupoClubes, latlng, nombre);
+
             return L.marker(latlng, { icon: crearIconoPOI('club') });
+
         },
+
         onEachFeature: (f, l) => {
-            let nombre = f.properties && f.properties.nombre ? decodificarTexto(f.properties.nombre) : "Sin nombre";
-            l.bindPopup(`<div class="popup-custom"><div class="popup-header">CLUB</div><b>Nombre:</b> ${nombre}</div>`);
+
+            let nombre = f.properties && f.properties.propietario
+                ? decodificarTexto(f.properties.propietario)
+                : "Sin nombre";
+
+            l.bindPopup(`
+                <div class="popup-custom">
+                    <div class="popup-header">CLUB</div>
+                    <b>Propietario:</b> ${nombre}
+                </div>
+            `);
+
         }
+
     }).addTo(grupoClubes);
+
 }).catch(err => console.warn("No se pudo cargar la capa de clubes:", err));
 
 fetchGeoJSON(EQUIPAMIENTO_URL + "escuelas_deportivas.geojson").then(data => {
