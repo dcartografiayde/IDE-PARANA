@@ -143,7 +143,7 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
         }
 
-        /* MODIFICACIÓN: Estilos ajustados para que las etiquetas aparezcan fijadas a la derecha del punto */
+        /* Estilos ajustados para que las etiquetas aparezcan fijadas a la derecha del punto */
         .etiqueta-punto-poi {
             background: rgba(15, 23, 42, 0.85) !important;
             border: 1px solid #ffffff !important;
@@ -1245,18 +1245,18 @@ fetchGeoJSON(EQUIPAMIENTO_URL + "clubes.geojson").then(data => {
         pane: 'equipamientoPane',
         pointToLayer: (feature, latlng) => {
             agregarBuffersAnidados(grupoClubes, latlng, '#f97316');
-            // MODIFICACIÓN: Se obtiene el atributo 'propietario' o 'nombre' según disponga el GeoJSON
-            let nombre = feature.properties ? (feature.properties.propietario || feature.properties.nombre || "") : "";
+            // MODIFICACIÓN: Se utiliza exclusivamente la propiedad 'nombre'
+            let nombre = feature.properties && feature.properties.nombre ? feature.properties.nombre : "";
             registrarPuntoEtiqueta(grupoClubes, latlng, nombre);
             return L.marker(latlng, { icon: crearIconoPOI('club') });
         },
         onEachFeature: (f, l) => {
-            let nombre = f.properties ? (f.properties.propietario || f.properties.nombre || "Sin nombre") : "Sin nombre";
-            nombre = decodificarTexto(nombre);
+            // MODIFICACIÓN: Se utiliza exclusivamente la propiedad 'nombre'
+            let nombre = f.properties && f.properties.nombre ? decodificarTexto(f.properties.nombre) : "Sin nombre";
             l.bindPopup(`
                 <div class="popup-custom">
                     <div class="popup-header">CLUB</div>
-                    <b>Nombre / Propietario:</b> ${nombre}
+                    <b>Nombre:</b> ${nombre}
                 </div>
             `);
         }
@@ -1280,11 +1280,10 @@ fetchGeoJSON(EQUIPAMIENTO_URL + "escuelas_deportivas.geojson").then(data => {
 }).catch(err => console.warn("No se pudo cargar la capa de escuelas deportivas:", err));
 
 
-// MODIFICACIÓN: Función de control de visibilidad dinámica de etiquetas para todos los puntos a partir del Zoom 18 (Zoom >= 18)
+// MODIFICACIÓN: Función de control de visibilidad dinámica de etiquetas evitando la recursividad infinita
 function actualizarEtiquetasPuntos(zoomActual) {
     grupoEtiquetasPuntos.clearLayers();
     
-    // MODIFICACIÓN: Se asigna un iconAnchor negativo en X ([-18, 10]) para desplazar el texto a la derecha del marcador central
     if (zoomActual >= 18) {
         listaPuntosParaEtiquetar.forEach(item => {
             if (map.hasLayer(item.grupo) && item.nombre && item.nombre.trim() !== "") {
@@ -1292,15 +1291,23 @@ function actualizarEtiquetasPuntos(zoomActual) {
                     icon: L.divIcon({
                         className: 'etiqueta-punto-poi',
                         html: `<div>${item.nombre}</div>`,
-                        iconAnchor: [-18, 10] // MODIFICACIÓN: Alineación estricta a la derecha del marcador
+                        iconAnchor: [-18, 10]
                     }),
                     interactive: false
                 }).addTo(grupoEtiquetasPuntos);
             }
         });
-        if (!map.hasLayer(grupoEtiquetasPuntos)) map.addLayer(grupoEtiquetasPuntos);
+        if (!map.hasLayer(grupoEtiquetasPuntos)) {
+            map.off('layeradd layerremove', manejarCambiosDeCapa); // MODIFICACIÓN: Pausa temporal del listener
+            map.addLayer(grupoEtiquetasPuntos);
+            map.on('layeradd layerremove', manejarCambiosDeCapa); // MODIFICACIÓN: Reactivación del listener
+        }
     } else {
-        if (map.hasLayer(grupoEtiquetasPuntos)) map.removeLayer(grupoEtiquetasPuntos);
+        if (map.hasLayer(grupoEtiquetasPuntos)) {
+            map.off('layeradd layerremove', manejarCambiosDeCapa); // MODIFICACIÓN: Pausa temporal del listener
+            map.removeLayer(grupoEtiquetasPuntos);
+            map.on('layeradd layerremove', manejarCambiosDeCapa); // MODIFICACIÓN: Reactivación del listener
+        }
     }
 }
 
@@ -1374,8 +1381,15 @@ function controlarVisibilidadDinamica() {
     actualizarEtiquetasPuntos(zoomActual);
 }
 
+// MODIFICACIÓN: Controlador separado para evitar recursividad en eventos de capas
+function manejarCambiosDeCapa(e) {
+    if (e.layer !== grupoEtiquetasPuntos) {
+        controlarVisibilidadDinamica();
+    }
+}
+
 map.on('zoomend', controlarVisibilidadDinamica);
-map.on('layeradd layerremove', controlarVisibilidadDinamica); 
+map.on('layeradd layerremove', manejarCambiosDeCapa); 
 
 function toggleSidebar() {
     const sidebar = document.getElementById('sidebar');
