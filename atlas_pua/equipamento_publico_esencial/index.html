@@ -143,7 +143,7 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
         }
 
-        /* MODIFICACIÓN: Estilos para las etiquetas de los puntos de equipamiento (Zoom >= 18) */
+        /* MODIFICACIÓN: Estilos ajustados para que las etiquetas aparezcan fijadas a la derecha del punto */
         .etiqueta-punto-poi {
             background: rgba(15, 23, 42, 0.85) !important;
             border: 1px solid #ffffff !important;
@@ -1241,42 +1241,26 @@ Promise.all([
 }).catch(err => console.warn("No se pudo cargar la capa unificada de polideportivos:", err));
 
 fetchGeoJSON(EQUIPAMIENTO_URL + "clubes.geojson").then(data => {
-
     L.geoJSON(data, {
-
         pane: 'equipamientoPane',
-
         pointToLayer: (feature, latlng) => {
-
             agregarBuffersAnidados(grupoClubes, latlng, '#f97316');
-
-            let nombre = feature.properties && feature.properties.propietario
-                ? decodificarTexto(feature.properties.propietario)
-                : "";
-
+            // MODIFICACIÓN: Se obtiene el atributo 'propietario' o 'nombre' según disponga el GeoJSON
+            let nombre = feature.properties ? (feature.properties.propietario || feature.properties.nombre || "") : "";
             registrarPuntoEtiqueta(grupoClubes, latlng, nombre);
-
             return L.marker(latlng, { icon: crearIconoPOI('club') });
-
         },
-
         onEachFeature: (f, l) => {
-
-            let nombre = f.properties && f.properties.propietario
-                ? decodificarTexto(f.properties.propietario)
-                : "Sin nombre";
-
+            let nombre = f.properties ? (f.properties.propietario || f.properties.nombre || "Sin nombre") : "Sin nombre";
+            nombre = decodificarTexto(nombre);
             l.bindPopup(`
                 <div class="popup-custom">
                     <div class="popup-header">CLUB</div>
-                    <b>Propietario:</b> ${nombre}
+                    <b>Nombre / Propietario:</b> ${nombre}
                 </div>
             `);
-
         }
-
     }).addTo(grupoClubes);
-
 }).catch(err => console.warn("No se pudo cargar la capa de clubes:", err));
 
 fetchGeoJSON(EQUIPAMIENTO_URL + "escuelas_deportivas.geojson").then(data => {
@@ -1300,7 +1284,7 @@ fetchGeoJSON(EQUIPAMIENTO_URL + "escuelas_deportivas.geojson").then(data => {
 function actualizarEtiquetasPuntos(zoomActual) {
     grupoEtiquetasPuntos.clearLayers();
     
-    // MODIFICACIÓN: Se evalúa que el zoom sea mayor o igual a 18 (Zoom >= 18)
+    // MODIFICACIÓN: Se asigna un iconAnchor negativo en X ([-18, 10]) para desplazar el texto a la derecha del marcador central
     if (zoomActual >= 18) {
         listaPuntosParaEtiquetar.forEach(item => {
             if (map.hasLayer(item.grupo) && item.nombre && item.nombre.trim() !== "") {
@@ -1308,7 +1292,7 @@ function actualizarEtiquetasPuntos(zoomActual) {
                     icon: L.divIcon({
                         className: 'etiqueta-punto-poi',
                         html: `<div>${item.nombre}</div>`,
-                        iconAnchor: [-12, 10]
+                        iconAnchor: [-18, 10] // MODIFICACIÓN: Alineación estricta a la derecha del marcador
                     }),
                     interactive: false
                 }).addTo(grupoEtiquetasPuntos);
