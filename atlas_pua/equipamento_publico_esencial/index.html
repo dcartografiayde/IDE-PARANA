@@ -143,7 +143,6 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
         }
 
-        /* MODIFICACIÓN: Se quita el fondo negro/borde opaco de la etiqueta POI para dejar texto puro con halo nítido, sin caja oscura */
         .etiqueta-punto-poi {
             background: transparent !important;
             border: none !important;
@@ -1092,6 +1091,36 @@ function agregarBuffersAnidados(layerGrupo, latlng, colorHex) {
 var grupoEtiquetasPuntos = L.layerGroup();
 var listaPuntosParaEtiquetar = [];
 
+// MODIFICACIÓN: Función auxiliar que extrae el atributo representativo más adecuado según las propiedades del feature
+function extraerNombrePOI(props) {
+    if (!props) return "";
+    let candidates = [
+        props.nombre, props.NOMBRE, props.Nombre,
+        props.fna, props.FNA,
+        props.universida, props.UNIVERSIDA, props.universidad, props.UNIVERSIDAD,
+        props.polideportivo, props.POLIDEPORTIVO,
+        props.propietario, props.PROPIETARIO,
+        props.denominacion, props.DENOMINACION,
+        props.institucion, props.INSTITUCION,
+        props.nom_est, props.NOM_EST
+    ];
+    for (let c of candidates) {
+        if (c && typeof c === 'string' && c.trim() !== "") {
+            return c.trim();
+        }
+    }
+    for (let k in props) {
+        let val = props[k];
+        if (typeof val === 'string' && val.trim() !== "" && isNaN(val)) {
+            let kLow = k.toLowerCase();
+            if (kLow.includes("nom") || kLow.includes("fna") || kLow.includes("prop") || kLow.includes("desc")) {
+                return val.trim();
+            }
+        }
+    }
+    return "";
+}
+
 function registrarPuntoEtiqueta(grupoAsociado, latlng, nombre) {
     if (!nombre) return;
     listaPuntosParaEtiquetar.push({
@@ -1121,16 +1150,16 @@ fetchGeoJSON(EQUIPAMIENTO_URL + "hospitales.geojson").then(data => {
         pane: 'equipamientoPane',
         pointToLayer: (feature, latlng) => {
             agregarBuffersAnidados(grupoHospitales, latlng, '#dc2626');
-            let nombre = feature.properties && feature.properties.nombre ? feature.properties.nombre : "";
+            // MODIFICACIÓN: Extracción de atributo representativo y registro de etiqueta
+            let nombre = extraerNombrePOI(feature.properties);
             registrarPuntoEtiqueta(grupoHospitales, latlng, nombre);
             return L.marker(latlng, { icon: crearIconoPOI('hospital') });
         },
         onEachFeature: (f, l) => {
-            let nombre = f.properties && f.properties.nombre ? decodificarTexto(f.properties.nombre) : "Sin nombre";
-            l.bindPopup(`<div class="popup-custom"><div class="popup-header">HOSPITAL</div><b>Nombre:</b> ${nombre}</div>`);
+            let nombre = extraerNombrePOI(f.properties) || "Sin nombre";
+            l.bindPopup(`<div class="popup-custom"><div class="popup-header">HOSPITAL</div><b>Nombre:</b> ${decodificarTexto(nombre)}</div>`);
         }
     }).addTo(grupoHospitales);
-    // MODIFICACIÓN: Actualizar etiquetas tras cargar GeoJSON
     actualizarEtiquetasPuntos(map.getZoom());
 }).catch(err => console.warn("No se pudo cargar la capa de hospitales:", err));
 
@@ -1139,16 +1168,16 @@ fetchGeoJSON(EQUIPAMIENTO_URL + "centro_salud.geojson").then(data => {
         pane: 'equipamientoPane',
         pointToLayer: (feature, latlng) => {
             agregarBuffersAnidados(grupoCentrosSalud, latlng, '#10b981');
-            let nombre = feature.properties && feature.properties.nombre ? feature.properties.nombre : "";
+            // MODIFICACIÓN: Extracción de atributo representativo y registro de etiqueta
+            let nombre = extraerNombrePOI(feature.properties);
             registrarPuntoEtiqueta(grupoCentrosSalud, latlng, nombre);
             return L.marker(latlng, { icon: crearIconoPOI('centro_salud') });
         },
         onEachFeature: (f, l) => {
-            let nombre = f.properties && f.properties.nombre ? decodificarTexto(f.properties.nombre) : "Sin nombre";
-            l.bindPopup(`<div class="popup-custom"><div class="popup-header">CENTRO DE SALUD</div><b>Nombre:</b> ${nombre}</div>`);
+            let nombre = extraerNombrePOI(f.properties) || "Sin nombre";
+            l.bindPopup(`<div class="popup-custom"><div class="popup-header">CENTRO DE SALUD</div><b>Nombre:</b> ${decodificarTexto(nombre)}</div>`);
         }
     }).addTo(grupoCentrosSalud);
-    // MODIFICACIÓN: Actualizar etiquetas tras cargar GeoJSON
     actualizarEtiquetasPuntos(map.getZoom());
 }).catch(err => console.warn("No se pudo cargar la capa de centros de salud:", err));
 
@@ -1174,13 +1203,14 @@ fetchGeoJSON(EQUIPAMIENTO_URL + "mapa_educativo.geojson").then(data => {
         pane: 'equipamientoPane',
         pointToLayer: (feature, latlng) => {
             agregarBuffersAnidados(grupoJardines, latlng, '#f59e0b');
-            let nombre = feature.properties && feature.properties.fna ? feature.properties.fna : "";
+            // MODIFICACIÓN: Extracción de atributo representativo y registro de etiqueta
+            let nombre = extraerNombrePOI(feature.properties);
             registrarPuntoEtiqueta(grupoJardines, latlng, nombre);
             return L.marker(latlng, { icon: crearIconoPOI('jardin') });
         },
         onEachFeature: (f, l) => {
-            let nombre = f.properties && f.properties.fna ? decodificarTexto(f.properties.fna) : "Sin nombre";
-            l.bindPopup(`<div class="popup-custom"><div class="popup-header">JARDÍN MATERNAL</div><b>Nombre:</b> ${nombre}</div>`);
+            let nombre = extraerNombrePOI(f.properties) || "Sin nombre";
+            l.bindPopup(`<div class="popup-custom"><div class="popup-header">JARDÍN MATERNAL</div><b>Nombre:</b> ${decodificarTexto(nombre)}</div>`);
         }
     }).addTo(grupoJardines);
 
@@ -1188,16 +1218,16 @@ fetchGeoJSON(EQUIPAMIENTO_URL + "mapa_educativo.geojson").then(data => {
         pane: 'equipamientoPane',
         pointToLayer: (feature, latlng) => {
             agregarBuffersAnidados(grupoEscuelas, latlng, '#4f46e5');
-            let nombre = feature.properties && feature.properties.fna ? feature.properties.fna : "";
+            // MODIFICACIÓN: Extracción de atributo representativo y registro de etiqueta
+            let nombre = extraerNombrePOI(feature.properties);
             registrarPuntoEtiqueta(grupoEscuelas, latlng, nombre);
             return L.marker(latlng, { icon: crearIconoPOI('escuela') });
         },
         onEachFeature: (f, l) => {
-            let nombre = f.properties && f.properties.fna ? decodificarTexto(f.properties.fna) : "Sin nombre";
-            l.bindPopup(`<div class="popup-custom"><div class="popup-header">ESCUELA</div><b>Nombre:</b> ${nombre}</div>`);
+            let nombre = extraerNombrePOI(f.properties) || "Sin nombre";
+            l.bindPopup(`<div class="popup-custom"><div class="popup-header">ESCUELA</div><b>Nombre:</b> ${decodificarTexto(nombre)}</div>`);
         }
     }).addTo(grupoEscuelas);
-    // MODIFICACIÓN: Actualizar etiquetas tras cargar GeoJSON
     actualizarEtiquetasPuntos(map.getZoom());
 }).catch(err => console.warn("No se pudo cargar la capa educativa:", err));
 
@@ -1206,16 +1236,16 @@ fetchGeoJSON(EQUIPAMIENTO_URL + "instituciones_universitarias.geojson").then(dat
         pane: 'equipamientoPane',
         pointToLayer: (feature, latlng) => {
             agregarBuffersAnidados(grupoUniversidades, latlng, '#9333ea');
-            let nombre = feature.properties && feature.properties.universida ? feature.properties.universida : "";
+            // MODIFICACIÓN: Extracción de atributo representativo y registro de etiqueta
+            let nombre = extraerNombrePOI(feature.properties);
             registrarPuntoEtiqueta(grupoUniversidades, latlng, nombre);
             return L.marker(latlng, { icon: crearIconoPOI('universidad') });
         },
         onEachFeature: (f, l) => {
-            let nombre = f.properties && f.properties.universida ? decodificarTexto(f.properties.universida) : "Sin nombre";
-            l.bindPopup(`<div class="popup-custom"><div class="popup-header">UNIVERSIDAD</div><b>Nombre:</b> ${nombre}</div>`);
+            let nombre = extraerNombrePOI(f.properties) || "Sin nombre";
+            l.bindPopup(`<div class="popup-custom"><div class="popup-header">UNIVERSIDAD</div><b>Nombre:</b> ${decodificarTexto(nombre)}</div>`);
         }
     }).addTo(grupoUniversidades);
-    // MODIFICACIÓN: Actualizar etiquetas tras cargar GeoJSON
     actualizarEtiquetasPuntos(map.getZoom());
 }).catch(err => console.warn("No se pudo cargar la capa de universidades:", err));
 
@@ -1236,16 +1266,16 @@ Promise.all([
         pane: 'equipamientoPane',
         pointToLayer: (feature, latlng) => {
             agregarBuffersAnidados(grupoPolideportivos, latlng, '#06b6d4');
-            let nombre = feature._attrNombre || "";
+            // MODIFICACIÓN: Extracción de atributo representativo y registro de etiqueta
+            let nombre = feature._attrNombre || extraerNombrePOI(feature.properties);
             registrarPuntoEtiqueta(grupoPolideportivos, latlng, nombre);
             return L.marker(latlng, { icon: crearIconoPOI('polideportivo') });
         },
         onEachFeature: (f, l) => {
-            let nombre = f._attrNombre ? decodificarTexto(f._attrNombre) : "Sin nombre";
-            l.bindPopup(`<div class="popup-custom"><div class="popup-header">POLIDEPORTIVO</div><b>Nombre:</b> ${nombre}</div>`);
+            let nombre = f._attrNombre || extraerNombrePOI(f.properties) || "Sin nombre";
+            l.bindPopup(`<div class="popup-custom"><div class="popup-header">POLIDEPORTIVO</div><b>Nombre:</b> ${decodificarTexto(nombre)}</div>`);
         }
     }).addTo(grupoPolideportivos);
-    // MODIFICACIÓN: Actualizar etiquetas tras cargar GeoJSON
     actualizarEtiquetasPuntos(map.getZoom());
 }).catch(err => console.warn("No se pudo cargar la capa unificada de polideportivos:", err));
 
@@ -1254,21 +1284,22 @@ fetchGeoJSON(EQUIPAMIENTO_URL + "clubes.geojson").then(data => {
         pane: 'equipamientoPane',
         pointToLayer: (feature, latlng) => {
             agregarBuffersAnidados(grupoClubes, latlng, '#f97316');
-            let prop = (feature.properties && (feature.properties.propietario || feature.properties.PROPIETARIO)) ? (feature.properties.propietario || feature.properties.PROPIETARIO) : "";
+            // MODIFICACIÓN: Extracción de atributo representativo y registro de etiqueta
+            let prop = (feature.properties && (feature.properties.propietario || feature.properties.PROPIETARIO)) ? (feature.properties.propietario || feature.properties.PROPIETARIO) : extraerNombrePOI(feature.properties);
             registrarPuntoEtiqueta(grupoClubes, latlng, prop);
             return L.marker(latlng, { icon: crearIconoPOI('club') });
         },
         onEachFeature: (f, l) => {
-            let prop = (f.properties && (f.properties.propietario || f.properties.PROPIETARIO)) ? decodificarTexto(f.properties.propietario || f.properties.PROPIETARIO) : "Sin propietario";
+            let prop = (f.properties && (f.properties.propietario || f.properties.PROPIETARIO)) ? (f.properties.propietario || f.properties.PROPIETARIO) : extraerNombrePOI(f.properties);
+            let textoProp = prop ? decodificarTexto(prop) : "Sin propietario";
             l.bindPopup(`
                 <div class="popup-custom">
                     <div class="popup-header">CLUB</div>
-                    <b>Propietario:</b> ${prop}
+                    <b>Propietario:</b> ${textoProp}
                 </div>
             `);
         }
     }).addTo(grupoClubes);
-    // MODIFICACIÓN: Actualizar etiquetas tras cargar GeoJSON
     actualizarEtiquetasPuntos(map.getZoom());
 }).catch(err => console.warn("No se pudo cargar la capa de clubes:", err));
 
@@ -1277,25 +1308,22 @@ fetchGeoJSON(EQUIPAMIENTO_URL + "escuelas_deportivas.geojson").then(data => {
         pane: 'equipamientoPane',
         pointToLayer: (feature, latlng) => {
             agregarBuffersAnidados(grupoEscuelasDeportivas, latlng, '#14b8a6');
-            let nombre = feature.properties && feature.properties.nombre ? feature.properties.nombre : "";
+            // MODIFICACIÓN: Extracción de atributo representativo y registro de etiqueta
+            let nombre = extraerNombrePOI(feature.properties);
             registrarPuntoEtiqueta(grupoEscuelasDeportivas, latlng, nombre);
             return L.marker(latlng, { icon: crearIconoPOI('escuela_deportiva') });
         },
         onEachFeature: (f, l) => {
-            let nombre = f.properties && f.properties.nombre ? decodificarTexto(f.properties.nombre) : "Sin nombre";
-            l.bindPopup(`<div class="popup-custom"><div class="popup-header">ESCUELA DEPORTIVA</div><b>Nombre:</b> ${nombre}</div>`);
+            let nombre = extraerNombrePOI(f.properties) || "Sin nombre";
+            l.bindPopup(`<div class="popup-custom"><div class="popup-header">ESCUELA DEPORTIVA</div><b>Nombre:</b> ${decodificarTexto(nombre)}</div>`);
         }
     }).addTo(grupoEscuelasDeportivas);
-    // MODIFICACIÓN: Actualizar etiquetas tras cargar GeoJSON
     actualizarEtiquetasPuntos(map.getZoom());
 }).catch(err => console.warn("No se pudo cargar la capa de escuelas deportivas:", err));
 
-
-// MODIFICACIÓN: Visibilidad de etiquetas en zoom 18, 19, 20 y superiores (sin cuadro negro)
 function actualizarEtiquetasPuntos(zoomActual) {
     grupoEtiquetasPuntos.clearLayers();
     
-    // MODIFICACIÓN: Se evalúa que el zoom sea >= 18 (cubre 18, 19, 20, 21 y 22)
     if (zoomActual >= 18) {
         listaPuntosParaEtiquetar.forEach(item => {
             if (map.hasLayer(item.grupo) && item.nombre && item.nombre.trim() !== "") {
@@ -1389,7 +1417,6 @@ function controlarVisibilidadDinamica() {
     if (chkEscDeportivas) { if (!map.hasLayer(grupoEscuelasDeportivas)) map.addLayer(grupoEscuelasDeportivas); }
     else { if (map.hasLayer(grupoEscuelasDeportivas)) map.removeLayer(grupoEscuelasDeportivas); }
 
-    // MODIFICACIÓN: Renderiza y asegura la visualización en zoom 18, 19 y 20
     actualizarEtiquetasPuntos(zoomActual);
 }
 
@@ -1399,7 +1426,6 @@ function manejarCambiosDeCapa(e) {
     }
 }
 
-// MODIFICACIÓN: Escucha en zoom y zoomend para actualización fluida de etiquetas
 map.on('zoom zoomend moveend', controlarVisibilidadDinamica);
 map.on('layeradd layerremove', manejarCambiosDeCapa); 
 
