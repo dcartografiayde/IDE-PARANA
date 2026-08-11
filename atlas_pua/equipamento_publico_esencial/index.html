@@ -143,18 +143,17 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
         }
 
-        /* Estilos ajustados para que las etiquetas aparezcan fijadas a la derecha del punto */
+        /* MODIFICACIÓN: Se quita el fondo negro/borde opaco de la etiqueta POI para dejar texto puro con halo nítido, sin caja oscura */
         .etiqueta-punto-poi {
-            background: rgba(15, 23, 42, 0.85) !important;
-            border: 1px solid #ffffff !important;
+            background: transparent !important;
+            border: none !important;
             color: #ffffff !important;
-            font-weight: 700 !important;
-            font-size: 10px !important;
-            padding: 2px 6px !important;
-            border-radius: 4px !important;
+            font-weight: 800 !important;
+            font-size: 11px !important;
+            padding: 0 !important;
             white-space: nowrap !important;
             pointer-events: none !important;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.4) !important;
+            text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0px 2px 4px rgba(0,0,0,0.9) !important;
         }
 
         /* ESTILOS DEL NUEVO PANEL DE HERRAMIENTAS DE MEDICIÓN */
@@ -317,7 +316,6 @@
                 <span class="block text-[10px] font-extrabold text-blue-400 uppercase tracking-wider">Catastro Básico</span>
                 <div class="space-y-2 pl-1">
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
-                        <!-- MODIFICACIÓN: Inicia con checkbox desmarcado (apagado) -->
                         <input type="checkbox" id="chk-manzanas" onchange="toggleOverlay('manzanas')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
                         <span class="flex items-center gap-2">
                             <span class="w-3.5 h-3.5 rounded border border-[#ff6b6b] bg-[rgba(255,107,107,0.15)] inline-block"></span>
@@ -325,7 +323,6 @@
                         </span>
                     </label>
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
-                        <!-- MODIFICACIÓN: Inicia con checkbox desmarcado (apagado) -->
                         <input type="checkbox" id="chk-calles" onchange="toggleOverlay('calles')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
                         <span class="flex items-center gap-2">
                             <span class="w-3.5 h-1 bg-[#FFFF00] inline-block"></span>
@@ -333,7 +330,6 @@
                         </span>
                     </label>
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
-                        <!-- MODIFICACIÓN: Inicia con checkbox desmarcado (apagado) -->
                         <input type="checkbox" id="chk-parcelas" onchange="toggleOverlay('parcelas')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
                         <span class="flex items-center gap-2">
                             <span class="w-3.5 h-3.5 rounded bg-[#2980b9] inline-block"></span>
@@ -687,7 +683,6 @@ function activarEtiquetasCalles() {
                 if (ly.setText) {
                     try { ly.setText(null); } catch (e) {}
 
-                    // MODIFICACIÓN: Etiquetas visibles en zoom >= 16 (incluye zoom 18, 19 y 20)
                     if (activeOnMap && z >= 16 && ly._map && ly._renderer && ly.feature && ly.feature.properties && ly.feature.properties.nombre) {
                         try {
                             if (map.getBounds().intersects(ly.getBounds())) {
@@ -749,7 +744,6 @@ function activarEtiquetasCalles() {
     renderLabels();
 }
 
-// MODIFICACIÓN: Inicia apagado (sin addTo(map))
 var grupoManzanas = L.layerGroup();
 var grupoEtiquetasManzanas = L.layerGroup(); 
 
@@ -1136,6 +1130,8 @@ fetchGeoJSON(EQUIPAMIENTO_URL + "hospitales.geojson").then(data => {
             l.bindPopup(`<div class="popup-custom"><div class="popup-header">HOSPITAL</div><b>Nombre:</b> ${nombre}</div>`);
         }
     }).addTo(grupoHospitales);
+    // MODIFICACIÓN: Actualizar etiquetas tras cargar GeoJSON
+    actualizarEtiquetasPuntos(map.getZoom());
 }).catch(err => console.warn("No se pudo cargar la capa de hospitales:", err));
 
 fetchGeoJSON(EQUIPAMIENTO_URL + "centro_salud.geojson").then(data => {
@@ -1152,6 +1148,8 @@ fetchGeoJSON(EQUIPAMIENTO_URL + "centro_salud.geojson").then(data => {
             l.bindPopup(`<div class="popup-custom"><div class="popup-header">CENTRO DE SALUD</div><b>Nombre:</b> ${nombre}</div>`);
         }
     }).addTo(grupoCentrosSalud);
+    // MODIFICACIÓN: Actualizar etiquetas tras cargar GeoJSON
+    actualizarEtiquetasPuntos(map.getZoom());
 }).catch(err => console.warn("No se pudo cargar la capa de centros de salud:", err));
 
 /* Carga Educación */
@@ -1199,6 +1197,8 @@ fetchGeoJSON(EQUIPAMIENTO_URL + "mapa_educativo.geojson").then(data => {
             l.bindPopup(`<div class="popup-custom"><div class="popup-header">ESCUELA</div><b>Nombre:</b> ${nombre}</div>`);
         }
     }).addTo(grupoEscuelas);
+    // MODIFICACIÓN: Actualizar etiquetas tras cargar GeoJSON
+    actualizarEtiquetasPuntos(map.getZoom());
 }).catch(err => console.warn("No se pudo cargar la capa educativa:", err));
 
 fetchGeoJSON(EQUIPAMIENTO_URL + "instituciones_universitarias.geojson").then(data => {
@@ -1215,6 +1215,8 @@ fetchGeoJSON(EQUIPAMIENTO_URL + "instituciones_universitarias.geojson").then(dat
             l.bindPopup(`<div class="popup-custom"><div class="popup-header">UNIVERSIDAD</div><b>Nombre:</b> ${nombre}</div>`);
         }
     }).addTo(grupoUniversidades);
+    // MODIFICACIÓN: Actualizar etiquetas tras cargar GeoJSON
+    actualizarEtiquetasPuntos(map.getZoom());
 }).catch(err => console.warn("No se pudo cargar la capa de universidades:", err));
 
 /* Carga de Capas de EQUIPAMIENTO DEPORTIVO */
@@ -1243,6 +1245,8 @@ Promise.all([
             l.bindPopup(`<div class="popup-custom"><div class="popup-header">POLIDEPORTIVO</div><b>Nombre:</b> ${nombre}</div>`);
         }
     }).addTo(grupoPolideportivos);
+    // MODIFICACIÓN: Actualizar etiquetas tras cargar GeoJSON
+    actualizarEtiquetasPuntos(map.getZoom());
 }).catch(err => console.warn("No se pudo cargar la capa unificada de polideportivos:", err));
 
 fetchGeoJSON(EQUIPAMIENTO_URL + "clubes.geojson").then(data => {
@@ -1250,13 +1254,11 @@ fetchGeoJSON(EQUIPAMIENTO_URL + "clubes.geojson").then(data => {
         pane: 'equipamientoPane',
         pointToLayer: (feature, latlng) => {
             agregarBuffersAnidados(grupoClubes, latlng, '#f97316');
-            // MODIFICACIÓN: En la capa de clubes la etiqueta y registro se basan exclusivamente en el atributo "propietario"
             let prop = (feature.properties && (feature.properties.propietario || feature.properties.PROPIETARIO)) ? (feature.properties.propietario || feature.properties.PROPIETARIO) : "";
             registrarPuntoEtiqueta(grupoClubes, latlng, prop);
             return L.marker(latlng, { icon: crearIconoPOI('club') });
         },
         onEachFeature: (f, l) => {
-            // MODIFICACIÓN: Utiliza solo el atributo "propietario" en el popup
             let prop = (f.properties && (f.properties.propietario || f.properties.PROPIETARIO)) ? decodificarTexto(f.properties.propietario || f.properties.PROPIETARIO) : "Sin propietario";
             l.bindPopup(`
                 <div class="popup-custom">
@@ -1266,6 +1268,8 @@ fetchGeoJSON(EQUIPAMIENTO_URL + "clubes.geojson").then(data => {
             `);
         }
     }).addTo(grupoClubes);
+    // MODIFICACIÓN: Actualizar etiquetas tras cargar GeoJSON
+    actualizarEtiquetasPuntos(map.getZoom());
 }).catch(err => console.warn("No se pudo cargar la capa de clubes:", err));
 
 fetchGeoJSON(EQUIPAMIENTO_URL + "escuelas_deportivas.geojson").then(data => {
@@ -1282,22 +1286,24 @@ fetchGeoJSON(EQUIPAMIENTO_URL + "escuelas_deportivas.geojson").then(data => {
             l.bindPopup(`<div class="popup-custom"><div class="popup-header">ESCUELA DEPORTIVA</div><b>Nombre:</b> ${nombre}</div>`);
         }
     }).addTo(grupoEscuelasDeportivas);
+    // MODIFICACIÓN: Actualizar etiquetas tras cargar GeoJSON
+    actualizarEtiquetasPuntos(map.getZoom());
 }).catch(err => console.warn("No se pudo cargar la capa de escuelas deportivas:", err));
 
 
-// MODIFICACIÓN: Visibilidad de etiquetas en zoom 18, 19 y 20 (zoomActual >= 18)
+// MODIFICACIÓN: Visibilidad de etiquetas en zoom 18, 19, 20 y superiores (sin cuadro negro)
 function actualizarEtiquetasPuntos(zoomActual) {
     grupoEtiquetasPuntos.clearLayers();
     
-    // MODIFICACIÓN: Visibilidad activa para zoom 18, 19, 20 y superiores
+    // MODIFICACIÓN: Se evalúa que el zoom sea >= 18 (cubre 18, 19, 20, 21 y 22)
     if (zoomActual >= 18) {
         listaPuntosParaEtiquetar.forEach(item => {
             if (map.hasLayer(item.grupo) && item.nombre && item.nombre.trim() !== "") {
                 L.marker(item.latlng, {
                     icon: L.divIcon({
                         className: 'etiqueta-punto-poi',
-                        html: `<div>${item.nombre}</div>`,
-                        iconAnchor: [-18, 10]
+                        html: `<span>${item.nombre}</span>`,
+                        iconAnchor: [-18, 6]
                     }),
                     interactive: false
                 }).addTo(grupoEtiquetasPuntos);
@@ -1383,18 +1389,18 @@ function controlarVisibilidadDinamica() {
     if (chkEscDeportivas) { if (!map.hasLayer(grupoEscuelasDeportivas)) map.addLayer(grupoEscuelasDeportivas); }
     else { if (map.hasLayer(grupoEscuelasDeportivas)) map.removeLayer(grupoEscuelasDeportivas); }
 
-    // Actualización de visibilidad de etiquetas de puntos para Zoom >= 18 (incluye 18, 19 y 20)
+    // MODIFICACIÓN: Renderiza y asegura la visualización en zoom 18, 19 y 20
     actualizarEtiquetasPuntos(zoomActual);
 }
 
-// MODIFICACIÓN: Controlador separado para evitar recursividad en eventos de capas
 function manejarCambiosDeCapa(e) {
     if (e.layer !== grupoEtiquetasPuntos) {
         controlarVisibilidadDinamica();
     }
 }
 
-map.on('zoomend', controlarVisibilidadDinamica);
+// MODIFICACIÓN: Escucha en zoom y zoomend para actualización fluida de etiquetas
+map.on('zoom zoomend moveend', controlarVisibilidadDinamica);
 map.on('layeradd layerremove', manejarCambiosDeCapa); 
 
 function toggleSidebar() {
@@ -1442,11 +1448,9 @@ function buscarPM() {
 function buscarPredictivoUbicacion(query) {
     if (!query || query.trim().length < 3) return [];
     
-    // Normalización insensible a mayúsculas/minúsculas y acentos
     let cleanQuery = query.toLowerCase().normalize("NFD").replace(/[\u0300-\u06ff]/g, "").trim();
     let matches = [];
 
-    // Prioridad 1: Coincidencia por prefijo (prefix-based matching)
     for (let i = 0; i < listaParcelasUbicacion.length; i++) {
         let item = listaParcelasUbicacion[i];
         let itemNormalized = item.texto.toLowerCase().normalize("NFD").replace(/[\u0300-\u06ff]/g, "");
@@ -1456,7 +1460,6 @@ function buscarPredictivoUbicacion(query) {
         }
     }
 
-    // Prioridad 2: Subcadena posterior si no se alcanzaron las 10 sugerencias
     if (matches.length < 10) {
         for (let i = 0; i < listaParcelasUbicacion.length; i++) {
             let item = listaParcelasUbicacion[i];
