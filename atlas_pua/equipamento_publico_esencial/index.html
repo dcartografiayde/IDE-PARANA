@@ -317,21 +317,24 @@
                 <span class="block text-[10px] font-extrabold text-blue-400 uppercase tracking-wider">Catastro Básico</span>
                 <div class="space-y-2 pl-1">
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
-                        <input type="checkbox" id="chk-manzanas" checked onchange="toggleOverlay('manzanas')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
+                        <!-- MODIFICACIÓN: Inicia con checkbox desmarcado (apagado) -->
+                        <input type="checkbox" id="chk-manzanas" onchange="toggleOverlay('manzanas')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
                         <span class="flex items-center gap-2">
                             <span class="w-3.5 h-3.5 rounded border border-[#ff6b6b] bg-[rgba(255,107,107,0.15)] inline-block"></span>
                             <span>Manzanas</span>
                         </span>
                     </label>
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
-                        <input type="checkbox" id="chk-calles" checked onchange="toggleOverlay('calles')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
+                        <!-- MODIFICACIÓN: Inicia con checkbox desmarcado (apagado) -->
+                        <input type="checkbox" id="chk-calles" onchange="toggleOverlay('calles')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
                         <span class="flex items-center gap-2">
                             <span class="w-3.5 h-1 bg-[#FFFF00] inline-block"></span>
                             <span>Nombres de Calles</span>
                         </span>
                     </label>
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
-                        <input type="checkbox" id="chk-parcelas" checked onchange="toggleOverlay('parcelas')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
+                        <!-- MODIFICACIÓN: Inicia con checkbox desmarcado (apagado) -->
+                        <input type="checkbox" id="chk-parcelas" onchange="toggleOverlay('parcelas')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
                         <span class="flex items-center gap-2">
                             <span class="w-3.5 h-3.5 rounded bg-[#2980b9] inline-block"></span>
                             <span>Parcelas Catastrales</span>
@@ -684,6 +687,7 @@ function activarEtiquetasCalles() {
                 if (ly.setText) {
                     try { ly.setText(null); } catch (e) {}
 
+                    // MODIFICACIÓN: Etiquetas visibles en zoom >= 16 (incluye zoom 18, 19 y 20)
                     if (activeOnMap && z >= 16 && ly._map && ly._renderer && ly.feature && ly.feature.properties && ly.feature.properties.nombre) {
                         try {
                             if (map.getBounds().intersects(ly.getBounds())) {
@@ -745,7 +749,8 @@ function activarEtiquetasCalles() {
     renderLabels();
 }
 
-var grupoManzanas = L.layerGroup().addTo(map);
+// MODIFICACIÓN: Inicia apagado (sin addTo(map))
+var grupoManzanas = L.layerGroup();
 var grupoEtiquetasManzanas = L.layerGroup(); 
 
 fetchGeoJSON(BASE_URL + "catastro/manzana.geojson").then(data => {
@@ -1245,16 +1250,18 @@ fetchGeoJSON(EQUIPAMIENTO_URL + "clubes.geojson").then(data => {
         pane: 'equipamientoPane',
         pointToLayer: (feature, latlng) => {
             agregarBuffersAnidados(grupoClubes, latlng, '#f97316');
-            let nombre = feature.properties && feature.properties.nombre ? feature.properties.nombre : "";
-            registrarPuntoEtiqueta(grupoClubes, latlng, nombre);
+            // MODIFICACIÓN: En la capa de clubes la etiqueta y registro se basan exclusivamente en el atributo "propietario"
+            let prop = (feature.properties && (feature.properties.propietario || feature.properties.PROPIETARIO)) ? (feature.properties.propietario || feature.properties.PROPIETARIO) : "";
+            registrarPuntoEtiqueta(grupoClubes, latlng, prop);
             return L.marker(latlng, { icon: crearIconoPOI('club') });
         },
         onEachFeature: (f, l) => {
-            let nombre = f.properties && f.properties.nombre ? decodificarTexto(f.properties.nombre) : "Sin nombre";
+            // MODIFICACIÓN: Utiliza solo el atributo "propietario" en el popup
+            let prop = (f.properties && (f.properties.propietario || f.properties.PROPIETARIO)) ? decodificarTexto(f.properties.propietario || f.properties.PROPIETARIO) : "Sin propietario";
             l.bindPopup(`
                 <div class="popup-custom">
                     <div class="popup-header">CLUB</div>
-                    <b>Nombre:</b> ${nombre}
+                    <b>Propietario:</b> ${prop}
                 </div>
             `);
         }
@@ -1278,10 +1285,11 @@ fetchGeoJSON(EQUIPAMIENTO_URL + "escuelas_deportivas.geojson").then(data => {
 }).catch(err => console.warn("No se pudo cargar la capa de escuelas deportivas:", err));
 
 
-// MODIFICACIÓN: Función de control de visibilidad dinámica de etiquetas evitando la recursividad infinita
+// MODIFICACIÓN: Visibilidad de etiquetas en zoom 18, 19 y 20 (zoomActual >= 18)
 function actualizarEtiquetasPuntos(zoomActual) {
     grupoEtiquetasPuntos.clearLayers();
     
+    // MODIFICACIÓN: Visibilidad activa para zoom 18, 19, 20 y superiores
     if (zoomActual >= 18) {
         listaPuntosParaEtiquetar.forEach(item => {
             if (map.hasLayer(item.grupo) && item.nombre && item.nombre.trim() !== "") {
@@ -1296,15 +1304,15 @@ function actualizarEtiquetasPuntos(zoomActual) {
             }
         });
         if (!map.hasLayer(grupoEtiquetasPuntos)) {
-            map.off('layeradd layerremove', manejarCambiosDeCapa); // MODIFICACIÓN: Pausa temporal del listener
+            map.off('layeradd layerremove', manejarCambiosDeCapa);
             map.addLayer(grupoEtiquetasPuntos);
-            map.on('layeradd layerremove', manejarCambiosDeCapa); // MODIFICACIÓN: Reactivación del listener
+            map.on('layeradd layerremove', manejarCambiosDeCapa);
         }
     } else {
         if (map.hasLayer(grupoEtiquetasPuntos)) {
-            map.off('layeradd layerremove', manejarCambiosDeCapa); // MODIFICACIÓN: Pausa temporal del listener
+            map.off('layeradd layerremove', manejarCambiosDeCapa);
             map.removeLayer(grupoEtiquetasPuntos);
-            map.on('layeradd layerremove', manejarCambiosDeCapa); // MODIFICACIÓN: Reactivación del listener
+            map.on('layeradd layerremove', manejarCambiosDeCapa);
         }
     }
 }
@@ -1375,7 +1383,7 @@ function controlarVisibilidadDinamica() {
     if (chkEscDeportivas) { if (!map.hasLayer(grupoEscuelasDeportivas)) map.addLayer(grupoEscuelasDeportivas); }
     else { if (map.hasLayer(grupoEscuelasDeportivas)) map.removeLayer(grupoEscuelasDeportivas); }
 
-    // Actualización de visibilidad de etiquetas de puntos para Zoom >= 18
+    // Actualización de visibilidad de etiquetas de puntos para Zoom >= 18 (incluye 18, 19 y 20)
     actualizarEtiquetasPuntos(zoomActual);
 }
 
@@ -1431,7 +1439,6 @@ function buscarPM() {
     });
 }
 
-// MODIFICACIÓN: Algoritmo de búsqueda predictiva con coincidencia basada en prefijos (prefix-based matching) e insensibilidad estricta a mayúsculas/minúsculas
 function buscarPredictivoUbicacion(query) {
     if (!query || query.trim().length < 3) return [];
     
