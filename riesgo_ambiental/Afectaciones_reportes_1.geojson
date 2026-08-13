@@ -1,0 +1,20 @@
+{
+"type": "FeatureCollection",
+"name": "Afectaciones_reportes_1",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "Name": "Arroyo Antoñico aguas abajo de Puente Blanco", "description": "Erosión en margen derecha con riesgo de afectación de una vivienda ubicada en zona inundable. ", "layer": "Reporte desde SDH" }, "geometry": { "type": "Point", "coordinates": [ -60.544819320189532, -31.729305103661861, 0.0 ] } },
+{ "type": "Feature", "properties": { "Name": "Division de los Andes 1864 y las vías", "description": "Revisar alcantarilla de calle Artigas y estado del tramo del arroyo entre Artigas y Miguel David. ", "layer": "Reporte desde SDH" }, "geometry": { "type": "Point", "coordinates": [ -60.516713747208129, -31.764731341302319, 0.0 ] } },
+{ "type": "Feature", "properties": { "Name": "Puerto Viejo - Calle Anacleto Medina", "description": "Verificar estado de pluviales en zona de Playón. ", "layer": "Reporte desde SDH" }, "geometry": { "type": "Point", "coordinates": [ -60.541812475705107, -31.717245546258699, 0.0 ] } },
+{ "type": "Feature", "properties": { "Name": "Almirante Brown y Cabrera", "description": "Revisión de desagües de la zona.", "layer": "Reporte desde SDH" }, "geometry": { "type": "Point", "coordinates": [ -60.503980968970161, -31.739672340913621, 0.0 ] } },
+{ "type": "Feature", "properties": { "Name": "Obra Francisco Ramírez", "description": "Desborde por obstrucción de obra en construcción en la intersección entre Mariano Aguero y Arroyo Grande. ", "layer": "Reporte desde SPeI" }, "geometry": { "type": "Point", "coordinates": [ -60.542480123344411, -31.723783647771558, 0.0 ] } },
+{ "type": "Feature", "properties": { "Name": "Las Viejas", "description": "Rejas tapadas con RSU. a limpiar urgente", "layer": "Reporte desde SPeI" }, "geometry": { "type": "Point", "coordinates": [ -60.500107802233742, -31.72644644597154, 0.0 ] } },
+{ "type": "Feature", "properties": { "Name": "Las Viejas", "description": "Rejas tapadas con RSU. a limpiar urgente", "layer": "Reporte desde SPeI" }, "geometry": { "type": "Point", "coordinates": [ -60.507611896830333, -31.721812774635019, 0.0 ] } },
+{ "type": "Feature", "properties": { "Name": "Sud América y Av. Don Bosco", "description": "Tapa levantada en calzada", "layer": "Reporte SRHyGA: Cloacas y desagües" }, "geometry": { "type": "Point", "coordinates": [ -60.511637993052908, -31.73362222222222, 0.0 ] } },
+{ "type": "Feature", "properties": { "Name": "San Juan y Moreno", "description": "Monitoreo de sistema cloacal con desborde periodico en el sector, sin registrarse problemas según informe de vecinos. ", "layer": "Reporte SRHyGA: Cloacas y desagües" }, "geometry": { "type": "Point", "coordinates": [ -60.522362353276542, -31.723855862612059, 0.0 ] } },
+{ "type": "Feature", "properties": { "Name": "Calle 1214 y Cortada 1277", "description": "Se informó que había pluviales tapados. ", "layer": "Reporte SRHyGA: Cloacas y desagües" }, "geometry": { "type": "Point", "coordinates": [ -60.514468104691908, -31.736868257455161, 0.0 ] } },
+{ "type": "Feature", "properties": { "Name": "Escuela n° 48", "description": "Agua del pluvial por encima de la lave de paso, con pérdida domiciliaria interna. ", "layer": "Reporte SRHyGA: Cloacas y desagües" }, "geometry": { "type": "Point", "coordinates": [ -60.526244937734539, -31.72738090087563, 0.0 ] } },
+{ "type": "Feature", "properties": { "Name": "Laguna Mainini", "description": "Se informó que se desbordó por Artigas", "layer": "Reporte SRHyGA: Cloacas y desagües" }, "geometry": { "type": "Point", "coordinates": [ -60.510637811443907, -31.766614559183459, 0.0 ] } },
+{ "type": "Feature", "properties": { "Name": "Elena de Roffo y Jujuy", "description": "El desagüe que atraviesa la manzana se encuentra obstruido. Requiere limpieza de inmediato. ", "layer": "Reporte SRHyGA: Cloacas y desagües" }, "geometry": { "type": "Point", "coordinates": [ -60.518321436586248, -31.748538412743599, 0.0 ] } }
+]
+}

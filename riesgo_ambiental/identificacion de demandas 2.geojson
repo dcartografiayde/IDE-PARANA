@@ -1,0 +1,10 @@
+{
+"type": "FeatureCollection",
+"name": "identificacion de demandas 2",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "Name": "Pasaje Viedma", "description": "Juan Ríos. 23.21hs. Poste de servicios inclinado." }, "geometry": { "type": "LineString", "coordinates": [ [ -60.512753690352952, -31.74080833456976, 0.0 ], [ -60.512624437063451, -31.74003441121187, 0.0 ], [ -60.512965994224352, -31.739984139563269, 0.0 ] ] } },
+{ "type": "Feature", "properties": { "Name": "Nogoyá entre San Luis y Zuviría", "description": "23:41 hs – Nogoyá entre Zuviría y San Luis: árbol caído con cables que afectan circulación " }, "geometry": { "type": "LineString", "coordinates": [ [ -60.518552506579013, -31.72751061996458, 0.0 ], [ -60.517293832831513, -31.727720546043699, 0.0 ] ] } },
+{ "type": "Feature", "properties": { "Name": "Misiones entre La Paz y Colón", "description": "911. Se comunica el Sr Daniel Pérez, domiciliado en calle Misiones entre La Paz y Colon. Informando que se habría caído un cable sobre la cinta asfáltica e impide el paso a los vehículos. Desconoce si sería de internet o de ENERSA." }, "geometry": { "type": "LineString", "coordinates": [ [ -60.51854500351493, -31.731372834836151, 0.0 ], [ -60.517710801275058, -31.73013700649657, 0.0 ] ] } }
+]
+}

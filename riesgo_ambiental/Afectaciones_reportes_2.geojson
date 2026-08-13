@@ -1,0 +1,12 @@
+{
+"type": "FeatureCollection",
+"name": "Afectaciones_reportes_2",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "Name": "Juan Báez", "description": "Erosión en cale Baez al Final. En traza de conductos de obra 500 viviendas. ", "layer": "Reporte desde SDH" }, "geometry": { "type": "LineString", "coordinates": [ [ -60.558418085247077, -31.765842851452518, 0.0 ], [ -60.552799526663833, -31.766751954293529, 0.0 ] ] } },
+{ "type": "Feature", "properties": { "Name": "Antonio Crespo entre el Arroyo y Aldama", "description": "Desborde de calzada afecta en vereda y viviendas del lado norte.", "layer": "Reporte desde SPeI" }, "geometry": { "type": "LineString", "coordinates": [ [ -60.496695747910152, -31.725912199805531, 0.0 ], [ -60.488401300639673, -31.72721932204087, 0.0 ] ] } },
+{ "type": "Feature", "properties": { "Name": "Newbery entre Bordon y Base Aerea", "description": "Desborde de cunetas y sobrepaso de alcantarilla.", "layer": "Reporte desde SPeI" }, "geometry": { "type": "LineString", "coordinates": [ [ -60.484083625047653, -31.778219014145691, 0.0 ], [ -60.478365828233528, -31.779107513732541, 0.0 ] ] } },
+{ "type": "Feature", "properties": { "Name": "Juez Lothringer entre Garrigó y la laguna", "description": "Drenaje deficiente en la cale entre Garrigó y Laguna.", "layer": "Reporte SRHyGA: Cloacas y desagües" }, "geometry": { "type": "LineString", "coordinates": [ [ -60.509510198567618, -31.766014199133359, 0.0 ], [ -60.505504540830657, -31.766690264747108, 0.0 ] ] } },
+{ "type": "Feature", "properties": { "Name": "Garrigó entre Miguel David y O'Higgins", "description": "Drenaje Deficiente que afecta calzada y veredas.  ", "layer": "Reporte SRHyGA: Cloacas y desagües" }, "geometry": { "type": "LineString", "coordinates": [ [ -60.504917806062842, -31.76432055999188, 0.0 ], [ -60.505936443724018, -31.769154444921, 0.0 ] ] } }
+]
+}

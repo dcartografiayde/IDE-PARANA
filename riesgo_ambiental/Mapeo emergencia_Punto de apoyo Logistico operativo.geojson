@@ -1,0 +1,30 @@
+{
+"type": "FeatureCollection",
+"name": "Mapeo emergencia_Punto de apoyo Logistico operativo",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "Name": "Escuela N° 100", "description": "No Municipal" }, "geometry": { "type": "Point", "coordinates": [ -60.5151225, -31.7206131, 0.0 ] } },
+{ "type": "Feature", "properties": { "Name": "Centro Deportivo Raul Alfonsin", "description": "Municipal" }, "geometry": { "type": "Point", "coordinates": [ -60.5186864, -31.7637062, 0.0 ] } },
+{ "type": "Feature", "properties": { "Name": "CAPS Toma Nueva", "description": "Municipal" }, "geometry": { "type": "Point", "coordinates": [ -60.4931336, -31.7109271, 0.0 ] } },
+{ "type": "Feature", "properties": { "Name": "CAPS La Milagrosa", "description": "Municipal" }, "geometry": { "type": "Point", "coordinates": [ -60.4922906, -31.7516197, 0.0 ] } },
+{ "type": "Feature", "properties": { "Name": "SUM Nueva Ciudad", "description": "Municipal" }, "geometry": { "type": "Point", "coordinates": [ -60.4857246, -31.7237611, 0.0 ] } },
+{ "type": "Feature", "properties": { "Name": "SUM El Brete", "description": "Municipal" }, "geometry": { "type": "Point", "coordinates": [ -60.4974758, -31.7319925, 0.0 ] } },
+{ "type": "Feature", "properties": { "Name": "CAPS San Martin", "description": "Municipal" }, "geometry": { "type": "Point", "coordinates": [ -60.5587315, -31.7262425, 0.0 ] } },
+{ "type": "Feature", "properties": { "Name": "CIC Este", "description": "Municipal" }, "geometry": { "type": "Point", "coordinates": [ -60.4932237, -31.7434274, 0.0 ] } },
+{ "type": "Feature", "properties": { "Name": "Jardin Patito Siriri", "description": "Municipal" }, "geometry": { "type": "Point", "coordinates": [ -60.5664965, -31.7068144, 0.0 ] } },
+{ "type": "Feature", "properties": { "Name": "Salon Vecinal Larramendi", "description": "Municipal" }, "geometry": { "type": "Point", "coordinates": [ -60.5579852, -31.7151197, 0.0 ] } },
+{ "type": "Feature", "properties": { "Name": "SUM Gregorio Osorio", "description": "Municipal" }, "geometry": { "type": "Point", "coordinates": [ -60.5480099, -31.7253361, 0.0 ] } },
+{ "type": "Feature", "properties": { "Name": "Hogar de Cristo", "description": "No Municipal" }, "geometry": { "type": "Point", "coordinates": [ -60.5422529, -31.7264737, 0.0 ] } },
+{ "type": "Feature", "properties": { "Name": "Puerto Memoria", "description": "Municipal" }, "geometry": { "type": "Point", "coordinates": [ -60.5398365, -31.7165845, 0.0 ] } },
+{ "type": "Feature", "properties": { "Name": "SUM Vecinales del Oeste", "description": "Municipal" }, "geometry": { "type": "Point", "coordinates": [ -60.5558672, -31.7330106, 0.0 ] } },
+{ "type": "Feature", "properties": { "Name": "SUM Anacleto Medina Norte", "description": "Municipal" }, "geometry": { "type": "Point", "coordinates": [ -60.5530222, -31.7408435, 0.0 ] } },
+{ "type": "Feature", "properties": { "Name": "SUM Costanera Oeste", "description": "Municipal" }, "geometry": { "type": "Point", "coordinates": [ -60.55784, -31.7446353, 0.0 ] } },
+{ "type": "Feature", "properties": { "Name": "SUM San Jorge", "description": "Municipal" }, "geometry": { "type": "Point", "coordinates": [ -60.552659, -31.7452104, 0.0 ] } },
+{ "type": "Feature", "properties": { "Name": "SUM 33 Orientales", "description": "Municipal" }, "geometry": { "type": "Point", "coordinates": [ -60.5411803, -31.7333208, 0.0 ] } },
+{ "type": "Feature", "properties": { "Name": "Complejo El Sol", "description": "Municipal" }, "geometry": { "type": "Point", "coordinates": [ -60.542333, -31.7381644, 0.0 ] } },
+{ "type": "Feature", "properties": { "Name": "Jardin Oro de Sol", "description": "Municipal" }, "geometry": { "type": "Point", "coordinates": [ -60.54177510000001, -31.7383241, 0.0 ] } },
+{ "type": "Feature", "properties": { "Name": "Club Neuquen", "description": "No Municipal" }, "geometry": { "type": "Point", "coordinates": [ -60.5296156, -31.7618525, 0.0 ] } },
+{ "type": "Feature", "properties": { "Name": "Club Racing 1 de Julio", "description": "No Municipal" }, "geometry": { "type": "Point", "coordinates": [ -60.5075693, -31.7306041, 0.0 ] } },
+{ "type": "Feature", "properties": { "Name": "Escuela Hogar", "description": "No Municipal" }, "geometry": { "type": "Point", "coordinates": [ -60.50513260000001, -31.7339137, 0.0 ] } }
+]
+}
