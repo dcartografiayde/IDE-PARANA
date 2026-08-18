@@ -391,7 +391,7 @@
                 </p>
                 <p class="text-[11px] text-slate-300 leading-tight" id="lbl-parcela-rapida">Cargando...</p>
                 <button onclick="seleccionarManzanaDeParcela()" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs py-1.5 px-3 rounded transition shadow flex items-center justify-center gap-1">
-                    <span>🧱 Seleccionar Manzana de esta Parcela</span>
+                    <span>MB Seleccionar Manzana de esta Parcela</span>
                 </button>
             </div>
         </div>
@@ -809,8 +809,8 @@
                 <p class="text-[11px] text-slate-300">Permite rotar y rotular automáticamente todas las parcelas contenidas en una manzana seleccionada:</p>
                 <ol class="list-decimal list-inside text-[10px] text-slate-300 space-y-1 pl-1">
                     <li><strong class="text-white">Selección:</strong> Ingrese el número de manzana o utilice el botón <em>📍 Seleccionar Gráficamente</em> para hacer clic directo sobre el mapa.</li>
-                    <li><strong class="text-white">Generar Etiquetas:</strong> Presione <em>🏷️ Etiquetar Partidas</em>. El visor calculará la orientación geométrica de cada lote y colocará el número de partida catastral alineado al lote.</li>
-                    <li><strong class="text-white">Impresión:</strong> El botón <em>🖨️ Configurar Impresión Plano</em> enfoca la manzana y habilita el encuadres de plano.</li>
+                    <li><strong class="text-white">Generar Etiquetas:</strong> Presione <em>🏷️ Etiquetar Partidas</em>. El visor calculará la orientación geométrica de cada lote y colocará el número de partida catastral alineado al lote. Para parcelas en estado H (PH), formateará las partidas como rango (p. ej. <em>110254-110256</em>).</li>
+                    <li><strong class="text-white">Impresión:</strong> El botón <em>🖨️ Configurar Impresión Plano</em> enfoca la manzana y habilita el encuadre de plano.</li>
                 </ol>
             </div>
 
@@ -842,7 +842,14 @@
 </div>
 
 <script>
-const BASE_URL = "https://raw.githubusercontent.com/dcartografiayde/IDE-PARANA/main/";
+const BASE_URLS = [
+    "https://raw.githubusercontent.com/dcartografiayde/IDE-PARANA/main/",
+    "https://raw.githack.com/dcartografiayde/IDE-PARANA/main/",
+    "https://cdn.statically.io/gh/dcartografiayde/IDE-PARANA/main/",
+    "https://cdn.jsdelivr.net/gh/dcartografiayde/IDE-PARANA@main/"
+];
+
+const BASE_URL = BASE_URLS[0];
 const PRESERV_URL = BASE_URL + "preservacion/";
 
 // Diccionario centralizado de constantes físicas de papel e impresión para coincidir Preview con Print
@@ -920,19 +927,44 @@ function decodificarTexto(str) {
     } catch (e) { return str; }
 }
 
-async function fetchGeoJSON(url) {
-    const response = await fetch(url);
-    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-    const arrayBuffer = await response.arrayBuffer();
-    
-    const decoderUTF8 = new TextDecoder('utf-8');
-    let text = decoderUTF8.decode(arrayBuffer);
-    
-    if (text.includes('\uFFFD')) {
-        const decoderANSI = new TextDecoder('windows-1252');
-        text = decoderANSI.decode(arrayBuffer);
+async function fetchGeoJSON(urlInput) {
+    // Extraer la ruta relativa eliminando cualquier prefijo de dominio
+    let relativePath = urlInput;
+    for (let base of BASE_URLS) {
+        if (relativePath.startsWith(base)) {
+            relativePath = relativePath.replace(base, "");
+            break;
+        }
     }
-    return JSON.parse(text);
+    relativePath = relativePath.replace(/^https?:\/\/[^\/]+\/[^\/]+\/[^\/]+\/[^\/]+\//, "");
+    if (relativePath.startsWith("/")) relativePath = relativePath.substring(1);
+
+    let lastError = null;
+
+    // Conmutación automática secuencial sobre los servidores espejo
+    for (let i = 0; i < BASE_URLS.length; i++) {
+        const targetUrl = BASE_URLS[i] + relativePath;
+        try {
+            const response = await fetch(targetUrl);
+            if (!response.ok) {
+                throw new Error(`HTTP status ${response.status}`);
+            }
+            const arrayBuffer = await response.arrayBuffer();
+            
+            const decoderUTF8 = new TextDecoder('utf-8');
+            let text = decoderUTF8.decode(arrayBuffer);
+            
+            if (text.includes('\uFFFD')) {
+                const decoderANSI = new TextDecoder('windows-1252');
+                text = decoderANSI.decode(arrayBuffer);
+            }
+            return JSON.parse(text);
+        } catch (err) {
+            console.warn(`[GIS Loader] Falló descarga desde ${targetUrl} (${err.message}). Reintentando con espejo alternativo...`);
+            lastError = err;
+        }
+    }
+    throw lastError || new Error(`No se pudo cargar el archivo ${relativePath} desde ningún servidor espejo.`);
 }
 
 // Se habilita zoomSnap: 0 para posibilitar encuadres de escala fraccional geodésica perfectos
@@ -1803,7 +1835,7 @@ function buscarPM() {
     let encontrado = false;
     
     for (let f of parcelasFeaturesGlobal) {
-        if (f.properties.partidas.includes(val)) {
+        if (f.properties.partidas && f.properties.partidas.includes(val)) {
             let bounds = f._bounds;
             if (!bounds) continue; 
 
@@ -2251,6 +2283,48 @@ function calcularAnguloOrientacionParcela(coordinates) {
     return mejorAngulo;
 }
 
+/**
+ * Función auxiliar para obtener el texto de etiqueta de una parcela individual o PH (Estado H).
+ * Si la parcela está en estado H (PH / múltiples partidas), genera el rango "primeraPartida-ultimaPartida" (ej. 110254-110256).
+ */
+function obtenerEtiquetaParcela(f) {
+    if (!f || !f.properties) return "";
+
+    let partidas = f.properties.partidas || [];
+    partidas = partidas.filter(p => p && p !== "-" && p !== "0" && p !== "null" && p !== "undefined");
+
+    let esEstadoH = f.properties.esPH || partidas.length > 1;
+    if (!esEstadoH && f.properties.full) {
+        let est = f.properties.full.estado || f.properties.full.ESTADO || f.properties.full.Estado || "";
+        if (String(est).trim().toUpperCase() === 'H') {
+            esEstadoH = true;
+        }
+    }
+
+    if (esEstadoH && partidas.length > 0) {
+        if (partidas.length === 1) {
+            return partidas[0];
+        } else {
+            // Se ordenan numéricamente las partidas si es posible
+            let partidasNum = partidas.map(p => ({ original: p, num: parseInt(p, 10) }));
+            let todosNumericos = partidasNum.every(item => !isNaN(item.num));
+
+            if (todosNumericos) {
+                partidasNum.sort((a, b) => a.num - b.num);
+                let primera = partidasNum[0].original;
+                let ultima = partidasNum[partidasNum.length - 1].original;
+                return `${primera}-${ultima}`;
+            } else {
+                let primera = partidas[0];
+                let ultima = partidas[partidas.length - 1];
+                return `${primera}-${ultima}`;
+            }
+        }
+    }
+
+    return f.properties.nropasd || (partidas.length > 0 ? partidas[0] : "");
+}
+
 function etiquetarManzanaSeleccionada() {
     if (!manzanaSeleccionadaGeoJSON) return;
     
@@ -2266,7 +2340,7 @@ function etiquetarManzanaSeleccionada() {
             let inside = isPointInFeature([center.lng, center.lat], manzanaSeleccionadaGeoJSON);
             
             if (inside) {
-                let labelText = f.properties.nropasd;
+                let labelText = obtenerEtiquetaParcela(f);
                 if (labelText && labelText !== "-") {
                     let coords = f.geometry.coordinates;
                     let angulo = calcularAnguloOrientacionParcela(coords);
@@ -2281,8 +2355,8 @@ function etiquetarManzanaSeleccionada() {
                         icon: L.divIcon({
                             className: 'bg-transparent border-none flex items-center justify-center',
                             html: labelHtml,
-                            iconSize: [40, 16],
-                            iconAnchor: [20, 8]
+                            iconSize: [60, 16],
+                            iconAnchor: [30, 8]
                         }),
                         interactive: false
                     }).addTo(grupoEtiquetasParcelasMza);
