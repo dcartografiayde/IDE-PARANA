@@ -1,172 +1,1156 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Visor Urbano - Paraná</title>
+    <title>VISOR CATASTRAL Y PRESERVACIÓN - MUNICIPALIDAD DE PARANA</title>
 
-    <!-- Leaflet CSS y JS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    
-    <!-- Plugins adicionales -->
     <script src="https://cdn.jsdelivr.net/npm/leaflet-textpath@1.2.3/leaflet.textpath.min.js"></script>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
-    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
 
     <style>
-        body { margin:0; padding:0; font-family: 'Segoe UI', sans-serif; }
-        #map { height: 100vh; width: 100%; background:#001a33; }
-
-        .panel-superior {
-            position:absolute; top:15px; left:60px; z-index:2000;
-            background:white; padding:15px; border-radius:8px;
-            box-shadow:0 4px 15px rgba(0,0,0,0.3);
-            display:flex; flex-direction: column; gap:10px;
-        }
-
-        .titulo-contenedor {
-            font-size: 14px;
-            font-weight: bold;
-            color: #2c3e50;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            border-bottom: 2px solid #e63946;
-            padding-bottom: 5px;
-            margin-bottom: 5px;
-        }
-
-        .controles-busqueda {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-
-        /* Estilos de Etiquetas */
-        .etiqueta-distrito {
-            background: rgba(255,255,255,0.8)!important;
-            border: 1.5px solid #d35400!important;
-            border-radius: 4px!important;
-            padding: 2px 5px!important;
-            font-size: 11px!important;
-            font-weight: bold!important;
-            color: #d35400!important;
-        }
-
-        .layer-legend-icon {
-            display: inline-block; width: 12px; height: 12px;
-            margin-right: 8px; border: 1px solid #333; vertical-align: middle;
-        }
-        .icon-line { height: 3px; border: none; }
-
-        /* Popups */
-        .popup-info {
-            font-size: 12px; line-height: 1.4; min-width: 200px; max-width: 280px; max-height: 350px; overflow-y: auto;
-        }
-        .popup-info b { color: #2c3e50; }
+        body { margin:0; padding:0; font-family: 'Inter', sans-serif; background: #0f172a; overflow: hidden; }
         
-        /* Advertencia Street View */
-        .aviso-sv {
-            margin-top: 10px;
-            font-size: 10px;
-            color: #666;
-            font-style: italic;
-            line-height: 1.2;
+        /* Estructura para asegurar vista de pantalla completa y compatibilidad con Flexbox */
+        #print-wrapper {
+            width: 100%;
+            height: 100vh;
             display: flex;
-            align-items: flex-start;
-            gap: 4px;
-            padding: 5px;
-            background: #fff8f0;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Forzar fondo blanco nativo en el mapa para cuando no se use mapa base */
+        #map { 
+            flex: 1 1 auto;
+            width: 100%; 
+            z-index: 1; 
+            background: #ffffff !important;
+        }
+
+        /* Estilos personalizados para el scrollbar del menú lateral */
+        .scrollbar-custom::-webkit-scrollbar {
+            width: 6px;
+        }
+        .scrollbar-custom::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        .scrollbar-custom::-webkit-scrollbar-thumb {
+            background: #1e293b;
             border-radius: 4px;
         }
-        .aviso-sv i { color: #e67e22; font-style: normal; font-weight: bold; }
-
-        .btn-sv {
-            display: block; margin-top: 5px; padding: 8px;
-            background: #fbbc05; color: #000 !important;
-            text-align: center; text-decoration: none;
-            font-weight: bold; border-radius: 4px;
-            border: 1px solid #e2a900; font-size: 11px;
-            transition: background 0.2s;
+        .scrollbar-custom::-webkit-scrollbar-thumb:hover {
+            background: #334155;
         }
-        .btn-sv:hover { background: #f9a825; }
+
+        .popup-custom { font-size: 10px; line-height: 1.1; min-width: 250px; max-height: 290px; overflow-y: auto; padding: 2px; }
+        .popup-header { 
+            text-align: center; font-weight: 800; border-bottom: 1px solid #eee; 
+            padding-bottom: 2px; margin-bottom: 3px; color: #1a202c; text-transform: uppercase;
+        }
+        .table-info { width: 100%; border-collapse: collapse; margin-bottom: 4px; }
+        .table-info td { border-bottom: 1px solid #edf2f7; padding: 1px 0; font-size: 9px; vertical-align: top; }
+        .table-info tr td:first-child { font-weight: 700; color: #4a5568; width: 35%; text-transform: uppercase; }
+
+        .btn-streetview {
+            display: block; margin: 8px auto 4px; padding: 6px; border-radius: 4px;
+            background: #4285F4; color: white !important; text-align: center;
+            text-decoration: none; font-weight: bold; font-size: 10px;
+        }
+        
+        .adv-sv { font-size: 9px; color: #718096; text-align: center; font-style: italic; margin-top: 4px; line-height: 1.2; }
+        .adv-legal { font-size: 8px; color: #a0aec0; margin-top: 6px; border-top: 1px dashed #cbd5e0; padding-top: 4px; line-height: 1.1; }
+        
+        .adv-distrito{
+            position:absolute;
+            bottom:35px;
+            right:15px;
+            z-index:1000;
+            background:rgba(255,255,255,0.92);
+            border:1px solid rgba(0,0,0,0.12);
+            border-radius:10px;
+            padding:10px;
+            box-shadow:0 4px 12px rgba(0,0,0,0.15);
+            font-size:9px;
+            color:#4a5568;
+            pointer-events:auto;
+        }
+        
+        .panel-info-mapa{
+            width:260px;
+            max-width:30vw;
+            background:transparent;
+            border:none;
+            box-shadow:none;
+            position:relative;
+            bottom:auto;
+            right:auto;
+            overflow:hidden;
+        }
+
+        .panel-header{
+            display:flex;
+            justify-content:space-between;
+            align-items:flex-start;
+            padding:12px;
+        }
+
+        .panel-titulo{
+            font-size:13px;
+            font-weight:800;
+            color:#1e293b;
+            text-transform:uppercase;
+            line-height:1.2;
+            text-align:center;
+        }
+
+        .panel-zoom{
+            margin-top:4px;
+            font-size:10px;
+            color:#64748b;
+            font-weight:600;
+        }
+
+        .panel-descripcion{
+            padding:0 12px 12px 12px;
+            font-size:11px;
+            color:#475569;
+            line-height:1.45;
+            text-align:justify;
+            max-height:180px;
+            overflow-y:auto;
+            transition:all .3s ease;
+        }
+
+        .panel-descripcion.oculto{
+            max-height:0;
+            padding:0 12px;
+            overflow:hidden;
+        }
+
+        #btn-descripcion{
+            border:none;
+            background:none;
+            cursor:pointer;
+            font-size:14px;
+            font-weight:bold;
+            color:#475569;
+        }
+        
+        .layer-legend-icon { 
+            display: inline-block; 
+            width: 14px; 
+            height: 14px; 
+            margin-right: 8px; 
+            border: 1px solid #333; 
+            vertical-align: middle; 
+            border-radius: 3px; 
+        }
+
+        .etiqueta-seccion {
+            background: rgba(22, 160, 133, 0.95) !important;
+            border: 2px solid #16a085 !important;
+            color: #ffffff !important;
+            font-weight: 800 !important;
+            font-size: 10px !important;
+            border-radius: 4px !important;
+            padding: 2px 4px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            pointer-events: none !important; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
+            white-space: nowrap !important;
+        }
+
+        .etiqueta-grupo {
+            background: rgba(243, 156, 18, 0.95) !important;
+            border: 2px solid #f39c12 !important;
+            color: #1e293b !important;
+            font-weight: 800 !important;
+            font-size: 10px !important;
+            border-radius: 4px !important;
+            padding: 2px 4px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            pointer-events: none !important; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
+            white-space: nowrap !important;
+        }
+
+        .etiqueta-manzana {
+            background: rgba(255, 255, 255, 0.95) !important;
+            border: 2px solid #ff6b6b !important;
+            color: #1e293b !important;
+            font-weight: 800 !important;
+            font-size: 10px !important;
+            border-radius: 50% !important; 
+            width: 28px !important;
+            height: 28px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            pointer-events: none !important; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
+        }
+
+        /* Etiquetas sutiles y finas sobre el parcelario para no obstruir planos catastrales */
+        .etiqueta-rotada-parcela {
+            font-family: 'Inter', sans-serif;
+            color: rgba(255, 255, 255, 0.95);
+            font-weight: 500;
+            font-size: 7.5px;
+            text-align: center;
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+            white-space: nowrap;
+            pointer-events: none !important;
+            display: inline-block;
+        }
+
+        /* Ocultar elementos de impresión de forma predeterminada en pantalla */
+        .print-only {
+            display: none !important;
+        }
+
+        @media print {
+            body, html {
+                background: #ffffff !important;
+                color: #000000 !important;
+                overflow: hidden !important;
+                height: 100% !important;
+                width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            
+            #sidebar, .fixed, .adv-distrito, .leaflet-control-zoom, .leaflet-control-attribution, #toggle-icon, button, #consola-medicion, #modal-guia {
+                display: none !important;
+            }
+            .print-hidden {
+                display: none !important;
+            }
+            
+            /* Visualizar de forma forzada los componentes de planos */
+            .print-only {
+                display: block !important;
+            }
+
+            /* Estilo cartográfico puro impreso: negro sin halo molesto */
+            .etiqueta-rotada-parcela {
+                color: #000000 !important;
+                font-weight: 500 !important;
+                font-size: 7px !important;
+                text-shadow: none !important;
+                background: none !important;
+                border: none !important;
+                box-shadow: none !important;
+            }
+            
+            /* Forzar el contenedor a comportarse como una sola hoja rígida */
+            #print-wrapper {
+                display: flex !important;
+                flex-direction: column !important;
+                justify-content: space-between !important;
+                align-items: center !important;
+                box-sizing: border-box !important;
+                background: #ffffff !important;
+                overflow: hidden !important;
+                page-break-inside: avoid !important;
+                page-break-after: avoid !important;
+                page-break-before: avoid !important;
+            }
+
+            #print-layout-header, #print-layout-footer {
+                width: 100% !important;
+                box-sizing: border-box !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            #map {
+                display: block !important;
+                box-sizing: border-box !important;
+                border: 2px solid #000000 !important;
+                box-shadow: none !important;
+                margin: 0 auto !important;
+                page-break-inside: avoid !important;
+                background: #ffffff !important;
+            }
+
+            .leaflet-control-scale {
+                display: block !important;
+                background: white !important;
+                border: 2px solid black !important;
+                color: black !important;
+                font-weight: bold !important;
+                padding: 2px 5px !important;
+                font-size: 10px !important;
+                opacity: 1 !important;
+            }
+        }
     </style>
 </head>
 
 <body>
 
-<div class="panel-superior">
-    <div class="titulo-contenedor">Visor Urbano - Paraná</div>
-    <div class="controles-busqueda">
-        <input type="text" id="input-pm" placeholder="Partida Municipal" style="width:150px; padding:6px; border: 1px solid #ccc; border-radius:4px;">
-        <button onclick="buscarPM()" style="padding:6px 12px; cursor:pointer; background: #2c3e50; color: white; border: none; border-radius: 4px;">Buscar</button>
-        <select id="filtro-distrito" onchange="filtrarDistritos()" style="padding:6px; border-radius:4px;">
-            <option value="todos">-- Distritos --</option>
-        </select>
+<div id="print-wrapper">
+
+    <!-- Encabezado de Impresión (Solo Visible al Imprimir) -->
+    <div id="print-layout-header" class="print-only p-2">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px double #000; padding-bottom: 4px; margin-bottom: 6px; font-family: 'Inter', sans-serif;">
+            <div>
+                <h1 style="font-size: 14px; font-weight: 900; letter-spacing: 0.5px; color: #000; text-transform: uppercase; margin: 0;">VISOR URBANO CATASTRAL Y PRESERVACIÓN</h1>
+                <p style="font-size: 9px; font-weight: 700; color: #555; margin: 1px 0 0 0; text-transform: uppercase;">MUNICIPALIDAD DE PARANÁ - DIRECCIÓN DE CARTOGRAFÍA Y DATOS ESPACIALES</p>
+            </div>
+            <div style="text-align: right;">
+                <span style="font-size: 10px; font-weight: 800; color: #000; display: block;" id="print-scale-text">ESCALA: 1:1000</span>
+                <span style="font-size: 7px; font-weight: 600; color: #777; display: block;" id="print-date-text">FECHA: --/--/----</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenedor del Mapa Georreferenciado -->
+    <div id="map"></div>
+
+    <!-- Pie de página de Impresión (Solo Visible al Imprimir) -->
+    <div id="print-layout-footer" class="print-only px-2 py-1">
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; border-top: 1px solid #ccc; padding-top: 4px; font-family: 'Inter', sans-serif;">
+            <div style="font-size: 7px; color: #333; text-transform: uppercase;">
+                <strong>Simbología:</strong> 
+                <span style="margin-left: 8px; display: inline-flex; align-items: center;"><span style="display:inline-block; width:10px; height:5px; background:#2980b9; margin-right:3px; border:1px solid #1c5d87;"></span> Parcela</span>
+                <span style="margin-left: 8px; display: inline-flex; align-items: center;"><span style="display:inline-block; width:10px; height:5px; background:#8e44ad; margin-right:3px; border:1px solid #63307a;"></span> PH</span>
+                <span style="margin-left: 8px; display: inline-flex; align-items: center;"><span style="display:inline-block; width:10px; height:5px; background:#ff6b6b; margin-right:3px; border:1px solid #e05e5e;"></span> Manzana</span>
+                <span style="margin-left: 8px; display: inline-flex; align-items: center;"><span style="display:inline-block; width:10px; height:5px; border:1px solid #e11d48; margin-right:3px;"></span> Posesión</span>
+                <span style="margin-left: 8px; display: inline-flex; align-items: center;"><span style="display:inline-block; width:10px; height:5px; background:#e63946; margin-right:3px;"></span> Preservación</span>
+            </div>
+            <div style="text-align: right; font-size: 7px; font-weight: 800; color: #444; text-transform: uppercase; letter-spacing: 0.2px;">
+                Elaborado por Dirección de Cartografía y Datos Espaciales
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Menú Lateral (Sidebar de Consultas y Edición) -->
+<div id="sidebar" class="fixed top-0 left-0 h-full w-[360px] max-w-[85vw] bg-slate-900 border-r border-slate-800 text-slate-100 flex flex-col z-[1000] shadow-2xl transition-transform duration-300 ease-in-out transform">
+    
+    <div class="p-5 border-b border-slate-800 bg-slate-950/40">
+        <h1 class="text-xs font-black text-blue-400 tracking-wider uppercase text-center">Visor Urbano Catastral</h1>
+        <p class="text-[10px] text-slate-400 text-center font-bold mt-1">DIRECCIÓN DE CARTOGRAFÍA Y DATOS ESPACIALES</p>
+        
+        <!-- Botón de Acceso Directo a la Guía de Funcionamiento -->
+        <button onclick="abrirGuia()" class="w-full bg-blue-600/20 hover:bg-blue-600/40 text-blue-300 hover:text-white font-bold text-[11px] py-1.5 px-3 rounded-md transition border border-blue-500/30 flex items-center justify-center gap-2 mt-3 shadow">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            </svg>
+            <span>📖 Guía de Funcionamiento</span>
+        </button>
+    </div>
+
+    <div class="flex-1 overflow-y-auto p-5 space-y-6 scrollbar-custom">
+        
+        <!-- Bloque de Búsquedas -->
+        <div class="space-y-4">
+            <h2 class="text-xs font-extrabold uppercase tracking-widest text-slate-400 border-b border-slate-800 pb-1.5">Búsquedas catastrales</h2>
+            
+            <!-- Búsqueda por Partida (PM) -->
+            <div class="space-y-1">
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Buscar por Partida (PM)</label>
+                <div class="flex gap-2">
+                    <input type="text" id="input-pm" placeholder="Partida (p. ej. 13245)" class="flex-1 bg-slate-950 border border-slate-700 rounded-md px-3 py-1.5 text-xs text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                    <button class="bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs px-4 rounded-md transition shadow" onclick="buscarPM()">Buscar</button>
+                </div>
+            </div>
+
+            <!-- Búsqueda por Dirección Predictiva -->
+            <div class="space-y-1 relative">
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Dirección (Calle y Altura - Predictivo)</label>
+                <input type="text" id="input-ubicacion" placeholder="Buscar dirección (p. ej. San Martín 123)..." class="w-full bg-slate-950 border border-slate-700 rounded-md px-3 py-1.5 text-xs text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition" autocomplete="off">
+                <div id="sugerencias-ubicacion" class="absolute left-0 right-0 bg-slate-900 border border-slate-700 rounded-md max-h-52 overflow-y-auto mt-1 hidden z-[2000] shadow-2xl scrollbar-custom"></div>
+            </div>
+
+            <!-- Búsqueda de Lugares en Google / Nominatim -->
+            <div class="space-y-1">
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Buscar Lugares o Puntos de interés</label>
+                <div class="flex gap-2">
+                    <input type="text" id="input-google" placeholder="Lugar (p. ej. Plaza de Mayo)..." class="flex-1 bg-slate-950 border border-slate-700 rounded-md px-3 py-1.5 text-xs text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                    <button class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs px-4 rounded-md transition shadow" onclick="buscarGoogle()">Google</button>
+                </div>
+            </div>
+
+            <!-- Panel Rápido de Selección de Manzana por Parcela -->
+            <div id="panel-mza-rapida-parcela" class="hidden p-3 bg-slate-950/60 border border-amber-500/30 rounded-md space-y-2 mt-2 transition duration-300">
+                <p class="text-[10px] text-amber-400 font-extrabold uppercase tracking-wider flex items-center gap-1">
+                    <span>📍 Parcela Identificada</span>
+                </p>
+                <p class="text-[11px] text-slate-300 leading-tight" id="lbl-parcela-rapida">Cargando...</p>
+                <button onclick="seleccionarManzanaDeParcela()" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs py-1.5 px-3 rounded transition shadow flex items-center justify-center gap-1">
+                    <span>🧱 Seleccionar Manzana de esta Parcela</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Herramienta de Etiquetado de Manzanas -->
+        <div class="space-y-4">
+            <h2 class="text-xs font-extrabold uppercase tracking-widest text-slate-400 border-b border-slate-800 pb-1.5">Etiquetado de Manzanas</h2>
+            
+            <div class="space-y-2">
+                <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide">Método de Selección</span>
+                
+                <div class="flex gap-2">
+                    <input type="text" id="input-num-mza" placeholder="Nº Manzana (p. ej. 1256)" class="flex-1 bg-slate-950 border border-slate-700 rounded-md px-3 py-1.5 text-xs text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                    <button class="bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs px-3 rounded-md transition shadow" onclick="buscarManzanaPorNumero()">Buscar</button>
+                </div>
+
+                <button id="btn-sel-grafica-mza" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-bold text-xs py-2 px-3 rounded-md transition border border-slate-700 flex items-center justify-center gap-2" onclick="activarSeleccionGraficaManzana()">
+                    <span>📍 Seleccionar Gráficamente</span>
+                </button>
+            </div>
+
+            <!-- Acciones de Etiquetado de Partidas dentro de la Manzana Seleccionada -->
+            <div id="panel-etiquetado-mza-acciones" class="hidden space-y-2 p-3 bg-slate-950/40 border border-slate-800 rounded-lg">
+                <p class="text-[10px] text-amber-400 font-semibold" id="lbl-mza-seleccionada">Manzana seleccionada: N/A</p>
+                
+                <div class="flex gap-2">
+                    <button id="btn-etiquetar-mza" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs py-2 px-3 rounded-md transition shadow" onclick="etiquetarManzanaSeleccionada()">
+                        🏷️ Etiquetar Partidas
+                    </button>
+                    <button class="bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs py-2 px-3 rounded-md transition shadow" onclick="limpiarEtiquetasManzana()">
+                        Limpiar
+                    </button>
+                </div>
+
+                <div class="border-t border-slate-800/60 pt-2 mt-2">
+                    <button class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-[10px] py-1.5 px-3 rounded transition shadow flex items-center justify-center gap-1.5 uppercase" onclick="activarImpresionDirecta()">
+                        <span>🖨️ Configurar Impresión Plano</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bloque de Impresión Catastral -->
+        <div class="space-y-4">
+            <h2 class="text-xs font-extrabold uppercase tracking-widest text-slate-400 border-b border-slate-800 pb-1.5">Impresión Catastral</h2>
+            
+            <div class="grid grid-cols-2 gap-2">
+                <div class="space-y-1">
+                    <label class="text-[9px] font-bold text-slate-400 uppercase">Papel</label>
+                    <select id="select-papel" onchange="actualizarCuadroImpresion()" class="w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-xs text-white">
+                        <option value="a4" selected>A4 (210 x 297 mm)</option>
+                        <option value="a3">A3 (297 x 420 mm)</option>
+                        <option value="letter">Carta (216 x 279 mm)</option>
+                    </select>
+                </div>
+                <div class="space-y-1">
+                    <label class="text-[9px] font-bold text-slate-400 uppercase">Orientación</label>
+                    <select id="select-orientacion" onchange="actualizarCuadroImpresion()" class="w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-xs text-white">
+                        <option value="retrato" selected>Retrato</option>
+                        <option value="apaisado">Apaisado</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="space-y-1">
+                <label class="text-[9px] font-bold text-slate-400 uppercase">Escala</label>
+                <select id="select-escala" onchange="actualizarCuadroImpresion()" class="w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-xs text-white">
+                    <option value="500">1:500</option>
+                    <option value="1000" selected>1:1000</option>
+                    <option value="2000">1:2000</option>
+                    <option value="5000">1:5000</option>
+                </select>
+            </div>
+
+            <div class="space-y-3 pt-1 border-t border-slate-800/50">
+                <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
+                    <input type="checkbox" id="chk-ver-cuadro-impresion" onchange="toggleCuadroImpresion()" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
+                    <span>Ver Área de Impresión</span>
+                </label>
+
+                <!-- Control de Atenuado de Satélite y Fondo para Máxima Claridad de Etiquetas -->
+                <label class="flex items-start gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
+                    <input type="checkbox" id="chk-atenuar-satelite" checked class="rounded mt-0.5 bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
+                    <span class="flex flex-col">
+                        <span>Atenuar satélite al imprimir</span>
+                        <span class="text-[9px] text-slate-400 leading-tight">Saturación reducida y 50% de opacidad (apto para lectura de plano)</span>
+                    </span>
+                </label>
+
+                <button class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs py-2 px-3 rounded-md transition shadow flex items-center justify-center gap-2" onclick="imprimirMapa()">
+                    <span>🖨️ Imprimir / Exportar PDF</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Bloque de Capas -->
+        <div class="space-y-4">
+            <h2 class="text-xs font-extrabold uppercase tracking-widest text-slate-400 border-b border-slate-800 pb-1.5">Control de capas</h2>
+            
+            <!-- Selector de Mapas Base (Inyección del mapa base vacío/blanco) -->
+            <div class="space-y-2">
+                <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide">Mapa Base</span>
+                <div class="space-y-1.5">
+                    <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
+                        <input type="radio" name="basemap" value="dark" checked onchange="cambiarBaseMap('dark')" class="bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
+                        <span>Mapa Oscuro</span>
+                    </label>
+                    <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
+                        <input type="radio" name="basemap" value="hibrido" onchange="cambiarBaseMap('hibrido')" class="bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
+                        <span>Híbrido (Satelital)</span>
+                    </label>
+                    <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
+                        <input type="radio" name="basemap" value="osm" onchange="cambiarBaseMap('osm')" class="bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
+                        <span>OpenStreetMap</span>
+                    </label>
+                    <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
+                        <input type="radio" name="basemap" value="none" onchange="cambiarBaseMap('none')" class="bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
+                        <span class="text-blue-400 font-semibold">Sin Mapa Base (Fondo Blanco)</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Toggles de Capas de Información Catastral -->
+            <div class="space-y-2 pt-2">
+                <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide">Capas vectoriales catastrales</span>
+                <div class="space-y-2">
+                    <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
+                        <input type="checkbox" id="chk-posesiones" checked onchange="toggleOverlay('posesiones')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
+                        <span class="flex items-center gap-2">
+                            <span class="w-3.5 h-3.5 rounded border border-[#e11d48] bg-[rgba(225,29,72,0.15)] inline-block"></span>
+                            <span>Posesiones (1 y 2)</span>
+                        </span>
+                    </label>
+                    <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
+                        <input type="checkbox" id="chk-parcelas" checked onchange="toggleOverlay('parcelas')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
+                        <span class="flex items-center gap-2">
+                            <span class="w-3.5 h-3.5 rounded bg-[#2980b9] inline-block"></span>
+                            <span>Parcelas Catastrales</span>
+                        </span>
+                    </label>
+                    <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
+                        <input type="checkbox" id="chk-manzanas" checked onchange="toggleOverlay('manzanas')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
+                        <span class="flex items-center gap-2">
+                            <span class="w-3.5 h-3.5 rounded border border-[#ff6b6b] bg-[rgba(255,107,107,0.15)] inline-block"></span>
+                            <span>Manzanas</span>
+                        </span>
+                    </label>
+                    <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
+                        <input type="checkbox" id="chk-grupos" checked onchange="toggleOverlay('grupos')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
+                        <span class="flex items-center gap-2">
+                            <span class="w-3.5 h-3.5 rounded border border-[#f39c12] bg-[rgba(243,156,18,0.15)] inline-block"></span>
+                            <span>Grupos</span>
+                        </span>
+                    </label>
+                    <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
+                        <input type="checkbox" id="chk-secciones" checked onchange="toggleOverlay('secciones')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
+                        <span class="flex items-center gap-2">
+                            <span class="w-3.5 h-3.5 rounded border border-[#16a085] bg-[rgba(22,160,133,0.15)] inline-block"></span>
+                            <span>Secciones</span>
+                        </span>
+                    </label>
+                    <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
+                        <input type="checkbox" id="chk-calles" checked onchange="toggleOverlay('calles')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
+                        <span class="flex items-center gap-2">
+                            <span class="w-3.5 h-1 bg-[#FFFF00] inline-block"></span>
+                            <span>Nombres de Calles</span>
+                        </span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Toggles de Capas de Preservación Urbano-Patrimonial -->
+            <div class="space-y-2 pt-2 border-t border-slate-800/80">
+                <span class="block text-[10px] font-bold text-amber-400 uppercase tracking-wide">Capas de Preservación</span>
+                <div class="space-y-2">
+                    <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
+                        <input type="checkbox" id="chk-preserv-total" checked onchange="toggleOverlay('preservacion')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
+                        <span class="flex items-center gap-2">
+                            <span class="w-3.5 h-3.5 rounded border border-[#e63946] bg-[rgba(230,57,70,0.4)] inline-block"></span>
+                            <span>Preservación Total</span>
+                        </span>
+                    </label>
+                    <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
+                        <input type="checkbox" id="chk-preserv-fachadas" onchange="toggleOverlay('preservacion')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
+                        <span class="flex items-center gap-2">
+                            <span class="w-3.5 h-3.5 rounded border border-[#f4a261] bg-[rgba(244,162,97,0.4)] inline-block"></span>
+                            <span>Preservación Fachadas</span>
+                        </span>
+                    </label>
+                    <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
+                        <input type="checkbox" id="chk-preserv-patrimonial" onchange="toggleOverlay('preservacion')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
+                        <span class="flex items-center gap-2">
+                            <span class="w-3.5 h-3.5 rounded border border-[#bc6c25] bg-[rgba(188,108,37,0.4)] inline-block"></span>
+                            <span>Protección Patrimonial</span>
+                        </span>
+                    </label>
+                    <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
+                        <input type="checkbox" id="chk-preserv-naturales" onchange="toggleOverlay('preservacion')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
+                        <span class="flex items-center gap-2">
+                            <span class="w-3.5 h-3.5 rounded border border-[#2a9d8f] bg-[rgba(42,157,143,0.4)] inline-block"></span>
+                            <span>Áreas Naturales</span>
+                        </span>
+                    </label>
+                    <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
+                        <input type="checkbox" id="chk-preserv-interes" onchange="toggleOverlay('preservacion')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
+                        <span class="flex items-center gap-2">
+                            <span class="w-3.5 h-3.5 rounded border border-[#8ab17d] bg-[rgba(138,177,125,0.4)] inline-block"></span>
+                            <span>Áreas de Interés</span>
+                        </span>
+                    </label>
+                    <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
+                        <input type="checkbox" id="chk-preserv-sitios" onchange="toggleOverlay('preservacion')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
+                        <span class="flex items-center gap-2">
+                            <span class="w-3.5 h-3.5 rounded border border-[#e9c46a] bg-[rgba(233,196,106,0.4)] inline-block"></span>
+                            <span>Valor Histórico/Cult.</span>
+                        </span>
+                    </label>
+                    <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
+                        <input type="checkbox" id="chk-preserv-corredores" onchange="toggleOverlay('preservacion')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
+                        <span class="flex items-center gap-2">
+                            <span class="w-3.5 h-3.5 rounded border border-[#a2d2ff] bg-[rgba(162,210,255,0.4)] inline-block"></span>
+                            <span>Corredores Altura</span>
+                        </span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Leyenda / Información del Visor -->
+        <div class="space-y-3 pt-2">
+            <h2 class="text-xs font-extrabold uppercase tracking-widest text-slate-400 border-b border-slate-800 pb-1.5">Información útil</h2>
+            <div class="text-[11px] text-slate-400 space-y-1.5 leading-relaxed bg-slate-950/20 p-3 rounded-lg border border-slate-850">
+                <p>📏 Use el panel flotante derecho para realizar mediciones de distancia y área.</p>
+                <p>🏛️ Las entidades de preservación patrimonial integran un botón para consultar directamente la parcela catastral subyacente.</p>
+                <p>⚡ Las parcelas catastrales se cargan dinámicamente según la extensión del visor a partir del zoom 16 para optimizar el rendimiento.</p>
+                <p>⚠️ Las posesiones se dibujan con bordes gruesos e interactúan directamente con las parcelas al realizar consultas.</p>
+                <button onclick="abrirGuia()" class="w-full text-left text-blue-400 hover:text-blue-300 font-bold underline mt-2 flex items-center gap-1 cursor-pointer">
+                    <span>📖 Consultar Guía Completa de Uso →</span>
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- BOTÓN DE COLAPSO -->
+    <button onclick="toggleSidebar()" class="absolute top-3 left-full ml-3 bg-slate-900 border border-slate-800 text-slate-300 p-2.5 rounded-lg shadow-xl hover:text-white hover:bg-slate-800 transition-colors focus:outline-none z-[1010]" title="Mostrar/Ocultar Menú">
+        <svg id="toggle-icon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transform transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg>
+    </button>
+</div>
+
+<!-- Cuadro Informativo de Distritos con indicador de Zoom -->
+<div class="adv-distrito">
+    <div id="panel-info-mapa" class="panel-info-mapa">
+        <div class="panel-header">
+            <div style="width:100%;">
+                <div class="panel-titulo" id="titulo-mapa">
+                    VISOR CATASTRAL
+                </div>
+                <div class="panel-zoom" style="text-align:center;">
+                    Zoom:
+                    <span id="zoom-indicator">12</span>
+                </div>
+            </div>
+            <button onclick="toggleDescripcionMapa()" id="btn-descripcion">
+                ▼
+            </button>
+        </div>
+
+        <div id="descripcion-mapa" class="panel-descripcion">
+            Este MAPA WEB contiene información geoespacial catastral estructurada e interactiva (secciones, grupos, manzanas, parcelas, posesiones y capas de preservación patrimonial) de la ciudad de Paraná.
+        </div>
+
+        <hr style="margin:8px 0;">
+
+        <div class="text-[9px] text-slate-500">
+            IDE Paraná - Límites indicativos (Ord. 8563). Zoom Máx: 22.
+        </div>
+
+        <div class="text-[8px] text-slate-400 font-semibold mt-1">
+            Elaborado por Dirección de Cartografía y Datos Espaciales
+        </div>
     </div>
 </div>
 
-<div id="map"></div>
+<!-- Panel Flotante de Herramientas de Medición y Guía -->
+<div class="fixed right-4 top-4 flex flex-col gap-2 z-[1000] bg-slate-900/95 border border-slate-800 p-2 rounded-xl shadow-2xl transition-all duration-300">
+    <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest text-center mb-1 border-b border-slate-800/60 pb-1.5">Herramientas</div>
+    
+    <!-- Botón Medir Distancia -->
+    <button id="btn-medir-distancia" onclick="toggleMedicion('distancia')" class="flex items-center justify-between gap-3 px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-100 text-xs font-semibold transition border border-transparent hover:border-blue-500/50 focus:outline-none w-36 shadow-md" title="Medir Distancia">
+        <span class="flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+            <span>Distancia</span>
+        </span>
+    </button>
+    
+    <!-- Botón Medir Superficie -->
+    <button id="btn-medir-superficie" onclick="toggleMedicion('superficie')" class="flex items-center justify-between gap-3 px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-100 text-xs font-semibold transition border border-transparent hover:border-emerald-500/50 focus:outline-none w-36 shadow-md" title="Medir Superficie">
+        <span class="flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" />
+            </svg>
+            <span>Superficie</span>
+        </span>
+    </button>
+
+    <!-- Botón Flotante para Guía de Funcionamiento -->
+    <button id="btn-guia-flotante" onclick="abrirGuia()" class="flex items-center justify-between gap-3 px-3 py-2 rounded-lg bg-blue-900/40 hover:bg-blue-800/60 text-blue-300 text-xs font-semibold transition border border-blue-500/30 hover:border-blue-400 focus:outline-none w-36 shadow-md" title="Guía de Funcionamiento">
+        <span class="flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            </svg>
+            <span>📖 Guía de Uso</span>
+        </span>
+    </button>
+    
+    <!-- Consola Dinámica de Resultados de Medición -->
+    <div id="consola-medicion" class="hidden flex flex-col bg-slate-950 p-2.5 rounded-lg border border-slate-800 text-slate-300 mt-1 max-w-[144px]">
+        <p id="texto-consola-instruccion" class="text-[9px] font-bold text-slate-400 mb-1 leading-snug">Haga clic en el mapa para marcar puntos...</p>
+        <p id="resultado-consola-medicion" class="text-blue-400 font-extrabold text-sm border-t border-slate-800/60 pt-1 mt-1">0.00 m</p>
+        <div class="flex gap-1 mt-2.5">
+            <button onclick="finalizarMedicion()" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-[8px] py-1 rounded transition uppercase">Listo</button>
+            <button onclick="limpiarMedicion()" class="flex-1 bg-rose-600 hover:bg-rose-500 text-white font-extrabold text-[8px] py-1 rounded transition uppercase">Limpiar</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL INTERACTIVO - GUÍA DE FUNCIONAMIENTO -->
+<div id="modal-guia" class="fixed inset-0 z-[3000] hidden flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4 print:hidden transition-opacity duration-300">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-3xl max-h-[85vh] flex flex-col text-slate-100 overflow-hidden">
+        
+        <!-- Header del Modal -->
+        <div class="px-6 py-4 border-b border-slate-800 bg-slate-950 flex justify-between items-center">
+            <div>
+                <h2 class="text-sm font-black text-blue-400 uppercase tracking-wider flex items-center gap-2">
+                    <span>📖 Guía de Funcionamiento — Visor Urbano Catastral</span>
+                </h2>
+                <p class="text-[10px] text-slate-400 font-semibold mt-0.5">Municipalidad de Paraná — Dirección de Cartografía y Datos Espaciales</p>
+            </div>
+            <button onclick="cerrarGuia()" class="text-slate-400 hover:text-white p-1.5 rounded-lg bg-slate-800/60 hover:bg-slate-700 transition" title="Cerrar Guía">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+
+        <!-- Contenido de la Guía (Scrollable) -->
+        <div class="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-custom text-xs leading-relaxed text-slate-300">
+            
+            <!-- Sección 1 -->
+            <div class="bg-slate-950/50 p-4 rounded-xl border border-slate-800/80 space-y-2">
+                <h3 class="text-xs font-bold text-blue-400 uppercase tracking-wide flex items-center gap-2">
+                    <span class="bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded text-[10px]">1</span>
+                    <span>Menú Principal y Navegación</span>
+                </h3>
+                <ul class="list-disc list-inside space-y-1 text-[11px] text-slate-300 pl-1">
+                    <li><strong class="text-white">Panel Lateral Colapsable:</strong> Ubicado a la izquierda. Se despliega u oculta con el botón flotante (<code class="bg-slate-800 px-1 rounded text-blue-300">◄</code> / <code class="bg-slate-800 px-1 rounded text-blue-300">►</code>).</li>
+                    <li><strong class="text-white">Visualización del Mapa:</strong> Permite desplazamiento por arrastre, zoom mediante rueda de ratón, gestos táctiles o botones de control.</li>
+                    <li><strong class="text-white">Indicador de Zoom:</strong> Muestra en tiempo real el nivel de zoom dinámico en el cuadro flotante inferior derecho.</li>
+                </ul>
+            </div>
+
+            <!-- Sección 2 -->
+            <div class="bg-slate-950/50 p-4 rounded-xl border border-slate-800/80 space-y-2">
+                <h3 class="text-xs font-bold text-amber-400 uppercase tracking-wide flex items-center gap-2">
+                    <span class="bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded text-[10px]">2</span>
+                    <span>Herramientas de Búsqueda</span>
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                    <div class="p-2.5 bg-slate-900/80 rounded-lg border border-slate-800">
+                        <p class="font-bold text-white text-[11px] mb-1">🔍 Por Partida (PM / NROPASD)</p>
+                        <p class="text-[10px] text-slate-400">Ingrese el número de partida y presione <em>Buscar</em>. El visor centrará el mapa automáticamente en la parcela y abrirá su ficha técnica.</p>
+                    </div>
+                    <div class="p-2.5 bg-slate-900/80 rounded-lg border border-slate-800">
+                        <p class="font-bold text-white text-[11px] mb-1">📍 Por Dirección Predictiva</p>
+                        <p class="text-[10px] text-slate-400">Escriba el nombre de la calle y altura (mínimo 3 caracteres) para desplegar sugerencias de direcciones coincidentes en tiempo real.</p>
+                    </div>
+                    <div class="p-2.5 bg-slate-900/80 rounded-lg border border-slate-800">
+                        <p class="font-bold text-white text-[11px] mb-1">🌐 Por Lugares de Interés</p>
+                        <p class="text-[10px] text-slate-400">Buscador global de geolocalización (ej. <em>"Plaza de Mayo"</em>) mediante integración directa con Nominatim / Google.</p>
+                    </div>
+                    <div class="p-2.5 bg-slate-900/80 rounded-lg border border-slate-800">
+                        <p class="font-bold text-white text-[11px] mb-1">🧱 Manzana Rápida desde Parcela</p>
+                        <p class="text-[10px] text-slate-400">Al hacer clic sobre cualquier parcela, se habilita el botón <em>📍 Seleccionar Manzana de esta Parcela</em> para ubicar toda la manzana contenedora.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sección 3 -->
+            <div class="bg-slate-950/50 p-4 rounded-xl border border-slate-800/80 space-y-2">
+                <h3 class="text-xs font-bold text-emerald-400 uppercase tracking-wide flex items-center gap-2">
+                    <span class="bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded text-[10px]">3</span>
+                    <span>Control de Capas y Preservación</span>
+                </h3>
+                <div class="space-y-2 text-[11px]">
+                    <p><strong class="text-white">Capas Vectoriales Interactivas:</strong></p>
+                    <ul class="list-disc list-inside text-[10px] text-slate-300 space-y-0.5 pl-2">
+                        <li><strong>Catastrales:</strong> Posesiones, Parcelas (individual y PH), Manzanas, Grupos y Secciones.</li>
+                        <li><strong>Preservación Urbano-Patrimonial:</strong> Incluye Preservación Total, Fachadas, Protección Patrimonial, Áreas Naturales, Áreas de Interés, Valor Histórico/Cultural y Corredores de Altura.</li>
+                        <li><strong>Consulta de Parcela Subyacente:</strong> Al hacer clic sobre cualquier objeto de preservación, active el botón <em>🔍 Consultar Datos Parcela</em> para destacar en amarillo la parcela que está debajo y consultar su ficha catastral.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Sección 4 -->
+            <div class="bg-slate-950/50 p-4 rounded-xl border border-slate-800/80 space-y-2">
+                <h3 class="text-xs font-bold text-indigo-400 uppercase tracking-wide flex items-center gap-2">
+                    <span class="bg-indigo-500/20 text-indigo-400 px-2 py-0.5 rounded text-[10px]">4</span>
+                    <span>Módulo de Etiquetado de Manzanas</span>
+                </h3>
+                <p class="text-[11px] text-slate-300">Permite rotar y rotular automáticamente todas las parcelas contenidas en una manzana seleccionada:</p>
+                <ol class="list-decimal list-inside text-[10px] text-slate-300 space-y-1 pl-1">
+                    <li><strong class="text-white">Selección:</strong> Ingrese el número de manzana o utilice el botón <em>📍 Seleccionar Gráficamente</em> para hacer clic directo sobre el mapa.</li>
+                    <li><strong class="text-white">Generar Etiquetas:</strong> Presione <em>🏷️ Etiquetar Partidas</em>. El visor calculará la orientación geométrica de cada lote y colocará el número de partida catastral alineado al lote.</li>
+                    <li><strong class="text-white">Impresión:</strong> El botón <em>🖨️ Configurar Impresión Plano</em> enfoca la manzana y habilita el encuadres de plano.</li>
+                </ol>
+            </div>
+
+            <!-- Sección 5 -->
+            <div class="bg-slate-950/50 p-4 rounded-xl border border-slate-800/80 space-y-2">
+                <h3 class="text-xs font-bold text-sky-400 uppercase tracking-wide flex items-center gap-2">
+                    <span class="bg-sky-500/20 text-sky-400 px-2 py-0.5 rounded text-[10px]">5</span>
+                    <span>Herramientas de Medición</span>
+                </h3>
+                <p class="text-[11px] text-slate-300">Ubicadas en la consola flotante de la esquina superior derecha:</p>
+                <ul class="list-disc list-inside text-[10px] text-slate-300 space-y-1 pl-1">
+                    <li><strong class="text-white">Medición de Distancia:</strong> Marque puntos en el mapa para trazar trayectorias continuas. Calcula la longitud acumulada en metros ($m$) o kilómetros ($km$).</li>
+                    <li><strong class="text-white">Medición de Superficie:</strong> Marque 3 o más puntos para delimitar un polígono. Calcula el área plana geodésica en metros cuadrados ($m^2$) o hectáreas ($ha$).</li>
+                    <li><strong class="text-white">Teclas rápidas:</strong> Presione <code class="bg-slate-800 px-1 rounded text-sky-300">ESC</code> para cancelar o finalizar cualquier medición activa.</li>
+                </ul>
+            </div>
+
+        </div>
+
+        <!-- Footer del Modal -->
+        <div class="px-6 py-3 border-t border-slate-800 bg-slate-950 flex justify-between items-center">
+            <span class="text-[9px] text-slate-500 font-bold uppercase">IDE Paraná — Visor Catastral v2.0</span>
+            <button onclick="cerrarGuia()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs py-1.5 px-5 rounded-lg transition shadow">
+                Entendido
+            </button>
+        </div>
+
+    </div>
+</div>
 
 <script>
 const BASE_URL = "https://raw.githubusercontent.com/dcartografiayde/IDE-PARANA/main/";
 const PRESERV_URL = BASE_URL + "preservacion/";
 
-/* ================= FUNCIONES DE LIMPIEZA DE TEXTO ================= */
-// Corrige errores comunes de codificación (UTF-8 interpretado como ISO-8859-1)
+// Diccionario centralizado de constantes físicas de papel e impresión para coincidir Preview con Print
+const DIMENSIONES_FISICAS = {
+    a4: { totalW: 210, totalH: 297, mapW: 186, mapH: 261 },
+    a3: { totalW: 297, totalH: 420, mapW: 273, mapH: 384 },
+    letter: { totalW: 216, totalH: 279, mapW: 192, mapH: 243 }
+};
+
+// Variable global para almacenar la última parcela seleccionada o buscada
+var ultimaParcelaSeleccionada = null;
+
+// Funciones para Apertura y Cierre del Modal de la Guía
+function abrirGuia() {
+    const modal = document.getElementById('modal-guia');
+    if (modal) {
+        modal.classList.remove('hidden');
+    }
+}
+
+function cerrarGuia() {
+    const modal = document.getElementById('modal-guia');
+    if (modal) {
+        modal.classList.add('hidden');
+    }
+}
+
 function decodificarTexto(str) {
     if (!str || typeof str !== 'string') return str;
     try {
-        // Mapeo de secuencias comunes mal codificadas
         const correcciones = {
             'Ã¡': 'á', 'Ã©': 'é', 'Ã­': 'í', 'Ã³': 'ó', 'Ãº': 'ú',
             'Ã ': 'Á', 'Ã‰': 'É', 'Ã ': 'Í', 'Ã“': 'Ó', 'Ãš': 'Ú',
-            'Ã±': 'ñ', 'Ã‘': 'Ñ', 'Â°': '°', 'Ã¼': 'ü', 'Â¿': '¿'
+            'Ãñ': 'ñ', 'Ã‘': 'Ñ', 'Â°': '°', 'Ã¼': 'ü', 'Â¿': '¿'
         };
         let textoCorregido = str;
         for (let mal in correcciones) {
             textoCorregido = textoCorregido.split(mal).join(correcciones[mal]);
         }
+
+        const reemplazosClave = [
+            { mal: /TORRE[ïÏ]¿½N/gi, bien: 'TORREÓN' },
+            { mal: /Torre[ïÏ]¿½n/gi, bien: 'Torreón' },
+            { mal: /APROBACI[ïÏ]¿½N/gi, bien: 'APROBACIÓN' },
+            { mal: /Aprobaci[ïÏ]¿½n/gi, bien: 'Aprobación' },
+            { mal: /ASOCIACI[ïÏ]¿½N/gi, bien: 'ASOCIACIÓN' },
+            { mal: /Asociaci[ïÏ]¿½n/gi, bien: 'Asociación' },
+            { mal: /CONSTITUCI[ïÏ]¿½N/gi, bien: 'CONSTITUCIÓN' },
+            { mal: /Constituci[ïÏ]¿½n/gi, bien: 'Constitución' },
+            { mal: /DECLARACI[ïÏ]¿½N/gi, bien: 'DECLARACIÓN' },
+            { mal: /Declaraci[ïÏ]¿½n/gi, bien: 'Declaración' },
+            { mal: /URBANIZACI[ïÏ]¿½N/gi, bien: 'URBANIZACIÓN' },
+            { mal: /Urbanizaci[ïÏ]¿½n/gi, bien: 'Urbanización' },
+            { mal: /PROLONGACI[ïÏ]¿½N/gi, bien: 'PROLONGACIÓN' },
+            { mal: /Prolongaci[ïÏ]¿½n/gi, bien: 'Prolongación' },
+            { mal: /SECCI[ïÏ]¿½N/gi, bien: 'SECCIÓN' },
+            { mal: /Secci[ïÏ]¿½n/gi, bien: 'Sección' },
+            { mal: /ESTACI[ïÏ]¿½N/gi, bien: 'ESTACIÓN' },
+            { mal: /Estaci[ïÏ]¿½n/gi, bien: 'Estación' },
+            { mal: /REVOLUCI[ïÏ]¿½N/gi, bien: 'REVOLUCIÓN' },
+            { mal: /Revoluci[ïÏ]¿½n/gi, bien: 'Revolución' },
+            { mal: /N[ïÏ]¿½/g, bien: 'Nº' },
+            { mal: /n[ïÏ]¿½/g, bien: 'nº' },
+            { mal: /PARAN[ïÏ]¿½/gi, bien: 'PARANÁ' },
+            { mal: /Paran[ïÏ]¿½/gi, bien: 'Paraná' },
+            { mal: /CI[ïÏ]¿½N/g, bien: 'CIÓN' },
+            { mal: /ci[ïÏ]¿½n/g, bien: 'ción' }
+        ];
+
+        for (let r of reemplazosClave) {
+            textoCorregido = textoCorregido.replace(r.mal, r.bien);
+        }
+
         return textoCorregido;
     } catch (e) { return str; }
 }
 
-/* ================= CONFIGURACIÓN BASE ================= */
-var map = L.map('map', { center: [-31.745, -60.51], zoom: 13 });
-
-var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
-var sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}');
-var ref = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}');
-var hibrido = L.layerGroup([sat, ref]).addTo(map);
-
-/* ================= FUNCIONES DE APOYO ================= */
-function getStreetViewLink(lat, lng) {
-    return `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${lat},${lng}`;
+async function fetchGeoJSON(url) {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    const arrayBuffer = await response.arrayBuffer();
+    
+    const decoderUTF8 = new TextDecoder('utf-8');
+    let text = decoderUTF8.decode(arrayBuffer);
+    
+    if (text.includes('\uFFFD')) {
+        const decoderANSI = new TextDecoder('windows-1252');
+        text = decoderANSI.decode(arrayBuffer);
+    }
+    return JSON.parse(text);
 }
 
-function getSVHTML(lat, lng) {
-    return `
-        <div class="aviso-sv">
-            <i>ⓘ</i> <span>Para ver la fachada, haga clic cerca del frente de la parcela.</span>
-        </div>
-        <a href="${getStreetViewLink(lat, lng)}" target="_blank" class="btn-sv" title="Abrir Street View">VER STREET VIEW</a>
-    `;
-}
+// Se habilita zoomSnap: 0 para posibilitar encuadres de escala fraccional geodésica perfectos
+var map = L.map('map', { 
+    center: [-31.745, -60.51], 
+    zoom: 12, 
+    zoomControl: true,
+    maxZoom: 22,
+    zoomSnap: 0
+});
 
-function getLineLength(layer) {
-    try {
-        var latlngs = layer.getLatLngs();
-        if (latlngs.length > 0 && Array.isArray(latlngs[0])) { latlngs = latlngs.flat(2); }
-        var distance = 0;
-        for (var i = 0; i < latlngs.length - 1; i++) {
-            if (latlngs[i] && latlngs[i+1]) { distance += latlngs[i].distanceTo(latlngs[i+1]); }
+L.control.scale({ imperial: false, position: 'bottomleft' }).addTo(map);
+
+map.createPane('seccionPane');
+map.getPane('seccionPane').style.zIndex = 280; 
+map.getPane('seccionPane').style.pointerEvents = 'none';
+
+map.createPane('grupoPane');
+map.getPane('grupoPane').style.zIndex = 290; 
+map.getPane('grupoPane').style.pointerEvents = 'none';
+
+map.createPane('manzanasPane');
+map.getPane('manzanasPane').style.zIndex = 300; 
+map.getPane('manzanasPane').style.pointerEvents = 'none';
+
+map.createPane('parcelasPane');
+map.getPane('parcelasPane').style.zIndex = 350; 
+map.getPane('parcelasPane').style.pointerEvents = 'auto'; 
+
+map.createPane('posesionesPane');
+map.getPane('posesionesPane').style.zIndex = 360; 
+map.getPane('posesionesPane').style.pointerEvents = 'auto'; 
+
+map.createPane('preservacionPane');
+map.getPane('preservacionPane').style.zIndex = 370;
+map.getPane('preservacionPane').style.pointerEvents = 'auto';
+
+map.createPane('atlasLabelsPane');
+map.getPane('atlasLabelsPane').style.zIndex = 650;
+map.getPane('atlasLabelsPane').style.pointerEvents = 'none';
+
+var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 22, maxNativeZoom: 19 });
+var dark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 22, maxNativeZoom: 20 });
+var sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 22, maxNativeZoom: 18 });
+var ref = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}', { maxZoom: 22, maxNativeZoom: 18 });
+var hibrido = L.layerGroup([sat, ref]);
+
+dark.addTo(map);
+
+var grupoCalles = L.layerGroup();
+var listaCallesParaBusqueda = [];
+
+fetchGeoJSON(BASE_URL + "calles.geojson").then(data => {
+    L.geoJSON(data, {
+        style: { color: "#FFFF00", weight: 6, opacity: 0.01 },
+        onEachFeature: (f, l) => {
+            if (f.properties.nombre) {
+                let nombreCalle = decodificarTexto(f.properties.nombre);
+                listaCallesParaBusqueda.push({ nombre: nombreCalle.toUpperCase(), layer: l });
+                l.on('click', (e) => {
+                    if (modoMedicion || modoSeleccionManzana) return; 
+
+                    let latlng = e.latlng || l.getBounds().getCenter();
+                    let sv = `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${latlng.lat},${latlng.lng}`;
+                    l.bindPopup(`<b>Calle:</b> ${nombreCalle.toUpperCase()}<br><a href="${sv}" target="_blank" class="btn-streetview">📍 STREET VIEW</a>`).openPopup();
+                });
+            }
         }
-        return distance;
-    } catch (e) { return 0; }
+    }).addTo(grupoCalles);
+    activarEtiquetasCalles();
+});
+
+function toggleDescripcionMapa() {
+    const descripcion = document.getElementById("descripcion-mapa");
+    const boton = document.getElementById("btn-descripcion");
+
+    if (!descripcion || !boton) return;
+    descripcion.classList.toggle("oculto");
+    boton.innerHTML = descripcion.classList.contains("oculto") ? "►" : "▼";
 }
 
-/* ================= CAPAS DE PRESERVACIÓN ================= */
+function activarEtiquetasCalles() {
+    const renderLabels = () => {
+        let z = map.getZoom();
+        const activeOnMap = map.hasLayer(grupoCalles);
+        let etiquetasColocadas = {}; 
+
+        grupoCalles.eachLayer(geoJsonGroup => {
+            geoJsonGroup.eachLayer(ly => {
+                if (ly.setText) {
+                    try {
+                        ly.setText(null);
+                    } catch (e) {}
+
+                    if (activeOnMap && z >= 15 && ly._map && ly._renderer && ly.feature && ly.feature.properties.nombre) {
+                        try {
+                            if (map.getBounds().intersects(ly.getBounds())) {
+                                let nombreCalle = decodificarTexto(ly.feature.properties.nombre).toUpperCase();
+                                let latlngs = ly.getLatLngs();
+                                if (Array.isArray(latlngs[0])) latlngs = latlngs.flat(2);
+                                
+                                let largoMetros = 0;
+                                for (let i = 0; i < latlngs.length - 1; i++) {
+                                    if (latlngs[i] && latlngs[i+1]) {
+                                        largoMetros += latlngs[i].distanceTo(latlngs[i+1]);
+                                    }
+                                }
+
+                                if (largoMetros < 70) return;
+
+                                let centro = ly.getBounds().getCenter();
+                                let duplicadoCercano = false;
+                                if (etiquetasColocadas[nombreCalle]) {
+                                    for (let pt of etiquetasColocadas[nombreCalle]) {
+                                        if (centro.distanceTo(pt) < 200) {
+                                            duplicadoCercano = true;
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                if (!duplicadoCercano) {
+                                    if (!etiquetasColocadas[nombreCalle]) {
+                                        etiquetasColocadas[nombreCalle] = [];
+                                    }
+                                    etiquetasColocadas[nombreCalle].push(centro);
+
+                                    ly.setText(nombreCalle, {
+                                        repeat: false,
+                                        center: true, 
+                                        orientation: 'flip',
+                                        offset: 0,
+                                        attributes: { 
+                                            fill: '#FFFF00', 
+                                            'font-weight': 'bold', 
+                                            'font-size': z >= 18 ? '13' : '10',
+                                            'stroke': 'black', 
+                                            'stroke-width': '2px', 
+                                            'paint-order': 'stroke'
+                                        }
+                                    });
+                                }
+                            }
+                        } catch (err) {}
+                    }
+                }
+            });
+        });
+    };
+
+    map.on('zoomend moveend', renderLabels);
+    map.on('layeradd layerremove', (e) => {
+        if (e.layer === grupoCalles) {
+            renderLabels();
+        }
+    });
+
+    renderLabels();
+}
+
+var posesiones1Features = [];
+var posesiones2Features = [];
+var grupoPosesiones = L.layerGroup().addTo(map);
+
+fetchGeoJSON(BASE_URL + "catastro/posesiones1.geojson").then(data => {
+    posesiones1Features = data.features || [];
+    L.geoJSON(data, {
+        pane: 'posesionesPane',
+        style: {
+            color: "#e11d48", 
+            weight: 3.5,
+            fillColor: "transparent",
+            fillOpacity: 0
+        },
+        onEachFeature: (f, l) => {
+            l.on('click', (e) => {
+                if (modoMedicion || modoSeleccionManzana) return;
+                abrirPopupPosesion(f, e.latlng || l.getBounds().getCenter(), "Posesión Capa 1");
+            });
+        }
+    }).addTo(grupoPosesiones);
+}).catch(err => console.error("Error al cargar posesiones1:", err));
+
+fetchGeoJSON(BASE_URL + "catastro/posesiones2.geojson").then(data => {
+    posesiones2Features = data.features || [];
+    L.geoJSON(data, {
+        pane: 'posesionesPane',
+        style: {
+            color: "#be185d", 
+            weight: 3.5,
+            fillColor: "transparent",
+            fillOpacity: 0
+        },
+        onEachFeature: (f, l) => {
+            l.on('click', (e) => {
+                if (modoMedicion || modoSeleccionManzana) return;
+                abrirPopupPosesion(f, e.latlng || l.getBounds().getCenter(), "Posesión Capa 2");
+            });
+        }
+    }).addTo(grupoPosesiones);
+}).catch(err => console.error("Error al cargar posesiones2:", err));
+
+function abrirPopupPosesion(f, latlng, titulo) {
+    let content = `<div class="popup-custom"><div class="popup-header" style="border-bottom: 2px solid #e11d48;">${titulo}</div>`;
+    content += `<table class="table-info">`;
+    for (let [k, v] of Object.entries(f.properties)) {
+        if (v && v !== "0") {
+            content += `<tr><td>${decodificarTexto(k).toUpperCase()}</td><td>${decodificarTexto(String(v))}</td></tr>`;
+        }
+    }
+    content += `</table></div>`;
+    L.popup({ autoPanPadding: L.point(10, 110) })
+        .setLatLng(latlng)
+        .setContent(content)
+        .openOn(map);
+}
+
+/* ================= GRUPOS DE CAPAS DE PRESERVACIÓN ================= */
 const grupoPreservacion = {
     total: L.layerGroup().addTo(map),
     fachadas: L.layerGroup(),
@@ -177,197 +1161,1359 @@ const grupoPreservacion = {
     corredores: L.layerGroup()
 };
 
-function loadPreserv(file, grupo, color, titulo, op = 0.5) {
-    fetch(PRESERV_URL + file).then(r => r.json()).then(data => {
+var capaHighlightParcela = L.layerGroup().addTo(map);
+
+function cargarCapaPreservacion(archivo, grupo, color, titulo, opacidad = 0.5) {
+    fetchGeoJSON(PRESERV_URL + archivo).then(data => {
         L.geoJSON(data, {
-            style: { color: color, weight: 2, fillOpacity: op },
+            pane: 'preservacionPane',
+            style: { color: color, weight: 2, fillColor: color, fillOpacity: opacidad },
             onEachFeature: (f, l) => {
                 l.on('click', e => {
-                    let p = f.properties;
-                    let html = `<div class="popup-info"><b>${titulo}</b><hr>`;
-                    const camposExcluidos = ['link', 'fid', 'ncp', 'descripdis', 'ogc_fid'];
+                    if (modoMedicion || modoSeleccionManzana) return;
+                    L.DomEvent.stopPropagation(e);
                     
-                    for (let k in p) {
-                        let valor = p[k];
-                        if (!valor || valor === "NULL" || camposExcluidos.includes(k.toLowerCase())) continue;
+                    let p = f.properties || {};
+                    let clickLat = e.latlng ? e.latlng.lat : l.getBounds().getCenter().lat;
+                    let clickLng = e.latlng ? e.latlng.lng : l.getBounds().getCenter().lng;
+                    
+                    let content = `<div class="popup-custom"><div class="popup-header" style="border-bottom: 2px solid ${color}; color: #1e293b;">${titulo.toUpperCase()}</div>`;
+                    content += `<table class="table-info">`;
+                    
+                    const camposExcluidos = ['link', 'fid', 'ncp', 'descripdis', 'ogc_fid'];
+                    for (let [k, v] of Object.entries(p)) {
+                        if (v === null || v === undefined || v === "NULL" || v === "" || camposExcluidos.includes(k.toLowerCase())) continue;
                         
                         let labelText = k;
                         if (k.toLowerCase() === 'ubipar1') labelText = "Ubicación";
                         else if (k.toLowerCase() === 'nropasd') labelText = "Partida Municipal";
                         else if (k.toLowerCase() === 'denominaci') labelText = "Nombre";
 
-                        // Aplicamos la corrección de caracteres al valor
-                        let valorLimpio = decodificarTexto(String(valor));
-                        html += `<b>${decodificarTexto(labelText)}:</b> ${valorLimpio}<br>`;
+                        content += `<tr><td>${decodificarTexto(labelText).toUpperCase()}</td><td>${decodificarTexto(String(v))}</td></tr>`;
                     }
+                    content += `</table>`;
                     
-                    html += getSVHTML(e.latlng.lat, e.latlng.lng);
-                    html += `</div>`;
-                    l.bindPopup(html).openPopup();
+                    // Botón para consultar los datos de la parcela catastral subyacente
+                    content += `
+                        <button onclick="consultarParcelaBajoPunto(${clickLat}, ${clickLng})" class="w-full mt-2 bg-amber-600 hover:bg-amber-500 text-white font-bold py-1.5 px-2 rounded text-[9px] tracking-wider uppercase transition flex items-center justify-center gap-1 shadow">
+                            <span>🔍 Consultar Datos Parcela</span>
+                        </button>
+                    `;
+                    
+                    let sv = `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${clickLat},${clickLng}`;
+                    content += `<a href="${sv}" target="_blank" class="btn-streetview">📍 STREET VIEW</a>`;
+                    content += `</div>`;
+                    
+                    L.popup({ autoPanPadding: L.point(10, 110) })
+                        .setLatLng(e.latlng || l.getBounds().getCenter())
+                        .setContent(content)
+                        .openOn(map);
                 });
             }
         }).addTo(grupo);
-    });
+    }).catch(err => console.error(`Error al cargar capa de preservación (${archivo}):`, err));
 }
 
-loadPreserv("preservacion_total2.geojson", grupoPreservacion.total, "#e63946", "Preservación Total", 0.7);
-loadPreserv("preservacion_fachadas2.geojson", grupoPreservacion.fachadas, "#f4a261", "Preservación Fachadas", 0.6);
-loadPreserv("areas_proteccion_patrimonial.geojson", grupoPreservacion.patrimonial, "#bc6c25", "Protección Patrimonial");
-loadPreserv("areas_naturales_protegidas.geojson", grupoPreservacion.naturales, "#2a9d8f", "Áreas Naturales");
-loadPreserv("areas_interes_dec_1035_95.geojson", grupoPreservacion.interes, "#8ab17d", "Áreas de Interés");
-loadPreserv("sitios_de_valor_historico_cultural.geojson", grupoPreservacion.sitios, "#e9c46a", "Sitios de Valor Histórico");
-loadPreserv("corredores_urbanos_preservacion_altura.geojson", grupoPreservacion.corredores, "#a2d2ff", "Corredores Urbanos");
+// Carga inicial de datos de preservación
+cargarCapaPreservacion("preservacion_total2.geojson", grupoPreservacion.total, "#e63946", "Preservación Total", 0.7);
+cargarCapaPreservacion("preservacion_fachadas2.geojson", grupoPreservacion.fachadas, "#f4a261", "Preservación Fachadas", 0.6);
+cargarCapaPreservacion("areas_proteccion_patrimonial.geojson", grupoPreservacion.patrimonial, "#bc6c25", "Protección Patrimonial", 0.5);
+cargarCapaPreservacion("areas_naturales_protegidas.geojson", grupoPreservacion.naturales, "#2a9d8f", "Áreas Naturales", 0.5);
+cargarCapaPreservacion("areas_interes_dec_1035_95.geojson", grupoPreservacion.interes, "#8ab17d", "Áreas de Interés", 0.5);
+cargarCapaPreservacion("sitios_de_valor_historico_cultural.geojson", grupoPreservacion.sitios, "#e9c46a", "Sitios de Valor Histórico", 0.5);
+cargarCapaPreservacion("corredores_urbanos_preservacion_altura.geojson", grupoPreservacion.corredores, "#a2d2ff", "Corredores Altura", 0.5);
 
-/* ================= CAPA CALLES (CON TEXTPATH) ================= */
-var grupoCalles = L.layerGroup().addTo(map);
-var capasCalles = [];
+function consultarParcelaBajoPunto(lat, lng) {
+    let point = [lng, lat];
+    let parcelaEncontrada = null;
 
-fetch(BASE_URL + "calles.geojson").then(r => r.json()).then(data => {
-    L.geoJSON(data, {
-        style: { color: "#333", weight: 2, opacity: 0.1 },
-        onEachFeature: (f, l) => {
-            if (f.properties.nombre && l instanceof L.Polyline) {
-                let nombreCalle = decodificarTexto(f.properties.nombre);
-                capasCalles.push({ layer: l, nombre: nombreCalle, length: getLineLength(l) });
-                l.on('click', e => {
-                    l.bindPopup(`<b>Calle:</b> ${nombreCalle}<br>${getSVHTML(e.latlng.lat, e.latlng.lng)}`).openPopup();
-                });
+    // Búsqueda de precisión en parcelas cargadas en memoria
+    for (let f of parcelasFeaturesGlobal) {
+        if (f._bounds && f._bounds.contains(L.latLng(lat, lng))) {
+            if (isPointInFeature(point, f)) {
+                parcelaEncontrada = f;
+                break;
             }
         }
-    }).addTo(grupoCalles);
-    capasCalles.sort((a, b) => b.length - a.length);
-    setTimeout(actualizarTextosCalles, 800);
-});
-
-function actualizarTextosCalles() {
-    var zoomActual = map.getZoom();
-    const bounds = map.getBounds();
-    const nombresProcesados = new Set();
-    if (zoomActual < 15 || !map.hasLayer(grupoCalles)) {
-        capasCalles.forEach(item => { if (item.layer._text) try { item.layer.setText(null); } catch(e){} });
-        return;
     }
-    capasCalles.forEach(item => {
-        var l = item.layer;
-        if (l._text) try { l.setText(null); } catch(e){}
-        if (!l._map || !l._renderer) return;
-        var nombreNorm = item.nombre.trim().toUpperCase();
-        var minLength = zoomActual >= 18 ? 15 : (zoomActual >= 17 ? 40 : 80);
-        if (bounds.intersects(l.getBounds()) && item.length > minLength && !nombresProcesados.has(nombreNorm)) {
-            nombresProcesados.add(nombreNorm);
-            try {
-                l.setText(item.nombre, {
-                    repeat: false, center: true, orientation: 'flip',
-                    attributes: { fill: '#FFFF00', 'font-size': zoomActual >= 18 ? '14' : '11', 'font-weight': 'bold', 'stroke': 'black', 'stroke-width': '2px', 'paint-order': 'stroke' }
-                });
-            } catch (err) {}
+
+    if (!parcelaEncontrada) {
+        for (let f of parcelasFeaturesGlobal) {
+            if (isPointInFeature(point, f)) {
+                parcelaEncontrada = f;
+                break;
+            }
+        }
+    }
+
+    capaHighlightParcela.clearLayers();
+
+    if (parcelaEncontrada) {
+        // Destacar el polígono de la parcela catastral subyacente
+        L.geoJSON(parcelaEncontrada, {
+            style: {
+                color: "#f59e0b",
+                weight: 4,
+                fillColor: "#f59e0b",
+                fillOpacity: 0.35
+            }
+        }).addTo(capaHighlightParcela);
+
+        document.getElementById('chk-parcelas').checked = true;
+        controlarVisibilidadDinamica();
+
+        mostrarPopupDeParcela(parcelaEncontrada, L.latLng(lat, lng));
+    } else {
+        L.popup()
+            .setLatLng(L.latLng(lat, lng))
+            .setContent(`<div class="p-2 text-xs font-bold text-slate-800">⚠️ No se encontró parcela catastral registrada en este punto exacto.</div>`)
+            .openOn(map);
+    }
+}
+
+var grupoSecciones = L.layerGroup().addTo(map);
+var grupoEtiquetasSecciones = L.layerGroup();
+
+fetchGeoJSON(BASE_URL + "catastro/seccion.geojson").then(data => {
+    L.geoJSON(data, {
+        pane: 'seccionPane',
+        style: {
+            color: "#16a085", 
+            weight: 5.5, 
+            fillColor: "transparent",
+            fillOpacity: 0,
+            interactive: false
+        },
+        onEachFeature: (f, l) => {
+            let labelVal = f.properties.seccion || f.properties.SECCION || f.properties.nro_seccion || f.properties.sec || "";
+            if (labelVal) {
+                try {
+                    let center = l.getBounds().getCenter();
+                    L.marker(center, {
+                        icon: L.divIcon({
+                            className: 'etiqueta-seccion',
+                            html: `<div>SEC: ${decodificarTexto(String(labelVal))}</div>`,
+                            iconSize: [60, 20],
+                            iconAnchor: [30, 10]
+                        }),
+                        interactive: false
+                    }).addTo(grupoEtiquetasSecciones);
+                } catch(e) {}
+            }
+        }
+    }).addTo(grupoSecciones);
+    controlarVisibilidadDinamica();
+}).catch(err => console.error("Error al cargar Secciones:", err));
+
+var grupoGrupos = L.layerGroup().addTo(map);
+var grupoEtiquetasGrupos = L.layerGroup();
+
+fetchGeoJSON(BASE_URL + "catastro/grupo.geojson").then(data => {
+    L.geoJSON(data, {
+        pane: 'grupoPane',
+        style: {
+            color: "#f39c12", 
+            weight: 3.5, 
+            fillColor: "transparent",
+            fillOpacity: 0,
+            interactive: false
+        },
+        onEachFeature: (f, l) => {
+            let labelVal = f.properties.grupo || f.properties.GRUPO || f.properties.nro_grupo || f.properties.gru || "";
+            if (labelVal) {
+                try {
+                    let center = l.getBounds().getCenter();
+                    L.marker(center, {
+                        icon: L.divIcon({
+                            className: 'etiqueta-grupo',
+                            html: `<div>GPO: ${decodificarTexto(String(labelVal))}</div>`,
+                            iconSize: [60, 20],
+                            iconAnchor: [30, 10]
+                        }),
+                        interactive: false
+                    }).addTo(grupoEtiquetasGrupos);
+                } catch(e) {}
+            }
+        }
+    }).addTo(grupoGrupos);
+    controlarVisibilidadDinamica();
+}).catch(err => console.error("Error al cargar Grupos:", err));
+
+var grupoManzanas = L.layerGroup().addTo(map);
+var grupoEtiquetasManzanas = L.layerGroup(); 
+var manzanaFeaturesGlobal = [];
+
+fetchGeoJSON(BASE_URL + "catastro/manzana.geojson").then(data => {
+    manzanaFeaturesGlobal = data.features || [];
+    const manzanasEtiquetadas = new Set();
+
+    manzanaFeaturesGlobal.forEach(f => {
+        try {
+            if (!f.geometry || !f.geometry.coordinates) return;
+            let coords = f.geometry.coordinates;
+            let flatCoords = [];
+            
+            if (f.geometry.type === "Polygon") {
+                flatCoords = coords[0] || [];
+            } else if (f.geometry.type === "MultiPolygon") {
+                for (let poly of coords) {
+                    if (poly && poly[0]) {
+                        flatCoords.push(...poly[0]);
+                    }
+                }
+            }
+            
+            if (flatCoords.length > 0) {
+                let minLat = Infinity, maxLat = -Infinity;
+                let minLng = Infinity, maxLng = -Infinity;
+                for (let i = 0; i < flatCoords.length; i++) {
+                    let pt = flatCoords[i];
+                    if (pt && pt.length >= 2) {
+                        let lng = pt[0];
+                        let lat = pt[1];
+                        if (lat < minLat) minLat = lat;
+                        if (lat > maxLat) maxLat = lat;
+                        if (lng < minLng) minLng = lng;
+                        if (lng > maxLng) maxLng = lng;
+                    }
+                }
+                
+                f._fastBounds = {
+                    minLat: minLat,
+                    maxLat: maxLat,
+                    minLng: minLng,
+                    maxLng: maxLng
+                };
+                f._fastCenter = L.latLng((minLat + maxLat) / 2, (minLng + maxLng) / 2);
+            }
+        } catch(e) {
+            f._fastBounds = null;
+            f._fastCenter = null;
         }
     });
-}
-map.on('zoomend moveend', actualizarTextosCalles);
 
-/* ================= CAPA PARCELAS (CATASTRO) ================= */
+    L.geoJSON(data, {
+        pane: 'manzanasPane', 
+        filter: (f) => f && f.geometry && f.geometry.coordinates && f.geometry.coordinates.length > 0,
+        style: {
+            color: "#ff6b6b", 
+            weight: 2.0, 
+            fillColor: "transparent",
+            fillOpacity: 0,
+            interactive: true 
+        },
+        onEachFeature: (f, l) => {
+            let propNum = obtenerNumeroManzana(f);
+
+            if (propNum) {
+                const numStr = String(propNum).trim();
+                if (!manzanasEtiquetadas.has(numStr)) {
+                    manzanasEtiquetadas.add(numStr);
+                    try {
+                        let center = l.getBounds().getCenter();
+                        L.marker(center, {
+                            icon: L.divIcon({
+                                className: 'etiqueta-manzana',
+                                html: `<div>${decodificarTexto(numStr)}</div>`,
+                                iconSize: [28, 28]
+                            }),
+                            interactive: false 
+                        }).addTo(grupoEtiquetasManzanas); 
+                    } catch(e) {}
+                }
+            }
+
+            l.on('click', (e) => {
+                if (modoSeleccionManzana) {
+                    L.DomEvent.stopPropagation(e);
+                    seleccionarManzana(f, l);
+                }
+            });
+        }
+    }).addTo(grupoManzanas);
+    controlarVisibilidadDinamica(); 
+}).catch(err => {
+    console.error("Error al cargar la capa de manzanas:", err);
+});
+
+var grupoParcelas = L.layerGroup().addTo(map);
 var parcelasLayers = [];
-var grupoParcelas = L.layerGroup();
+var listaParcelasUbicacion = [];
+var parcelasFeaturesGlobal = []; 
+
+function pointInPoly(point, vs) {
+    var x = point[0], y = point[1];
+    var inside = false;
+    for (var i = 0, j = vs.length - 1; i < vs.length; j = i++) {
+        var xi = vs[i][0], yi = vs[i][1];
+        var xj = vs[j][0], yj = vs[j][1];
+        var intersect = ((yi > y) != (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+        if (intersect) inside = !inside;
+    }
+    return inside;
+}
+
+function isPointInFeature(point, feature) {
+    if (!feature || !feature.geometry) return false;
+    const type = feature.geometry.type;
+    const coords = feature.geometry.coordinates;
+    if (type === "Polygon") {
+        return pointInPoly(point, coords[0]);
+    } else if (type === "MultiPolygon") {
+        for (let i = 0; i < coords.length; i++) {
+            if (pointInPoly(point, coords[i][0])) return true;
+        }
+    }
+    return false;
+}
+
 const archivosCatastro = ["parcela1_4.geojson", "parcela5_7.geojson", "parcela8_15.geojson"];
 
-archivosCatastro.forEach(nombre => {
-    fetch(BASE_URL + "catastro/" + nombre).then(r => r.json()).then(data => {
-        var grupos = {};
-        data.features.forEach(f => {
-            var key = JSON.stringify(f.geometry.coordinates);
-            if (!grupos[key]) grupos[key] = [];
-            grupos[key].push(f);
-        });
-        var featuresAgrupadas = Object.values(grupos).map(g => {
-            var base = g[0];
-            return {
-                type: "Feature", geometry: base.geometry,
-                properties: { esPH: g.length > 1, partidas: g.map(x => x.properties.nropasd), ubicacion: base.properties.ubipar1, full_data: base.properties }
-            };
-        });
-        var layer = L.geoJSON(featuresAgrupadas, {
-            style: f => ({ color: f.properties.esPH ? "#8e44ad" : "#2980b9", weight: 0.6, fillOpacity: 0.1 }),
-            onEachFeature: (f, l) => {
-                l.on('click', e => {
-                    let p = f.properties;
-                    let html = `<div class="popup-info"><center><b>INFORMACIÓN PARCELARIA</b></center><hr>`;
-                    html += `<b>PARTIDA MUNICIPAL:</b> ${p.partidas.join(", ")}<br>`;
-                    html += `<b>UBICACIÓN:</b> ${decodificarTexto(p.ubicacion || "-")}<br>`;
-                    html += getSVHTML(e.latlng.lat, e.latlng.lng);
-                    html += `</div>`;
-                    l.bindPopup(html).openPopup();
-                });
+Promise.allSettled(
+    archivosCatastro.map(file => fetchGeoJSON(BASE_URL + "catastro/" + file))
+).then(results => {
+    results.forEach((result, idx) => {
+        const file = archivosCatastro[idx];
+        if (result.status === "fulfilled") {
+            const data = result.value;
+            if (!data || !data.features) {
+                console.warn(`Archivo ${file} cargado pero no contiene features válidas.`);
+                return;
             }
-        });
-        parcelasLayers.push(layer);
-        grupoParcelas.addLayer(layer);
+
+            let grupos = {};
+            data.features.forEach(f => {
+                if (!f.geometry || !f.geometry.coordinates) return;
+                let key = JSON.stringify(f.geometry.coordinates);
+                if (!grupos[key]) grupos[key] = [];
+                grupos[key].push(f);
+            });
+
+            let featuresProcesadas = Object.values(grupos).map(g => {
+                let base = g[0];
+                return {
+                    type: "Feature", 
+                    geometry: base.geometry,
+                    properties: {
+                        esPH: g.length > 1,
+                        partidas: g.map(x => String(x.properties.nropasd || x.properties.nropas || "").trim()),
+                        nropasd: String(base.properties.nropasd || "").trim(),
+                        ubicacion: base.properties.ubipar1 || "-",
+                        full: base.properties
+                    }
+                };
+            });
+
+            featuresProcesadas.forEach(f => {
+                try {
+                    let tempLayer = L.geoJSON(f);
+                    let boundsVal = tempLayer.getBounds();
+                    if (boundsVal && typeof boundsVal.isValid === 'function' && boundsVal.isValid()) {
+                        f._bounds = boundsVal;
+                    } else {
+                        f._bounds = null;
+                    }
+                } catch (e) {
+                    f._bounds = null;
+                }
+
+                if (f.properties.ubicacion && f.properties.ubicacion !== "-" && f.properties.ubicacion.trim() !== "") {
+                    let ubiClean = decodificarTexto(f.properties.ubicacion).toUpperCase().trim();
+                    listaParcelasUbicacion.push({
+                        texto: ubiClean,
+                        feature: f
+                    });
+                }
+            });
+
+            parcelasFeaturesGlobal.push(...featuresProcesadas);
+            console.log(`Cargadas con éxito ${featuresProcesadas.length} parcelas desde ${file}`);
+        } else {
+            console.error(`Error de red o parsing al cargar ${file}:`, result.reason);
+        }
     });
+
+    actualizarParcelasEnVista();
+}).catch(err => {
+    console.error("Error general crítico al procesar archivos de catastro:", err);
 });
 
-/* ================= DISTRITOS ================= */
-var lyDistritos;
-var grupoDistritos = L.layerGroup().addTo(map);
-fetch(BASE_URL + "distritos.geojson").then(r => r.json()).then(data => {
-    lyDistritos = L.geoJSON(data, {
-        style: { color: 'white', weight: 2, fillOpacity: 0.1, dashArray: '5,5' },
+function mostrarPopupDeParcela(f, latlng) {
+    let p = f.properties;
+    let sv = `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${latlng.lat},${latlng.lng}`;
+
+    ultimaParcelaSeleccionada = f;
+
+    let partidaTexto = f.properties.partidas ? f.properties.partidas.join(", ") : (f.properties.nropasd || "N/A");
+    document.getElementById('lbl-parcela-rapida').innerText = `Partida: ${partidaTexto} - ${decodificarTexto(f.properties.ubicacion || "")}`;
+    document.getElementById('panel-mza-rapida-parcela').classList.remove('hidden');
+
+    let content = `<div class="popup-custom"><div class="popup-header">DATOS DE LA PARCELA</div>`;
+    
+    if (p.esPH) {
+        content += `<div style="padding:2px; font-size:9px;"><b>PH DETECTADA</b><br><b>PARTIDAS:</b> ${p.partidas.join(", ")}<br><b>UBICACIÓN:</b> ${decodificarTexto(p.ubicacion)}</div>`;
+    } else {
+        content += `<table class="table-info">`;
+        for (let [k, v] of Object.entries(p.full)) { 
+            if (v && v !== "0") content += `<tr><td>${decodificarTexto(k).toUpperCase()}</td><td>${decodificarTexto(String(v))}</td></tr>`; 
+        }
+        content += `</table>`;
+    }
+
+    content += `
+        <button onclick="seleccionarManzanaDeParcela()" class="w-full mt-2 bg-amber-600 hover:bg-amber-500 text-white font-bold py-1.5 px-2 rounded text-[9px] tracking-wider uppercase transition flex items-center justify-center gap-1">
+            <span>MB Seleccionar Manzana</span>
+        </button>
+    `;
+
+    let point = [latlng.lng, latlng.lat];
+    let posesionEncontrada = null;
+    let capaProcedencia = "";
+
+    for (let posFeature of posesiones1Features) {
+        if (isPointInFeature(point, posFeature)) {
+            posesionEncontrada = posFeature;
+            capaProcedencia = "Posesiones Capa 1";
+            break;
+        }
+    }
+
+    if (!posesionEncontrada) {
+        for (let posFeature of posesiones2Features) {
+            if (isPointInFeature(point, posFeature)) {
+                posesionEncontrada = posFeature;
+                capaProcedencia = "Posesiones Capa 2";
+                break;
+            }
+        }
+    }
+
+    if (posesionEncontrada) {
+        content += `
+            <div class="mt-2 p-2 bg-red-950/20 border border-red-500 rounded text-[9px] text-red-200">
+                <div class="font-bold uppercase tracking-wider text-red-400 flex items-center gap-1 mb-1">
+                    ⚠️ ADVERTENCIA: POSESIÓN REGISTRADA
+                </div>
+                <p class="mb-1 leading-normal">Esta parcela se encuentra afectada por una ocupación o posesión activa registrada en la base de datos (${capaProcedencia}).</p>
+                <button onclick="consultarDetallesPosesion(${JSON.stringify(posesionEncontrada.properties).replace(/"/g, '&quot;')}, '${capaProcedencia}')" class="w-full mt-1 bg-red-600 hover:bg-red-500 text-white font-bold py-1 px-2 rounded text-[8px] tracking-wider uppercase transition">
+                    Consultar Posesión
+                </button>
+            </div>
+        `;
+    }
+
+    content += `<a href="${sv}" target="_blank" class="btn-streetview">📍 STREET VIEW</a>`;
+    content += `<div class="adv-sv">Para mejor orientación, haga clic en el frente de la parcela.</div>`;
+    content += `</div>`;
+    
+    L.popup({ autoPanPadding: L.point(10, 110) })
+        .setLatLng(latlng)
+        .setContent(content)
+        .openOn(map);
+}
+
+function consultarDetallesPosesion(properties, capa) {
+    let content = `<div class="popup-custom"><div class="popup-header" style="border-bottom: 2px solid #e11d48; color: #e11d48;">${capa.toUpperCase()}</div>`;
+    content += `<table class="table-info">`;
+    for (let [k, v] of Object.entries(properties)) {
+        if (v && v !== "0") {
+            content += `<tr><td>${decodificarTexto(k).toUpperCase()}</td><td>${decodificarTexto(String(v))}</td></tr>`;
+        }
+    }
+    content += `</table></div>`;
+    
+    L.popup({ autoPanPadding: L.point(10, 110) })
+        .setLatLng(map.getBounds().getCenter())
+        .setContent(content)
+        .openOn(map);
+}
+
+function actualizarParcelasEnVista() {
+    let zoomActual = map.getZoom();
+    const chkParcelas = document.getElementById('chk-parcelas').checked;
+
+    grupoParcelas.clearLayers();
+
+    if (!chkParcelas || zoomActual < 16) {
+        return; 
+    }
+
+    let bounds = map.getBounds();
+    let featuresEnVista = [];
+
+    for (let i = 0; i < parcelasFeaturesGlobal.length; i++) {
+        let f = parcelasFeaturesGlobal[i];
+        if (f && f._bounds && typeof f._bounds.intersects === 'function') {
+            try {
+                if (bounds.intersects(f._bounds)) {
+                    featuresEnVista.push(f);
+                }
+            } catch (err) {
+                console.warn("Límites inválidos omitidos para evitar ruptura en el visor.", err, f);
+            }
+        }
+    }
+
+    L.geoJSON(featuresEnVista, {
+        pane: 'parcelasPane', 
+        style: f => ({ 
+            color: f.properties.esPH ? "#8e44ad" : "#2980b9", 
+            weight: 0.8, 
+            fillColor: f.properties.esPH ? "#8e44ad" : "#2980b9", 
+            fillOpacity: 0.12 
+        }),
         onEachFeature: (f, l) => {
-            if (f.properties.distrito) {
-                let nombreDistrito = decodificarTexto(f.properties.distrito);
-                l.bindTooltip(nombreDistrito, { permanent: true, direction: 'center', className: 'etiqueta-distrito' }).closeTooltip();
-                var sel = document.getElementById('filtro-distrito');
-                if (!Array.from(sel.options).some(o => o.value === nombreDistrito)) {
-                    var opt = document.createElement('option'); opt.value = nombreDistrito; opt.text = nombreDistrito; sel.add(opt);
+            l.on('click', e => {
+                if (modoMedicion || modoSeleccionManzana) return;
+                let latlng = e.latlng || l.getBounds().getCenter();
+                mostrarPopupDeParcela(f, latlng);
+            });
+        }
+    }).addTo(grupoParcelas);
+}
+
+function controlarVisibilidadDinamica() {
+    let zoomActual = map.getZoom();
+    document.getElementById('zoom-indicator').innerText = zoomActual.toFixed(1);
+
+    const chkPosesiones = document.getElementById('chk-posesiones').checked;
+    if (chkPosesiones && zoomActual >= 14) {
+        if (!map.hasLayer(grupoPosesiones)) {
+            map.addLayer(grupoPosesiones);
+        }
+    } else {
+        if (map.hasLayer(grupoPosesiones)) {
+            map.removeLayer(grupoPosesiones);
+        }
+    }
+
+    const chkSecciones = document.getElementById('chk-secciones').checked;
+    if (chkSecciones) {
+        if (!map.hasLayer(grupoSecciones)) map.addLayer(grupoSecciones);
+        if (zoomActual >= 13) {
+            if (!map.hasLayer(grupoEtiquetasSecciones)) map.addLayer(grupoEtiquetasSecciones);
+        } else {
+            if (map.hasLayer(grupoEtiquetasSecciones)) map.removeLayer(grupoEtiquetasSecciones);
+        }
+    } else {
+        if (map.hasLayer(grupoSecciones)) map.removeLayer(grupoSecciones);
+        if (map.hasLayer(grupoEtiquetasSecciones)) map.removeLayer(grupoEtiquetasSecciones);
+    }
+
+    const chkGrupos = document.getElementById('chk-grupos').checked;
+    if (chkGrupos && zoomActual >= 13) {
+        if (!map.hasLayer(grupoGrupos)) map.addLayer(grupoGrupos);
+        if (zoomActual >= 14) {
+            if (!map.hasLayer(grupoEtiquetasGrupos)) map.addLayer(grupoEtiquetasGrupos);
+        } else {
+            if (map.hasLayer(grupoEtiquetasGrupos)) map.removeLayer(grupoEtiquetasGrupos);
+        }
+    } else {
+        if (map.hasLayer(grupoGrupos)) map.removeLayer(grupoGrupos);
+        if (map.hasLayer(grupoEtiquetasGrupos)) map.removeLayer(grupoEtiquetasGrupos);
+    }
+
+    const chkManzanas = document.getElementById('chk-manzanas').checked;
+    if (chkManzanas && zoomActual >= 14) {
+        if (!map.hasLayer(grupoManzanas)) map.addLayer(grupoManzanas);
+        if (zoomActual >= 15) {
+            if (!map.hasLayer(grupoEtiquetasManzanas)) map.addLayer(grupoEtiquetasManzanas);
+        } else {
+            if (map.hasLayer(grupoEtiquetasManzanas)) map.removeLayer(grupoEtiquetasManzanas);
+        }
+    } else {
+        if (map.hasLayer(grupoManzanas)) map.removeLayer(grupoManzanas);
+        if (map.hasLayer(grupoEtiquetasManzanas)) map.removeLayer(grupoEtiquetasManzanas);
+    }
+
+    const chkCalles = document.getElementById('chk-calles').checked;
+    if (chkCalles && zoomActual >= 15) {
+        if (!map.hasLayer(grupoCalles)) map.addLayer(grupoCalles);
+    } else {
+        if (map.hasLayer(grupoCalles)) map.removeLayer(grupoCalles);
+    }
+
+    const chkParcelas = document.getElementById('chk-parcelas').checked;
+    if (chkParcelas && zoomActual >= 16) {
+        if (!map.hasLayer(grupoParcelas)) {
+            map.addLayer(grupoParcelas);
+        }
+        actualizarParcelasEnVista();
+    } else {
+        if (map.hasLayer(grupoParcelas)) {
+            map.removeLayer(grupoParcelas);
+        }
+        grupoParcelas.clearLayers();
+    }
+
+    /* Control dinámico para capas de preservación */
+    const mapaPreservacion = [
+        { id: 'chk-preserv-total', layer: grupoPreservacion.total },
+        { id: 'chk-preserv-fachadas', layer: grupoPreservacion.fachadas },
+        { id: 'chk-preserv-patrimonial', layer: grupoPreservacion.patrimonial },
+        { id: 'chk-preserv-naturales', layer: grupoPreservacion.naturales },
+        { id: 'chk-preserv-interes', layer: grupoPreservacion.interes },
+        { id: 'chk-preserv-sitios', layer: grupoPreservacion.sitios },
+        { id: 'chk-preserv-corredores', layer: grupoPreservacion.corredores }
+    ];
+
+    mapaPreservacion.forEach(item => {
+        const el = document.getElementById(item.id);
+        if (el && el.checked) {
+            if (!map.hasLayer(item.layer)) map.addLayer(item.layer);
+        } else {
+            if (map.hasLayer(item.layer)) map.removeLayer(item.layer);
+        }
+    });
+}
+
+map.on('zoomend moveend', controlarVisibilidadDinamica);
+
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const toggleIcon = document.getElementById('toggle-icon');
+
+    if (sidebar.classList.contains('-translate-x-full')) {
+        sidebar.classList.remove('-translate-x-full');
+        toggleIcon.classList.remove('rotate-180');
+    } else {
+        sidebar.classList.add('-translate-x-full');
+        toggleIcon.classList.add('rotate-180');
+    }
+}
+
+function cambiarBaseMap(tipo) {
+    map.removeLayer(dark);
+    map.removeLayer(hibrido);
+    map.removeLayer(osm);
+    
+    if (tipo === 'dark') dark.addTo(map);
+    if (tipo === 'hibrido') hibrido.addTo(map);
+    if (tipo === 'osm') osm.addTo(map);
+    // 'none' deja el mapa vacío para exportar puras líneas vectoriales sobre fondo blanco
+}
+
+function toggleOverlay(capa) {
+    controlarVisibilidadDinamica();
+}
+
+function buscarPM() {
+    let val = document.getElementById('input-pm').value.trim();
+    if (!val) return;
+    let encontrado = false;
+    
+    for (let f of parcelasFeaturesGlobal) {
+        if (f.properties.partidas.includes(val)) {
+            let bounds = f._bounds;
+            if (!bounds) continue; 
+
+            let center = bounds.getCenter();
+
+            map.fitBounds(bounds, { maxZoom: 19 });
+            document.getElementById('chk-parcelas').checked = true;
+            
+            controlarVisibilidadDinamica();
+            mostrarPopupDeParcela(f, center);
+            encontrado = true;
+            break;
+        }
+    }
+}
+
+function buscarPredictivoUbicacion(query) {
+    if (!query || query.length < 3) return [];
+    let cleanQuery = query.toUpperCase().trim();
+    let matches = [];
+
+    for (let i = 0; i < listaParcelasUbicacion.length; i++) {
+        let item = listaParcelasUbicacion[i];
+        if (item.texto.startsWith(cleanQuery)) {
+            matches.push(item);
+            if (matches.length >= 10) break; 
+        }
+    }
+
+    if (matches.length < 10) {
+        for (let i = 0; i < listaParcelasUbicacion.length; i++) {
+            let item = listaParcelasUbicacion[i];
+            if (!item.texto.startsWith(cleanQuery) && item.texto.includes(cleanQuery)) {
+                matches.push(item);
+                if (matches.length >= 12) break;
+            }
+        }
+    }
+    return matches;
+}
+
+function configurarBuscadorUbicaciones() {
+    const input = document.getElementById('input-ubicacion');
+    const sug = document.getElementById('sugerencias-ubicacion');
+
+    input.addEventListener('input', () => {
+        let val = input.value;
+        sug.innerHTML = '';
+        if (val.length < 3) {
+            sug.style.display = 'none';
+            return;
+        }
+
+        let matches = buscarPredictivoUbicacion(val);
+
+        if (matches.length > 0) {
+            sug.style.display = 'block';
+            let textosAgregados = new Set();
+
+            matches.forEach(m => {
+                if (!textosAgregados.has(m.texto)) {
+                    textosAgregados.add(m.texto);
+                    let d = document.createElement('div');
+                    d.className = 'px-3 py-1.5 cursor-pointer text-xs text-white bg-slate-900 hover:bg-blue-600 hover:text-white border-b border-slate-800 last:border-none transition duration-150';
+                    d.innerText = m.texto;
+                    d.onclick = () => {
+                        input.value = m.texto;
+                        sug.style.display = 'none';
+                        
+                        if (m.feature) {
+                            let bounds = m.feature._bounds;
+                            if (bounds) {
+                                map.fitBounds(bounds, { maxZoom: 19 });
+                                document.getElementById('chk-parcelas').checked = true;
+                                controlarVisibilidadDinamica();
+                                mostrarPopupDeParcela(m.feature, bounds.getCenter());
+                            } else {
+                                console.warn("Límites espaciales no válidos para este registro predictivo.");
+                            }
+                        }
+                    };
+                    sug.appendChild(d);
+                }
+            });
+        } else {
+            sug.style.display = 'none';
+        }
+    });
+
+    document.addEventListener('click', (e) => {
+        if (e.target !== input && e.target !== sug) {
+            sug.style.display = 'none';
+        }
+    });
+}
+
+function buscarGoogle() {
+    let val = document.getElementById('input-google').value.trim();
+    if (!val) return;
+    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(val + ", Paraná, Entre Ríos")}`)
+        .then(r => r.json()).then(data => {
+            if (data && data.length > 0) {
+                const lat = parseFloat(data[0].lat);
+                const lon = parseFloat(data[0].lon);
+                map.setView([lat, lon], 18);
+                L.marker([lat, lon]).addTo(map).bindPopup(`<b>Resultado Google:</b><br>${val}`).openPopup();
+            }
+        });
+}
+
+var modoMedicion = null; 
+var puntosMedicion = [];
+var grupoCapasMedicion = L.featureGroup().addTo(map);
+var lineaMedicionActiva = null;
+var poligonoMedicionActivo = null;
+var marcadoresPuntosMedicion = [];
+
+function toggleMedicion(tipo) {
+    if (modoMedicion === tipo) {
+        desactivarMedicion();
+    } else {
+        desactivarMedicion();
+        modoMedicion = tipo;
+        
+        let btnDist = document.getElementById('btn-medir-distancia');
+        let btnSup = document.getElementById('btn-medir-superficie');
+        
+        if (tipo === 'distancia') {
+            btnDist.classList.add('border-blue-500', 'bg-blue-950/40', 'text-blue-400');
+        } else {
+            btnSup.classList.add('border-emerald-500', 'bg-emerald-950/40', 'text-emerald-400');
+        }
+
+        document.getElementById('consola-medicion').classList.remove('hidden');
+        document.getElementById('texto-consola-instruccion').innerText = `Modo ${tipo === 'distancia' ? 'Distancia' : 'Superficie'} activo. Haga clic en el mapa...`;
+        document.getElementById('resultado-consola-medicion').innerText = tipo === 'distancia' ? '0.00 m' : '0.00 m²';
+        
+        map.getContainer().style.cursor = 'crosshair';
+        map.closePopup();
+    }
+}
+
+function desactivarMedicion() {
+    modoMedicion = null;
+    
+    let btnDist = document.getElementById('btn-medir-distancia');
+    let btnSup = document.getElementById('btn-medir-superficie');
+    
+    btnDist.className = "flex items-center justify-between gap-3 px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-100 text-xs font-semibold transition border border-transparent hover:border-blue-500/50 focus:outline-none w-36 shadow-md";
+    btnSup.className = "flex items-center justify-between gap-3 px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-100 text-xs font-semibold transition border border-transparent hover:border-emerald-500/50 focus:outline-none w-36 shadow-md";
+
+    document.getElementById('consola-medicion').classList.add('hidden');
+    map.getContainer().style.cursor = '';
+}
+
+function limpiarMedicion() {
+    puntosMedicion = [];
+    grupoCapasMedicion.clearLayers();
+    lineaMedicionActiva = null;
+    poligonoMedicionActivo = null;
+    marcadoresPuntosMedicion = [];
+    document.getElementById('resultado-consola-medicion').innerText = modoMedicion === 'distancia' ? '0.00 m' : '0.00 m²';
+    document.getElementById('texto-consola-instruccion').innerText = 'Dibujo limpio. Haga clic para comenzar de nuevo...';
+}
+
+function finalizarMedicion() {
+    desactivarMedicion();
+}
+
+function calcularAreaPlana(pts) {
+    if (pts.length < 3) return 0;
+    let origin = pts[0];
+    
+    let coords = pts.map(p => {
+        return {
+            y: (p.lat - origin.lat) * 111132.954,
+            x: (p.lng - origin.lng) * 111132.954 * Math.cos(origin.lat * Math.PI / 180)
+        };
+    });
+
+    let area = 0;
+    let j = coords.length - 1;
+    for (let i = 0; i < coords.length; i++) {
+        area += (coords[j].x + coords[i].x) * (coords[j].y - coords[i].y);
+        j = i;
+    }
+    return Math.abs(area / 2);
+}
+
+function actualizarDibujosMedicion(puntosTemporales = null) {
+    if (lineaMedicionActiva) grupoCapasMedicion.removeLayer(lineaMedicionActiva);
+    if (poligonoMedicionActivo) grupoCapasMedicion.removeLayer(poligonoMedicionActivo);
+
+    let pts = puntosTemporales || puntosMedicion;
+    if (pts.length === 0) return;
+
+    if (modoMedicion === 'distancia') {
+        lineaMedicionActiva = L.polyline(pts, {
+            color: '#3b82f6',
+            weight: 3.5,
+            dashArray: '6, 6'
+        }).addTo(grupoCapasMedicion);
+
+        let dTotal = 0;
+        for (let i = 0; i < pts.length - 1; i++) {
+            dTotal += pts[i].distanceTo(pts[i+1]);
+        }
+        let dText = dTotal < 1000 ? `${dTotal.toFixed(2)} m` : `${(dTotal/1000).toFixed(3)} km`;
+        document.getElementById('resultado-consola-medicion').innerText = dText;
+        
+    } else if (modoMedicion === 'superficie') {
+        if (pts.length === 2) {
+            lineaMedicionActiva = L.polyline(pts, {
+                color: '#10b981',
+                weight: 2,
+                dashArray: '3, 3'
+            }).addTo(grupoCapasMedicion);
+            document.getElementById('resultado-consola-medicion').innerText = "Añadir 3er punto...";
+        } else if (pts.length >= 3) {
+            poligonoMedicionActivo = L.polygon(pts, {
+                color: '#10b981',
+                fillColor: '#10b981',
+                fillOpacity: 0.28,
+                weight: 3.5,
+                dashArray: '6, 6'
+            }).addTo(grupoCapasMedicion);
+
+            let area = calcularAreaPlana(pts);
+            let areaText = area < 10000 ? `${area.toFixed(2)} m²` : `${(area/10000).toFixed(4)} ha`;
+            document.getElementById('resultado-consola-medicion').innerText = areaText;
+        }
+    }
+}
+
+map.on('click', function(e) {
+    if (!modoMedicion) return;
+
+    let latlng = e.latlng;
+    puntosMedicion.push(latlng);
+
+    let m = L.circleMarker(latlng, {
+        radius: 5,
+        fillColor: modoMedicion === 'distancia' ? '#3b82f6' : '#10b981',
+        fillOpacity: 1,
+        color: '#ffffff',
+        weight: 1.5,
+        pane: 'atlasLabelsPane'
+    }).addTo(grupoCapasMedicion);
+    
+    marcadoresPuntosMedicion.push(m);
+    actualizarDibujosMedicion();
+    document.getElementById('texto-consola-instruccion').innerText = `Punto ${puntosMedicion.length} añadido con éxito.`;
+});
+
+map.on('mousemove', function(e) {
+    if (!modoMedicion || puntosMedicion.length === 0) return;
+    let latlng = e.latlng;
+    let puntosTemporales = [...puntosMedicion, latlng];
+    actualizarDibujosMedicion(puntosTemporales);
+});
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        if (modoMedicion) desactivarMedicion();
+        if (modoSeleccionManzana) desactivarSeleccionGraficaManzana();
+        cerrarGuia();
+    }
+});
+
+var modoSeleccionManzana = false;
+var manzanaSeleccionadaGeoJSON = null;
+var capaHighlightManzana = L.layerGroup().addTo(map);
+var grupoEtiquetasParcelasMza = L.layerGroup().addTo(map);
+
+function obtenerNumeroManzana(f) {
+    let propNum = "";
+    for (let k in f.properties) {
+        let kLower = k.toLowerCase();
+        if (kLower.includes("manz") || kLower === "nro" || kLower === "num" || kLower.includes("mza")) {
+            propNum = f.properties[k];
+            break;
+        }
+    }
+    if (!propNum && f.properties.nropasd) propNum = f.properties.nropasd;
+    return String(propNum).trim();
+}
+
+function activarSeleccionGraficaManzana() {
+    modoSeleccionManzana = !modoSeleccionManzana;
+    let btn = document.getElementById('btn-sel-grafica-mza');
+    if (modoSeleccionManzana) {
+        btn.classList.add('bg-amber-600', 'text-white', 'border-amber-500');
+        btn.innerText = '📍 Click en una manzana...';
+        map.getContainer().style.cursor = 'help';
+        
+        map.getPane('manzanasPane').style.pointerEvents = 'auto';
+        
+        if (modoMedicion) desactivarMedicion();
+    } else {
+        desactivarSeleccionGraficaManzana();
+    }
+}
+
+function desactivarSeleccionGraficaManzana() {
+    modoSeleccionManzana = false;
+    let btn = document.getElementById('btn-sel-grafica-mza');
+    btn.className = "w-full bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-bold text-xs py-2 px-3 rounded-md transition border border-slate-700 flex items-center justify-center gap-2";
+    btn.innerText = '📍 Seleccionar Gráficamente';
+    map.getContainer().style.cursor = '';
+    
+    map.getPane('manzanasPane').style.pointerEvents = 'none';
+}
+
+function seleccionarManzana(feature, layer) {
+    capaHighlightManzana.clearLayers();
+    manzanaSeleccionadaGeoJSON = feature;
+
+    let propNum = obtenerNumeroManzana(feature);
+
+    L.geoJSON(feature, {
+        style: {
+            color: "#f59e0b",
+            weight: 4,
+            fillColor: "#f59e0b",
+            fillOpacity: 0.25
+        }
+    }).addTo(capaHighlightManzana);
+
+    document.getElementById('panel-etiquetado-mza-acciones').classList.remove('hidden');
+    document.getElementById('lbl-mza-seleccionada').innerText = `Manzana seleccionada: Nº ${decodificarTexto(propNum)}`;
+
+    desactivarSeleccionGraficaManzana();
+}
+
+function encontrarManzanaDeParcela(f_parcela) {
+    if (!f_parcela || !f_parcela._bounds) return null;
+    let centroParcela = f_parcela._bounds.getCenter();
+    let point = [centroParcela.lng, centroParcela.lat];
+    
+    for (let mza of manzanaFeaturesGlobal) {
+        if (mza._fastBounds) {
+            if (point[1] >= mza._fastBounds.minLat && point[1] <= mza._fastBounds.maxLat &&
+                point[0] >= mza._fastBounds.minLng && point[0] <= mza._fastBounds.maxLng) {
+                
+                if (isPointInFeature(point, mza)) {
+                    return mza;
                 }
             }
         }
-    }).addTo(grupoDistritos);
-});
-
-/* ================= CONTROLES Y LEYENDA ================= */
-function label(color, text, isLine = false) { return `<span class="layer-legend-icon ${isLine?'icon-line':''}" style="background:${color}"></span>${text}`; }
-const baseMaps = { "Satélite Híbrido": hibrido, "OpenStreetMap": osm };
-const overlays = {
-    "<b>Catastro y Calles</b>": grupoParcelas,
-    [label('#2980b9', 'Parcelas Catastrales')]: grupoParcelas,
-    [label('#FFFF00', 'Nombres de Calles', true)]: grupoCalles,
-    [label('#d35400', 'Distritos Municipales')]: grupoDistritos,
-    "<b>Preservación</b>": grupoPreservacion.total,
-    [label('#e63946', 'Preservación Total')]: grupoPreservacion.total,
-    [label('#f4a261', 'Preservación Fachadas')]: grupoPreservacion.fachadas,
-    [label('#bc6c25', 'Protección Patrimonial')]: grupoPreservacion.patrimonial,
-    [label('#2a9d8f', 'Áreas Naturales')]: grupoPreservacion.naturales,
-    [label('#8ab17d', 'Áreas de Interés')]: grupoPreservacion.interes,
-    [label('#e9c46a', 'Valor Histórico/Cult.')]: grupoPreservacion.sitios,
-    [label('#a2d2ff', 'Corredores Altura')]: grupoPreservacion.corredores
-};
-L.control.layers(baseMaps, overlays, { collapsed: false }).addTo(map);
-L.Control.geocoder({ position: 'topright' }).addTo(map);
-
-/* ================= BUSCADOR PM ================= */
-function buscarPM() {
-    var val = document.getElementById('input-pm').value.trim();
-    if (!val) return;
-    if (!map.hasLayer(grupoParcelas)) grupoParcelas.addTo(map);
-    parcelasLayers.forEach(layer => {
-        layer.eachLayer(l => {
-            if (l.feature.properties.partidas.map(String).includes(val)) {
-                map.fitBounds(l.getBounds(), { maxZoom: 18 });
-                l.openPopup();
+    }
+    
+    let minMza = null;
+    let minDist = Infinity;
+    for (let mza of manzanaFeaturesGlobal) {
+        if (mza._fastCenter) {
+            let dist = centroParcela.distanceTo(mza._fastCenter);
+            if (dist < minDist) {
+                minDist = dist;
+                minMza = mza;
             }
-        });
-    });
+        }
+    }
+    
+    if (minMza && minDist < 150) {
+        return minMza;
+    }
+    
+    return null;
 }
 
-function filtrarDistritos() {
-    var val = document.getElementById('filtro-distrito').value;
-    if (!lyDistritos) return;
-    lyDistritos.eachLayer(l => {
-        var visible = (val === "todos" || decodificarTexto(l.feature.properties.distrito) === val);
-        l.setStyle({ opacity: visible ? 1 : 0, fillOpacity: visible ? 0.1 : 0 });
-        if (visible && map.hasLayer(grupoDistritos)) l.openTooltip(); else l.closeTooltip();
-    });
+function seleccionarManzanaDeParcela() {
+    if (!ultimaParcelaSeleccionada) return;
+    
+    let mza = encontrarManzanaDeParcela(ultimaParcelaSeleccionada);
+    
+    if (mza) {
+        let tempLayer = L.geoJSON(mza);
+        seleccionarManzana(mza, tempLayer);
+        
+        map.fitBounds(tempLayer.getBounds(), { maxZoom: 18 });
+        map.closePopup();
+    } else {
+        let centro = ultimaParcelaSeleccionada._bounds ? ultimaParcelaSeleccionada._bounds.getCenter() : map.getCenter();
+        L.popup()
+            .setLatLng(centro)
+            .setContent(`<div class="p-2 text-xs font-bold text-slate-850">⚠️ No se pudo determinar la manzana contenedora de forma automática. Intente seleccionarla gráficamente.</div>`)
+            .openOn(map);
+    }
 }
+
+function buscarManzanaPorNumero() {
+    let num = document.getElementById('input-num-mza').value.trim();
+    if (!num) return;
+    
+    let encontrado = false;
+    for (let f of manzanaFeaturesGlobal) {
+        let propNum = obtenerNumeroManzana(f);
+
+        if (propNum.toUpperCase() === num.toUpperCase()) {
+            let tempLayer = L.geoJSON(f);
+            let bounds = tempLayer.getBounds();
+            map.fitBounds(bounds, { maxZoom: 18 });
+            seleccionarManzana(f, tempLayer);
+            encontrado = true;
+            break;
+        }
+    }
+
+    if (!encontrado) {
+        L.popup()
+            .setLatLng(map.getCenter())
+            .setContent(`<div class="p-2 text-xs font-bold text-slate-800">⚠️ No se encontró la Manzana Nº ${num} en el catastro actual.</div>`)
+            .openOn(map);
+    }
+}
+
+function calcularAnguloOrientacionParcela(coordinates) {
+    let pts = coordinates;
+    if (Array.isArray(pts[0]) && Array.isArray(pts[0][0])) {
+        pts = pts[0];
+    }
+    
+    let maxDistSq = 0;
+    let mejorAngulo = 0;
+
+    for (let i = 0; i < pts.length - 1; i++) {
+        let p1 = pts[i];
+        let p2 = pts[i+1];
+        
+        if (p1 && p2) {
+            let dx = (p2[0] - p1[0]) * Math.cos(p1[1] * Math.PI / 180);
+            let dy = p2[1] - p1[1];
+            
+            let distSq = dx * dx + dy * dy;
+            if (distSq > maxDistSq) {
+                maxDistSq = distSq;
+                mejorAngulo = Math.atan2(dy, dx) * 180 / Math.PI;
+            }
+        }
+    }
+
+    if (mejorAngulo > 90) mejorAngulo -= 180;
+    if (mejorAngulo < -90) mejorAngulo += 180;
+    
+    return mejorAngulo;
+}
+
+function etiquetarManzanaSeleccionada() {
+    if (!manzanaSeleccionadaGeoJSON) return;
+    
+    grupoEtiquetasParcelasMza.clearLayers();
+    let contadorLabels = 0;
+    
+    parcelasFeaturesGlobal.forEach(f => {
+        if (!f.geometry || !f.geometry.coordinates) return;
+        if (!f._bounds || typeof f._bounds.getCenter !== 'function') return;
+        
+        try {
+            let center = f._bounds.getCenter();
+            let inside = isPointInFeature([center.lng, center.lat], manzanaSeleccionadaGeoJSON);
+            
+            if (inside) {
+                let labelText = f.properties.nropasd;
+                if (labelText && labelText !== "-") {
+                    let coords = f.geometry.coordinates;
+                    let angulo = calcularAnguloOrientacionParcela(coords);
+                    
+                    let labelHtml = `
+                        <div style="transform: rotate(${-angulo}deg); transform-origin: center center;" class="etiqueta-rotada-parcela">
+                            ${labelText}
+                        </div>
+                    `;
+                    
+                    L.marker(center, {
+                        icon: L.divIcon({
+                            className: 'bg-transparent border-none flex items-center justify-center',
+                            html: labelHtml,
+                            iconSize: [40, 16],
+                            iconAnchor: [20, 8]
+                        }),
+                        interactive: false
+                    }).addTo(grupoEtiquetasParcelasMza);
+                    
+                    contadorLabels++;
+                }
+            }
+        } catch (e) {
+            console.error("Error al etiquetar parcela individual:", e, f);
+        }
+    });
+
+    if (contadorLabels === 0) {
+        L.popup()
+            .setLatLng(map.getCenter())
+            .setContent(`<div class="p-2 text-xs text-slate-800">⚠️ No se encontraron parcelas válidas con datos de 'NROPASD' en esta manzana.</div>`)
+            .openOn(map);
+    }
+}
+
+function limpiarEtiquetasManzana() {
+    grupoEtiquetasParcelasMza.clearLayers();
+    capaHighlightManzana.clearLayers();
+    capaHighlightParcela.clearLayers();
+    manzanaSeleccionadaGeoJSON = null;
+    document.getElementById('panel-etiquetado-mza-acciones').classList.add('hidden');
+}
+
+function activarImpresionDirecta() {
+    let chk = document.getElementById('chk-ver-cuadro-impresion');
+    if (chk) {
+        chk.checked = true;
+        toggleCuadroImpresion();
+    }
+    if (manzanaSeleccionadaGeoJSON) {
+        let mzaLayer = L.geoJSON(manzanaSeleccionadaGeoJSON);
+        map.setView(mzaLayer.getBounds().getCenter(), 18);
+    }
+    let sidebar = document.querySelector('.scrollbar-custom');
+    if (sidebar) {
+        let printSection = Array.from(sidebar.querySelectorAll('h2')).find(el => el.textContent.includes('Impresión'));
+        if (printSection) {
+            printSection.scrollIntoView({ behavior: 'smooth' });
+        }
+    }
+}
+
+var capaPreviewImpresion = L.layerGroup().addTo(map);
+var rectanguloPreview = null;
+
+function obtenerLimitesImpresion(centro, anchoMm, altoMm, escala) {
+    let anchoMetros = (anchoMm / 1000) * escala;
+    let altoMetros = (altoMm / 1000) * escala;
+    
+    let dLat = altoMetros / 111132.954;
+    let dLng = anchoMetros / (111132.954 * Math.cos(centro.lat * Math.PI / 180));
+    
+    let sur = centro.lat - dLat / 2;
+    let norte = centro.lat + dLat / 2;
+    let oeste = centro.lng - dLng / 2;
+    let este = centro.lng + dLng / 2;
+    
+    return L.latLngBounds([sur, oeste], [norte, este]);
+}
+
+// Función geodésica matemática para calcular el zoom exacto de Web Mercator según escala real deseada (a 96 DPI estándar de impresión)
+function calcularZoomParaEscala(escala, lat) {
+    const R = 6378137; // Radio medio terrestre en metros
+    const latRad = lat * Math.PI / 180;
+    // Metros que representa un pixel físico en el papel a 96 DPI (1 inch = 0.0254m = 96px)
+    const metrosPorPixelPapel = (0.0254 / 96) * escala;
+    const C = 2 * Math.PI * R * Math.cos(latRad);
+    const zoom = Math.log2(C / (256 * metrosPorPixelPapel));
+    return zoom;
+}
+
+function actualizarCuadroImpresion() {
+    capaPreviewImpresion.clearLayers();
+    
+    const verCuadro = document.getElementById('chk-ver-cuadro-impresion').checked;
+    if (!verCuadro) return;
+
+    let papel = document.getElementById('select-papel').value;
+    let orientacion = document.getElementById('select-orientacion').value;
+    let escala = parseInt(document.getElementById('select-escala').value);
+    
+    let dim = DIMENSIONES_FISICAS[papel] || DIMENSIONES_FISICAS.a4;
+    let anchoMm = orientacion === 'retrato' ? dim.mapW : dim.mapH;
+    let altoMm = orientacion === 'retrato' ? dim.mapH : dim.mapW;
+
+    let centro = map.getCenter();
+    let bounds = obtenerLimitesImpresion(centro, anchoMm, altoMm, escala);
+
+    rectanguloPreview = L.rectangle(bounds, {
+        color: "#6366f1",
+        weight: 2,
+        dashArray: "6, 6",
+        fillColor: "#6366f1",
+        fillOpacity: 0.08,
+        interactive: false
+    }).addTo(capaPreviewImpresion);
+}
+
+function toggleCuadroImpresion() {
+    const verCuadro = document.getElementById('chk-ver-cuadro-impresion').checked;
+    if (verCuadro) {
+        actualizarCuadroImpresion();
+        map.on('move', actualizarCuadroImpresion);
+    } else {
+        capaPreviewImpresion.clearLayers();
+        map.off('move', actualizarCuadroImpresion);
+    }
+}
+
+function actualizarEstiloPaginaImpresion(papel, orientacion) {
+    let styleId = "dynamic-print-page-style";
+    let styleEl = document.getElementById(styleId);
+    if (!styleEl) {
+        styleEl = document.createElement('style');
+        styleEl.id = styleId;
+        document.head.appendChild(styleEl);
+    }
+    
+    let sizeKeyword = "A4";
+    if (papel === "a3") sizeKeyword = "A3";
+    if (papel === "letter") sizeKeyword = "letter";
+    
+    let orientationKeyword = orientacion === "apaisado" ? "landscape" : "portrait";
+    
+    // Verificamos si la atenuación de satélite (Grayscale + 50% Opacidad) está activa para la impresión
+    let atenuarSatelite = document.getElementById('chk-atenuar-satelite').checked;
+    let filterPrintStyle = "";
+    if (atenuarSatelite) {
+        // Aplica desaturación completa, incrementa el brillo levemente y define una opacidad exacta de 50% en los azulejos de mapa base
+        filterPrintStyle = `
+            .leaflet-tile-container img {
+                filter: grayscale(100%) brightness(1.25) contrast(0.95) opacity(0.5) !important;
+                -webkit-filter: grayscale(100%) brightness(1.25) contrast(0.95) opacity(0.5) !important;
+            }
+        `;
+    }
+    
+    styleEl.innerHTML = `
+        @media print {
+            @page {
+                size: ${sizeKeyword} ${orientationKeyword};
+                margin: 0 !important;
+            }
+            ${filterPrintStyle}
+        }
+    `;
+}
+
+function imprimirMapa() {
+    let papel = document.getElementById('select-papel').value;
+    let orientacion = document.getElementById('select-orientacion').value;
+    let escala = parseInt(document.getElementById('select-escala').value);
+    
+    document.getElementById('print-scale-text').innerText = "ESCALA REAL: 1:" + escala;
+    
+    let hoy = new Date();
+    let dateString = hoy.getDate().toString().padStart(2, '0') + '/' + (hoy.getMonth()+1).toString().padStart(2, '0') + '/' + hoy.getFullYear();
+    document.getElementById('print-date-text').innerText = "FECHA DE EMISIÓN: " + dateString;
+
+    actualizarEstiloPaginaImpresion(papel, orientacion);
+
+    let mapContainer = document.getElementById('map');
+    let originalMapStyle = mapContainer.getAttribute('style') || '';
+    
+    let printWrapper = document.getElementById('print-wrapper');
+    let originalWrapperStyle = printWrapper.getAttribute('style') || '';
+
+    let dim = DIMENSIONES_FISICAS[papel] || DIMENSIONES_FISICAS.a4;
+    let printW_mm = orientacion === 'retrato' ? dim.totalW : dim.totalH;
+    let printH_mm = orientacion === 'retrato' ? dim.totalH : dim.totalW;
+    
+    let mapW_mm = orientacion === 'retrato' ? dim.mapW : dim.mapH;
+    let mapH_mm = orientacion === 'retrato' ? dim.mapH : dim.mapW;
+
+    let dpiFactor = 3.779527559; 
+    let mapW_px = Math.round(mapW_mm * dpiFactor);
+    let mapH_px = Math.round(mapH_mm * dpiFactor);
+
+    document.getElementById('sidebar').style.display = 'none';
+    let panelsFlotantes = document.querySelectorAll('.fixed, .adv-distrito');
+    panelsFlotantes.forEach(p => p.classList.add('print-hidden'));
+
+    // Ocultar de manera definitiva el cuadro de líneas punteadas azules para que no se imprima
+    capaPreviewImpresion.clearLayers();
+
+    printWrapper.style.width = printW_mm + 'mm';
+    printWrapper.style.height = printH_mm + 'mm';
+    printWrapper.style.padding = '18mm 12mm 18mm 12mm'; 
+    printWrapper.style.boxSizing = 'border-box';
+    printWrapper.style.background = '#ffffff';
+
+    mapContainer.style.width = mapW_px + 'px';
+    mapContainer.style.height = mapH_px + 'px';
+    mapContainer.style.flex = 'none'; 
+    mapContainer.style.margin = '4px auto';
+    mapContainer.style.border = '2px solid #000000';
+    mapContainer.style.boxShadow = 'none';
+
+    map.invalidateSize();
+
+    let centro = map.getCenter();
+    
+    // Calculamos y aplicamos el nivel de zoom fraccional geodésico exacto para lograr la escala física seleccionada
+    let exactZoom = calcularZoomParaEscala(escala, centro.lat);
+    map.setView(centro, exactZoom, { animate: false });
+
+    setTimeout(() => {
+        window.print();
+        
+        mapContainer.setAttribute('style', originalMapStyle);
+        printWrapper.setAttribute('style', originalWrapperStyle);
+        
+        document.getElementById('sidebar').style.display = 'flex';
+        panelsFlotantes.forEach(p => p.classList.remove('print-hidden'));
+        
+        map.invalidateSize();
+        controlarVisibilidadDinamica();
+        
+        if (document.getElementById('chk-ver-cuadro-impresion').checked) {
+            actualizarCuadroImpresion();
+        }
+    }, 1200);
+}
+
+configurarBuscadorUbicaciones();
+controlarVisibilidadDinamica();
 </script>
 </body>
 </html>
