@@ -8,13 +8,14 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/leaflet-textpath@1.2.3/leaflet.textpath.min.js"></script>
+    <script src="https://unpkg.com/flatgeobuf@3.22.0/dist/flatgeobuf-geojson.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
 
     <style>
         body { margin:0; padding:0; font-family: 'Inter', sans-serif; background: #0f172a; overflow: hidden; }
         #map { height: 100vh; width: 100%; z-index: 1; }
 
-        /* Mejora crítica de contraste para inputs de búsqueda y login */
+        /* Mejora de contraste para inputs de búsqueda y login */
         input[type="text"], input[type="password"] {
             color: #ffffff !important;
             background-color: #0f172a !important;
@@ -133,8 +134,8 @@
         }
         
         .panel-info-mapa {
-            width: 280px;
-            max-width: 32vw;
+            width: 290px;
+            max-width: 34vw;
             background: transparent;
             border: none;
             box-shadow: none;
@@ -213,8 +214,8 @@
         /* Estilos para etiquetas de CUENCAS */
         .etiqueta-cuenca {
             background: rgba(15, 23, 42, 0.85) !important;
-            border: 1.5px solid #38bdf8 !important;
-            color: #38bdf8 !important;
+            border: 1.5px solid #f97316 !important;
+            color: #f97316 !important;
             font-weight: 800 !important;
             font-size: 10px !important;
             padding: 3px 7px !important;
@@ -227,6 +228,35 @@
             pointer-events: none !important;
         }
 
+        /* Estilos limpios y sin recuadro para COTAS ALTIMÉTRICAS */
+        .cota-div-icon {
+            background: transparent !important;
+            border: none !important;
+        }
+        .cota-marker-container {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #facc15;
+            font-weight: 900;
+            font-size: 10px;
+            text-shadow: 0 0 3px #000, 0 0 5px #000;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+        .cota-label-z {
+            font-size: 7.5px;
+            font-weight: 800;
+            color: #fef08a;
+            background: none !important;
+            border: none !important;
+            box-shadow: none !important;
+            padding: 0 !important;
+            margin-left: 2px;
+            text-shadow: 0 0 3px #000, 0 0 5px #000;
+        }
+
+        /* Ocultar etiquetas generales según nivel de zoom */
         .ocultar-etiquetas .etiqueta-punto-riesgo,
         .ocultar-etiquetas .etiqueta-cuenca {
             display: none !important;
@@ -242,16 +272,45 @@
             align-items: center;
             justify-content: center;
             border-radius: 50%;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 0 6px rgba(0, 0, 0, 0.6);
             transition: transform 0.2s ease-in-out;
         }
         .custom-icon-container:hover {
-            transform: scale(1.2);
+            transform: scale(1.25);
         }
     </style>
 </head>
 
 <body>
+
+<svg style="height:0; width:0; position:absolute; pointer-events:none;">
+  <defs>
+    <!-- Patrón Rayado 45° - Vulnerabilidad Muy Alta (Rojo Oscuro) -->
+    <pattern id="hatch-vulnerabilidad-muy-alta" width="8" height="8" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="8" stroke="#dc2626" stroke-width="2.5" />
+    </pattern>
+    <!-- Patrón Rayado 45° - Vulnerabilidad Alta (Rojo) -->
+    <pattern id="hatch-vulnerabilidad-alta" width="8" height="8" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="8" stroke="#ef4444" stroke-width="2.5" />
+    </pattern>
+    <!-- Patrón Rayado 45° - Vulnerabilidad Media (Naranja) -->
+    <pattern id="hatch-vulnerabilidad-media" width="8" height="8" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="8" stroke="#f97316" stroke-width="2.5" />
+    </pattern>
+    <!-- Patrón Rayado 45° - Vulnerabilidad Baja (Amarillo) -->
+    <pattern id="hatch-vulnerabilidad-baja" width="8" height="8" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="8" stroke="#facc15" stroke-width="2.5" />
+    </pattern>
+    <!-- Patrón Rayado 45° - Vulnerabilidad Residual / Muy Baja (Azul) -->
+    <pattern id="hatch-vulnerabilidad-residual" width="8" height="8" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="8" stroke="#3b82f6" stroke-width="2.5" />
+    </pattern>
+    <!-- Patrón Rayado 45° - Defecto / Inundabilidad General (Cian) -->
+    <pattern id="hatch-vulnerabilidad-defecto" width="8" height="8" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="8" stroke="#06b6d4" stroke-width="2.5" />
+    </pattern>
+  </defs>
+</svg>
 
 <div id="login-modal" class="fixed inset-0 bg-slate-950/95 z-[9999] flex items-center justify-center p-4 backdrop-blur-md">
     <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-6 sm:p-8 w-full max-w-md text-slate-100 space-y-6">
@@ -389,7 +448,7 @@
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
                         <input type="checkbox" id="chk-manzanas" checked onchange="toggleOverlay('manzanas')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
                         <span class="flex items-center gap-2">
-                            <span class="w-3.5 h-3.5 rounded border border-[#ff6b6b] bg-[rgba(255,107,107,0.15)] inline-block"></span>
+                            <span class="w-3.5 h-3.5 rounded border border-[#cbd5e1] bg-[rgba(203,213,225,0.15)] inline-block"></span>
                             <span>Manzanas</span>
                         </span>
                     </label>
@@ -416,40 +475,34 @@
                 <div class="space-y-1">
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
                         <input type="checkbox" id="chk-riesgo-poligonos" checked onchange="toggleOverlay('riesgo-poligonos')" class="rounded bg-slate-800 border-slate-700 text-purple-500 focus:ring-purple-500">
-                        <span class="font-bold">Polígonos de Riesgo (por NAME)</span>
+                        <span class="font-bold">Polígonos de Riesgo</span>
                     </label>
-                    <div class="pl-6 space-y-1 text-[10px] text-slate-400">
-                        <div class="flex items-center gap-2">
-                            <span class="w-3 h-3 rounded border border-white bg-slate-700 inline-block"></span>
-                            <span>Clasificación extraída del texto en 'NAME' (Alto, Medio, Bajo, Residual)</span>
-                        </div>
-                    </div>
                 </div>
 
                 <div class="space-y-1 pt-1">
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
-                        <input type="checkbox" id="chk-cuencas" checked onchange="toggleOverlay('cuencas')" class="rounded bg-slate-800 border-slate-700 text-sky-500 focus:ring-sky-500">
-                        <span class="font-bold">Cuencas Hidrográficas (Sin NAME)</span>
+                        <input type="checkbox" id="chk-cuencas" checked onchange="toggleOverlay('cuencas')" class="rounded bg-slate-800 border-slate-700 text-orange-500 focus:ring-orange-500">
+                        <span class="font-bold">Cuencas Hidrográficas</span>
                     </label>
-                    <div class="pl-6 space-y-1 text-[10px] text-slate-400">
-                        <div class="flex items-center gap-2">
-                            <span class="w-3.5 h-1 border border-sky-400 bg-transparent inline-block"></span>
-                            <span>Transparente / Etiquetado según 'CUENCA_2'</span>
-                        </div>
-                    </div>
                 </div>
 
-                <!-- Capa de Arroyos con rotulado siguiendo la curvatura sin duplicados -->
                 <div class="space-y-1 pt-1">
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
                         <input type="checkbox" id="chk-arroyos" checked onchange="toggleOverlay('arroyos')" class="rounded bg-slate-800 border-slate-700 text-cyan-400 focus:ring-cyan-400">
-                        <span class="font-bold text-cyan-400">🌊 Arroyos / Cursos de Agua</span>
+                        <span class="font-bold text-cyan-400">Arroyos / Cursos de Agua</span>
+                    </label>
+                </div>
+
+                <!-- Capa de Inundabilidad por Grado de Vulnerabilidad con Rayado 45° -->
+                <div class="space-y-1 pt-1">
+                    <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
+                        <input type="checkbox" id="chk-inundabilidad" checked onchange="toggleOverlay('inundabilidad')" class="rounded bg-slate-800 border-slate-700 text-blue-400 focus:ring-blue-400">
+                        <span class="font-bold text-blue-400">💧 Zonas de Inundabilidad</span>
                     </label>
                     <div class="pl-6 space-y-1 text-[10px] text-slate-400">
-                        <div class="flex items-center gap-2">
-                            <span class="w-3.5 h-1 bg-cyan-400 inline-block"></span>
-                            <span>Rotulado curvo único por arroyo (Zoom ≥ 16)</span>
-                        </div>
+                        <div class="flex items-center gap-2"><span class="w-3.5 h-2.5 rounded border border-red-500 inline-block" style="background: repeating-linear-gradient(45deg, #ef4444, #ef4444 1.5px, transparent 1.5px, transparent 3.5px);"></span><span><b>Muy Alta / Alta</b></span></div>
+                        <div class="flex items-center gap-2"><span class="w-3.5 h-2.5 rounded border border-orange-500 inline-block" style="background: repeating-linear-gradient(45deg, #f97316, #f97316 1.5px, transparent 1.5px, transparent 3.5px);"></span><span><b>Media</b></span></div>
+                        <div class="flex items-center gap-2"><span class="w-3.5 h-2.5 rounded border border-yellow-400 inline-block" style="background: repeating-linear-gradient(45deg, #facc15, #facc15 1.5px, transparent 1.5px, transparent 3.5px);"></span><span><b>Baja / Residual</b></span></div>
                     </div>
                 </div>
 
@@ -459,92 +512,97 @@
                         <span class="font-bold">Puntos de Afectación (por Criterio)</span>
                     </label>
                     <div class="pl-6 space-y-1 text-[10px] text-slate-400">
-                        <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-red-500 inline-block"></span><span><b>Alto:</b> Inestabilidad / Relocalización</span></div>
-                        <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-orange-500 inline-block"></span><span><b>Medio:</b> Mitigación / Prevención</span></div>
-                        <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-yellow-400 inline-block"></span><span><b>Bajo:</b> Mantenimiento menor</span></div>
-                        <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-blue-500 inline-block"></span><span><b>Residual:</b> Seguimiento continuo</span></div>
-                        <div class="flex items-center gap-2 text-slate-300 pt-0.5"><span class="w-2 h-2 rounded-full bg-white inline-block"></span><span><b>Etiquetas:</b> Barrio / Vecinal (Zoom ≥ 16)</span></div>
+                        <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-red-500 inline-block"></span><span><b>Alto:</b> Inestabilidad / Relocalización</span></div>
+                        <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-orange-500 inline-block"></span><span><b>Medio:</b> Mitigación / Prevención</span></div>
+                        <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-yellow-400 inline-block"></span><span><b>Bajo:</b> Mantenimiento menor</span></div>
+                        <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-blue-500 inline-block"></span><span><b>Residual:</b> Seguimiento continuo</span></div>
+                        <div class="flex items-center gap-2 text-slate-300 pt-0.5"><span class="w-1.5 h-1.5 rounded-full bg-white inline-block"></span><span><b>Etiquetas:</b> Barrio / Vecinal (Zoom ≥ 16)</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-2 pt-2 border-t border-slate-800">
+                <span class="block text-[10px] font-bold text-emerald-400 uppercase tracking-wide">⛰️ Altimetría e Hidrografía</span>
+                
+                <div class="space-y-1">
+                    <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
+                        <input type="checkbox" id="chk-curvas-nivel" checked onchange="toggleOverlay('curvas-nivel')" class="rounded bg-slate-800 border-slate-700 text-emerald-500 focus:ring-emerald-500">
+                        <span class="font-bold">Curvas de Nivel</span>
+                    </label>
+                    <div class="pl-6 text-[10px] text-slate-400">
+                        Visibles (Zoom ≥ 15) | Rotulado único múltiplos 5m (Zoom ≥ 16)
                     </div>
                 </div>
 
-                <!-- Capas de Emergencias y Reportes -->
-                <div class="space-y-1.5 pt-2 border-t border-slate-800/80">
-                    <span class="block text-[10px] font-bold text-amber-400 uppercase tracking-wide">🚨 Emergencias y Reportes Directos</span>
-                    
+                <div class="space-y-1 pt-1">
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
-                        <input type="checkbox" id="chk-afectaciones-spel" checked onchange="toggleOverlay('afectaciones-spel')" class="rounded bg-slate-800 border-slate-700 text-rose-500 focus:ring-rose-500">
-                        <span class="flex items-center gap-2">
-                            <span class="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block"></span>
-                            <span>Afectaciones Reporte SPel</span>
-                        </span>
+                        <input type="checkbox" id="chk-cotas" checked onchange="toggleOverlay('cotas')" class="rounded bg-slate-800 border-slate-700 text-yellow-400 focus:ring-yellow-400">
+                        <span class="font-bold">Cotas Altimétricas (+)</span>
                     </label>
-
-                    <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
-                        <input type="checkbox" id="chk-afectaciones-1" checked onchange="toggleOverlay('afectaciones-1')" class="rounded bg-slate-800 border-slate-700 text-orange-500 focus:ring-orange-500">
-                        <span class="flex items-center gap-2">
-                            <span class="w-2.5 h-2.5 rounded-full bg-orange-500 inline-block"></span>
-                            <span>Afectaciones Reportes 1</span>
-                        </span>
-                    </label>
-
-                    <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
-                        <input type="checkbox" id="chk-afectaciones-2" checked onchange="toggleOverlay('afectaciones-2')" class="rounded bg-slate-800 border-slate-700 text-amber-500 focus:ring-amber-500">
-                        <span class="flex items-center gap-2">
-                            <span class="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block"></span>
-                            <span>Afectaciones Reportes 2</span>
-                        </span>
-                    </label>
-
-                    <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
-                        <input type="checkbox" id="chk-puntos-apoyo" checked onchange="toggleOverlay('puntos-apoyo')" class="rounded bg-slate-800 border-slate-700 text-emerald-500 focus:ring-emerald-500">
-                        <span class="flex items-center gap-2">
-                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span>
-                            <span>Puntos de Apoyo Logístico Operativo</span>
-                        </span>
-                    </label>
-
-                    <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
-                        <input type="checkbox" id="chk-puntos-criticos" checked onchange="toggleOverlay('puntos-criticos')" class="rounded bg-slate-800 border-slate-700 text-red-600 focus:ring-red-600">
-                        <span class="flex items-center gap-2">
-                            <span class="w-2.5 h-2.5 rounded-full bg-red-600 inline-block"></span>
-                            <span>Puntos Críticos para Emergencia</span>
-                        </span>
-                    </label>
-
-                    <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
-                        <input type="checkbox" id="chk-demandas-1" checked onchange="toggleOverlay('demandas-1')" class="rounded bg-slate-800 border-slate-700 text-cyan-500 focus:ring-cyan-500">
-                        <span class="flex items-center gap-2">
-                            <span class="w-2.5 h-2.5 rounded-full bg-cyan-500 inline-block"></span>
-                            <span>Identificación de Demandas 1</span>
-                        </span>
-                    </label>
-
-                    <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
-                        <input type="checkbox" id="chk-demandas-2" checked onchange="toggleOverlay('demandas-2')" class="rounded bg-slate-800 border-slate-700 text-indigo-500 focus:ring-indigo-500">
-                        <span class="flex items-center gap-2">
-                            <span class="w-2.5 h-2.5 rounded-full bg-indigo-500 inline-block"></span>
-                            <span>Identificación de Demandas 2</span>
-                        </span>
-                    </label>
+                    <div class="pl-6 text-[10px] text-slate-400">
+                        Iconos (+) y Etiqueta Z en Zoom ≥ 18
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div class="space-y-2 pt-2 border-t border-slate-800">
-            <h2 class="text-xs font-extrabold uppercase tracking-widest text-amber-400 border-b border-slate-800 pb-1.5 flex justify-between items-center">
-                <span>📋 Resumen del Informe</span>
-                <span class="text-[9px] bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded font-normal">Julio 2026</span>
-            </h2>
-            <div class="bg-slate-950/40 p-3 rounded-lg border border-slate-800 text-[10px] text-slate-300 space-y-2 leading-relaxed">
-                <p class="font-bold text-slate-100 text-xs border-b border-slate-800 pb-1">Priorización Territorial para la Gestión del Riesgo Socioambiental</p>
-                <p class="text-slate-400">Identificación preliminar de amenazas y sectores de exposición en el ejido urbano de Paraná (Secretaría de Planificación e Infraestructura - UEM).</p>
+            <div class="space-y-1.5 pt-2 border-t border-slate-800/80">
+                <span class="block text-[10px] font-bold text-amber-400 uppercase tracking-wide">🚨 Emergencias y Reportes Directos</span>
                 
-                <div class="bg-slate-900/90 p-2 rounded border border-slate-800 space-y-1">
-                    <p class="font-bold text-amber-300">📊 Diagnóstico & Cifras Clave:</p>
-                    <ul class="list-disc pl-3 text-slate-300 space-y-0.5">
-                        <li><b>~1.105 viviendas</b> potencialmente expuestas a amenazas socioambientales.</li>
-                    </ul>
-                </div>
+                <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
+                    <input type="checkbox" id="chk-afectaciones-spel" checked onchange="toggleOverlay('afectaciones-spel')" class="rounded bg-slate-800 border-slate-700 text-rose-500 focus:ring-rose-500">
+                    <span class="flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-rose-500 inline-block"></span>
+                        <span>Afectaciones Reporte SPel</span>
+                    </span>
+                </label>
+
+                <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
+                    <input type="checkbox" id="chk-afectaciones-1" checked onchange="toggleOverlay('afectaciones-1')" class="rounded bg-slate-800 border-slate-700 text-orange-500 focus:ring-orange-500">
+                    <span class="flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-orange-500 inline-block"></span>
+                        <span>Afectaciones Reportes 1</span>
+                    </span>
+                </label>
+
+                <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
+                    <input type="checkbox" id="chk-afectaciones-2" checked onchange="toggleOverlay('afectaciones-2')" class="rounded bg-slate-800 border-slate-700 text-amber-500 focus:ring-amber-500">
+                    <span class="flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-amber-500 inline-block"></span>
+                        <span>Afectaciones Reportes 2</span>
+                    </span>
+                </label>
+
+                <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
+                    <input type="checkbox" id="chk-puntos-apoyo" checked onchange="toggleOverlay('puntos-apoyo')" class="rounded bg-slate-800 border-slate-700 text-emerald-500 focus:ring-emerald-500">
+                    <span class="flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span>
+                        <span>Puntos de Apoyo Logístico Operativo</span>
+                    </span>
+                </label>
+
+                <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
+                    <input type="checkbox" id="chk-puntos-criticos" checked onchange="toggleOverlay('puntos-criticos')" class="rounded bg-slate-800 border-slate-700 text-red-600 focus:ring-red-600">
+                    <span class="flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-red-600 inline-block"></span>
+                        <span>Puntos Críticos para Emergencia</span>
+                    </span>
+                </label>
+
+                <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
+                    <input type="checkbox" id="chk-demandas-1" checked onchange="toggleOverlay('demandas-1')" class="rounded bg-slate-800 border-slate-700 text-cyan-500 focus:ring-cyan-500">
+                    <span class="flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-cyan-500 inline-block"></span>
+                        <span>Identificación de Demandas 1</span>
+                    </span>
+                </label>
+
+                <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
+                    <input type="checkbox" id="chk-demandas-2" checked onchange="toggleOverlay('demandas-2')" class="rounded bg-slate-800 border-slate-700 text-indigo-500 focus:ring-indigo-500">
+                    <span class="flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-indigo-500 inline-block"></span>
+                        <span>Identificación de Demandas 2</span>
+                    </span>
+                </label>
             </div>
         </div>
 
@@ -568,9 +626,8 @@
         </div>
 
         <div id="descripcion-mapa" class="panel-descripcion">
-            <b>Diagnóstico Preliminar de Riesgo Socioambiental (Julio 2026)</b><br>
-            Estudio elaborado por la Secretaría de Planificación e Infraestructura (UEM).<br><br>
-            🔴 <b>Alto</b> | 🟠 <b>Medio</b> | 🟡 <b>Bajo</b> | 🔵 <b>Residual</b>
+            Priorización Territorial para la Gestión del Riesgo Socioambiental<br>
+            Identificación preliminar de amenazas y sectores de exposición en el ejido urbano de Paraná - Secretaría de Planificación e Infraestructura
         </div>
     </div>
 </div>
@@ -640,6 +697,28 @@ function formatearTextoEtiqueta(texto, maxChars = 20) {
     return lineasFinales.join("<br>");
 }
 
+function calcularLongitudPolyline(layer) {
+    if (!layer || typeof layer.getLatLngs !== 'function') return 0;
+    let latlngs = layer.getLatLngs();
+    if (!latlngs || latlngs.length < 2) return 0;
+    
+    let total = 0;
+    if (Array.isArray(latlngs[0])) {
+        for (let subArr of latlngs) {
+            if (Array.isArray(subArr)) {
+                for (let i = 0; i < subArr.length - 1; i++) {
+                    if (subArr[i] && subArr[i+1]) total += subArr[i].distanceTo(subArr[i+1]);
+                }
+            }
+        }
+    } else {
+        for (let i = 0; i < latlngs.length - 1; i++) {
+            if (latlngs[i] && latlngs[i+1]) total += latlngs[i].distanceTo(latlngs[i+1]);
+        }
+    }
+    return total;
+}
+
 async function fetchGeoJSON(url) {
     const response = await fetch(url);
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
@@ -653,6 +732,67 @@ async function fetchGeoJSON(url) {
     return JSON.parse(text);
 }
 
+// Inyección dinámica de patrones SVG dentro de los elementos SVG creados por Leaflet
+function asegurarDefsSVGEnMapa() {
+    const mapEl = document.getElementById('map');
+    if (!mapEl) return;
+    const svgs = mapEl.querySelectorAll('svg');
+    svgs.forEach(svg => {
+        if (!svg.querySelector('#hatch-vulnerabilidad-muy-alta')) {
+            let defs = svg.querySelector('defs');
+            if (!defs) {
+                defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+                svg.insertBefore(defs, svg.firstChild);
+            }
+            defs.innerHTML += `
+                <pattern id="hatch-vulnerabilidad-muy-alta" width="8" height="8" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+                  <line x1="0" y1="0" x2="0" y2="8" stroke="#dc2626" stroke-width="2.5" />
+                </pattern>
+                <pattern id="hatch-vulnerabilidad-alta" width="8" height="8" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+                  <line x1="0" y1="0" x2="0" y2="8" stroke="#ef4444" stroke-width="2.5" />
+                </pattern>
+                <pattern id="hatch-vulnerabilidad-media" width="8" height="8" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+                  <line x1="0" y1="0" x2="0" y2="8" stroke="#f97316" stroke-width="2.5" />
+                </pattern>
+                <pattern id="hatch-vulnerabilidad-baja" width="8" height="8" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+                  <line x1="0" y1="0" x2="0" y2="8" stroke="#facc15" stroke-width="2.5" />
+                </pattern>
+                <pattern id="hatch-vulnerabilidad-residual" width="8" height="8" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+                  <line x1="0" y1="0" x2="0" y2="8" stroke="#3b82f6" stroke-width="2.5" />
+                </pattern>
+                <pattern id="hatch-vulnerabilidad-defecto" width="8" height="8" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+                  <line x1="0" y1="0" x2="0" y2="8" stroke="#06b6d4" stroke-width="2.5" />
+                </pattern>
+            `;
+        }
+    });
+}
+
+// Carga resiliente de archivos FlatGeobuf con fallback
+async function fetchFGB(url) {
+    try {
+        const features = [];
+        let iter = flatgeobuf.deserialize(url);
+        for await (const f of iter) {
+            features.push(f);
+        }
+        return { type: "FeatureCollection", features };
+    } catch(e) {
+        try {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error(`HTTP error ${response.status}`);
+            const features = [];
+            for await (const f of flatgeobuf.deserialize(response.body)) {
+                features.push(f);
+            }
+            return { type: "FeatureCollection", features };
+        } catch(e2) {
+            console.error("Error al cargar archivo FGB:", url, e2);
+            return { type: "FeatureCollection", features: [] };
+        }
+    }
+}
+
 var map = L.map('map', { 
     center: [-31.745, -60.51], 
     zoom: 12, 
@@ -661,8 +801,11 @@ var map = L.map('map', {
 });
 
 map.createPane('manzanasPane').style.zIndex = 300;
+map.createPane('curvasPane').style.zIndex = 320;
+map.createPane('cotasPane').style.zIndex = 330;
 map.createPane('parcelasPane').style.zIndex = 350;
 map.createPane('cuencasPane').style.zIndex = 370;
+map.createPane('inundabilidadPane').style.zIndex = 372;
 map.createPane('arroyosPane').style.zIndex = 375;
 map.createPane('riesgoPoligonosPane').style.zIndex = 380;
 map.createPane('riesgoPuntosPane').style.zIndex = 400;
@@ -719,7 +862,7 @@ map.on('click', function(e) {
     puntosMedicion.push(e.latlng);
 
     let marker = L.circleMarker(e.latlng, {
-        radius: 5,
+        radius: 4,
         color: '#3b82f6',
         fillColor: '#ffffff',
         fillOpacity: 1,
@@ -821,11 +964,12 @@ fetchGeoJSON(BASE_URL + "calles.geojson").then(data => {
     }).addTo(grupoCalles);
 });
 
+// Manzanas: Gris claro para alto contraste sobre fondo oscuro (#cbd5e1)
 var grupoManzanas = L.layerGroup().addTo(map);
 fetchGeoJSON(BASE_URL + "catastro/manzana.geojson").then(data => {
     L.geoJSON(data, {
         pane: 'manzanasPane',
-        style: { color: "#ff6b6b", weight: 1, fillColor: "transparent", fillOpacity: 0, interactive: false }
+        style: { color: "#cbd5e1", weight: 1, fillColor: "transparent", fillOpacity: 0, interactive: false }
     }).addTo(grupoManzanas);
 });
 
@@ -890,6 +1034,101 @@ archivosCatastro.forEach(file => {
     });
 });
 
+var grupoCurvasNivel = L.layerGroup().addTo(map);
+var grupoCotas = L.layerGroup().addTo(map);
+
+function aplicarTextoCurvaNivel(layer, zoomActual) {
+    if (!layer || !layer._esCurvaMaestra || typeof layer.setText !== 'function') return;
+    
+    // Muestra exactamente 1 etiqueta por curva maestra (múltiplos de 5m) a partir del zoom 16
+    if (zoomActual >= 16) {
+        if (layer._longitud !== undefined && layer._longitud < 60) {
+            layer.setText(null);
+            return;
+        }
+        layer.setText(layer._zVal + " m", {
+            repeat: false, // EXACTAMENTE UNA SOLA COTA CENTRADA POR CURVA
+            center: true,
+            offset: -3,
+            attributes: {
+                fill: '#e2e8f0',
+                'font-weight': '700',
+                'font-size': '10px',
+                'letter-spacing': '0.03em'
+            }
+        });
+    } else {
+        layer.setText(null);
+    }
+}
+
+// Carga e integración unificada de Curvas de Nivel (curvas_nivel_i.fgb + curvas_nivel_p.fgb)
+Promise.all([
+    fetchFGB(BASE_URL + "atlas_pua/curvas_nivel_hidrografia/curvas_nivel_i.fgb"),
+    fetchFGB(BASE_URL + "atlas_pua/curvas_nivel_hidrografia/curvas_nivel_p.fgb")
+]).then(([dataI, dataP]) => {
+    let unificado = {
+        type: "FeatureCollection",
+        features: [...(dataI.features || []), ...(dataP.features || [])]
+    };
+
+    L.geoJSON(unificado, {
+        pane: 'curvasPane',
+        style: function(f) {
+            let rawZ = f.properties.Z ?? f.properties.z ?? f.properties.COTA ?? f.properties.cota ?? 0;
+            let zVal = parseFloat(rawZ);
+            let esMaestra = (!isNaN(zVal) && Math.round(zVal) % 5 === 0);
+            return {
+                color: esMaestra ? '#a1a1aa' : '#52525b',
+                weight: esMaestra ? 1.5 : 0.8,
+                opacity: esMaestra ? 0.9 : 0.65
+            };
+        },
+        onEachFeature: (f, l) => {
+            let rawZ = f.properties.Z ?? f.properties.z ?? f.properties.COTA ?? f.properties.cota;
+            if (rawZ !== undefined && rawZ !== null && rawZ !== "") {
+                let zVal = parseFloat(rawZ);
+                if (!isNaN(zVal)) {
+                    l._zVal = zVal;
+                    if (Math.round(zVal) % 5 === 0) {
+                        l._esCurvaMaestra = true;
+                        l._longitud = calcularLongitudPolyline(l);
+                    }
+                }
+            }
+            l.bindPopup(`<div class="popup-custom"><div class="popup-header" style="color:#10b981;">⛰️ CURVA DE NIVEL</div><b>Cota (Z):</b> ${rawZ} m.s.n.m.</div>`);
+        }
+    }).addTo(grupoCurvasNivel);
+
+    controlarVisibilidadDinamica();
+}).catch(err => console.error("Error al cargar curvas de nivel FGB:", err));
+
+// Carga de Cotas Altimétricas (cotas.fgb) con icono (+) y etiqueta Z limpia a zoom >= 18
+fetchFGB(BASE_URL + "atlas_pua/curvas_nivel_hidrografia/cotas.fgb").then(dataCotas => {
+    L.geoJSON(dataCotas, {
+        pane: 'cotasPane',
+        pointToLayer: (f, latlng) => {
+            let rawZ = f.properties.Z ?? f.properties.z ?? f.properties.COTA ?? f.properties.cota ?? "";
+            let zTexto = decodificarTexto(String(rawZ));
+            
+            let htmlContent = `<div class="cota-marker-container">+<span class="cota-label-z">${zTexto} m</span></div>`;
+            let customIcon = L.divIcon({
+                className: 'cota-div-icon',
+                html: htmlContent,
+                iconSize: [36, 14],
+                iconAnchor: [4, 7]
+            });
+            let marker = L.marker(latlng, { icon: customIcon });
+            return marker;
+        },
+        onEachFeature: (f, l) => {
+            let rawZ = f.properties.Z ?? f.properties.z ?? f.properties.COTA ?? f.properties.cota ?? "";
+            l.bindPopup(`<div class="popup-custom"><div class="popup-header" style="color:#facc15;">📍 COTA ALTIMÉTRICA</div><b>Altitud (Z):</b> ${decodificarTexto(String(rawZ))} m.s.n.m.</div>`);
+        }
+    }).addTo(grupoCotas);
+    controlarVisibilidadDinamica();
+}).catch(err => console.error("Error al cargar cotas.fgb:", err));
+
 function obtenerColorPuntoRiesgo(props) {
     if (!props) return '#ef4444';
     for (let k in props) {
@@ -916,43 +1155,96 @@ function obtenerColorRiesgoDesdeName(props) {
     return obtenerColorPuntoRiesgo(props);
 }
 
+var grupoInundabilidad = L.layerGroup().addTo(map);
+
+function obtenerPatronYColorInundabilidad(props) {
+    if (!props) return { patternUrl: 'url(#hatch-vulnerabilidad-defecto)', color: '#06b6d4', titulo: 'Indefinida' };
+    
+    let textoCompleto = "";
+    for (let k in props) {
+        if (props[k] !== null && props[k] !== undefined) {
+            textoCompleto += " " + String(props[k]).toLowerCase();
+        }
+    }
+    textoCompleto = decodificarTexto(textoCompleto);
+
+    if (textoCompleto.includes('muy alta') || textoCompleto.includes('muy alto') || textoCompleto.includes('critica') || textoCompleto.includes('crítica')) {
+        return { patternUrl: 'url(#hatch-vulnerabilidad-muy-alta)', color: '#dc2626', titulo: 'Muy Alta' };
+    }
+    if (textoCompleto.includes('alta') || textoCompleto.includes('alto')) {
+        return { patternUrl: 'url(#hatch-vulnerabilidad-alta)', color: '#ef4444', titulo: 'Alta' };
+    }
+    if (textoCompleto.includes('media') || textoCompleto.includes('medio') || textoCompleto.includes('moderada') || textoCompleto.includes('moderado')) {
+        return { patternUrl: 'url(#hatch-vulnerabilidad-media)', color: '#f97316', titulo: 'Media' };
+    }
+    if (textoCompleto.includes('baja') || textoCompleto.includes('bajo')) {
+        return { patternUrl: 'url(#hatch-vulnerabilidad-baja)', color: '#facc15', titulo: 'Baja' };
+    }
+    if (textoCompleto.includes('residual') || textoCompleto.includes('muy baja') || textoCompleto.includes('muy bajo')) {
+        return { patternUrl: 'url(#hatch-vulnerabilidad-residual)', color: '#3b82f6', titulo: 'Residual' };
+    }
+    return { patternUrl: 'url(#hatch-vulnerabilidad-defecto)', color: '#06b6d4', titulo: 'En Análisis' };
+}
+
+// Carga e integración robusta de Zonas de Inundabilidad con inyección dinámica de SVG Defs
+fetchFGB(BASE_URL + "riesgo_ambiental/inundabilidad.fgb").then(dataInundabilidad => {
+    if (dataInundabilidad && dataInundabilidad.features && dataInundabilidad.features.length > 0) {
+        L.geoJSON(dataInundabilidad, {
+            pane: 'inundabilidadPane',
+            style: function(f) {
+                let info = obtenerPatronYColorInundabilidad(f.properties);
+                return {
+                    stroke: true,
+                    color: info.color,
+                    weight: 0.5,
+                    opacity: 0.5,
+                    fill: true,
+                    fillColor: info.patternUrl,
+                    fillOpacity: 0.95
+                };
+            },
+            onEachFeature: (f, l) => {
+                let p = f.properties || {};
+                let info = obtenerPatronYColorInundabilidad(p);
+
+                l.on('click', e => {
+                    let latlng = e.latlng || (l.getBounds ? l.getBounds().getCenter() : null);
+                    let sv = latlng ? `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${latlng.lat},${latlng.lng}` : "#";
+
+                    let content = `<div class="popup-custom">
+                        <div class="popup-header" style="color:${info.color};">💧 ZONA DE INUNDABILIDAD (${info.titulo.toUpperCase()})</div>
+                        <table class="table-info">`;
+
+                    for (let [k, v] of Object.entries(p)) {
+                        if (v !== null && v !== undefined && String(v).trim() !== "" && String(v).trim() !== "null") {
+                            content += `<tr><td>${decodificarTexto(k).toUpperCase()}</td><td>${decodificarTexto(String(v))}</td></tr>`;
+                        }
+                    }
+
+                    content += `</table>`;
+                    if (latlng) content += `<a href="${sv}" target="_blank" class="btn-streetview">📍 STREET VIEW</a>`;
+                    content += `</div>`;
+
+                    l.bindPopup(content).openPopup(latlng);
+                });
+            }
+        }).addTo(grupoInundabilidad);
+    }
+    asegurarDefsSVGEnMapa();
+    controlarVisibilidadDinamica();
+}).catch(err => console.error("Error cargando inundabilidad.fgb:", err));
+
 var grupoRiesgoPuntos = L.layerGroup().addTo(map);
 var grupoRiesgoPoligonos = L.layerGroup().addTo(map);
 var grupoCuencas = L.layerGroup().addTo(map);
-
 var grupoArroyos = L.layerGroup().addTo(map);
 
-// Función para calcular la longitud métrica aproximada de un Polyline en Leaflet
-function calcularLongitudPolyline(layer) {
-    if (!layer || typeof layer.getLatLngs !== 'function') return 0;
-    let latlngs = layer.getLatLngs();
-    if (!latlngs || latlngs.length < 2) return 0;
-    
-    let total = 0;
-    if (Array.isArray(latlngs[0])) {
-        for (let subArr of latlngs) {
-            if (Array.isArray(subArr)) {
-                for (let i = 0; i < subArr.length - 1; i++) {
-                    if (subArr[i] && subArr[i+1]) total += subArr[i].distanceTo(subArr[i+1]);
-                }
-            }
-        }
-    } else {
-        for (let i = 0; i < latlngs.length - 1; i++) {
-            if (latlngs[i] && latlngs[i+1]) total += latlngs[i].distanceTo(latlngs[i+1]);
-        }
-    }
-    return total;
-}
-
-// Función encargada de aplicar o quitar la etiqueta del arroyo
 function aplicarTextoArroyo(layer, zoomActual) {
     if (!layer || !layer._nombreArroyo || typeof layer.setText !== 'function') return;
     
-    // Solo se aplica si el zoom es >= 16 Y si es el segmento representante principal del arroyo
     if (zoomActual >= 16 && layer._esRepresentanteEtiqueta) {
         layer.setText(layer._nombreArroyo, {
-            repeat: false, // Garantiza que NO haya duplicación a lo largo del mismo segmento
+            repeat: false,
             center: true,
             offset: -4,
             attributes: {
@@ -984,7 +1276,6 @@ fetchGeoJSON(BASE_URL + "atlas_pua/curvas_nivel_hidrografia/arroyos.geojson").th
                 l._nombreArroyo = nombreLimpio;
             }
 
-            // Hover popup indicativo
             let resumenHover = `<div style="font-size:10px; font-weight:800; color:#06b6d4; text-transform:uppercase;">🌊 ARROYO / CURSO DE AGUA</div>`;
             if (nombreLimpio) resumenHover += `<div style="font-size:10px; color:#334155; font-weight:700;">${nombreLimpio}</div>`;
             l.bindPopup(resumenHover, { closeButton: false, offset: [0, -5] });
@@ -992,7 +1283,6 @@ fetchGeoJSON(BASE_URL + "atlas_pua/curvas_nivel_hidrografia/arroyos.geojson").th
             l.on('mouseover', function() { this.openPopup(); });
             l.on('mouseout', function() { this.closePopup(); });
 
-            // Identificación completa al presionar
             l.on('click', e => {
                 let latlng = e.latlng || (l.getBounds ? l.getBounds().getCenter() : null);
                 let sv = latlng ? `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${latlng.lat},${latlng.lng}` : "#";
@@ -1016,7 +1306,6 @@ fetchGeoJSON(BASE_URL + "atlas_pua/curvas_nivel_hidrografia/arroyos.geojson").th
         }
     }).addTo(grupoArroyos);
 
-    // Agrupar segmentos por nombre único y asignar el rol de representante ÚNICAMENTE al segmento más largo
     let arroyosPorNombre = {};
     geoJsonCapa.eachLayer(l => {
         if (l._nombreArroyo) {
@@ -1046,31 +1335,28 @@ var grupoPuntosCriticos = L.layerGroup().addTo(map);
 var grupoDemandas1 = L.layerGroup().addTo(map);
 var grupoDemandas2 = L.layerGroup().addTo(map);
 
-// GENERADOR DE ICONOS SVG DINÁMICOS ACORDES A CADA DENOMINACIÓN
 function crearIconoPersonalizado(tipo, bgCol = '#f43f5e', iconSvg = '') {
     return L.divIcon({
         className: 'custom-leaflet-marker',
-        html: `<div class="custom-icon-container" style="background-color: ${bgCol}; width: 28px; height: 28px; border: 2px solid #ffffff; box-shadow: 0 2px 6px rgba(0,0,0,0.4);">
+        html: `<div class="custom-icon-container" style="background-color: ${bgCol}; width: 18px; height: 18px; border: 1.5px solid #ffffff;">
                 ${iconSvg}
                </div>`,
-        iconSize: [28, 28],
-        iconAnchor: [14, 14],
-        popupAnchor: [0, -14]
+        iconSize: [18, 18],
+        iconAnchor: [9, 9],
+        popupAnchor: [0, -9]
     });
 }
 
-// ICONOS SVG TEMÁTICOS ESPECÍFICOS
 const ICONOS_SVG = {
-    spel: `<svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>`,
-    afectacion1: `<svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`,
-    afectacion2: `<svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`,
-    logistica: `<svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m0 0h4m-4 0V11m0 0h4"/></svg>`,
-    critico: `<svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`,
-    demanda1: `<svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>`,
-    demanda2: `<svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>`
+    spel: `<svg class="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>`,
+    afectacion1: `<svg class="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`,
+    afectacion2: `<svg class="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`,
+    logistica: `<svg class="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m0 0h4m-4 0V11m0 0h4"/></svg>`,
+    critico: `<svg class="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`,
+    demanda1: `<svg class="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>`,
+    demanda2: `<svg class="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>`
 };
 
-// HELPER GENÉRICO PARA CONFIGURAR CAPAS GEOJSON NUEVAS (HOVER POPUP + IDENTIFICACIÓN COMPLETA DE CAMPOS + STREET VIEW)
 function cargarCapaGeoJSONNuevas(url, grupoTarget, tituloCapa, colorHeader, iconoSvg) {
     fetchGeoJSON(url).then(data => {
         L.geoJSON(data, {
@@ -1078,7 +1364,7 @@ function cargarCapaGeoJSONNuevas(url, grupoTarget, tituloCapa, colorHeader, icon
             style: function(f) {
                 return {
                     color: colorHeader,
-                    weight: 3.5,
+                    weight: 3,
                     opacity: 0.9,
                     fillColor: colorHeader,
                     fillOpacity: 0.35
@@ -1090,7 +1376,6 @@ function cargarCapaGeoJSONNuevas(url, grupoTarget, tituloCapa, colorHeader, icon
             onEachFeature: function(f, l) {
                 let props = f.properties || {};
 
-                // Popup Rápido al pasar el cursor (Hover)
                 let resumenHover = `<div style="font-size:10px; font-weight:800; color:${colorHeader}; text-transform:uppercase;">${tituloCapa}</div>`;
                 let nombreHover = props.Name || props.NAME || props.Nombre || props.nombre || props.DESCRIPCIO || props.descripcio || props.tipo || props.TIPO || "";
                 if (nombreHover) resumenHover += `<div style="font-size:10px; color:#334155; font-weight:600;">${decodificarTexto(String(nombreHover))}</div>`;
@@ -1100,7 +1385,6 @@ function cargarCapaGeoJSONNuevas(url, grupoTarget, tituloCapa, colorHeader, icon
                 l.on('mouseover', function(e) { this.openPopup(); });
                 l.on('mouseout', function(e) { this.closePopup(); });
 
-                // Identificación completa de TODOS los campos al hacer Clic
                 l.on('click', function(e) {
                     let latlng = e.latlng || (l.getBounds ? l.getBounds().getCenter() : null);
                     let sv = latlng ? `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${latlng.lat},${latlng.lng}` : "#";
@@ -1126,7 +1410,6 @@ function cargarCapaGeoJSONNuevas(url, grupoTarget, tituloCapa, colorHeader, icon
     }).catch(err => console.error("Error al cargar capa GeoJSON: " + url, err));
 }
 
-// Carga e integración de Capas
 cargarCapaGeoJSONNuevas(BASE_URL + "riesgo_ambiental/Afectaciones_reporte_desde_SPel.geojson", grupoAfectacionesSpel, "Afectaciones Reporte SPel", "#f43f5e", ICONOS_SVG.spel);
 cargarCapaGeoJSONNuevas(BASE_URL + "riesgo_ambiental/Afectaciones_reportes_1.geojson", grupoAfectaciones1, "Afectaciones Reportes 1", "#f97316", ICONOS_SVG.afectacion1);
 cargarCapaGeoJSONNuevas(BASE_URL + "riesgo_ambiental/Afectaciones_reportes_2.geojson", grupoAfectaciones2, "Afectaciones Reportes 2", "#eab308", ICONOS_SVG.afectacion2);
@@ -1140,12 +1423,11 @@ Promise.all([
     fetchGeoJSON(BASE_URL + "riesgo_ambiental/riesgo_ambiental_poligonos.geojson")
 ]).then(([dataPuntos, dataPoligonos]) => {
     
-    // 1. Puntos de Afectación con Prioridad de Etiquetado por Barrio / Vecinal
     L.geoJSON(dataPuntos, {
         pane: 'riesgoPuntosPane',
         pointToLayer: (f, latlng) => {
             let col = obtenerColorPuntoRiesgo(f.properties);
-            return L.circleMarker(latlng, { radius: 8, fillColor: col, color: '#ffffff', weight: 2.5, opacity: 1, fillOpacity: 0.95 });
+            return L.circleMarker(latlng, { radius: 5, fillColor: col, color: '#ffffff', weight: 2, opacity: 1, fillOpacity: 0.95 });
         },
         onEachFeature: (f, l) => {
             let p = f.properties || {};
@@ -1155,11 +1437,11 @@ Promise.all([
             if (barrio) barrio = decodificarTexto(String(barrio)).trim();
 
             let idPunto = normalizarId(p.NAME || p.name || p.id || p.ID);
-            let textoEtiqueta = barrio || (idPunto ? `Nº ${idPunto}` : "Punto de Riesgo");
+            let textoEtiqueta = barrio || (idPunto ? `Nº ${idPunto}` : "");
 
             if (textoEtiqueta) {
                 l.bindTooltip(formatearTextoEtiqueta(textoEtiqueta, 20), {
-                    permanent: true, direction: 'top', offset: [0, -8], className: 'etiqueta-punto-riesgo'
+                    permanent: true, direction: 'top', offset: [0, -6], className: 'etiqueta-punto-riesgo'
                 });
             }
 
@@ -1176,7 +1458,6 @@ Promise.all([
         }
     }).addTo(grupoRiesgoPuntos);
 
-    // 2. Separar Polígonos con 'NAME' (Polígonos de Riesgo) y Sin 'NAME' (Cuencas)
     let featuresPoligonosRiesgo = [];
     let featuresCuencas = [];
 
@@ -1194,7 +1475,6 @@ Promise.all([
         });
     }
 
-    // 2a. Capa Polígonos de Riesgo (Sólo los que poseen NAME y clasificados por su texto de riesgo)
     L.geoJSON({ type: "FeatureCollection", features: featuresPoligonosRiesgo }, {
         pane: 'riesgoPoligonosPane',
         style: f => {
@@ -1217,16 +1497,15 @@ Promise.all([
         }
     }).addTo(grupoRiesgoPoligonos);
 
-    // 2b. Capa Cuenca (Los polígonos sin NAME, transparentes y etiquetados por CUENCA_2)
     L.geoJSON({ type: "FeatureCollection", features: featuresCuencas }, {
         pane: 'cuencasPane',
         style: {
-            color: '#38bdf8',
+            color: '#f97316',
             fillColor: 'transparent',
-            weight: 1.5,
-            opacity: 0.85,
+            weight: 2,
+            opacity: 0.9,
             fillOpacity: 0,
-            dashArray: '4, 4'
+            dashArray: '6, 6'
         },
         onEachFeature: (f, l) => {
             let p = f.properties || {};
@@ -1244,7 +1523,7 @@ Promise.all([
             l.on('click', e => {
                 let latlng = e.latlng || l.getBounds().getCenter();
                 let sv = `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${latlng.lat},${latlng.lng}`;
-                let content = `<div class="popup-custom"><div class="popup-header" style="color:#38bdf8;">🌊 CUENCA HIDROGRÁFICA</div><table class="table-info">`;
+                let content = `<div class="popup-custom"><div class="popup-header" style="color:#f97316;">🌊 CUENCA HIDROGRÁFICA</div><table class="table-info">`;
                 for (let [k, v] of Object.entries(p)) {
                     if (v && String(v).trim() !== "null") content += `<tr><td>${decodificarTexto(k).toUpperCase()}</td><td>${decodificarTexto(String(v))}</td></tr>`;
                 }
@@ -1277,6 +1556,29 @@ function controlarVisibilidadDinamica() {
     if (document.getElementById('chk-parcelas').checked && zoomActual >= 16) map.addLayer(grupoParcelas);
     else map.removeLayer(grupoParcelas);
 
+    // Curvas de Nivel: líneas visibles a partir de zoom +15 | etiquetas únicas múltiplo de 5m a partir de zoom +16
+    const chkCurvas = document.getElementById('chk-curvas-nivel');
+    if (chkCurvas && chkCurvas.checked && zoomActual >= 15) {
+        if (!map.hasLayer(grupoCurvasNivel)) map.addLayer(grupoCurvasNivel);
+        grupoCurvasNivel.eachLayer(capaGeoJson => {
+            if (capaGeoJson.eachLayer) {
+                capaGeoJson.eachLayer(subLayer => aplicarTextoCurvaNivel(subLayer, zoomActual));
+            } else {
+                aplicarTextoCurvaNivel(capaGeoJson, zoomActual);
+            }
+        });
+    } else {
+        map.removeLayer(grupoCurvasNivel);
+    }
+
+    // Cotas Altimétricas: icono (+) y etiqueta Z sin recuadro visibles a partir de zoom +18
+    const chkCotas = document.getElementById('chk-cotas');
+    if (chkCotas && chkCotas.checked && zoomActual >= 18) {
+        if (!map.hasLayer(grupoCotas)) map.addLayer(grupoCotas);
+    } else {
+        map.removeLayer(grupoCotas);
+    }
+
     if (document.getElementById('chk-riesgo-poligonos').checked) map.addLayer(grupoRiesgoPoligonos);
     else map.removeLayer(grupoRiesgoPoligonos);
 
@@ -1284,7 +1586,15 @@ function controlarVisibilidadDinamica() {
     if (chkCuencas && chkCuencas.checked) map.addLayer(grupoCuencas);
     else map.removeLayer(grupoCuencas);
 
-    // Control de capa Arroyos y rotulado curvado dinámico
+    // Control de capa de Inundabilidad
+    const chkInundabilidad = document.getElementById('chk-inundabilidad');
+    if (chkInundabilidad && chkInundabilidad.checked) {
+        if (!map.hasLayer(grupoInundabilidad)) map.addLayer(grupoInundabilidad);
+        asegurarDefsSVGEnMapa();
+    } else {
+        map.removeLayer(grupoInundabilidad);
+    }
+
     const chkArroyos = document.getElementById('chk-arroyos');
     if (chkArroyos && chkArroyos.checked) {
         if (!map.hasLayer(grupoArroyos)) map.addLayer(grupoArroyos);
@@ -1303,7 +1613,6 @@ function controlarVisibilidadDinamica() {
     if (document.getElementById('chk-riesgo-puntos').checked) map.addLayer(grupoRiesgoPuntos);
     else map.removeLayer(grupoRiesgoPuntos);
 
-    // Control de capas dinámico para las capas de emergencias
     if (document.getElementById('chk-afectaciones-spel') && document.getElementById('chk-afectaciones-spel').checked) map.addLayer(grupoAfectacionesSpel);
     else map.removeLayer(grupoAfectacionesSpel);
 
@@ -1327,6 +1636,7 @@ function controlarVisibilidadDinamica() {
 }
 
 map.on('zoomend', controlarVisibilidadDinamica);
+map.on('layeradd', asegurarDefsSVGEnMapa);
 
 function toggleSidebar() {
     document.getElementById('sidebar').classList.toggle('-translate-x-full');
