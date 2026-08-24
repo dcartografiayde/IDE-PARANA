@@ -293,6 +293,14 @@
                         </span>
                         <input type="checkbox" id="chk-barrios-privados" onclick="toggleCapaSidebar(grupoBarriosPrivados, 'chk-barrios-privados')" class="accent-sky-500 w-4 h-4">
                     </label>
+
+                    <label class="flex items-center justify-between text-xs cursor-pointer text-slate-300 hover:text-white py-1">
+                        <span class="flex items-center">
+                            <span class="layer-legend-icon" style="background:#00b4d8"></span>
+                            Barrios IAPV
+                        </span>
+                        <input type="checkbox" id="chk-barrios-iapv" onclick="toggleCapaSidebar(grupoBarriosIAPV, 'chk-barrios-iapv')" class="accent-sky-500 w-4 h-4">
+                    </label>
                 </div>
             </div>
 
@@ -936,6 +944,7 @@ var grupoLoteosConOrdenanza = L.layerGroup();
 var grupoLoteosConAprobacionProyecto = L.layerGroup();
 var grupoLoteosConOrdenanzaAntiguos = L.layerGroup();
 var grupoBarriosPrivados = L.layerGroup();
+var grupoBarriosIAPV = L.layerGroup();
 
 const setupLoteo = function(file, grupo, color, titulo) {
     fetchGeoJSON(BASE_URL + "backdoor/" + file).then(function(data) {
@@ -947,7 +956,7 @@ const setupLoteo = function(file, grupo, color, titulo) {
                 
                 l.on('click', function(e) {
                     let latlng = e.latlng || l.getBounds().getCenter();
-                    let c = '<div class="popup-custom"><div class="popup-header">LOTEO ' + titulo + '</div><table class="table-info">';
+                    let c = '<div class="popup-custom"><div class="popup-header">' + titulo + '</div><table class="table-info">';
                     for (let [k,v] of Object.entries(f.properties)) { 
                         if(v) c += '<tr><td>' + decodificarTexto(k).toUpperCase() + '</td><td>' + decodificarTexto(String(v)) + '</td></tr>'; 
                     }
@@ -972,7 +981,7 @@ const setupLoteo = function(file, grupo, color, titulo) {
                 let expediente = "";
                 for (let [k, v] of Object.entries(props)) {
                     let keyLower = k.toLowerCase().trim();
-                    if (keyLower.includes("nombre") || keyLower.includes("denominac")) nombre = decodificarTexto(String(v));
+                    if (keyLower.includes("nombre") || keyLower.includes("denominac") || keyLower.includes("barrio")) nombre = decodificarTexto(String(v));
                     if (keyLower.includes("propietario") || keyLower.includes("firma") || keyLower.includes("solicitan") || keyLower.includes("titular")) propietario = decodificarTexto(String(v));
                     
                     if (keyLower.includes("ordenanza") || keyLower === "ord" || keyLower === "ord." || keyLower.includes("nro_ord")) {
@@ -991,7 +1000,7 @@ const setupLoteo = function(file, grupo, color, titulo) {
                     }
                 }
 
-                if (!nombre && (props.nombre || props.Nombre)) nombre = decodificarTexto(String(props.nombre || props.Nombre));
+                if (!nombre && (props.nombre || props.Nombre || props.barrio || props.BARRIO)) nombre = decodificarTexto(String(props.nombre || props.Nombre || props.barrio || props.BARRIO));
 
                 listaLoteosParaBusqueda.push({
                     nombre: String(nombre || "").toUpperCase().trim(),
@@ -1013,6 +1022,7 @@ setupLoteo("loteos_con_ordenanza.geojson", grupoLoteosConOrdenanza, "#FFFF33", "
 setupLoteo("loteos_con_aprobacion_proyecto.geojson", grupoLoteosConAprobacionProyecto, "#FF00FF", "APROB. PROYECTO");
 setupLoteo("loteos_con_ordenanza_antiguos.geojson", grupoLoteosConOrdenanzaAntiguos, "#00FFFF", "ORD. ANTIGUA");
 setupLoteo("loteos_barrios_privados.geojson", grupoBarriosPrivados, "#FF8C00", "BARRIO PRIVADO");
+setupLoteo("barrios_iapv_2026.geojson", grupoBarriosIAPV, "#00b4d8", "BARRIO IAPV");
 
 const grupoPreservacion = {
     total: L.layerGroup(),
@@ -1397,6 +1407,7 @@ function sincronizarCheckboxLoteo(grupo) {
     if (grupo === grupoLoteosConAprobacionProyecto) document.getElementById('chk-loteos-proyecto').checked = true;
     if (grupo === grupoLoteosConOrdenanzaAntiguos) document.getElementById('chk-loteos-antiguos').checked = true;
     if (grupo === grupoBarriosPrivados) document.getElementById('chk-barrios-privados').checked = true;
+    if (grupo === grupoBarriosIAPV) document.getElementById('chk-barrios-iapv').checked = true;
 }
 
 function configurarBuscadorOrdenanzas() {
