@@ -198,24 +198,30 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
         }
 
-        /* Etiquetas sutiles y finas sobre el parcelario para no obstruir planos catastrales */
+        /* Etiquetas sutiles y finas sobre el parcelario adaptadas para multilinea */
         .etiqueta-rotada-parcela {
             font-family: 'Inter', sans-serif;
             color: rgba(255, 255, 255, 0.95);
-            font-weight: 500;
+            font-weight: 600;
             font-size: 7.5px;
+            line-height: 1.1;
             text-align: center;
             background: transparent !important;
             border: none !important;
             box-shadow: none !important;
             text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
-            white-space: nowrap;
+            white-space: normal;
+            word-break: break-word;
             pointer-events: none !important;
             display: inline-block;
         }
 
         /* Ocultar elementos de impresión de forma predeterminada en pantalla */
         .print-only {
+            display: none !important;
+        }
+
+        #print-advertencia-posesiones {
             display: none !important;
         }
 
@@ -230,7 +236,7 @@
                 padding: 0 !important;
             }
             
-            #sidebar, .fixed, .adv-distrito, .leaflet-control-zoom, .leaflet-control-attribution, #toggle-icon, button, #consola-medicion, #modal-guia, #login-overlay {
+            #sidebar, .fixed, .adv-distrito, .leaflet-control-zoom, .leaflet-control-attribution, #toggle-icon, button, #consola-medicion, #modal-guia, #login-overlay, #cuadro-advertencia-posesiones-mza {
                 display: none !important;
             }
             .print-hidden {
@@ -242,10 +248,14 @@
                 display: block !important;
             }
 
+            #print-advertencia-posesiones.active {
+                display: block !important;
+            }
+
             /* Estilo cartográfico puro impreso: negro sin halo molesto */
             .etiqueta-rotada-parcela {
                 color: #000000 !important;
-                font-weight: 500 !important;
+                font-weight: 600 !important;
                 font-size: 7px !important;
                 text-shadow: none !important;
                 background: none !important;
@@ -300,7 +310,6 @@
 
 <body>
 
-<!-- OVERLAY DE AUTENTICACIÓN Y LOGIN RESTRINGIDO -->
 <div id="login-overlay" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-[5000] flex items-center justify-center p-4 transition-opacity duration-500">
     <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl text-slate-100 space-y-5 relative">
         <div class="text-center space-y-2 border-b border-slate-800 pb-4">
@@ -359,6 +368,15 @@
                 <span style="font-size: 7px; font-weight: 600; color: #777; display: block;" id="print-date-text">FECHA: --/--/----</span>
             </div>
         </div>
+
+        <!-- Cuadro Advertencia de Posesiones para Impresión -->
+        <div id="print-advertencia-posesiones" style="display: none; border: 2px solid #e11d48; background-color: #fff1f2; padding: 4px 8px; margin-top: 4px; border-radius: 4px; font-family: 'Inter', sans-serif;">
+            <div style="font-size: 9px; font-weight: 900; color: #be185d; text-transform: uppercase;">
+                ⚠️ EXISTEN POSESIONES EN LA MANZANA SELECCIONADA
+            </div>
+            <div id="print-lista-posesiones-mza-contenido" style="font-size: 8px; color: #1e293b; margin-top: 2px; line-height: 1.3;">
+            </div>
+        </div>
     </div>
 
     <!-- Contenedor del Mapa Georreferenciado -->
@@ -382,7 +400,6 @@
 
 </div>
 
-<!-- Menú Lateral (Sidebar de Consultas y Edición) -->
 <div id="sidebar" class="fixed top-0 left-0 h-full w-[360px] max-w-[85vw] bg-slate-900 border-r border-slate-800 text-slate-100 flex flex-col z-[1000] shadow-2xl transition-transform duration-300 ease-in-out transform">
     
     <!-- Encabezado con botón de logout -->
@@ -451,7 +468,6 @@
             </div>
         </div>
 
-        <!-- Herramienta de Etiquetado de Manzanas -->
         <div class="space-y-4">
             <h2 class="text-xs font-extrabold uppercase tracking-widest text-slate-400 border-b border-slate-800 pb-1.5">Etiquetado de Manzanas</h2>
             
@@ -472,9 +488,21 @@
             <div id="panel-etiquetado-mza-acciones" class="hidden space-y-2 p-3 bg-slate-950/40 border border-slate-800 rounded-lg">
                 <p class="text-[10px] text-amber-400 font-semibold" id="lbl-mza-seleccionada">Manzana seleccionada: N/A</p>
                 
+                <!-- Selector del campo para etiquetado catastral -->
+                <div class="space-y-1 my-2">
+                    <label for="select-campo-etiqueta" class="text-[10px] font-bold text-slate-400 uppercase tracking-wide block">Campo para etiquetar</label>
+                    <select id="select-campo-etiqueta" onchange="if (grupoEtiquetasParcelasMza.getLayers().length > 0) etiquetarManzanaSeleccionada();" class="w-full bg-slate-950 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-blue-500 transition">
+                        <option value="NROPASD" selected>NROPASD (Nº de Partida)</option>
+                        <option value="PARC">PARC (Nº de Parcela)</option>
+                        <option value="PROPIE1">PROPIE1 (Propietario - GeoServer WMS)</option>
+                        <option value="PLANOME">PLANOME (Plano Mensura)</option>
+                        <option value="UBIPAR1">UBIPAR1 (Ubicación)</option>
+                    </select>
+                </div>
+
                 <div class="flex gap-2">
-                    <button id="btn-etiquetar-mza" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs py-2 px-3 rounded-md transition shadow" onclick="etiquetarManzanaSeleccionada()">
-                        🏷️ Etiquetar Partidas
+                    <button id="btn-etiquetar-mza" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs py-2 px-3 rounded-md transition shadow flex items-center justify-center gap-1" onclick="etiquetarManzanaSeleccionada()">
+                        <span>🏷️ Etiquetar</span>
                     </button>
                     <button class="bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs py-2 px-3 rounded-md transition shadow" onclick="limpiarEtiquetasManzana()">
                         Limpiar
@@ -489,7 +517,6 @@
             </div>
         </div>
 
-        <!-- Bloque de Impresión Catastral -->
         <div class="space-y-4">
             <h2 class="text-xs font-extrabold uppercase tracking-widest text-slate-400 border-b border-slate-800 pb-1.5">Impresión Catastral</h2>
             
@@ -511,10 +538,12 @@
                 </div>
             </div>
 
+            <!-- Opciones de Escala incluyendo 1:750 -->
             <div class="space-y-1">
                 <label class="text-[9px] font-bold text-slate-400 uppercase">Escala</label>
                 <select id="select-escala" onchange="actualizarCuadroImpresion()" class="w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-xs text-white">
                     <option value="500">1:500</option>
+                    <option value="750">1:750</option>
                     <option value="1000" selected>1:1000</option>
                     <option value="2000">1:2000</option>
                     <option value="5000">1:5000</option>
@@ -542,7 +571,6 @@
             </div>
         </div>
 
-        <!-- Bloque de Capas -->
         <div class="space-y-4">
             <h2 class="text-xs font-extrabold uppercase tracking-widest text-slate-400 border-b border-slate-800 pb-1.5">Control de capas</h2>
             
@@ -588,7 +616,7 @@
                         </span>
                     </label>
                     
-                    <!-- CAPA GEOSERVER WMS AGREGADA QUIRÚRGICAMENTE -->
+                    <!-- CAPA GEOSERVER WMS -->
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
                         <input type="checkbox" id="chk-geoserver-parcelas" onchange="toggleOverlay('geoserver')" class="rounded bg-slate-800 border-slate-700 text-emerald-500 focus:ring-emerald-500">
                         <span class="flex items-center gap-2">
@@ -634,7 +662,7 @@
             <h2 class="text-xs font-extrabold uppercase tracking-widest text-slate-400 border-b border-slate-800 pb-1.5">Información útil</h2>
             <div class="text-[11px] text-slate-400 space-y-1.5 leading-relaxed bg-slate-950/20 p-3 rounded-lg border border-slate-850">
                 <p>📏 Use el panel flotante derecho para realizar mediciones de distancia y área.</p>
-                <p>🌐 La capa GeoServer WMS transmite parcelas en tiempo real desde `ide.parana.gob.ar`.</p>
+                <p>🌐 La capa GeoServer WMS transmite parcelas y propietarios (`PROPIE1`) en tiempo real desde `ide.parana.gob.ar`.</p>
                 <p>⚡ Las parcelas catastrales se cargan dinámicamente según la extensión del visor a partir del zoom 16 para optimizar el rendimiento.</p>
                 <p>⚠️ Las posesiones se dibujan con bordes gruesos e interactúan directamente con las parcelas al realizar consultas.</p>
                 <button onclick="abrirGuia()" class="w-full text-left text-blue-400 hover:text-blue-300 font-bold underline mt-2 flex items-center gap-1 cursor-pointer">
@@ -653,7 +681,6 @@
     </button>
 </div>
 
-<!-- Cuadro Informativo de Distritos con indicador de Zoom -->
 <div class="adv-distrito">
     <div id="panel-info-mapa" class="panel-info-mapa">
         <div class="panel-header">
@@ -687,7 +714,6 @@
     </div>
 </div>
 
-<!-- Panel Flotante de Herramientas de Medición y Guía -->
 <div class="fixed right-4 top-4 flex flex-col gap-2 z-[1000] bg-slate-900/95 border border-slate-800 p-2 rounded-xl shadow-2xl transition-all duration-300">
     <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest text-center mb-1 border-b border-slate-800/60 pb-1.5">Herramientas</div>
     
@@ -732,7 +758,31 @@
     </div>
 </div>
 
-<!-- MODAL INTERACTIVO - GUÍA DE FUNCIONAMIENTO -->
+<!-- Cuadro Flotante de Advertencia: Posesiones en Manzana Seleccionada -->
+<div id="cuadro-advertencia-posesiones-mza" class="hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-[2500] max-w-lg w-[92vw] sm:w-[480px] bg-slate-950/95 border-2 border-rose-600/90 rounded-2xl shadow-2xl p-4 text-slate-100 backdrop-blur-md transition-all duration-300 pointer-events-auto">
+    <div class="flex justify-between items-start border-b border-rose-900/60 pb-2 mb-2.5">
+        <div class="flex items-center gap-2">
+            <span class="p-1.5 bg-rose-600/20 text-rose-400 border border-rose-500/30 rounded-lg animate-pulse">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+            </span>
+            <div>
+                <h3 class="text-xs font-black text-rose-400 uppercase tracking-wider">⚠️ EXISTEN POSESIONES EN LA MANZANA</h3>
+                <p class="text-[9px] font-bold text-slate-400">Afecciones o registros de ocupación detectados</p>
+            </div>
+        </div>
+        <button onclick="cerrarCuadroAdvertenciaPosesiones()" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition" title="Cerrar advertencia">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+    </div>
+    <div id="lista-posesiones-mza-contenido" class="max-h-40 overflow-y-auto space-y-2 pr-1 scrollbar-custom text-[11px] text-slate-300">
+        <!-- Se completa dinámicamente -->
+    </div>
+</div>
+
 <div id="modal-guia" class="fixed inset-0 z-[3000] hidden flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4 print:hidden transition-opacity duration-300">
     <div class="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-3xl max-h-[85vh] flex flex-col text-slate-100 overflow-hidden">
         
@@ -800,9 +850,9 @@
                     <p><strong class="text-white">Mapas Base:</strong> Oscuro, Híbrido Satelital, OpenStreetMap o Sin Mapa Base (Fondo Blanco).</p>
                     <p><strong class="text-white">Capas Vectoriales e Integración GeoServer:</strong></p>
                     <ul class="list-disc list-inside text-[10px] text-slate-300 space-y-0.5 pl-2">
-                        <li><strong>Parcelario GeoServer (WMS):</strong> Transmisión en directo del parcelario completo desde `ide.parana.gob.ar` con consultas en tiempo real.</li>
-                        <li><strong>Posesiones (1 y 2):</strong> Trazados destacados en bordes rojos/rosados para terrenos con ocupación o registro activo.</li>
-                        <li><strong>Parcelas Catastrales:</strong> Visibles a partir de zoom 16. Distingue dominio individual y Propiedad Horizontal (PH).</li>
+                        <li><strong>Parcelario GeoServer (WMS/WFS):</strong> Transmisión en directo del parcelario completo desde `ide.parana.gob.ar` con consultas en tiempo real de titulares (`PROPIE1`).</li>
+                        <li><strong>Posesiones (1 y 2):</strong> Trazados destacados en bordes rojos/rosados para terrenos con ocupación o registro activo. Al seleccionar una manzana con posesiones, se activa una alerta flotante enumerada (visible en pantalla e impresión).</li>
+                        <li><strong>Parcelas Catastrales:</strong> Visibles a partir de zoom 16. Distingue dominio individual y Propiedad Horizontal (PH) etiquetando rangos (ej. 101254 a 101256).</li>
                         <li><strong>Manzanas, Grupos, Secciones y Nombres de Calles:</strong> Capas del atlas urbano municipal.</li>
                     </ul>
                 </div>
@@ -1304,7 +1354,6 @@ fetchGeoJSON(BASE_URL + "catastro/manzana.geojson").then(data => {
     controlarVisibilidadDinamica(); 
 }).catch(err => console.error("Error al cargar manzanas:", err));
 
-/* ================= PARCELAS LOCALES ================= */
 var grupoParcelas = L.layerGroup().addTo(map);
 var parcelasLayers = [];
 var listaParcelasUbicacion = [];
@@ -1362,10 +1411,11 @@ Promise.allSettled(
                     geometry: base.geometry,
                     properties: {
                         esPH: g.length > 1,
-                        partidas: g.map(x => String(x.properties.nropasd || x.properties.nropas || "").trim()),
+                        partidas: g.map(x => String(x.properties.nropasd || x.properties.nropas || "").trim()).filter(Boolean),
                         nropasd: String(base.properties.nropasd || "").trim(),
                         ubicacion: base.properties.ubipar1 || "-",
-                        full: base.properties
+                        full: base.properties,
+                        elementosPH: g.map(x => x.properties)
                     }
                 };
             });
@@ -1794,7 +1844,6 @@ function buscarGoogle() {
         });
 }
 
-/* ================= HERRAMIENTA DE MEDICIÓN ================= */
 var modoMedicion = null; 
 var puntosMedicion = [];
 var grupoCapasMedicion = L.featureGroup().addTo(map);
@@ -1954,7 +2003,6 @@ document.addEventListener('keydown', function(e) {
     }
 });
 
-/* ================= MANZANAS Y ETIQUETADO DE PARCELAS ================= */
 var modoSeleccionManzana = false;
 var manzanaSeleccionadaGeoJSON = null;
 var capaHighlightManzana = L.layerGroup().addTo(map);
@@ -1996,6 +2044,122 @@ function desactivarSeleccionGraficaManzana() {
     map.getPane('manzanasPane').style.pointerEvents = 'none';
 }
 
+/* FUNCION PAR ESCANEAR Y DECTECTAR POSESIONES DENTRO DE LA MANZANA SELECCIONADA */
+function verificarPosesionesEnManzana(manzanaFeature) {
+    if (!manzanaFeature || !manzanaFeature.geometry) return [];
+
+    let posesionesCoincidentes = [];
+    let todasPosesiones = [
+        ...posesiones1Features.map(f => ({ feature: f, capa: 'Posesiones Capa 1' })),
+        ...posesiones2Features.map(f => ({ feature: f, capa: 'Posesiones Capa 2' }))
+    ];
+
+    todasPosesiones.forEach(pObj => {
+        let f = pObj.feature;
+        if (!f || !f.geometry) return;
+
+        try {
+            let tempLayer = L.geoJSON(f);
+            let bounds = tempLayer.getBounds();
+            if (!bounds || typeof bounds.isValid !== 'function' || !bounds.isValid()) return;
+            
+            let center = bounds.getCenter();
+            let point = [center.lng, center.lat];
+
+            let dentro = isPointInFeature(point, manzanaFeature);
+
+            if (!dentro) {
+                // Verificar si algún vértice de la posesión está dentro de la manzana
+                let coords = f.geometry.type === "Polygon" ? f.geometry.coordinates[0] : 
+                             (f.geometry.type === "MultiPolygon" ? f.geometry.coordinates[0][0] : []);
+                if (coords && coords.length > 0) {
+                    for (let i = 0; i < coords.length; i += Math.max(1, Math.floor(coords.length / 6))) {
+                        if (isPointInFeature(coords[i], manzanaFeature)) {
+                            dentro = true;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (dentro) {
+                let p = f.properties || {};
+                let partidaNum = p.nropasd || p.NROPASD || p.nropas || p.NROPARSD || p.partida || p.PARTIDA || p.PM || "S/N";
+                let titular = p.titular || p.TITULAR || p.propie1 || p.PROPIE1 || p.nombre || p.NOMBRE || "TITULAR NO REGISTRADO";
+                let ubicar = p.ubipar1 || p.UBIPAR1 || p.ubicacion || p.UBICACION || "-";
+
+                posesionesCoincidentes.push({
+                    capa: pObj.capa,
+                    partida: decodificarTexto(String(partidaNum)),
+                    titular: decodificarTexto(String(titular)),
+                    ubicacion: decodificarTexto(String(ubicar)),
+                    raw: p
+                });
+            }
+        } catch(err) {
+            console.error("Error al evaluar posesión en manzana:", err);
+        }
+    });
+
+    return posesionesCoincidentes;
+}
+
+function mostrarAdvertenciaPosesionesManzana(manzanaFeature) {
+    const cuadroAlert = document.getElementById('cuadro-advertencia-posesiones-mza');
+    const listaContenido = document.getElementById('lista-posesiones-mza-contenido');
+    const printCuadroAlert = document.getElementById('print-advertencia-posesiones');
+    const printListaContenido = document.getElementById('print-lista-posesiones-mza-contenido');
+    if (!cuadroAlert || !listaContenido) return;
+
+    let posesionesCoincidentes = verificarPosesionesEnManzana(manzanaFeature);
+
+    if (posesionesCoincidentes.length > 0) {
+        let htmlList = '';
+        let printHtmlList = '';
+
+        posesionesCoincidentes.forEach((pos, idx) => {
+            htmlList += `
+                <div class="p-2 bg-rose-950/40 border border-rose-800/80 rounded-xl space-y-1 hover:bg-rose-900/40 transition">
+                    <div class="flex justify-between items-center text-[10px] font-extrabold text-rose-300">
+                        <span>#${idx + 1} — Partida (NROPARSD): <strong class="text-white font-mono">${pos.partida}</strong></span>
+                        <span class="text-[8px] uppercase bg-rose-900/60 px-1.5 py-0.5 rounded text-rose-200 border border-rose-700/50">${pos.capa}</span>
+                    </div>
+                    ${pos.titular && pos.titular !== 'TITULAR NO REGISTRADO' ? `<p class="text-[10px] text-slate-200"><strong>Titular:</strong> ${pos.titular}</p>` : ''}
+                    ${pos.ubicacion && pos.ubicacion !== '-' ? `<p class="text-[9px] text-slate-400"><strong>Ubicación:</strong> ${pos.ubicacion}</p>` : ''}
+                </div>
+            `;
+
+            printHtmlList += `
+                <div style="border-bottom: 1px dashed #cbd5e0; padding: 2px 0;">
+                    <strong>#${idx + 1} — Partida (NROPARSD): ${pos.partida}</strong> [${pos.capa}]
+                    ${pos.titular && pos.titular !== 'TITULAR NO REGISTRADO' ? ` | <strong>Titular:</strong> ${pos.titular}` : ''}
+                    ${pos.ubicacion && pos.ubicacion !== '-' ? ` | <strong>Ubicación:</strong> ${pos.ubicacion}` : ''}
+                </div>
+            `;
+        });
+        
+        listaContenido.innerHTML = htmlList;
+        cuadroAlert.classList.remove('hidden');
+
+        if (printListaContenido && printCuadroAlert) {
+            printListaContenido.innerHTML = printHtmlList;
+            printCuadroAlert.classList.add('active');
+        }
+    } else {
+        cerrarCuadroAdvertenciaPosesiones();
+    }
+}
+
+function cerrarCuadroAdvertenciaPosesiones() {
+    const cuadroAlert = document.getElementById('cuadro-advertencia-posesiones-mza');
+    const printCuadroAlert = document.getElementById('print-advertencia-posesiones');
+    const printListaContenido = document.getElementById('print-lista-posesiones-mza-contenido');
+    
+    if (cuadroAlert) cuadroAlert.classList.add('hidden');
+    if (printCuadroAlert) printCuadroAlert.classList.remove('active');
+    if (printListaContenido) printListaContenido.innerHTML = '';
+}
+
 function seleccionarManzana(feature, layer) {
     capaHighlightManzana.clearLayers();
     manzanaSeleccionadaGeoJSON = feature;
@@ -2013,6 +2177,9 @@ function seleccionarManzana(feature, layer) {
 
     document.getElementById('panel-etiquetado-mza-acciones').classList.remove('hidden');
     document.getElementById('lbl-mza-seleccionada').innerText = `Manzana seleccionada: Nº ${decodificarTexto(propNum)}`;
+
+    // Evaluar y mostrar advertencia de posesiones en la manzana (pantalla e impresión)
+    mostrarAdvertenciaPosesionesManzana(feature);
 
     desactivarSeleccionGraficaManzana();
 }
@@ -2124,9 +2291,181 @@ function calcularAnguloOrientacionParcela(coordinates) {
     return mejorAngulo;
 }
 
-function etiquetarManzanaSeleccionada() {
+/* DIVISIÓN DE TEXTO EN VARIAS LÍNEAS CUANDO SUPERA LOS 20 CARACTERES */
+function formatearTextoMultilinea(texto, maxChars = 20) {
+    if (!texto || typeof texto !== 'string' || texto.length <= maxChars) return texto;
+    let palabras = texto.trim().split(/\s+/);
+    let lineas = [];
+    let lineaActual = "";
+
+    for (let p of palabras) {
+        if ((lineaActual + " " + p).trim().length <= maxChars) {
+            lineaActual = (lineaActual + " " + p).trim();
+        } else {
+            if (lineaActual) lineas.push(lineaActual);
+            lineaActual = p;
+        }
+    }
+    if (lineaActual) lineas.push(lineaActual);
+    return lineas.join("<br>");
+}
+
+/* FORMATO DE RANGOS DE VALORES PARA PH ("101254 a 101256") */
+function formatearRangoValores(arr) {
+    if (!arr || arr.length === 0) return "";
+    let limpios = Array.from(new Set(arr.map(v => String(v).trim()).filter(v => v && v !== "-" && v !== "0")));
+    if (limpios.length === 0) return "";
+    if (limpios.length === 1) return limpios[0];
+
+    // Intentar ordenamiento numérico si todos son números
+    let nums = limpios.map(v => parseInt(v, 10)).filter(n => !isNaN(n));
+    if (nums.length === limpios.length) {
+        let min = Math.min(...nums);
+        let max = Math.max(...nums);
+        if (min !== max) {
+            return `${min} a ${max}`;
+        }
+        return `${min}`;
+    }
+    
+    return `${limpios[0]} a ${limpios[limpios.length - 1]}`;
+}
+
+function obtenerValorCampoSimple(f, claves) {
+    if (!f || !f.properties) return "";
+    for (let k of claves) {
+        if (f.properties[k] !== undefined && f.properties[k] !== null && String(f.properties[k]).trim() !== "" && String(f.properties[k]).trim() !== "-") {
+            return String(f.properties[k]).trim();
+        }
+        if (f.properties.full && f.properties.full[k] !== undefined && f.properties.full[k] !== null && String(f.properties.full[k]).trim() !== "" && String(f.properties.full[k]).trim() !== "-") {
+            return String(f.properties.full[k]).trim();
+        }
+    }
+    return "";
+}
+
+function obtenerEtiquetaParaParcela(f, campo, geoServerFeatures) {
+    let campoUpper = (campo || "NROPASD").toUpperCase().trim();
+
+    // 1. CASO PROPIE1: Usar Capa GeoServer WMS/WFS
+    if (campoUpper === "PROPIE1" || campoUpper === "PROPIETARIO") {
+        let esPH = f.properties.esPH;
+
+        let geoMatch = null;
+        if (geoServerFeatures && geoServerFeatures.length > 0) {
+            let partida = f.properties.nropasd || (f.properties.partidas && f.properties.partidas[0]);
+            geoMatch = geoServerFeatures.find(gFeat => {
+                let gProps = gFeat.properties || {};
+                let gPart = String(gProps.nropasd || gProps.NROPASD || gProps.nropas || "").trim();
+                if (partida && gPart === partida) return true;
+                if (f._bounds && gFeat.geometry) {
+                    let center = f._bounds.getCenter();
+                    return isPointInFeature([center.lng, center.lat], gFeat);
+                }
+                return false;
+            });
+        }
+
+        if (geoMatch) {
+            let gProps = geoMatch.properties || {};
+            let estado = String(gProps.estado || gProps.ESTADO || "").toUpperCase().trim();
+            let propieGeo = String(gProps.propie1 || gProps.PROPIE1 || "").trim();
+            
+            if (estado === "H" || propieGeo.toUpperCase() === "PH") {
+                esPH = true;
+            }
+            if (!esPH && propieGeo && propieGeo !== "-") {
+                let textoFinal = decodificarTexto(propieGeo);
+                return formatearTextoMultilinea(textoFinal, 20);
+            }
+        }
+
+        if (esPH) {
+            return "PH";
+        }
+
+        return "";
+    }
+
+    // 2. CASOS DE CAPA LOCAL (Parcelas Catastrales)
+
+    // PARC (Nº de Parcela): Colocar solo un dato por parcela
+    if (campoUpper === "PARC" || campoUpper === "PARCELA") {
+        let val = obtenerValorCampoSimple(f, ["parc", "PARC", "nro_parc", "NROPARC", "parcela"]);
+        return val ? decodificarTexto(val) : "";
+    }
+
+    // UBIPAR1 (Ubicación): Colocar solo un dato por parcela y aplicar multilínea si > 20 caracteres
+    if (campoUpper === "UBIPAR1" || campoUpper === "UBICACION") {
+        let val = f.properties.ubicacion || obtenerValorCampoSimple(f, ["ubipar1", "UBIPAR1", "ubicacion"]);
+        if (val && val !== "-") {
+            let textoFinal = decodificarTexto(val);
+            return formatearTextoMultilinea(textoFinal, 20);
+        }
+        return "";
+    }
+
+    // NROPASD (Partida): Rango "min a max" en caso de PH
+    if (campoUpper === "NROPASD" || campoUpper === "PARTIDA") {
+        if (f.properties.esPH && f.properties.partidas && f.properties.partidas.length > 1) {
+            return formatearRangoValores(f.properties.partidas);
+        }
+        let val = f.properties.nropasd || (f.properties.partidas && f.properties.partidas[0]);
+        return val ? decodificarTexto(val) : "";
+    }
+
+    // PLANOME (Plano de Mensura): Rango "min a max" en caso de PH
+    if (campoUpper === "PLANOME" || campoUpper === "PLANO") {
+        if (f.properties.esPH && f.properties.elementosPH && f.properties.elementosPH.length > 1) {
+            let planos = f.properties.elementosPH.map(elem => elem.planome || elem.PLANOME || elem.planomen).filter(Boolean);
+            if (planos.length > 1) {
+                return formatearRangoValores(planos);
+            }
+        }
+        let val = obtenerValorCampoSimple(f, ["planome", "PLANOME", "planomen", "plano"]);
+        return val ? decodificarTexto(val) : "";
+    }
+
+    return "";
+}
+
+async function cargarFeaturesGeoServerManzana(manzanaGeoJSON) {
+    try {
+        let tempLayer = L.geoJSON(manzanaGeoJSON);
+        let bounds = tempLayer.getBounds();
+        let minLng = bounds.getWest();
+        let minLat = bounds.getSouth();
+        let maxLng = bounds.getEast();
+        let maxLat = bounds.getNorth();
+        
+        let wfsUrl = `${GEOSERVER_WMS_URL.replace('/wms', '/wfs')}?service=WFS&version=1.0.0&request=GetFeature&typeName=Catastro:parcelario_datos_completos&outputFormat=application/json&srsName=EPSG:4326&bbox=${minLng},${minLat},${maxLng},${maxLat}`;
+        
+        let response = await fetch(wfsUrl);
+        if (!response.ok) return [];
+        let data = await response.json();
+        return (data && data.features) ? data.features : [];
+    } catch(e) {
+        console.warn("No se pudieron consultar features WFS de GeoServer:", e);
+        return [];
+    }
+}
+
+async function etiquetarManzanaSeleccionada() {
     if (!manzanaSeleccionadaGeoJSON) return;
     
+    let campoSeleccionado = document.getElementById('select-campo-etiqueta')?.value || 'NROPASD';
+    let btnEtiquetar = document.getElementById('btn-etiquetar-mza');
+    
+    let geoServerFeatures = [];
+
+    // Consultar GeoServer WMS/WFS únicamente cuando el campo elegido es PROPIE1
+    if (campoSeleccionado === 'PROPIE1') {
+        if (btnEtiquetar) btnEtiquetar.innerText = '⏳ Consultando GeoServer...';
+        geoServerFeatures = await cargarFeaturesGeoServerManzana(manzanaSeleccionadaGeoJSON);
+    }
+
+    if (btnEtiquetar) btnEtiquetar.innerText = '🏷️ Etiquetar';
+
     grupoEtiquetasParcelasMza.clearLayers();
     let contadorLabels = 0;
     
@@ -2139,7 +2478,7 @@ function etiquetarManzanaSeleccionada() {
             let inside = isPointInFeature([center.lng, center.lat], manzanaSeleccionadaGeoJSON);
             
             if (inside) {
-                let labelText = f.properties.nropasd;
+                let labelText = obtenerEtiquetaParaParcela(f, campoSeleccionado, geoServerFeatures);
                 if (labelText && labelText !== "-") {
                     let coords = f.geometry.coordinates;
                     let angulo = calcularAnguloOrientacionParcela(coords);
@@ -2154,8 +2493,8 @@ function etiquetarManzanaSeleccionada() {
                         icon: L.divIcon({
                             className: 'bg-transparent border-none flex items-center justify-center',
                             html: labelHtml,
-                            iconSize: [40, 16],
-                            iconAnchor: [20, 8]
+                            iconSize: [80, 24],
+                            iconAnchor: [40, 12]
                         }),
                         interactive: false
                     }).addTo(grupoEtiquetasParcelasMza);
@@ -2171,7 +2510,7 @@ function etiquetarManzanaSeleccionada() {
     if (contadorLabels === 0) {
         L.popup()
             .setLatLng(map.getCenter())
-            .setContent(`<div class="p-2 text-xs text-slate-800">⚠️ No se encontraron parcelas válidas con 'NROPASD' en esta manzana.</div>`)
+            .setContent(`<div class="p-2 text-xs text-slate-800">⚠️ No se encontraron parcelas con datos para '${campoSeleccionado}' en esta manzana.</div>`)
             .openOn(map);
     }
 }
@@ -2181,6 +2520,7 @@ function limpiarEtiquetasManzana() {
     capaHighlightManzana.clearLayers();
     manzanaSeleccionadaGeoJSON = null;
     document.getElementById('panel-etiquetado-mza-acciones').classList.add('hidden');
+    cerrarCuadroAdvertenciaPosesiones();
 }
 
 function activarImpresionDirecta() {
@@ -2200,7 +2540,6 @@ function activarImpresionDirecta() {
     }
 }
 
-/* ================= EXPORTACIÓN E IMPRESIÓN ================= */
 var capaPreviewImpresion = L.layerGroup().addTo(map);
 var rectanguloPreview = null;
 
@@ -2327,7 +2666,7 @@ function imprimirMapa() {
     let mapH_px = Math.round(mapH_mm * dpiFactor);
 
     document.getElementById('sidebar').style.display = 'none';
-    let panelsFlotantes = document.querySelectorAll('.fixed, .adv-distrito');
+    let panelsFlotantes = document.querySelectorAll('.fixed, .adv-distrito, #cuadro-advertencia-posesiones-mza');
     panelsFlotantes.forEach(p => p.classList.add('print-hidden'));
 
     capaPreviewImpresion.clearLayers();
