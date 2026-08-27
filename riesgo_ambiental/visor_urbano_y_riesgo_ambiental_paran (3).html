@@ -10,12 +10,12 @@
     <script src="https://cdn.jsdelivr.net/npm/leaflet-textpath@1.2.3/leaflet.textpath.min.js"></script>
     <script src="https://unpkg.com/flatgeobuf@3.22.0/dist/flatgeobuf-geojson.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
         body { margin:0; padding:0; font-family: 'Inter', sans-serif; background: #0f172a; overflow: hidden; }
         #map { height: 100vh; width: 100%; z-index: 1; }
 
-        /* Mejora de contraste para inputs de búsqueda y login */
         input[type="text"], input[type="password"] {
             color: #ffffff !important;
             background-color: #0f172a !important;
@@ -194,7 +194,6 @@
             color: #475569;
         }
 
-        /* Estilos para etiquetas de PUNTOS DE AFECTACIÓN */
         .etiqueta-punto-riesgo {
             background: rgba(15, 23, 42, 0.92) !important;
             border: 1.5px solid #ffffff !important;
@@ -211,7 +210,6 @@
             pointer-events: none !important;
         }
 
-        /* Estilos para etiquetas de CUENCAS */
         .etiqueta-cuenca {
             background: rgba(15, 23, 42, 0.85) !important;
             border: 1.5px solid #f97316 !important;
@@ -228,7 +226,6 @@
             pointer-events: none !important;
         }
 
-        /* Estilos limpios y sin recuadro para COTAS ALTIMÉTRICAS */
         .cota-div-icon {
             background: transparent !important;
             border: none !important;
@@ -256,7 +253,6 @@
             text-shadow: 0 0 3px #000, 0 0 5px #000;
         }
 
-        /* Ocultar etiquetas generales según nivel de zoom */
         .ocultar-etiquetas .etiqueta-punto-riesgo,
         .ocultar-etiquetas .etiqueta-cuenca {
             display: none !important;
@@ -266,7 +262,6 @@
             pointer-events: none !important;
         }
 
-        /* Estilo para los iconos SVG personalizados de las capas de emergencia */
         .custom-icon-container {
             display: flex;
             align-items: center;
@@ -285,27 +280,21 @@
 
 <svg style="height:0; width:0; position:absolute; pointer-events:none;">
   <defs>
-    <!-- Patrón Rayado 45° - Vulnerabilidad Muy Alta (Rojo Oscuro) -->
     <pattern id="hatch-vulnerabilidad-muy-alta" width="8" height="8" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
       <line x1="0" y1="0" x2="0" y2="8" stroke="#dc2626" stroke-width="2.5" />
     </pattern>
-    <!-- Patrón Rayado 45° - Vulnerabilidad Alta (Rojo) -->
     <pattern id="hatch-vulnerabilidad-alta" width="8" height="8" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
       <line x1="0" y1="0" x2="0" y2="8" stroke="#ef4444" stroke-width="2.5" />
     </pattern>
-    <!-- Patrón Rayado 45° - Vulnerabilidad Media (Naranja) -->
     <pattern id="hatch-vulnerabilidad-media" width="8" height="8" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
       <line x1="0" y1="0" x2="0" y2="8" stroke="#f97316" stroke-width="2.5" />
     </pattern>
-    <!-- Patrón Rayado 45° - Vulnerabilidad Baja (Amarillo) -->
     <pattern id="hatch-vulnerabilidad-baja" width="8" height="8" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
       <line x1="0" y1="0" x2="0" y2="8" stroke="#facc15" stroke-width="2.5" />
     </pattern>
-    <!-- Patrón Rayado 45° - Vulnerabilidad Residual / Muy Baja (Azul) -->
     <pattern id="hatch-vulnerabilidad-residual" width="8" height="8" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
       <line x1="0" y1="0" x2="0" y2="8" stroke="#3b82f6" stroke-width="2.5" />
     </pattern>
-    <!-- Patrón Rayado 45° - Defecto / Inundabilidad General (Cian) -->
     <pattern id="hatch-vulnerabilidad-defecto" width="8" height="8" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
       <line x1="0" y1="0" x2="0" y2="8" stroke="#06b6d4" stroke-width="2.5" />
     </pattern>
@@ -350,39 +339,87 @@
     </div>
 </div>
 
-<div id="panel-herramientas" class="fixed top-4 right-4 z-[1000] bg-slate-900/95 border border-slate-700/80 rounded-xl p-3 shadow-2xl w-60 text-slate-100 backdrop-blur-md">
-    <div class="text-[11px] font-black uppercase text-slate-300 tracking-wider text-center pb-2 border-b border-slate-800">
-        HERRAMIENTAS
+<div id="panel-herramientas" class="fixed top-4 right-4 z-[1000] bg-slate-900/95 border border-slate-700/80 rounded-xl p-3 shadow-2xl w-60 text-slate-100 backdrop-blur-md transition-all duration-300">
+    <div class="flex justify-between items-center pb-2 border-b border-slate-800">
+        <div class="text-[11px] font-black uppercase text-slate-300 tracking-wider text-center flex-1">
+            HERRAMIENTAS
+        </div>
+        <button onclick="togglePanelHerramientas()" id="btn-minimizar-herramientas" class="text-slate-400 hover:text-white font-bold text-xs px-1 focus:outline-none" title="Minimizar/Expandir">
+            ▼
+        </button>
     </div>
     
-    <div class="grid grid-cols-2 gap-2 my-2.5">
-        <button id="btn-medir-distancia" onclick="activarModoMedicion('distancia')" class="bg-slate-800 hover:bg-blue-600 text-white text-[10px] font-extrabold py-2 px-1.5 rounded-lg border border-slate-700 transition flex items-center justify-center gap-1 shadow">
-            <svg class="w-3.5 h-3.5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-            <span>Distancia</span>
-        </button>
-        <button id="btn-medir-superficie" onclick="activarModoMedicion('superficie')" class="bg-slate-800 hover:bg-blue-600 text-white text-[10px] font-extrabold py-2 px-1.5 rounded-lg border border-slate-700 transition flex items-center justify-center gap-1 shadow">
-            <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
-            <span>Superficie</span>
-        </button>
-    </div>
+    <div id="contenido-herramientas" class="transition-all duration-300 overflow-hidden">
+        <div class="grid grid-cols-2 gap-2 my-2.5">
+            <button id="btn-medir-distancia" onclick="activarModoMedicion('distancia')" class="bg-slate-800 hover:bg-blue-600 text-white text-[10px] font-extrabold py-2 px-1.5 rounded-lg border border-slate-700 transition flex items-center justify-center gap-1 shadow">
+                <svg class="w-3.5 h-3.5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                <span>Distancia</span>
+            </button>
+            <button id="btn-medir-superficie" onclick="activarModoMedicion('superficie')" class="bg-slate-800 hover:bg-blue-600 text-white text-[10px] font-extrabold py-2 px-1.5 rounded-lg border border-slate-700 transition flex items-center justify-center gap-1 shadow">
+                <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                <span>Superficie</span>
+            </button>
+        </div>
 
-    <div id="medicion-estado" class="text-[10px] text-slate-400 text-center italic my-1 min-h-[16px]">
-        Seleccione una herramienta
-    </div>
+        <div id="medicion-estado" class="text-[10px] text-slate-400 text-center italic my-1 min-h-[16px]">
+            Seleccione una herramienta
+        </div>
 
-    <div id="medicion-resultado-box" class="bg-slate-950/80 border border-slate-800 rounded-lg p-2 my-2 text-center shadow-inner">
-        <div id="medicion-resultado" class="text-sm font-black text-blue-400">
-            0.000 km
+        <div id="medicion-resultado-box" class="bg-slate-950/80 border border-slate-800 rounded-lg p-2 my-2 text-center shadow-inner">
+            <div id="medicion-resultado" class="text-sm font-black text-blue-400">
+                0.000 km
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 mt-2">
+            <button onclick="finalizarMedicion()" class="bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-black py-1.5 rounded-md transition uppercase tracking-wider shadow">
+                Listo
+            </button>
+            <button onclick="limpiarMedicion()" class="bg-red-600 hover:bg-red-500 text-white text-[10px] font-black py-1.5 rounded-md transition uppercase tracking-wider shadow">
+                Limpiar
+            </button>
+        </div>
+
+        <!-- MODIFICACIÓN: Botón único para abrir previsualización de exportación a PDF -->
+        <div class="pt-3 mt-3 border-t border-slate-800">
+            <button onclick="abrirPrevisualizacionPDF()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] font-black py-2 rounded-md transition uppercase tracking-wider shadow flex items-center justify-center gap-1.5">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                <span>Exportar a PDF</span>
+            </button>
         </div>
     </div>
+</div>
 
-    <div class="grid grid-cols-2 gap-2 mt-2">
-        <button onclick="finalizarMedicion()" class="bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-black py-1.5 rounded-md transition uppercase tracking-wider shadow">
-            Listo
-        </button>
-        <button onclick="limpiarMedicion()" class="bg-red-600 hover:bg-red-500 text-white text-[10px] font-black py-1.5 rounded-md transition uppercase tracking-wider shadow">
-            Limpiar
-        </button>
+<!-- MODIFICACIÓN: Modal de previsualización de PDF dinámico -->
+<div id="modal-preview-pdf" class="fixed inset-0 bg-slate-950/90 z-[9999] hidden flex flex-col items-center justify-center p-4 backdrop-blur-md">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl p-4 w-full max-w-4xl max-h-[90vh] flex flex-col text-slate-100">
+        <div class="flex justify-between items-center pb-3 border-b border-slate-800">
+            <h3 class="text-xs font-black uppercase text-indigo-400 tracking-wider flex items-center gap-2">
+                📄 Previsualización de Exportación a PDF
+            </h3>
+            <button onclick="cerrarPrevisualizacionPDF()" class="text-slate-400 hover:text-white font-bold text-sm px-2">✕</button>
+        </div>
+        
+        <div class="flex-1 my-4 overflow-hidden rounded-lg border border-slate-800 bg-slate-950 flex items-center justify-center relative">
+            <img id="img-preview-pdf" src="" class="max-h-full max-w-full object-contain shadow-2xl" alt="Vista previa del mapa">
+            <div id="loading-preview" class="absolute inset-0 bg-slate-950/80 flex items-center justify-center text-xs font-bold text-blue-400">
+                Generando previsualización...
+            </div>
+        </div>
+
+        <div class="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-800">
+            <div class="flex items-center gap-2">
+                <span class="text-[11px] font-bold text-slate-300">Formato de hoja:</span>
+                <button id="btn-formato-a4" onclick="seleccionarFormatoPDF('a4')" class="bg-blue-600 text-white text-[10px] font-bold px-3 py-1.5 rounded border border-blue-500 transition">A4</button>
+                <button id="btn-formato-a3" onclick="seleccionarFormatoPDF('a3')" class="bg-slate-800 text-slate-300 text-[10px] font-bold px-3 py-1.5 rounded border border-slate-700 hover:bg-slate-700 transition">A3</button>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="cerrarPrevisualizacionPDF()" class="bg-slate-800 hover:bg-slate-700 text-white text-[10px] font-bold px-4 py-2 rounded-lg transition uppercase">Cancelar</button>
+                <button onclick="confirmarExportacionPDF()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-black px-4 py-2 rounded-lg transition uppercase tracking-wider shadow flex items-center gap-1.5">
+                    Descargar PDF
+                </button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -446,7 +483,7 @@
                 <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide">Capas Urbanas y Catastro</span>
                 <div class="space-y-1.5">
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
-                        <input type="checkbox" id="chk-manzanas" checked onchange="toggleOverlay('manzanas')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
+                        <input type="checkbox" id="chk-manzanas" onchange="toggleOverlay('manzanas')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
                         <span class="flex items-center gap-2">
                             <span class="w-3.5 h-3.5 rounded border border-[#cbd5e1] bg-[rgba(203,213,225,0.15)] inline-block"></span>
                             <span>Manzanas</span>
@@ -460,7 +497,7 @@
                         </span>
                     </label>
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
-                        <input type="checkbox" id="chk-parcelas" checked onchange="toggleOverlay('parcelas')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
+                        <input type="checkbox" id="chk-parcelas" onchange="toggleOverlay('parcelas')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
                         <span class="flex items-center gap-2">
                             <span class="w-3.5 h-3.5 rounded bg-[#2980b9] inline-block"></span>
                             <span>Parcelas Catastrales</span>
@@ -493,7 +530,6 @@
                     </label>
                 </div>
 
-                <!-- Capa de Inundabilidad por Grado de Vulnerabilidad con Rayado 45° -->
                 <div class="space-y-1 pt-1">
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
                         <input type="checkbox" id="chk-inundabilidad" checked onchange="toggleOverlay('inundabilidad')" class="rounded bg-slate-800 border-slate-700 text-blue-400 focus:ring-blue-400">
@@ -526,7 +562,7 @@
                 
                 <div class="space-y-1">
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
-                        <input type="checkbox" id="chk-curvas-nivel" checked onchange="toggleOverlay('curvas-nivel')" class="rounded bg-slate-800 border-slate-700 text-emerald-500 focus:ring-emerald-500">
+                        <input type="checkbox" id="chk-curvas-nivel" onchange="toggleOverlay('curvas-nivel')" class="rounded bg-slate-800 border-slate-700 text-emerald-500 focus:ring-emerald-500">
                         <span class="font-bold">Curvas de Nivel</span>
                     </label>
                     <div class="pl-6 text-[10px] text-slate-400">
@@ -536,7 +572,7 @@
 
                 <div class="space-y-1 pt-1">
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
-                        <input type="checkbox" id="chk-cotas" checked onchange="toggleOverlay('cotas')" class="rounded bg-slate-800 border-slate-700 text-yellow-400 focus:ring-yellow-400">
+                        <input type="checkbox" id="chk-cotas" onchange="toggleOverlay('cotas')" class="rounded bg-slate-800 border-slate-700 text-yellow-400 focus:ring-yellow-400">
                         <span class="font-bold">Cotas Altimétricas (+)</span>
                     </label>
                     <div class="pl-6 text-[10px] text-slate-400">
@@ -549,7 +585,7 @@
                 <span class="block text-[10px] font-bold text-amber-400 uppercase tracking-wide">🚨 Emergencias y Reportes Directos</span>
                 
                 <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
-                    <input type="checkbox" id="chk-afectaciones-spel" checked onchange="toggleOverlay('afectaciones-spel')" class="rounded bg-slate-800 border-slate-700 text-rose-500 focus:ring-rose-500">
+                    <input type="checkbox" id="chk-afectaciones-spel" onchange="toggleOverlay('afectaciones-spel')" class="rounded bg-slate-800 border-slate-700 text-rose-500 focus:ring-rose-500">
                     <span class="flex items-center gap-2">
                         <span class="w-2 h-2 rounded-full bg-rose-500 inline-block"></span>
                         <span>Afectaciones Reporte SPel</span>
@@ -557,7 +593,7 @@
                 </label>
 
                 <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
-                    <input type="checkbox" id="chk-afectaciones-1" checked onchange="toggleOverlay('afectaciones-1')" class="rounded bg-slate-800 border-slate-700 text-orange-500 focus:ring-orange-500">
+                    <input type="checkbox" id="chk-afectaciones-1" onchange="toggleOverlay('afectaciones-1')" class="rounded bg-slate-800 border-slate-700 text-orange-500 focus:ring-orange-500">
                     <span class="flex items-center gap-2">
                         <span class="w-2 h-2 rounded-full bg-orange-500 inline-block"></span>
                         <span>Afectaciones Reportes 1</span>
@@ -565,7 +601,7 @@
                 </label>
 
                 <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
-                    <input type="checkbox" id="chk-afectaciones-2" checked onchange="toggleOverlay('afectaciones-2')" class="rounded bg-slate-800 border-slate-700 text-amber-500 focus:ring-amber-500">
+                    <input type="checkbox" id="chk-afectaciones-2" onchange="toggleOverlay('afectaciones-2')" class="rounded bg-slate-800 border-slate-700 text-amber-500 focus:ring-amber-500">
                     <span class="flex items-center gap-2">
                         <span class="w-2 h-2 rounded-full bg-amber-500 inline-block"></span>
                         <span>Afectaciones Reportes 2</span>
@@ -573,7 +609,7 @@
                 </label>
 
                 <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
-                    <input type="checkbox" id="chk-puntos-apoyo" checked onchange="toggleOverlay('puntos-apoyo')" class="rounded bg-slate-800 border-slate-700 text-emerald-500 focus:ring-emerald-500">
+                    <input type="checkbox" id="chk-puntos-apoyo" onchange="toggleOverlay('puntos-apoyo')" class="rounded bg-slate-800 border-slate-700 text-emerald-500 focus:ring-emerald-500">
                     <span class="flex items-center gap-2">
                         <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span>
                         <span>Puntos de Apoyo Logístico Operativo</span>
@@ -581,7 +617,7 @@
                 </label>
 
                 <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
-                    <input type="checkbox" id="chk-puntos-criticos" checked onchange="toggleOverlay('puntos-criticos')" class="rounded bg-slate-800 border-slate-700 text-red-600 focus:ring-red-600">
+                    <input type="checkbox" id="chk-puntos-criticos" onchange="toggleOverlay('puntos-criticos')" class="rounded bg-slate-800 border-slate-700 text-red-600 focus:ring-red-600">
                     <span class="flex items-center gap-2">
                         <span class="w-2 h-2 rounded-full bg-red-600 inline-block"></span>
                         <span>Puntos Críticos para Emergencia</span>
@@ -589,7 +625,7 @@
                 </label>
 
                 <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
-                    <input type="checkbox" id="chk-demandas-1" checked onchange="toggleOverlay('demandas-1')" class="rounded bg-slate-800 border-slate-700 text-cyan-500 focus:ring-cyan-500">
+                    <input type="checkbox" id="chk-demandas-1" onchange="toggleOverlay('demandas-1')" class="rounded bg-slate-800 border-slate-700 text-cyan-500 focus:ring-cyan-500">
                     <span class="flex items-center gap-2">
                         <span class="w-2 h-2 rounded-full bg-cyan-500 inline-block"></span>
                         <span>Identificación de Demandas 1</span>
@@ -597,10 +633,18 @@
                 </label>
 
                 <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
-                    <input type="checkbox" id="chk-demandas-2" checked onchange="toggleOverlay('demandas-2')" class="rounded bg-slate-800 border-slate-700 text-indigo-500 focus:ring-indigo-500">
+                    <input type="checkbox" id="chk-demandas-2" onchange="toggleOverlay('demandas-2')" class="rounded bg-slate-800 border-slate-700 text-indigo-500 focus:ring-indigo-500">
                     <span class="flex items-center gap-2">
                         <span class="w-2 h-2 rounded-full bg-indigo-500 inline-block"></span>
                         <span>Identificación de Demandas 2</span>
+                    </span>
+                </label>
+
+                <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
+                    <input type="checkbox" id="chk-puntos-encuentro" onchange="toggleOverlay('puntos-encuentro')" class="rounded bg-slate-800 border-slate-700 text-blue-400 focus:ring-blue-400">
+                    <span class="flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-blue-400 inline-block"></span>
+                        <span>Puntos de Encuentro</span>
                     </span>
                 </label>
             </div>
@@ -732,7 +776,6 @@ async function fetchGeoJSON(url) {
     return JSON.parse(text);
 }
 
-// Inyección dinámica de patrones SVG dentro de los elementos SVG creados por Leaflet
 function asegurarDefsSVGEnMapa() {
     const mapEl = document.getElementById('map');
     if (!mapEl) return;
@@ -768,7 +811,6 @@ function asegurarDefsSVGEnMapa() {
     });
 }
 
-// Carga resiliente de archivos FlatGeobuf con fallback
 async function fetchFGB(url) {
     try {
         const features = [];
@@ -818,6 +860,72 @@ var ref = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Refe
 var hibrido = L.layerGroup([sat, ref]);
 
 dark.addTo(map);
+
+function togglePanelHerramientas() {
+    const contenido = document.getElementById('contenido-herramientas');
+    const btn = document.getElementById('btn-minimizar-herramientas');
+    if (contenido.style.display === 'none') {
+        contenido.style.display = 'block';
+        btn.innerText = '▼';
+    } else {
+        contenido.style.display = 'none';
+        btn.innerText = '▲';
+    }
+}
+
+// MODIFICACIÓN: Lógica de previsualización y exportación unificada a PDF
+let formatoPDFSeleccionado = 'a4';
+
+function abrirPrevisualizacionPDF() {
+    const modal = document.getElementById('modal-preview-pdf');
+    const imgPreview = document.getElementById('img-preview-pdf');
+    const loading = document.getElementById('loading-preview');
+    
+    modal.classList.remove('hidden');
+    loading.classList.remove('hidden');
+    imgPreview.src = '';
+
+    const element = document.getElementById('map');
+    
+    // Captura inicial usando html2canvas para previsualizar el mapa
+    html2pdf().from(element).set({
+        html2canvas: { scale: 1, useCORS: true }
+    }).outputImg('datauristring').then(function(imgData) {
+        imgPreview.src = imgData;
+        loading.classList.add('hidden');
+    });
+}
+
+function cerrarPrevisualizacionPDF() {
+    document.getElementById('modal-preview-pdf').classList.add('hidden');
+}
+
+function seleccionarFormatoPDF(formato) {
+    formatoPDFSeleccionado = formato;
+    const btnA4 = document.getElementById('btn-formato-a4');
+    const btnA3 = document.getElementById('btn-formato-a3');
+    
+    if (formato === 'a4') {
+        btnA4.className = 'bg-blue-600 text-white text-[10px] font-bold px-3 py-1.5 rounded border border-blue-500 transition';
+        btnA3.className = 'bg-slate-800 text-slate-300 text-[10px] font-bold px-3 py-1.5 rounded border border-slate-700 hover:bg-slate-700 transition';
+    } else {
+        btnA3.className = 'bg-purple-600 text-white text-[10px] font-bold px-3 py-1.5 rounded border border-purple-500 transition';
+        btnA4.className = 'bg-slate-800 text-slate-300 text-[10px] font-bold px-3 py-1.5 rounded border border-slate-700 hover:bg-slate-700 transition';
+    }
+}
+
+function confirmarExportacionPDF() {
+    const element = document.getElementById('map');
+    const opt = {
+        margin:       0.2,
+        filename:     `mapa_riesgo_${formatoPDFSeleccionado.toUpperCase()}.pdf`,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true },
+        jsPDF:        { unit: 'in', format: formatoPDFSeleccionado, orientation: 'landscape' }
+    };
+    html2pdf().set(opt).from(element).save();
+    cerrarPrevisualizacionPDF();
+}
 
 var modoMedicion = null;
 var puntosMedicion = [];
@@ -964,8 +1072,7 @@ fetchGeoJSON(BASE_URL + "calles.geojson").then(data => {
     }).addTo(grupoCalles);
 });
 
-// Manzanas: Gris claro para alto contraste sobre fondo oscuro (#cbd5e1)
-var grupoManzanas = L.layerGroup().addTo(map);
+var grupoManzanas = L.layerGroup();
 fetchGeoJSON(BASE_URL + "catastro/manzana.geojson").then(data => {
     L.geoJSON(data, {
         pane: 'manzanasPane',
@@ -1034,20 +1141,19 @@ archivosCatastro.forEach(file => {
     });
 });
 
-var grupoCurvasNivel = L.layerGroup().addTo(map);
-var grupoCotas = L.layerGroup().addTo(map);
+var grupoCurvasNivel = L.layerGroup();
+var grupoCotas = L.layerGroup();
 
 function aplicarTextoCurvaNivel(layer, zoomActual) {
     if (!layer || !layer._esCurvaMaestra || typeof layer.setText !== 'function') return;
     
-    // Muestra exactamente 1 etiqueta por curva maestra (múltiplos de 5m) a partir del zoom 16
     if (zoomActual >= 16) {
         if (layer._longitud !== undefined && layer._longitud < 60) {
             layer.setText(null);
             return;
         }
         layer.setText(layer._zVal + " m", {
-            repeat: false, // EXACTAMENTE UNA SOLA COTA CENTRADA POR CURVA
+            repeat: false,
             center: true,
             offset: -3,
             attributes: {
@@ -1062,7 +1168,6 @@ function aplicarTextoCurvaNivel(layer, zoomActual) {
     }
 }
 
-// Carga e integración unificada de Curvas de Nivel (curvas_nivel_i.fgb + curvas_nivel_p.fgb)
 Promise.all([
     fetchFGB(BASE_URL + "atlas_pua/curvas_nivel_hidrografia/curvas_nivel_i.fgb"),
     fetchFGB(BASE_URL + "atlas_pua/curvas_nivel_hidrografia/curvas_nivel_p.fgb")
@@ -1103,7 +1208,6 @@ Promise.all([
     controlarVisibilidadDinamica();
 }).catch(err => console.error("Error al cargar curvas de nivel FGB:", err));
 
-// Carga de Cotas Altimétricas (cotas.fgb) con icono (+) y etiqueta Z limpia a zoom >= 18
 fetchFGB(BASE_URL + "atlas_pua/curvas_nivel_hidrografia/cotas.fgb").then(dataCotas => {
     L.geoJSON(dataCotas, {
         pane: 'cotasPane',
@@ -1186,7 +1290,6 @@ function obtenerPatronYColorInundabilidad(props) {
     return { patternUrl: 'url(#hatch-vulnerabilidad-defecto)', color: '#06b6d4', titulo: 'En Análisis' };
 }
 
-// Carga e integración robusta de Zonas de Inundabilidad con inyección dinámica de SVG Defs
 fetchFGB(BASE_URL + "riesgo_ambiental/inundabilidad.fgb").then(dataInundabilidad => {
     if (dataInundabilidad && dataInundabilidad.features && dataInundabilidad.features.length > 0) {
         L.geoJSON(dataInundabilidad, {
@@ -1276,13 +1379,6 @@ fetchGeoJSON(BASE_URL + "atlas_pua/curvas_nivel_hidrografia/arroyos.geojson").th
                 l._nombreArroyo = nombreLimpio;
             }
 
-            let resumenHover = `<div style="font-size:10px; font-weight:800; color:#06b6d4; text-transform:uppercase;">🌊 ARROYO / CURSO DE AGUA</div>`;
-            if (nombreLimpio) resumenHover += `<div style="font-size:10px; color:#334155; font-weight:700;">${nombreLimpio}</div>`;
-            l.bindPopup(resumenHover, { closeButton: false, offset: [0, -5] });
-
-            l.on('mouseover', function() { this.openPopup(); });
-            l.on('mouseout', function() { this.closePopup(); });
-
             l.on('click', e => {
                 let latlng = e.latlng || (l.getBounds ? l.getBounds().getCenter() : null);
                 let sv = latlng ? `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${latlng.lat},${latlng.lng}` : "#";
@@ -1327,13 +1423,14 @@ fetchGeoJSON(BASE_URL + "atlas_pua/curvas_nivel_hidrografia/arroyos.geojson").th
     controlarVisibilidadDinamica();
 }).catch(err => console.error("Error cargando arroyos.geojson:", err));
 
-var grupoAfectacionesSpel = L.layerGroup().addTo(map);
-var grupoAfectaciones1 = L.layerGroup().addTo(map);
-var grupoAfectaciones2 = L.layerGroup().addTo(map);
-var grupoPuntosApoyo = L.layerGroup().addTo(map);
-var grupoPuntosCriticos = L.layerGroup().addTo(map);
-var grupoDemandas1 = L.layerGroup().addTo(map);
-var grupoDemandas2 = L.layerGroup().addTo(map);
+var grupoAfectacionesSpel = L.layerGroup();
+var grupoAfectaciones1 = L.layerGroup();
+var grupoAfectaciones2 = L.layerGroup();
+var grupoPuntosApoyo = L.layerGroup();
+var grupoPuntosCriticos = L.layerGroup();
+var grupoDemandas1 = L.layerGroup();
+var grupoDemandas2 = L.layerGroup();
+var grupoPuntosEncuentro = L.layerGroup();
 
 function crearIconoPersonalizado(tipo, bgCol = '#f43f5e', iconSvg = '') {
     return L.divIcon({
@@ -1354,8 +1451,31 @@ const ICONOS_SVG = {
     logistica: `<svg class="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m0 0h4m-4 0V11m0 0h4"/></svg>`,
     critico: `<svg class="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`,
     demanda1: `<svg class="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>`,
-    demanda2: `<svg class="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>`
+    demanda2: `<svg class="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>`,
+    encuentro: `<svg class="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>`
 };
+
+// MODIFICACIÓN: Inclusión de inst_3 como "INSTALACIÓN 3"
+const DICCIONARIO_ATRIBUTOS = {
+    "inst_1": "Instalación 1",
+    "inst_2": "Instalación 2",
+    "inst_3": "INSTALACIÓN 3",
+    "descrip": "Descripción",
+    "capacidad": "Capacidad",
+    "tipo": "Tipo",
+    "estado": "Estado",
+    "responsab": "Responsable",
+    "contact": "Contacto",
+    "observ": "Observaciones"
+};
+
+function normalizarNombreAtributo(clave) {
+    let keyLower = String(clave).toLowerCase().trim();
+    if (DICCIONARIO_ATRIBUTOS[keyLower]) {
+        return DICCIONARIO_ATRIBUTOS[keyLower];
+    }
+    return decodificarTexto(clave).toUpperCase();
+}
 
 function cargarCapaGeoJSONNuevas(url, grupoTarget, tituloCapa, colorHeader, iconoSvg) {
     fetchGeoJSON(url).then(data => {
@@ -1376,15 +1496,7 @@ function cargarCapaGeoJSONNuevas(url, grupoTarget, tituloCapa, colorHeader, icon
             onEachFeature: function(f, l) {
                 let props = f.properties || {};
 
-                let resumenHover = `<div style="font-size:10px; font-weight:800; color:${colorHeader}; text-transform:uppercase;">${tituloCapa}</div>`;
-                let nombreHover = props.Name || props.NAME || props.Nombre || props.nombre || props.DESCRIPCIO || props.descripcio || props.tipo || props.TIPO || "";
-                if (nombreHover) resumenHover += `<div style="font-size:10px; color:#334155; font-weight:600;">${decodificarTexto(String(nombreHover))}</div>`;
-                
-                l.bindPopup(resumenHover, { closeButton: false, offset: [0, -5] });
-                
-                l.on('mouseover', function(e) { this.openPopup(); });
-                l.on('mouseout', function(e) { this.closePopup(); });
-
+                // MODIFICACIÓN: Se quitan mouseover/mouseout para fijar la ventana solo al hacer clic
                 l.on('click', function(e) {
                     let latlng = e.latlng || (l.getBounds ? l.getBounds().getCenter() : null);
                     let sv = latlng ? `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${latlng.lat},${latlng.lng}` : "#";
@@ -1395,7 +1507,7 @@ function cargarCapaGeoJSONNuevas(url, grupoTarget, tituloCapa, colorHeader, icon
 
                     for (let [k, v] of Object.entries(props)) {
                         if (v !== null && v !== undefined && String(v).trim() !== "" && String(v).trim() !== "null") {
-                            content += `<tr><td>${decodificarTexto(k).toUpperCase()}</td><td>${decodificarTexto(String(v))}</td></tr>`;
+                            content += `<tr><td>${normalizarNombreAtributo(k)}</td><td>${decodificarTexto(String(v))}</td></tr>`;
                         }
                     }
 
@@ -1417,6 +1529,7 @@ cargarCapaGeoJSONNuevas(BASE_URL + "riesgo_ambiental/Mapeo%20emergencia_Punto%20
 cargarCapaGeoJSONNuevas(BASE_URL + "riesgo_ambiental/Mapeo%20emergencia_Puntos%20Criticos%20para%20Emergencia.geojson", grupoPuntosCriticos, "Puntos Críticos para Emergencia", "#dc2626", ICONOS_SVG.critico);
 cargarCapaGeoJSONNuevas(BASE_URL + "riesgo_ambiental/identificacion%20de%20demandas%201.geojson", grupoDemandas1, "Identificación de Demandas 1", "#06b6d4", ICONOS_SVG.demanda1);
 cargarCapaGeoJSONNuevas(BASE_URL + "riesgo_ambiental/identificacion%20de%20demandas%202.geojson", grupoDemandas2, "Identificación de Demandas 2", "#6366f1", ICONOS_SVG.demanda2);
+cargarCapaGeoJSONNuevas(BASE_URL + "riesgo_ambiental/puntos_de_encuentro.geojson", grupoPuntosEncuentro, "Puntos de Encuentro", "#3b82f6", ICONOS_SVG.encuentro);
 
 Promise.all([
     fetchGeoJSON(BASE_URL + "riesgo_ambiental/riesgo_ambiental_puntos.geojson"),
@@ -1556,7 +1669,6 @@ function controlarVisibilidadDinamica() {
     if (document.getElementById('chk-parcelas').checked && zoomActual >= 16) map.addLayer(grupoParcelas);
     else map.removeLayer(grupoParcelas);
 
-    // Curvas de Nivel: líneas visibles a partir de zoom +15 | etiquetas únicas múltiplo de 5m a partir de zoom +16
     const chkCurvas = document.getElementById('chk-curvas-nivel');
     if (chkCurvas && chkCurvas.checked && zoomActual >= 15) {
         if (!map.hasLayer(grupoCurvasNivel)) map.addLayer(grupoCurvasNivel);
@@ -1571,7 +1683,6 @@ function controlarVisibilidadDinamica() {
         map.removeLayer(grupoCurvasNivel);
     }
 
-    // Cotas Altimétricas: icono (+) y etiqueta Z sin recuadro visibles a partir de zoom +18
     const chkCotas = document.getElementById('chk-cotas');
     if (chkCotas && chkCotas.checked && zoomActual >= 18) {
         if (!map.hasLayer(grupoCotas)) map.addLayer(grupoCotas);
@@ -1586,7 +1697,6 @@ function controlarVisibilidadDinamica() {
     if (chkCuencas && chkCuencas.checked) map.addLayer(grupoCuencas);
     else map.removeLayer(grupoCuencas);
 
-    // Control de capa de Inundabilidad
     const chkInundabilidad = document.getElementById('chk-inundabilidad');
     if (chkInundabilidad && chkInundabilidad.checked) {
         if (!map.hasLayer(grupoInundabilidad)) map.addLayer(grupoInundabilidad);
@@ -1633,6 +1743,9 @@ function controlarVisibilidadDinamica() {
 
     if (document.getElementById('chk-demandas-2') && document.getElementById('chk-demandas-2').checked) map.addLayer(grupoDemandas2);
     else map.removeLayer(grupoDemandas2);
+
+    if (document.getElementById('chk-puntos-encuentro') && document.getElementById('chk-puntos-encuentro').checked) map.addLayer(grupoPuntosEncuentro);
+    else map.removeLayer(grupoPuntosEncuentro);
 }
 
 map.on('zoomend', controlarVisibilidadDinamica);
