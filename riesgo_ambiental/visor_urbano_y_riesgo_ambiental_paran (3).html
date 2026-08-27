@@ -14,7 +14,7 @@
 
     <style>
         body { margin:0; padding:0; font-family: 'Inter', sans-serif; background: #0f172a; overflow: hidden; }
-        #map { height: 100vh; width: 100%; z-index: 1; }
+        #map { height: 100vh; width: 100%; z-index: 1; position: relative; }
 
         input[type="text"], input[type="password"] {
             color: #ffffff !important;
@@ -273,6 +273,62 @@
         .custom-icon-container:hover {
             transform: scale(1.25);
         }
+
+        /* MODIFICACIÓN: Estilos para la marca de agua, leyenda y título exportados en PDF */
+        #pdf-watermark {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-30deg);
+            font-size: 48px;
+            font-weight: 900;
+            color: rgba(255, 255, 255, 0.18);
+            text-transform: uppercase;
+            white-space: nowrap;
+            pointer-events: none;
+            z-index: 999;
+            letter-spacing: 0.1em;
+            text-shadow: 0 0 10px rgba(0,0,0,0.5);
+        }
+
+        #pdf-title-banner {
+            display: none;
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid #334155;
+            color: #ffffff;
+            padding: 8px 16px;
+            border-radius: 8px;
+            text-align: center;
+            z-index: 999;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        #pdf-legend-box {
+            display: none;
+            position: absolute;
+            bottom: 20px;
+            left: 15px;
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid #334155;
+            color: #ffffff;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 9px;
+            z-index: 999;
+            max-width: 250px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        .exportando-pdf #pdf-watermark,
+        .exportando-pdf #pdf-title-banner,
+        .exportando-pdf #pdf-legend-box {
+            display: block !important;
+        }
     </style>
 </head>
 
@@ -380,43 +436,16 @@
             </button>
         </div>
 
-        <!-- MODIFICACIÓN: Botón único para abrir previsualización de exportación a PDF -->
-        <div class="pt-3 mt-3 border-t border-slate-800">
-            <button onclick="abrirPrevisualizacionPDF()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] font-black py-2 rounded-md transition uppercase tracking-wider shadow flex items-center justify-center gap-1.5">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                <span>Exportar a PDF</span>
-            </button>
-        </div>
-    </div>
-</div>
-
-<!-- MODIFICACIÓN: Modal de previsualización de PDF dinámico -->
-<div id="modal-preview-pdf" class="fixed inset-0 bg-slate-950/90 z-[9999] hidden flex flex-col items-center justify-center p-4 backdrop-blur-md">
-    <div class="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl p-4 w-full max-w-4xl max-h-[90vh] flex flex-col text-slate-100">
-        <div class="flex justify-between items-center pb-3 border-b border-slate-800">
-            <h3 class="text-xs font-black uppercase text-indigo-400 tracking-wider flex items-center gap-2">
-                📄 Previsualización de Exportación a PDF
-            </h3>
-            <button onclick="cerrarPrevisualizacionPDF()" class="text-slate-400 hover:text-white font-bold text-sm px-2">✕</button>
-        </div>
-        
-        <div class="flex-1 my-4 overflow-hidden rounded-lg border border-slate-800 bg-slate-950 flex items-center justify-center relative">
-            <img id="img-preview-pdf" src="" class="max-h-full max-w-full object-contain shadow-2xl" alt="Vista previa del mapa">
-            <div id="loading-preview" class="absolute inset-0 bg-slate-950/80 flex items-center justify-center text-xs font-bold text-blue-400">
-                Generando previsualización...
-            </div>
-        </div>
-
-        <div class="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-800">
-            <div class="flex items-center gap-2">
-                <span class="text-[11px] font-bold text-slate-300">Formato de hoja:</span>
-                <button id="btn-formato-a4" onclick="seleccionarFormatoPDF('a4')" class="bg-blue-600 text-white text-[10px] font-bold px-3 py-1.5 rounded border border-blue-500 transition">A4</button>
-                <button id="btn-formato-a3" onclick="seleccionarFormatoPDF('a3')" class="bg-slate-800 text-slate-300 text-[10px] font-bold px-3 py-1.5 rounded border border-slate-700 hover:bg-slate-700 transition">A3</button>
-            </div>
-            <div class="flex gap-2">
-                <button onclick="cerrarPrevisualizacionPDF()" class="bg-slate-800 hover:bg-slate-700 text-white text-[10px] font-bold px-4 py-2 rounded-lg transition uppercase">Cancelar</button>
-                <button onclick="confirmarExportacionPDF()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-black px-4 py-2 rounded-lg transition uppercase tracking-wider shadow flex items-center gap-1.5">
-                    Descargar PDF
+        <div class="pt-3 mt-3 border-t border-slate-800 space-y-2">
+            <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide text-center">Exportar Mapa PDF</span>
+            <div class="grid grid-cols-2 gap-2">
+                <button onclick="descargarPDFDirecto('a4')" class="bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] font-black py-2 rounded-md transition uppercase tracking-wider shadow flex items-center justify-center gap-1">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    <span>PDF A4</span>
+                </button>
+                <button onclick="descargarPDFDirecto('a3')" class="bg-purple-600 hover:bg-purple-500 text-white text-[10px] font-black py-2 rounded-md transition uppercase tracking-wider shadow flex items-center justify-center gap-1">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    <span>PDF A3</span>
                 </button>
             </div>
         </div>
@@ -676,7 +705,18 @@
     </div>
 </div>
 
-<div id="map"></div>
+<div id="map">
+    <!-- MODIFICACIÓN: Elementos de apoyo para exportación en PDF (Marca de agua, Título y Leyenda) -->
+    <div id="pdf-watermark">MUNICIPALIDAD DE PARANÁ</div>
+    <div id="pdf-title-banner">
+        <div style="font-size: 13px; font-weight: 900; text-transform: uppercase;">VISOR DE GESTIÓN DEL RIESGO SOCIOAMBIENTAL</div>
+        <div style="font-size: 9px; opacity: 0.8; font-weight: 600;">DIRECCIÓN DE CARTOGRAFÍA Y DATOS ESPACIALES - MUNICIPALIDAD DE PARANÁ</div>
+    </div>
+    <div id="pdf-legend-box">
+        <div style="font-weight: 800; border-bottom: 1px solid #475569; padding-bottom: 2px; margin-bottom: 4px; uppercase;">Leyenda de Capas Activas</div>
+        <div id="pdf-legend-content" style="display: flex; flex-direction: column; gap: 3px;"></div>
+    </div>
+</div>
 
 <script>
 function validarLogin(event) {
@@ -873,58 +913,65 @@ function togglePanelHerramientas() {
     }
 }
 
-// MODIFICACIÓN: Lógica de previsualización y exportación unificada a PDF
-let formatoPDFSeleccionado = 'a4';
+// MODIFICACIÓN: Función para generar dinámicamente el contenido de la leyenda en el PDF
+function generarContenidoLeyendaPDF() {
+    const contenedor = document.getElementById('pdf-legend-content');
+    if (!contenedor) return;
+    contenedor.innerHTML = '';
 
-function abrirPrevisualizacionPDF() {
-    const modal = document.getElementById('modal-preview-pdf');
-    const imgPreview = document.getElementById('img-preview-pdf');
-    const loading = document.getElementById('loading-preview');
-    
-    modal.classList.remove('hidden');
-    loading.classList.remove('hidden');
-    imgPreview.src = '';
+    const capas = [
+        { id: 'chk-riesgo-poligonos', label: 'Polígonos de Riesgo', color: '#a855f7' },
+        { id: 'chk-cuencas', label: 'Cuencas Hidrográficas', color: '#f97316' },
+        { id: 'chk-arroyos', label: 'Arroyos / Cursos de Agua', color: '#06b6d4' },
+        { id: 'chk-inundabilidad', label: 'Zonas de Inundabilidad', color: '#ef4444' },
+        { id: 'chk-riesgo-puntos', label: 'Puntos de Afectación', color: '#f59e0b' },
+        { id: 'chk-curvas-nivel', label: 'Curvas de Nivel', color: '#10b981' },
+        { id: 'chk-cotas', label: 'Cotas Altimétricas', color: '#facc15' },
+        { id: 'chk-afectaciones-spel', label: 'Afectaciones SPel', color: '#f43f5e' },
+        { id: 'chk-afectaciones-1', label: 'Afectaciones Reportes 1', color: '#f97316' },
+        { id: 'chk-afectaciones-2', label: 'Afectaciones Reportes 2', color: '#eab308' },
+        { id: 'chk-puntos-apoyo', label: 'Puntos de Apoyo Logístico', color: '#10b981' },
+        { id: 'chk-puntos-criticos', label: 'Puntos Críticos Emergencia', color: '#dc2626' },
+        { id: 'chk-demandas-1', label: 'Identificación Demandas 1', color: '#06b6d4' },
+        { id: 'chk-demandas-2', label: 'Identificación Demandas 2', color: '#6366f1' },
+        { id: 'chk-puntos-encuentro', label: 'Puntos de Encuentro', color: '#3b82f6' }
+    ];
 
-    const element = document.getElementById('map');
-    
-    // Captura inicial usando html2canvas para previsualizar el mapa
-    html2pdf().from(element).set({
-        html2canvas: { scale: 1, useCORS: true }
-    }).outputImg('datauristring').then(function(imgData) {
-        imgPreview.src = imgData;
-        loading.classList.add('hidden');
+    capas.forEach(c => {
+        const el = document.getElementById(c.id);
+        if (el && el.checked) {
+            const item = document.createElement('div');
+            item.style.display = 'flex';
+            item.style.alignItems = 'center';
+            item.style.gap = '6px';
+            item.innerHTML = `<span style="width: 8px; height: 8px; border-radius: 50%; background-color: ${c.color}; display: inline-block;"></span><span>${c.label}</span>`;
+            contenedor.appendChild(item);
+        }
     });
 }
 
-function cerrarPrevisualizacionPDF() {
-    document.getElementById('modal-preview-pdf').classList.add('hidden');
-}
-
-function seleccionarFormatoPDF(formato) {
-    formatoPDFSeleccionado = formato;
-    const btnA4 = document.getElementById('btn-formato-a4');
-    const btnA3 = document.getElementById('btn-formato-a3');
-    
-    if (formato === 'a4') {
-        btnA4.className = 'bg-blue-600 text-white text-[10px] font-bold px-3 py-1.5 rounded border border-blue-500 transition';
-        btnA3.className = 'bg-slate-800 text-slate-300 text-[10px] font-bold px-3 py-1.5 rounded border border-slate-700 hover:bg-slate-700 transition';
-    } else {
-        btnA3.className = 'bg-purple-600 text-white text-[10px] font-bold px-3 py-1.5 rounded border border-purple-500 transition';
-        btnA4.className = 'bg-slate-800 text-slate-300 text-[10px] font-bold px-3 py-1.5 rounded border border-slate-700 hover:bg-slate-700 transition';
-    }
-}
-
-function confirmarExportacionPDF() {
+// MODIFICACIÓN: Función de descarga directa a PDF agregando la marca de agua, el título y la leyenda
+function descargarPDFDirecto(formato) {
     const element = document.getElementById('map');
+    
+    // Generar leyenda activa y activar clase de renderizado
+    generarContenidoLeyendaPDF();
+    element.classList.add('exportando-pdf');
+
     const opt = {
         margin:       0.2,
-        filename:     `mapa_riesgo_${formatoPDFSeleccionado.toUpperCase()}.pdf`,
+        filename:     `mapa_riesgo_${formato.toUpperCase()}.pdf`,
         image:        { type: 'jpeg', quality: 0.98 },
         html2canvas:  { scale: 2, useCORS: true },
-        jsPDF:        { unit: 'in', format: formatoPDFSeleccionado, orientation: 'landscape' }
+        jsPDF:        { unit: 'in', format: formato, orientation: 'landscape' }
     };
-    html2pdf().set(opt).from(element).save();
-    cerrarPrevisualizacionPDF();
+
+    html2pdf().set(opt).from(element).save().then(() => {
+        element.classList.remove('exportando-pdf');
+    }).catch(err => {
+        console.error("Error exportando PDF:", err);
+        element.classList.remove('exportando-pdf');
+    });
 }
 
 var modoMedicion = null;
@@ -1455,7 +1502,6 @@ const ICONOS_SVG = {
     encuentro: `<svg class="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>`
 };
 
-// MODIFICACIÓN: Inclusión de inst_3 como "INSTALACIÓN 3"
 const DICCIONARIO_ATRIBUTOS = {
     "inst_1": "Instalación 1",
     "inst_2": "Instalación 2",
@@ -1496,7 +1542,6 @@ function cargarCapaGeoJSONNuevas(url, grupoTarget, tituloCapa, colorHeader, icon
             onEachFeature: function(f, l) {
                 let props = f.properties || {};
 
-                // MODIFICACIÓN: Se quitan mouseover/mouseout para fijar la ventana solo al hacer clic
                 l.on('click', function(e) {
                     let latlng = e.latlng || (l.getBounds ? l.getBounds().getCenter() : null);
                     let sv = latlng ? `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${latlng.lat},${latlng.lng}` : "#";
