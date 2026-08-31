@@ -30,6 +30,11 @@
             background: #ffffff !important;
         }
 
+        /* Filtro CSS para convertir OpenStreetMap en una Capa Oscura de Alta Definición con Nombres de Calle completos */
+        .dark-tiles-osm {
+            filter: invert(100%) hue-rotate(180deg) brightness(88%) contrast(105%);
+        }
+
         /* Estilos personalizados para el scrollbar del menú lateral */
         .scrollbar-custom::-webkit-scrollbar {
             width: 6px;
@@ -197,7 +202,6 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
         }
 
-        /* Etiquetas sutiles y finas sobre el parcelario para no obstruir planos catastrales */
         .etiqueta-rotada-parcela {
             font-family: 'Inter', sans-serif;
             color: rgba(255, 255, 255, 0.95);
@@ -213,7 +217,6 @@
             display: inline-block;
         }
 
-        /* Ocultar elementos de impresión de forma predeterminada en pantalla */
         .print-only {
             display: none !important;
         }
@@ -236,12 +239,10 @@
                 display: none !important;
             }
             
-            /* Visualizar de forma forzada los componentes de planos */
             .print-only {
                 display: block !important;
             }
 
-            /* Estilo cartográfico puro impreso: negro sin halo molesto */
             .etiqueta-rotada-parcela {
                 color: #000000 !important;
                 font-weight: 500 !important;
@@ -252,7 +253,6 @@
                 box-shadow: none !important;
             }
             
-            /* Forzar el contenedor a comportarse como una sola hoja rígida */
             #print-wrapper {
                 display: flex !important;
                 flex-direction: column !important;
@@ -343,7 +343,6 @@
         <h1 class="text-xs font-black text-blue-400 tracking-wider uppercase text-center">Visor Urbano Catastral</h1>
         <p class="text-[10px] text-slate-400 text-center font-bold mt-1">DIRECCIÓN DE CARTOGRAFÍA Y DATOS ESPACIALES</p>
         
-        <!-- Botón de Acceso Directo a la Guía de Funcionamiento -->
         <button onclick="abrirGuia()" class="w-full bg-blue-600/20 hover:bg-blue-600/40 text-blue-300 hover:text-white font-bold text-[11px] py-1.5 px-3 rounded-md transition border border-blue-500/30 flex items-center justify-center gap-2 mt-3 shadow">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
@@ -358,7 +357,6 @@
         <div class="space-y-4">
             <h2 class="text-xs font-extrabold uppercase tracking-widest text-slate-400 border-b border-slate-800 pb-1.5">Búsquedas catastrales</h2>
             
-            <!-- Búsqueda por Partida (PM) -->
             <div class="space-y-1">
                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Buscar por Partida (PM)</label>
                 <div class="flex gap-2">
@@ -367,14 +365,12 @@
                 </div>
             </div>
 
-            <!-- Búsqueda por Dirección Predictiva -->
             <div class="space-y-1 relative">
                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Dirección (Calle y Altura - Predictivo)</label>
                 <input type="text" id="input-ubicacion" placeholder="Buscar dirección (p. ej. San Martín 123)..." class="w-full bg-slate-950 border border-slate-700 rounded-md px-3 py-1.5 text-xs text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition" autocomplete="off">
                 <div id="sugerencias-ubicacion" class="absolute left-0 right-0 bg-slate-900 border border-slate-700 rounded-md max-h-52 overflow-y-auto mt-1 hidden z-[2000] shadow-2xl scrollbar-custom"></div>
             </div>
 
-            <!-- Búsqueda de Lugares en Google / Nominatim -->
             <div class="space-y-1">
                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Buscar Lugares o Puntos de interés</label>
                 <div class="flex gap-2">
@@ -383,7 +379,6 @@
                 </div>
             </div>
 
-            <!-- Panel Rápido de Selección de Manzana por Parcela -->
             <div id="panel-mza-rapida-parcela" class="hidden p-3 bg-slate-950/60 border border-amber-500/30 rounded-md space-y-2 mt-2 transition duration-300">
                 <p class="text-[10px] text-amber-400 font-extrabold uppercase tracking-wider flex items-center gap-1">
                     <span>📍 Parcela Identificada</span>
@@ -412,7 +407,6 @@
                 </button>
             </div>
 
-            <!-- Acciones de Etiquetado de Partidas dentro de la Manzana Seleccionada -->
             <div id="panel-etiquetado-mza-acciones" class="hidden space-y-2 p-3 bg-slate-950/40 border border-slate-800 rounded-lg">
                 <p class="text-[10px] text-amber-400 font-semibold" id="lbl-mza-seleccionada">Manzana seleccionada: N/A</p>
                 
@@ -471,7 +465,6 @@
                     <span>Ver Área de Impresión</span>
                 </label>
 
-                <!-- Control de Atenuado de Satélite y Fondo para Máxima Claridad de Etiquetas -->
                 <label class="flex items-start gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
                     <input type="checkbox" id="chk-atenuar-satelite" checked class="rounded mt-0.5 bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
                     <span class="flex flex-col">
@@ -490,13 +483,17 @@
         <div class="space-y-4">
             <h2 class="text-xs font-extrabold uppercase tracking-widest text-slate-400 border-b border-slate-800 pb-1.5">Control de capas</h2>
             
-            <!-- Selector de Mapas Base (Inyección del mapa base vacío/blanco) -->
+            <!-- Selector de Mapas Base con opción de Mapa Oscuro Completo con nombres de calle -->
             <div class="space-y-2">
                 <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide">Mapa Base</span>
                 <div class="space-y-1.5">
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
                         <input type="radio" name="basemap" value="dark" checked onchange="cambiarBaseMap('dark')" class="bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
-                        <span>Mapa Oscuro</span>
+                        <span class="font-bold text-blue-300">Mapa Oscuro Completo (Nombres de Calle)</span>
+                    </label>
+                    <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
+                        <input type="radio" name="basemap" value="darkEsri" onchange="cambiarBaseMap('darkEsri')" class="bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
+                        <span>Mapa Oscuro Minimalista (Esri Dark)</span>
                     </label>
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
                         <input type="radio" name="basemap" value="hibrido" onchange="cambiarBaseMap('hibrido')" class="bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
@@ -504,7 +501,7 @@
                     </label>
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
                         <input type="radio" name="basemap" value="osm" onchange="cambiarBaseMap('osm')" class="bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
-                        <span>OpenStreetMap</span>
+                        <span>OpenStreetMap (Clásico)</span>
                     </label>
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
                         <input type="radio" name="basemap" value="none" onchange="cambiarBaseMap('none')" class="bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
@@ -586,7 +583,6 @@
     </button>
 </div>
 
-<!-- Cuadro Informativo de Distritos con indicador de Zoom -->
 <div class="adv-distrito">
     <div id="panel-info-mapa" class="panel-info-mapa">
         <div class="panel-header">
@@ -620,11 +616,9 @@
     </div>
 </div>
 
-<!-- Panel Flotante de Herramientas de Medición y Guía -->
 <div class="fixed right-4 top-4 flex flex-col gap-2 z-[1000] bg-slate-900/95 border border-slate-800 p-2 rounded-xl shadow-2xl transition-all duration-300">
     <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest text-center mb-1 border-b border-slate-800/60 pb-1.5">Herramientas</div>
     
-    <!-- Botón Medir Distancia -->
     <button id="btn-medir-distancia" onclick="toggleMedicion('distancia')" class="flex items-center justify-between gap-3 px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-100 text-xs font-semibold transition border border-transparent hover:border-blue-500/50 focus:outline-none w-36 shadow-md" title="Medir Distancia">
         <span class="flex items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -634,7 +628,6 @@
         </span>
     </button>
     
-    <!-- Botón Medir Superficie -->
     <button id="btn-medir-superficie" onclick="toggleMedicion('superficie')" class="flex items-center justify-between gap-3 px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-100 text-xs font-semibold transition border border-transparent hover:border-emerald-500/50 focus:outline-none w-36 shadow-md" title="Medir Superficie">
         <span class="flex items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -644,7 +637,6 @@
         </span>
     </button>
 
-    <!-- Botón Flotante para Guía de Funcionamiento -->
     <button id="btn-guia-flotante" onclick="abrirGuia()" class="flex items-center justify-between gap-3 px-3 py-2 rounded-lg bg-blue-900/40 hover:bg-blue-800/60 text-blue-300 text-xs font-semibold transition border border-blue-500/30 hover:border-blue-400 focus:outline-none w-36 shadow-md" title="Guía de Funcionamiento">
         <span class="flex items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -654,7 +646,6 @@
         </span>
     </button>
     
-    <!-- Consola Dinámica de Resultados de Medición -->
     <div id="consola-medicion" class="hidden flex flex-col bg-slate-950 p-2.5 rounded-lg border border-slate-800 text-slate-300 mt-1 max-w-[144px]">
         <p id="texto-consola-instruccion" class="text-[9px] font-bold text-slate-400 mb-1 leading-snug">Haga clic en el mapa para marcar puntos...</p>
         <p id="resultado-consola-medicion" class="text-blue-400 font-extrabold text-sm border-t border-slate-800/60 pt-1 mt-1">0.00 m</p>
@@ -669,7 +660,6 @@
 <div id="modal-guia" class="fixed inset-0 z-[3000] hidden flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4 print:hidden transition-opacity duration-300">
     <div class="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-3xl max-h-[85vh] flex flex-col text-slate-100 overflow-hidden">
         
-        <!-- Header del Modal -->
         <div class="px-6 py-4 border-b border-slate-800 bg-slate-950 flex justify-between items-center">
             <div>
                 <h2 class="text-sm font-black text-blue-400 uppercase tracking-wider flex items-center gap-2">
@@ -684,10 +674,8 @@
             </button>
         </div>
 
-        <!-- Contenido de la Guía (Scrollable) -->
         <div class="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-custom text-xs leading-relaxed text-slate-300">
             
-            <!-- Sección 1 -->
             <div class="bg-slate-950/50 p-4 rounded-xl border border-slate-800/80 space-y-2">
                 <h3 class="text-xs font-bold text-blue-400 uppercase tracking-wide flex items-center gap-2">
                     <span class="bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded text-[10px]">1</span>
@@ -700,7 +688,6 @@
                 </ul>
             </div>
 
-            <!-- Sección 2 -->
             <div class="bg-slate-950/50 p-4 rounded-xl border border-slate-800/80 space-y-2">
                 <h3 class="text-xs font-bold text-amber-400 uppercase tracking-wide flex items-center gap-2">
                     <span class="bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded text-[10px]">2</span>
@@ -726,7 +713,6 @@
                 </div>
             </div>
 
-            <!-- Sección 3 -->
             <div class="bg-slate-950/50 p-4 rounded-xl border border-slate-800/80 space-y-2">
                 <h3 class="text-xs font-bold text-emerald-400 uppercase tracking-wide flex items-center gap-2">
                     <span class="bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded text-[10px]">3</span>
@@ -735,80 +721,17 @@
                 <div class="space-y-2 text-[11px]">
                     <p><strong class="text-white">Mapas Base:</strong></p>
                     <ul class="list-disc list-inside text-[10px] text-slate-300 space-y-0.5 pl-2">
-                        <li><strong>Mapa Oscuro:</strong> Alto contraste optimizado para lectura nocturna o resaltado vectorial.</li>
+                        <li><strong>Mapa Oscuro Completo:</strong> Cartografía nocturna de alta definición con el 100% de nombres de calles, pasajes y avenidas visibles a cualquier nivel de zoom.</li>
+                        <li><strong>Mapa Oscuro Minimalista:</strong> Fondo tenue simplificado para destacar únicamente líneas vectoriales catastrales.</li>
                         <li><strong>Híbrido (Satelital):</strong> Fotografía satelital ArcGIS World Imagery con red vial superpuesta.</li>
                         <li><strong>OpenStreetMap (OSM):</strong> Cartografía vial urbana convencional.</li>
                         <li><strong>Sin Mapa Base (Fondo Blanco):</strong> Oculta imágenes satelitales dejando lienzo limpio para exportación e impresión cartográfica.</li>
                     </ul>
-                    <p><strong class="text-white">Capas Vectoriales Interactivas:</strong></p>
-                    <ul class="list-disc list-inside text-[10px] text-slate-300 space-y-0.5 pl-2">
-                        <li><strong>Posesiones (1 y 2):</strong> Trazados destacados en bordes rojos/rosados para terrenos con ocupación o registro activo.</li>
-                        <li><strong>Parcelas Catastrales:</strong> Visibles a partir de zoom 16. Distingue parcelas de dominio individual (azul) y Propiedad Horizontal - PH (púrpura).</li>
-                        <li><strong>Manzanas:</strong> Delimitación física con etiqueta numérica central (desde zoom 15).</li>
-                        <li><strong>Grupos y Secciones:</strong> Jurisdicciones catastrales principales (límites naranja y verde).</li>
-                        <li><strong>Nombres de Calles:</strong> Etiquetas dinámicas en amarillo que siguen la curvatura de las vías (desde zoom 15).</li>
-                    </ul>
                 </div>
-            </div>
-
-            <!-- Sección 4 -->
-            <div class="bg-slate-950/50 p-4 rounded-xl border border-slate-800/80 space-y-2">
-                <h3 class="text-xs font-bold text-indigo-400 uppercase tracking-wide flex items-center gap-2">
-                    <span class="bg-indigo-500/20 text-indigo-400 px-2 py-0.5 rounded text-[10px]">4</span>
-                    <span>Módulo de Etiquetado de Manzanas</span>
-                </h3>
-                <p class="text-[11px] text-slate-300">Permite rotar y rotular automáticamente todas las parcelas contenidas en una manzana seleccionada:</p>
-                <ol class="list-decimal list-inside text-[10px] text-slate-300 space-y-1 pl-1">
-                    <li><strong class="text-white">Selección:</strong> Ingrese el número de manzana o utilice el botón <em>📍 Seleccionar Gráficamente</em> para hacer clic directo sobre el mapa.</li>
-                    <li><strong class="text-white">Generar Etiquetas:</strong> Presione <em>🏷️ Etiquetar Partidas</em>. El visor calculará la orientación geométrica de cada lote y colocará el número de partida catastral alineado al lote.</li>
-                    <li><strong class="text-white">Impresión:</strong> El botón <em>🖨️ Configurar Impresión Plano</em> enfoca la manzana y habilita el encuadres de plano.</li>
-                </ol>
-            </div>
-
-            <!-- Sección 5 -->
-            <div class="bg-slate-950/50 p-4 rounded-xl border border-slate-800/80 space-y-2">
-                <h3 class="text-xs font-bold text-sky-400 uppercase tracking-wide flex items-center gap-2">
-                    <span class="bg-sky-500/20 text-sky-400 px-2 py-0.5 rounded text-[10px]">5</span>
-                    <span>Herramientas de Medición</span>
-                </h3>
-                <p class="text-[11px] text-slate-300">Ubicadas en la consola flotante de la esquina superior derecha:</p>
-                <ul class="list-disc list-inside text-[10px] text-slate-300 space-y-1 pl-1">
-                    <li><strong class="text-white">Medición de Distancia:</strong> Marque puntos en el mapa para trazar trayectorias continuas. Calcula la longitud acumulada en metros ($m$) o kilómetros ($km$).</li>
-                    <li><strong class="text-white">Medición de Superficie:</strong> Marque 3 o más puntos para delimitar un polígono. Calcula el área plana geodésica en metros cuadrados ($m^2$) o hectáreas ($ha$).</li>
-                    <li><strong class="text-white">Teclas rápidas:</strong> Presione <code class="bg-slate-800 px-1 rounded text-sky-300">ESC</code> para cancelar o finalizar cualquier medición activa.</li>
-                </ul>
-            </div>
-
-            <!-- Sección 6 -->
-            <div class="bg-slate-950/50 p-4 rounded-xl border border-slate-800/80 space-y-2">
-                <h3 class="text-xs font-bold text-purple-400 uppercase tracking-wide flex items-center gap-2">
-                    <span class="bg-purple-500/20 text-purple-400 px-2 py-0.5 rounded text-[10px]">6</span>
-                    <span>Módulo de Impresión Catastral y Exportación PDF</span>
-                </h3>
-                <ul class="list-disc list-inside text-[10px] text-slate-300 space-y-1 pl-1">
-                    <li><strong class="text-white">Configuración:</strong> Seleccione tamaño de hoja (A4, A3, Carta), orientación (Retrato/Apaisado) y escala normalizada ($1:500$, $1:1000$, $1:2000$, $1:5000$).</li>
-                    <li><strong class="text-white">Previsualización:</strong> Active <em>Ver Área de Impresión</em> para visualizar en pantalla el recuadro punteado que representa la cobertura exacta del papel.</li>
-                    <li><strong class="text-white">Atenuación de Satélite:</strong> La opción <em>Atenuar satélite al imprimir</em> ajusta automáticamente el fondo satelital al $50\%$ de opacidad en escala de grises para maximizar la legibilidad de las líneas vectoriales.</li>
-                    <li><strong class="text-white">Generación del PDF:</strong> Al presionar <em>🖨️ Imprimir / Exportar PDF</em>, el sistema aplica un cálculo de zoom geodésico exacto ($96\text{ DPI}$), adjunta la carátula y simbología oficial de Paraná y dispara la impresión.</li>
-                </ul>
-            </div>
-
-            <!-- Sección 7 -->
-            <div class="bg-slate-950/50 p-4 rounded-xl border border-slate-800/80 space-y-2">
-                <h3 class="text-xs font-bold text-rose-400 uppercase tracking-wide flex items-center gap-2">
-                    <span class="bg-rose-500/20 text-rose-400 px-2 py-0.5 rounded text-[10px]">7</span>
-                    <span>Consultas Interactivas y Street View</span>
-                </h3>
-                <ul class="list-disc list-inside text-[10px] text-slate-300 space-y-1 pl-1">
-                    <li><strong class="text-white">Ficha Informativa:</strong> Haga clic sobre cualquier parcela para consultar sus atributos registrados en la base de datos de la IDE.</li>
-                    <li><strong class="text-white">Alerta de Posesión:</strong> Si la parcela registra un reclamo u ocupación activa, se desplegará una alerta destacada en rojo en el encabezado de la ficha.</li>
-                    <li><strong class="text-white">Google Street View:</strong> Las fichas incorporan el botón <em>📍 STREET VIEW</em> para abrir una panorámica en 360° a nivel de calle en el punto seleccionado.</li>
-                </ul>
             </div>
 
         </div>
 
-        <!-- Footer del Modal -->
         <div class="px-6 py-3 border-t border-slate-800 bg-slate-950 flex justify-between items-center">
             <span class="text-[9px] text-slate-500 font-bold uppercase">IDE Paraná — Visor Catastral v2.0</span>
             <button onclick="cerrarGuia()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs py-1.5 px-5 rounded-lg transition shadow">
@@ -822,29 +745,22 @@
 <script>
 const BASE_URL = "https://raw.githubusercontent.com/dcartografiayde/IDE-PARANA/main/";
 
-// Diccionario centralizado de constantes físicas de papel e impresión para coincidir Preview con Print
 const DIMENSIONES_FISICAS = {
     a4: { totalW: 210, totalH: 297, mapW: 186, mapH: 261 },
     a3: { totalW: 297, totalH: 420, mapW: 273, mapH: 384 },
     letter: { totalW: 216, totalH: 279, mapW: 192, mapH: 243 }
 };
 
-// Variable global para almacenar la última parcela seleccionada o buscada
 var ultimaParcelaSeleccionada = null;
 
-// Funciones para Apertura y Cierre del Modal de la Guía
 function abrirGuia() {
     const modal = document.getElementById('modal-guia');
-    if (modal) {
-        modal.classList.remove('hidden');
-    }
+    if (modal) modal.classList.remove('hidden');
 }
 
 function cerrarGuia() {
     const modal = document.getElementById('modal-guia');
-    if (modal) {
-        modal.classList.add('hidden');
-    }
+    if (modal) modal.classList.add('hidden');
 }
 
 function decodificarTexto(str) {
@@ -912,7 +828,6 @@ async function fetchGeoJSON(url) {
     return JSON.parse(text);
 }
 
-// Se habilita zoomSnap: 0 para posibilitar encuadres de escala fraccional geodésica perfectos
 var map = L.map('map', { 
     center: [-31.745, -60.51], 
     zoom: 12, 
@@ -948,12 +863,26 @@ map.getPane('atlasLabelsPane').style.zIndex = 650;
 map.getPane('atlasLabelsPane').style.pointerEvents = 'none';
 
 var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 22, maxNativeZoom: 19 });
-var dark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 22, maxNativeZoom: 20 });
+
+// Capa Oscura Completa (OSM Night): contiene el 100% de nombres de calles, pasajes, alturas y detalles urbanos sin requerir API Key
+var darkOsm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
+    maxZoom: 22, 
+    maxNativeZoom: 19, 
+    className: 'dark-tiles-osm',
+    attribution: '&copy; OpenStreetMap contributors' 
+});
+
+// Capa Oscura Minimalista (Esri Dark Canvas)
+var esriDarkBase = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', { maxZoom: 22, maxNativeZoom: 16 });
+var esriDarkLabels = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}', { maxZoom: 22, maxNativeZoom: 16 });
+var darkEsri = L.layerGroup([esriDarkBase, esriDarkLabels]);
+
 var sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 22, maxNativeZoom: 18 });
 var ref = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}', { maxZoom: 22, maxNativeZoom: 18 });
 var hibrido = L.layerGroup([sat, ref]);
 
-dark.addTo(map);
+// Por defecto activa la Capa Oscura Completa con nombres de calle
+darkOsm.addTo(map);
 
 var grupoCalles = L.layerGroup();
 var listaCallesParaBusqueda = [];
@@ -1615,11 +1544,13 @@ function toggleSidebar() {
 }
 
 function cambiarBaseMap(tipo) {
-    map.removeLayer(dark);
+    map.removeLayer(darkOsm);
+    map.removeLayer(darkEsri);
     map.removeLayer(hibrido);
     map.removeLayer(osm);
     
-    if (tipo === 'dark') dark.addTo(map);
+    if (tipo === 'dark' || tipo === 'darkOsm') darkOsm.addTo(map);
+    if (tipo === 'darkEsri') darkEsri.addTo(map);
     if (tipo === 'hibrido') hibrido.addTo(map);
     if (tipo === 'osm') osm.addTo(map);
     // 'none' deja el mapa vacío para exportar puras líneas vectoriales sobre fondo blanco
@@ -2179,11 +2110,9 @@ function obtenerLimitesImpresion(centro, anchoMm, altoMm, escala) {
     return L.latLngBounds([sur, oeste], [norte, este]);
 }
 
-// Función geodésica matemática para calcular el zoom exacto de Web Mercator según escala real deseada (a 96 DPI estándar de impresión)
 function calcularZoomParaEscala(escala, lat) {
-    const R = 6378137; // Radio medio terrestre en metros
+    const R = 6378137; 
     const latRad = lat * Math.PI / 180;
-    // Metros que representa un pixel físico en el papel a 96 DPI (1 inch = 0.0254m = 96px)
     const metrosPorPixelPapel = (0.0254 / 96) * escala;
     const C = 2 * Math.PI * R * Math.cos(latRad);
     const zoom = Math.log2(C / (256 * metrosPorPixelPapel));
@@ -2243,11 +2172,9 @@ function actualizarEstiloPaginaImpresion(papel, orientacion) {
     
     let orientationKeyword = orientacion === "apaisado" ? "landscape" : "portrait";
     
-    // Verificamos si la atenuación de satélite (Grayscale + 50% Opacidad) está activa para la impresión
     let atenuarSatelite = document.getElementById('chk-atenuar-satelite').checked;
     let filterPrintStyle = "";
     if (atenuarSatelite) {
-        // Aplica desaturación completa, incrementa el brillo levemente y define una opacidad exacta de 50% en los azulejos de mapa base
         filterPrintStyle = `
             .leaflet-tile-container img {
                 filter: grayscale(100%) brightness(1.25) contrast(0.95) opacity(0.5) !important;
@@ -2301,7 +2228,6 @@ function imprimirMapa() {
     let panelsFlotantes = document.querySelectorAll('.fixed, .adv-distrito');
     panelsFlotantes.forEach(p => p.classList.add('print-hidden'));
 
-    // Ocultar de manera definitiva el cuadro de líneas punteadas azules para que no se imprima
     capaPreviewImpresion.clearLayers();
 
     printWrapper.style.width = printW_mm + 'mm';
@@ -2321,7 +2247,6 @@ function imprimirMapa() {
 
     let centro = map.getCenter();
     
-    // Calculamos y aplicamos el nivel de zoom fraccional geodésico exacto para lograr la escala física seleccionada
     let exactZoom = calcularZoomParaEscala(escala, centro.lat);
     map.setView(centro, exactZoom, { animate: false });
 
