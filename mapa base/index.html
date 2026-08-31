@@ -18,6 +18,11 @@
         body { margin:0; padding:0; font-family: 'Inter', sans-serif; background: #0f172a; overflow: hidden; }
         #map { height: 100vh; width: 100%; z-index: 1; }
 
+        /* Filtro CSS para convertir OpenStreetMap en una Capa Oscura de Alta Definición con Nombres de Calle completos */
+        .dark-tiles-osm {
+            filter: invert(100%) hue-rotate(180deg) brightness(88%) contrast(105%);
+        }
+
         /* Estilos personalizados para el scrollbar del menú lateral */
         .scrollbar-custom::-webkit-scrollbar {
             width: 6px;
@@ -143,7 +148,7 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
         }
 
-        /* ESTILOS DEL NUEVO PANEL DE HERRAMIENTAS DE MEDICIÓN (SEGÚN DISEÑO SOLICITADO) */
+        /* PANEL DE HERRAMIENTAS DE MEDICIÓN */
         .widget-medicion {
             position: absolute;
             top: 20px;
@@ -275,7 +280,7 @@
                 <div class="space-y-1.5">
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
                         <input type="radio" name="basemap" value="dark" checked onchange="cambiarBaseMap('dark')" class="bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
-                        <span>Mapa Oscuro</span>
+                        <span class="font-bold text-blue-300">Mapa Oscuro Completo (Nombres de Calle)</span>
                     </label>
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
                         <input type="radio" name="basemap" value="hibrido" onchange="cambiarBaseMap('hibrido')" class="bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
@@ -336,7 +341,7 @@
     </button>
 </div>
 
-<!-- NUEVO PANEL DE HERRAMIENTAS DE MEDICIÓN (EXACTO SEGÚN CAPTURA SOLICITADA) -->
+<!-- PANEL DE HERRAMIENTAS DE MEDICIÓN -->
 <div class="widget-medicion">
     <div class="widget-medicion-header">HERRAMIENTAS</div>
     
@@ -519,12 +524,21 @@ map.getPane('parcelasPane').style.zIndex = 350;
 map.getPane('parcelasPane').style.pointerEvents = 'auto';
 
 var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 22, maxNativeZoom: 19 });
-var dark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 22, maxNativeZoom: 20 });
+
+// Capa Oscura Completa (OSM Night): contiene el 100% de nombres de calles, pasajes, alturas y detalles urbanos sin requerir API Key
+var darkOsm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
+    maxZoom: 22, 
+    maxNativeZoom: 19, 
+    className: 'dark-tiles-osm',
+    attribution: '&copy; OpenStreetMap contributors' 
+});
+
 var sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 22, maxNativeZoom: 18 });
 var ref = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}', { maxZoom: 22, maxNativeZoom: 18 });
 var hibrido = L.layerGroup([sat, ref]);
 
-dark.addTo(map);
+// Activa Mapa Oscuro Completo por defecto
+darkOsm.addTo(map);
 
 var grupoCalles = L.layerGroup();
 var listaCallesParaBusqueda = [];
@@ -758,7 +772,7 @@ async function cargarFeaturesFGBConProgreso(fileUrl, pesoProporcion, pesoBase) {
     return features;
 }
 
-// Procesador de parcelas por lotes no bloqueantes para máxima velocidad y fluidez
+// Procesador de parcelas por lotes no bloqueantes
 function procesarEInsertarParcelasChunked(features, alTerminar) {
     let grupos = {};
     features.forEach(f => {
@@ -783,10 +797,9 @@ function procesarEInsertarParcelasChunked(features, alTerminar) {
         };
     });
 
-    // Inserción en bloques con requestAnimationFrame para evitar congelar el mapa
     let total = featuresProcesadas.length;
     let indice = 0;
-    let chunkSize = 800; // Procesar de a 800 parcelas por frame
+    let chunkSize = 800;
 
     let ly = L.geoJSON([], {
         pane: 'parcelasPane', 
@@ -847,7 +860,6 @@ function procesarEInsertarParcelasChunked(features, alTerminar) {
     renderChunk();
 }
 
-// Carga optimizada de archivos FlatGeobuf con porcentaje
 const archivosCatastroFGB = [
     { name: "parcela1_6.fgb", peso: 0.5 },
     { name: "parcela7_15.fgb", peso: 0.5 }
@@ -878,7 +890,6 @@ async function cargarCatastro() {
         console.warn("Falla en carga FGB, activando respaldo GeoJSON...", err);
     }
 
-    // Fallback GeoJSON
     if (!exitoFGB) {
         actualizarProgresoCarga(30, "Cargando modo de respaldo...");
         const archivosFallback = ["parcela1_4.geojson", "parcela5_7.geojson", "parcela8_15.geojson"];
@@ -949,10 +960,10 @@ function toggleSidebar() {
 }
 
 function cambiarBaseMap(tipo) {
-    map.removeLayer(dark);
+    map.removeLayer(darkOsm);
     map.removeLayer(hibrido);
     map.removeLayer(osm);
-    if (tipo === 'dark') dark.addTo(map);
+    if (tipo === 'dark') darkOsm.addTo(map);
     if (tipo === 'hibrido') hibrido.addTo(map);
     if (tipo === 'osm') osm.addTo(map);
 }
@@ -1066,8 +1077,8 @@ function buscarGoogle() {
         });
 }
 
-/* ================= NUEVA HERRAMIENTA DE MEDICIÓN PERSONALIZADA ================= */
-var modoMedicion = null; // 'distancia' | 'superficie' | null
+/* ================= HERRAMIENTA DE MEDICIÓN PERSONALIZADA ================= */
+var modoMedicion = null;
 var puntosMedicion = [];
 var marcadoresMedicion = [];
 var lineaMedicion = null;
@@ -1214,13 +1225,6 @@ map.on('click', (e) => {
 });
 
 function mostrarGuiaMedicion() {
-    let msg = `📐 GUÍA DE HERRAMIENTAS DE MEDICIÓN:\n\n` +
-              `1. Seleccione "Distancia" o "Superficie".\n` +
-              `2. Haga clic sobre el mapa para agregar puntos.\n` +
-              `3. La distancia acumulada o la superficie del polígono se calcularán en tiempo real.\n` +
-              `4. Presione "Limpiar medición" para reiniciar los cálculos.`;
-    
-    // Cuadro informativo flotante nativo
     let divModal = document.createElement('div');
     divModal.className = "fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[3000] flex items-center justify-center p-4";
     divModal.innerHTML = `
