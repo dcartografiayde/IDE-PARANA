@@ -760,20 +760,20 @@ fetchGeoJSON(
 
 var gruposHuellaPorFecha = {};
 
+// MODIFICACIÓN: Redefinición de la paleta de colores adecuando la gradación al omitir el año 2024
 const coloresHuella = {
     "1967": "#fff7d6", 
-    "1979": "#ffe89a", 
-    "1983": "#ffd34d", 
-    "1990": "#ffb347", 
-    "1998": "#ff9436", 
-    "2001": "#ff7a2f", 
-    "2002": "#ff5c33", 
-    "2005": "#f44336", 
-    "2006": "#e53935", 
-    "2009": "#d32f2f", 
-    "2012": "#b71c1c", 
-    "2024": "#800000", 
-    "2026": "#4a0000"  
+    "1979": "#ffe8a1", 
+    "1983": "#ffd56b", 
+    "1990": "#ffb84d", 
+    "1998": "#ff9a38", 
+    "2001": "#ff7c2e", 
+    "2002": "#f95f2e", 
+    "2005": "#eb432b", 
+    "2006": "#d82727", 
+    "2009": "#c41c1c", 
+    "2012": "#a81111", 
+    "2026": "#8c0a0a"  
 };
 
 var listaParcelasUbicacion = [];
@@ -857,9 +857,10 @@ archivosCatastro.forEach(file => {
     });
 });
 
+// MODIFICACIÓN: Cambio de la capa GeoJSON a la nueva URL (crecimiento_huella_urb.geojson)
 fetchGeoJSON(
     BASE_URL +
-    "atlas_pua/crecimiento_huella_urbana/crecimiento_huella_urbana.geojson"
+    "atlas_pua/crecimiento_huella_urbana/crecimiento_huella_urb.geojson"
 )
 .then(data=>{
     data.features.forEach(feature=>{
