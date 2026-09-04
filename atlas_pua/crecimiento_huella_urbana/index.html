@@ -760,7 +760,7 @@ fetchGeoJSON(
 
 var gruposHuellaPorFecha = {};
 
-// MODIFICACIÓN: Redefinición de la paleta de colores adecuando la gradación al omitir el año 2024
+// MODIFICACIÓN: Redefinición de la paleta de colores para reemplazar 2026 por 2024
 const coloresHuella = {
     "1967": "#fff7d6", 
     "1979": "#ffe8a1", 
@@ -773,7 +773,7 @@ const coloresHuella = {
     "2006": "#d82727", 
     "2009": "#c41c1c", 
     "2012": "#a81111", 
-    "2026": "#8c0a0a"  
+    "2024": "#8c0a0a"  
 };
 
 var listaParcelasUbicacion = [];
@@ -857,36 +857,35 @@ archivosCatastro.forEach(file => {
     });
 });
 
-// MODIFICACIÓN: Cambio de la capa GeoJSON a la nueva URL (crecimiento_huella_urb.geojson)
-fetchGeoJSON(
-    BASE_URL +
-    "atlas_pua/crecimiento_huella_urbana/crecimiento_huella_urb.geojson"
-)
-.then(data=>{
-    data.features.forEach(feature=>{
+// MODIFICACIÓN: Procesamiento de las huellas históricas y adición de la capa 2024 de GitHub
+function procesarEstructuraHuella(data) {
+    data.features.forEach(feature => {
         const props = feature.properties || {};
 
-        const fechaRaw = props.fecha || props.FECHA || props.Año || props.AÑO || props.año || props.anio || props.ANIO || "SIN FECHA";
-        const fecha = String(fechaRaw).trim();
+        let fechaRaw = props.fecha || props.FECHA || props.Año || props.AÑO || props.año || props.anio || props.ANIO || "SIN FECHA";
+        let fecha = String(fechaRaw).trim();
+
+        // Omitir por completo cualquier presencia del año 2026
+        if (fecha === "2026") return;
 
         const areaRaw = props.area_ha || props.AREA_HA || props.Area_Ha || props.Área || props.AREA || props.area || "-";
         const ejidoRaw = props.ejido || props.EJIDO || props.Ejido || "-";
 
-        if(!gruposHuellaPorFecha[fecha]){
-            gruposHuellaPorFecha[fecha]=L.layerGroup();
+        if (!gruposHuellaPorFecha[fecha]) {
+            gruposHuellaPorFecha[fecha] = L.layerGroup();
         }
 
         const color = coloresHuella[fecha] || "#ff7800";
 
-        L.geoJSON(feature,{
-            pane:"ejidosPane",
-            style:{
-                color:color,
-                weight:2,
-                fillColor:color,
-                fillOpacity:0.30
+        L.geoJSON(feature, {
+            pane: "ejidosPane",
+            style: {
+                color: color,
+                weight: 2,
+                fillColor: color,
+                fillOpacity: 0.30
             },
-            onEachFeature:function(feature,layer){
+            onEachFeature: function(f, layer) {
                 layer.bindPopup(`
                 <div class="popup-custom">
                 <div class="popup-header">CRECIMIENTO HUELLA URBANA</div>
@@ -898,15 +897,17 @@ fetchGeoJSON(
                 </div>
                 `);
             }
-        })
-        .addTo(gruposHuellaPorFecha[fecha]);
+        }).addTo(gruposHuellaPorFecha[fecha]);
     });
+}
 
+function generarControlesHuellaUI() {
     const contenedor = document.getElementById("contenedor-huella");
+    contenedor.innerHTML = ""; // Limpiar listado anterior
 
     Object.keys(gruposHuellaPorFecha)
     .sort()
-    .forEach(fecha=>{
+    .forEach(fecha => {
         contenedor.insertAdjacentHTML(
         "beforeend",
         `
@@ -921,10 +922,35 @@ fetchGeoJSON(
         );
     });
 
-    if(gruposHuellaPorFecha["1967"]){
+    if (gruposHuellaPorFecha["1967"]) {
         gruposHuellaPorFecha["1967"].addTo(map);
-        document.getElementById("chk-huella-1967").checked=true;
+        const chkInitial = document.getElementById("chk-huella-1967");
+        if (chkInitial) chkInitial.checked = true;
     }
+}
+
+// Carga simultánea del archivo base de huellas y la nueva capa 2024
+const urlHuellaBase = BASE_URL + "atlas_pua/crecimiento_huella_urbana/crecimiento_huella_urb.geojson";
+const urlHuella2024 = "https://raw.githubusercontent.com/dcartografiayde/IDE-PARANA/main/atlas_pua/crecimiento_huella_urbana/crecimiento_huella_urb_2024.geojson";
+
+Promise.all([
+    fetchGeoJSON(urlHuellaBase).catch(err => { console.error("Error al cargar huella base", err); return null; }),
+    fetchGeoJSON(urlHuella2024).catch(err => { console.error("Error al cargar huella 2024", err); return null; })
+]).then(([dataBase, data2024]) => {
+    if (dataBase) procesarEstructuraHuella(dataBase);
+    
+    if (data2024) {
+        // Asegurar la propiedad de año a 2024 para cada feature
+        if (data2024.features) {
+            data2024.features.forEach(f => {
+                if (!f.properties) f.properties = {};
+                f.properties.fecha = "2024";
+            });
+        }
+        procesarEstructuraHuella(data2024);
+    }
+
+    generarControlesHuellaUI();
 });
     
 function controlarVisibilidadDinamica() {
