@@ -132,9 +132,10 @@
             color:#475569;
         }
         
+        /* Color del borde de la etiqueta ajustado a naranja */
         .etiqueta-manzana {
             background: rgba(255, 255, 255, 0.95) !important;
-            border: 2px solid #ff6b6b !important;
+            border: 2px solid #f97316 !important;
             color: #1e293b !important;
             font-weight: 800 !important;
             font-size: 10px !important;
@@ -293,28 +294,28 @@
                 </div>
             </div>
 
-            <!-- MODIFICACIÓN: Toggles de Capas Organizados por Subtítulos -->
+            <!-- Toggles de Capas Organizados por Subtítulos -->
             <div class="space-y-4 pt-2">
                 <!-- Subtítulo 1: Catastro Básico -->
                 <div class="space-y-2">
                     <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide border-b border-slate-800/60 pb-1">Catastro Básico</span>
                     <div class="space-y-2 pl-1">
                         <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
-                            <input type="checkbox" id="chk-manzanas" checked onchange="toggleOverlay('manzanas')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
+                            <input type="checkbox" id="chk-manzanas" onchange="toggleOverlay('manzanas')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
                             <span class="flex items-center gap-2">
-                                <span class="w-3.5 h-3.5 rounded border border-[#ff6b6b] bg-[rgba(255,107,107,0.15)] inline-block"></span>
+                                <span class="w-3.5 h-3.5 rounded border border-[#f97316] bg-[rgba(249,115,22,0.15)] inline-block"></span>
                                 <span>Manzanas</span>
                             </span>
                         </label>
                         <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
-                            <input type="checkbox" id="chk-calles" checked onchange="toggleOverlay('calles')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
+                            <input type="checkbox" id="chk-calles" onchange="toggleOverlay('calles')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
                             <span class="flex items-center gap-2">
                                 <span class="w-3.5 h-1 bg-[#FFFF00] inline-block"></span>
                                 <span>Nombres de Calles</span>
                             </span>
                         </label>
                         <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
-                            <input type="checkbox" id="chk-parcelas" checked onchange="toggleOverlay('parcelas')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
+                            <input type="checkbox" id="chk-parcelas" onchange="toggleOverlay('parcelas')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
                             <span class="flex items-center gap-2">
                                 <span class="w-3.5 h-3.5 rounded bg-[#2980b9] inline-block"></span>
                                 <span>Parcelas Catastrales</span>
@@ -360,6 +361,20 @@
                             <span class="flex items-center gap-2">
                                 <span class="w-3.5 h-1 bg-[#3b82f6] inline-block"></span>
                                 <span>Red secundaria</span>
+                            </span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- MODIFICACIÓN: Subtítulo 4: Huella urbana -->
+                <div class="space-y-2">
+                    <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide border-b border-slate-800/60 pb-1">Huella urbana</span>
+                    <div class="space-y-2 pl-1">
+                        <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
+                            <input type="checkbox" id="chk-huella-urbana" onchange="toggleOverlay('huella_urbana')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
+                            <span class="flex items-center gap-2">
+                                <span class="w-3.5 h-3.5 rounded border border-[#8B4513] bg-[rgba(139,69,19,0.3)] inline-block"></span>
+                                <span>Crecimiento Huella Urbana 2024</span>
                             </span>
                         </label>
                     </div>
@@ -442,8 +457,9 @@
         </div>
 
         <div id="descripcion-mapa" class="panel-descripcion">
-            En el siguiente plano se observan las vías urbanas primarias las cuales conectan la provincia de Entre Ríos con el resto del país y las vías urbanas secundarias que estructuran la trama del ejido Municipal de la ciudad de Paraná. Encontramos además espacios verdes públicos contabilizados al año 2025
+            En el siguiente plano se observan las vías urbanas primarias las cuales conectan la provincia de Entre Ríos con el resto del país y las vías urbanas secundarias que estructuran la trama del ejido Municipal de la ciudad de Paraná. Encontramos además espacios verdes públicos contabilizados al año 2025.
         </div>
+
         <hr style="margin:8px 0;">
 
         <div class="text-[9px] text-slate-500">
@@ -687,7 +703,7 @@ function activarEtiquetasCalles() {
     renderLabels();
 }
 
-var grupoManzanas = L.layerGroup().addTo(map);
+var grupoManzanas = L.layerGroup();
 var grupoEtiquetasManzanas = L.layerGroup(); 
 
 fetchGeoJSON(BASE_URL + "catastro/manzana.geojson").then(data => {
@@ -695,7 +711,7 @@ fetchGeoJSON(BASE_URL + "catastro/manzana.geojson").then(data => {
     L.geoJSON(data, {
         pane: 'manzanasPane', 
         filter: (f) => f && f.geometry && f.geometry.coordinates && f.geometry.coordinates.length > 0,
-        style: { color: "#ff6b6b", weight: 1, fillColor: "transparent", fillOpacity: 0, interactive: false },
+        style: { color: "#f97316", weight: 1, fillColor: "transparent", fillOpacity: 0, interactive: false },
         onEachFeature: (f, l) => {
             let propNum = "";
             for (let k in f.properties) {
@@ -735,11 +751,14 @@ var grupoParcelas = L.layerGroup();
 var parcelasLayers = [];
 var listaParcelasUbicacion = [];
 
-/* MODIFICACIÓN: Definición e integración de las nuevas capas vectoriales */
+/* Definición e integración de las capas vectoriales */
 var grupoEspaciosVerdes = L.layerGroup().addTo(map);
 var grupoPlazasParques = L.layerGroup().addTo(map);
 var grupoRedPrimaria = L.layerGroup().addTo(map);
 var grupoRedSecundaria = L.layerGroup().addTo(map);
+
+// MODIFICACIÓN: Definición del grupo para Huella Urbana (inicia desactivado, sin addTo(map))
+var grupoHuellaUrbana = L.layerGroup();
 
 function crearPopupAtributosVerdes(f) {
     let props = f.properties || {};
@@ -787,7 +806,7 @@ fetchGeoJSON(BASE_URL + "atlas_pua/espacios_verdes_publicos/red_vial.geojson").t
         style: (f) => {
             let hw = f.properties.highway;
             let esGrueso = (hw === 'trunk' || hw === 'trunk_link');
-            return { color: '#ef4444', weight: esGrueso ? 5 : 3, opacity: 0.85 };
+            return { color: '#ef4444', weight: esGrueso ? 2.5 : 1.8, opacity: 0.85 };
         }
     }).addTo(grupoRedPrimaria);
 
@@ -796,10 +815,37 @@ fetchGeoJSON(BASE_URL + "atlas_pua/espacios_verdes_publicos/red_vial.geojson").t
         style: (f) => {
             let hw = f.properties.highway;
             let esGrueso = (hw === 'secondary' || hw === 'secondary_link');
-            return { color: '#3b82f6', weight: esGrueso ? 4 : 2, opacity: 0.85 };
+            return { color: '#3b82f6', weight: esGrueso ? 1.8 : 1.2, opacity: 0.85 };
         }
     }).addTo(grupoRedSecundaria);
 }).catch(err => console.warn("Error cargando red vial:", err));
+
+// MODIFICACIÓN: Carga de la capa de Crecimiento de Huella Urbana 2024
+fetchGeoJSON(BASE_URL + "atlas_pua/crecimiento_huella_urbana/crecimiento_huella_urb_2024.geojson").then(data => {
+    L.geoJSON(data, {
+        style: {
+            color: "#8B4513",        // Color marrón
+            fillColor: "#8B4513",    // Color marrón de relleno
+            weight: 1.5,
+            fillOpacity: 0.2,        // Alta transparencia
+            opacity: 0.8
+        },
+        onEachFeature: (f, l) => {
+            let props = f.properties || {};
+            let ejido = props.ejido ? decodificarTexto(String(props.ejido)) : '-';
+            let areaHa = props.area_ha ? String(props.area_ha) : '-';
+            
+            let popupContent = `<div class="popup-custom">
+                <div class="popup-header">HUELLA URBANA</div>
+                <table class="table-info">
+                    <tr><td>EJIDO</td><td>${ejido}</td></tr>
+                    <tr><td>ÁREA (HA)</td><td>${areaHa} ha</td></tr>
+                </table>
+            </div>`;
+            l.bindPopup(popupContent);
+        }
+    }).addTo(grupoHuellaUrbana);
+}).catch(err => console.warn("Error cargando huella urbana:", err));
 
 function actualizarProgresoCarga(porcentaje, texto) {
     const elContainer = document.getElementById('progreso-fgb-container');
@@ -1053,7 +1099,7 @@ function controlarVisibilidadDinamica() {
         if (map.hasLayer(grupoParcelas)) map.removeLayer(grupoParcelas);
     }
 
-    /* MODIFICACIÓN: Lógica de encendido/apagado para las nuevas capas */
+    /* Lógica de encendido/apagado para las capas */
     const chkEspaciosVerdes = document.getElementById('chk-espacios-verdes');
     if (chkEspaciosVerdes) {
         if (chkEspaciosVerdes.checked) { if (!map.hasLayer(grupoEspaciosVerdes)) map.addLayer(grupoEspaciosVerdes); }
@@ -1076,6 +1122,13 @@ function controlarVisibilidadDinamica() {
     if (chkRedSecundaria) {
         if (chkRedSecundaria.checked) { if (!map.hasLayer(grupoRedSecundaria)) map.addLayer(grupoRedSecundaria); }
         else { if (map.hasLayer(grupoRedSecundaria)) map.removeLayer(grupoRedSecundaria); }
+    }
+
+    // MODIFICACIÓN: Control de visibilidad de la capa Huella Urbana
+    const chkHuellaUrbana = document.getElementById('chk-huella-urbana');
+    if (chkHuellaUrbana) {
+        if (chkHuellaUrbana.checked) { if (!map.hasLayer(grupoHuellaUrbana)) map.addLayer(grupoHuellaUrbana); }
+        else { if (map.hasLayer(grupoHuellaUrbana)) map.removeLayer(grupoHuellaUrbana); }
     }
 }
 
