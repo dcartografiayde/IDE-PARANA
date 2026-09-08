@@ -363,10 +363,18 @@
                                 <span>Red secundaria</span>
                             </span>
                         </label>
+                        <!-- MODIFICACIÓN: Checkbox de Ferrocarril -->
+                        <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
+                            <input type="checkbox" id="chk-ferrocarril" checked onchange="toggleOverlay('ferrocarril')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
+                            <span class="flex items-center gap-2">
+                                <span class="w-3.5 h-1 bg-[#000000] border-t border-b border-white inline-block"></span>
+                                <span>Ferrocarril</span>
+                            </span>
+                        </label>
                     </div>
                 </div>
 
-                <!-- MODIFICACIÓN: Subtítulo 4: Huella urbana -->
+                <!-- Subtítulo 4: Huella urbana -->
                 <div class="space-y-2">
                     <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide border-b border-slate-800/60 pb-1">Huella urbana</span>
                     <div class="space-y-2 pl-1">
@@ -757,7 +765,9 @@ var grupoPlazasParques = L.layerGroup().addTo(map);
 var grupoRedPrimaria = L.layerGroup().addTo(map);
 var grupoRedSecundaria = L.layerGroup().addTo(map);
 
-// MODIFICACIÓN: Definición del grupo para Huella Urbana (inicia desactivado, sin addTo(map))
+// MODIFICACIÓN: Definición del grupo para Ferrocarril
+var grupoFerrocarril = L.layerGroup().addTo(map);
+
 var grupoHuellaUrbana = L.layerGroup();
 
 function crearPopupAtributosVerdes(f) {
@@ -820,7 +830,29 @@ fetchGeoJSON(BASE_URL + "atlas_pua/espacios_verdes_publicos/red_vial.geojson").t
     }).addTo(grupoRedSecundaria);
 }).catch(err => console.warn("Error cargando red vial:", err));
 
-// MODIFICACIÓN: Carga de la capa de Crecimiento de Huella Urbana 2024
+// MODIFICACIÓN: Carga de Ferrocarril (Sin popup y con estilo de línea y trazos perpendiculares)
+fetchGeoJSON(BASE_URL + "atlas_pua/espacios_verdes_publicos/ffcc.geojson").then(data => {
+    L.geoJSON(data, {
+        style: { color: "#000000", weight: 2, opacity: 0.9 },
+        onEachFeature: (f, l) => {
+            if (l.setText) {
+                l.setText('—|—|—|—', {
+                    repeat: true,
+                    offset: 3.5,
+                    attributes: {
+                        fill: '#000000',
+                        'font-weight': 'bold',
+                        'font-size': '10',
+                        'stroke': '#ffffff',
+                        'stroke-width': '0.5px'
+                    }
+                });
+            }
+        }
+    }).addTo(grupoFerrocarril);
+}).catch(err => console.warn("Error cargando ferrocarril:", err));
+
+// Carga de la capa de Crecimiento de Huella Urbana 2024
 fetchGeoJSON(BASE_URL + "atlas_pua/crecimiento_huella_urbana/crecimiento_huella_urb_2024.geojson").then(data => {
     L.geoJSON(data, {
         style: {
@@ -1124,7 +1156,13 @@ function controlarVisibilidadDinamica() {
         else { if (map.hasLayer(grupoRedSecundaria)) map.removeLayer(grupoRedSecundaria); }
     }
 
-    // MODIFICACIÓN: Control de visibilidad de la capa Huella Urbana
+    // MODIFICACIÓN: Control de visibilidad de la capa Ferrocarril
+    const chkFerrocarril = document.getElementById('chk-ferrocarril');
+    if (chkFerrocarril) {
+        if (chkFerrocarril.checked) { if (!map.hasLayer(grupoFerrocarril)) map.addLayer(grupoFerrocarril); }
+        else { if (map.hasLayer(grupoFerrocarril)) map.removeLayer(grupoFerrocarril); }
+    }
+
     const chkHuellaUrbana = document.getElementById('chk-huella-urbana');
     if (chkHuellaUrbana) {
         if (chkHuellaUrbana.checked) { if (!map.hasLayer(grupoHuellaUrbana)) map.addLayer(grupoHuellaUrbana); }
