@@ -17,6 +17,11 @@
         body { margin:0; padding:0; font-family: 'Inter', sans-serif; background: #0f172a; overflow: hidden; }
         #map { height: 100vh; width: 100%; z-index: 1; }
 
+        /* Filtro CSS para convertir OpenStreetMap en una Capa Oscura de Alta Definición con Nombres de Calle completos */
+        .dark-tiles-osm {
+            filter: invert(100%) hue-rotate(180deg) brightness(88%) contrast(105%);
+        }
+
         .sidebar-scroll::-webkit-scrollbar {
             width: 6px;
         }
@@ -198,7 +203,7 @@
                 
                 <label class="flex items-center gap-2.5 text-xs cursor-pointer text-slate-300 hover:text-white py-1">
                     <input type="radio" name="basemap" value="dark" checked onclick="switchBaseMap('dark')" class="accent-sky-500">
-                    <span>Mapa Oscuro</span>
+                    <span class="font-bold text-sky-300">Mapa Oscuro Completo (Nombres de Calle)</span>
                 </label>
                 <label class="flex items-center gap-2.5 text-xs cursor-pointer text-slate-300 hover:text-white py-1">
                     <input type="radio" name="basemap" value="hibrido" onclick="switchBaseMap('hibrido')" class="accent-sky-500">
@@ -442,7 +447,9 @@
 
 <script>
 const BASE_URL = "https://raw.githubusercontent.com/dcartografiayde/IDE-PARANA/main/";
+const FALLBACK_BASE_URL = "https://cdn.jsdelivr.net/gh/dcartografiayde/IDE-PARANA@main/";
 const PRESERV_URL = BASE_URL + "preservacion/";
+const PRESERV_FALLBACK_URL = FALLBACK_BASE_URL + "preservacion/";
 
 var listaDireccionesParcelas = [];
 
@@ -576,19 +583,49 @@ function decodificarTexto(str) {
     } catch (e) { return str; }
 }
 
-async function fetchGeoJSON(url) {
-    const response = await fetch(url);
-    if (!response.ok) throw new Error("HTTP error! status: " + response.status);
-    const arrayBuffer = await response.arrayBuffer();
-    
-    const decoderUTF8 = new TextDecoder('utf-8');
-    let text = decoderUTF8.decode(arrayBuffer);
-    
-    if (text.includes('\uFFFD')) {
-        const decoderANSI = new TextDecoder('windows-1252');
-        text = decoderANSI.decode(arrayBuffer);
+async function fetchWithFallback(url) {
+    let response;
+    try {
+        response = await fetch(url);
+        if (!response.ok && url.includes(BASE_URL)) {
+            const fallbackUrl = url.replace(BASE_URL, FALLBACK_BASE_URL);
+            const fallbackResp = await fetch(fallbackUrl);
+            if (fallbackResp.ok) return fallbackResp;
+        }
+    } catch (e) {
+        if (url.includes(BASE_URL)) {
+            try {
+                const fallbackUrl = url.replace(BASE_URL, FALLBACK_BASE_URL);
+                response = await fetch(fallbackUrl);
+            } catch (err) {
+                return null;
+            }
+        }
     }
-    return JSON.parse(text);
+    return response && response.ok ? response : null;
+}
+
+async function fetchGeoJSON(url) {
+    try {
+        const response = await fetchWithFallback(url);
+        if (!response) {
+            console.warn("No se pudo obtener GeoJSON desde GitHub ni CDN:", url);
+            return { type: "FeatureCollection", features: [] };
+        }
+        const arrayBuffer = await response.arrayBuffer();
+        
+        const decoderUTF8 = new TextDecoder('utf-8');
+        let text = decoderUTF8.decode(arrayBuffer);
+        
+        if (text.includes('\uFFFD')) {
+            const decoderANSI = new TextDecoder('windows-1252');
+            text = decoderANSI.decode(arrayBuffer);
+        }
+        return JSON.parse(text);
+    } catch (err) {
+        console.warn("Error procesando GeoJSON (" + url + "):", err);
+        return { type: "FeatureCollection", features: [] };
+    }
 }
 
 var map = L.map('map', { 
@@ -608,7 +645,15 @@ map.getPane('parcelasPane').style.zIndex = 350;
 map.getPane('parcelasPane').style.pointerEvents = 'auto'; 
 
 var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 22, maxNativeZoom: 19 });
-var dark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 22, maxNativeZoom: 20 });
+
+// Capa Oscura Completa (OSM Night): Reemplazo con nombres de calle completos configurado desde Catastro
+var dark = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
+    maxZoom: 22, 
+    maxNativeZoom: 19, 
+    className: 'dark-tiles-osm',
+    attribution: '&copy; OpenStreetMap contributors' 
+});
+
 var sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 22, maxNativeZoom: 18 });
 var ref = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}', { maxZoom: 22, maxNativeZoom: 18 });
 var hibrido = L.layerGroup([sat, ref]);
@@ -649,7 +694,7 @@ fetchGeoJSON(BASE_URL + "distritos.geojson").then(function(data) {
             }
         }
     }).addTo(grupoDistritos);
-});
+}).catch(err => console.warn("Error cargando distritos:", err));
 
 var grupoCalles = L.layerGroup().addTo(map);
 var listaCallesParaBusqueda = [];
@@ -670,7 +715,7 @@ fetchGeoJSON(BASE_URL + "calles.geojson").then(function(data) {
         }
     }).addTo(grupoCalles);
     activarEtiquetasCalles();
-});
+}).catch(err => console.warn("Error cargando calles:", err));
 
 function activarEtiquetasCalles() {
     const renderLabels = function() {
@@ -779,8 +824,10 @@ window.mostrarInfoParcelaDesdePopup = function(lat, lng) {
 const archivosCatastro = ["parcela1_4.geojson", "parcela5_7.geojson", "parcela8_15.geojson"];
 archivosCatastro.forEach(function(file) {
     fetchGeoJSON(BASE_URL + "catastro/" + file).then(function(data) {
+        if (!data || !data.features) return;
         let grupos = {};
         data.features.forEach(function(f) {
+            if (!f.geometry || !f.geometry.coordinates) return;
             let key = JSON.stringify(f.geometry.coordinates);
             if (!grupos[key]) grupos[key] = [];
             grupos[key].push(f);
@@ -862,7 +909,7 @@ archivosCatastro.forEach(function(file) {
         });
         parcelasLayers.push(ly);
         grupoParcelas.addLayer(ly);
-    });
+    }).catch(err => console.warn("Error cargando catastro (" + file + "):", err));
 });
 
 function controlarVisibilidadParcelas() {
@@ -909,7 +956,7 @@ fetchGeoJSON(BASE_URL + "cocheras_porcentaje_zona.geojson").then(function(data) 
             });
         }
     }).addTo(grupoCocheras);
-});
+}).catch(err => console.warn("Error cargando cocheras zona:", err));
 
 fetchGeoJSON(BASE_URL + "cocheras_corredores.geojson").then(function(data) {
     L.geoJSON(data, {
@@ -936,7 +983,7 @@ fetchGeoJSON(BASE_URL + "cocheras_corredores.geojson").then(function(data) {
             });
         }
     }).addTo(grupoCorredores);
-});
+}).catch(err => console.warn("Error cargando cocheras corredores:", err));
 
 var listaLoteosParaBusqueda = []; 
 var grupoLoteosHabilitados = L.layerGroup().addTo(map); 
@@ -948,6 +995,7 @@ var grupoBarriosIAPV = L.layerGroup();
 
 const setupLoteo = function(file, grupo, color, titulo) {
     fetchGeoJSON(BASE_URL + "backdoor/" + file).then(function(data) {
+        if (!data || !data.features) return;
         L.geoJSON(data, {
             style: { color: color, weight: 2, fillColor: color, fillOpacity: 0.3 },
             onEachFeature: function(f, l) {
@@ -1014,7 +1062,7 @@ const setupLoteo = function(file, grupo, color, titulo) {
                 });
             }
         }).addTo(grupo);
-    });
+    }).catch(err => console.warn("Error cargando loteo (" + file + "):", err));
 };
 
 setupLoteo("loteos_privados_habilitados.geojson", grupoLoteosHabilitados, "#39FF14", "HABILITADO");
@@ -1046,6 +1094,7 @@ function getSVHTML(lat, lng) {
 function loadPreserv(file, grupo, color, titulo, op) {
     op = op || 0.5;
     fetchGeoJSON(PRESERV_URL + file).then(function(data) {
+        if (!data || !data.features) return;
         L.geoJSON(data, {
             style: { color: color, weight: 2, fillColor: color, fillOpacity: op },
             onEachFeature: function(f, l) {
@@ -1084,7 +1133,7 @@ function loadPreserv(file, grupo, color, titulo, op) {
                 });
             }
         }).addTo(grupo);
-    });
+    }).catch(err => console.warn("Error cargando preservación (" + file + "):", err));
 }
 
 loadPreserv("preservacion_total2.geojson", grupoPreservacion.total, "#e63946", "Preservación Total", 0.7);
@@ -1097,7 +1146,6 @@ loadPreserv("corredores_urbanos_preservacion_altura.geojson", grupoPreservacion.
 
 var grupoOTBN = L.layerGroup();
 
-// Función para obtener dinámicamente la propiedad de la categoría de conservación (CAT_CONS)
 function obtenerCategoriaOTBN(props) {
     if (!props) return "N/D";
     if (props.CAT_CONS !== undefined && props.CAT_CONS !== null) return String(props.CAT_CONS).trim();
@@ -1113,35 +1161,27 @@ function obtenerCategoriaOTBN(props) {
     return "N/D";
 }
 
-// Clasificación quirúrgica por CAT_CONS:
-// Categoría 1 = I (Rojo)
-// Categoría 2 = II (Amarillo)
-// Categoría 3 = III (Verde)
 function getColorOTBN(val) {
     if (val === null || val === undefined) return '#95a5a6';
     let str = String(val).toUpperCase().trim();
 
-    // Categoría 1: Valor 'I' o que contenga 'I' o 'ROJO' / 'CAT 1'
     if (str === 'I' || str === '1' || str === 'CATEGORÍA I' || str === 'CATEGORIA I' || str === 'CATEGORÍA 1' || str === 'CATEGORIA 1' || str.includes('ROJO')) {
-        return '#e74c3c'; // Rojo - Categoría 1
+        return '#e74c3c'; 
     }
 
-    // Categoría 2: Valor 'II' o 'AMARILLO' / 'CAT 2'
     if (str === 'II' || str === '2' || str === 'CATEGORÍA II' || str === 'CATEGORIA II' || str === 'CATEGORÍA 2' || str === 'CATEGORIA 2' || str.includes('AMARILLO')) {
-        return '#f1c40f'; // Amarillo - Categoría 2
+        return '#f1c40f'; 
     }
 
-    // Categoría 3: Valor 'III' o 'VERDE' / 'CAT 3'
     if (str === 'III' || str === '3' || str === 'CATEGORÍA III' || str === 'CATEGORIA III' || str === 'CATEGORÍA 3' || str === 'CATEGORIA 3' || str.includes('VERDE')) {
-        return '#2ecc71'; // Verde - Categoría 3
+        return '#2ecc71'; 
     }
 
-    // Evaluación por expresiones regulares de seguridad
     if (/\bIII\b/i.test(str)) return '#2ecc71';
     if (/\bII\b/i.test(str)) return '#f1c40f';
     if (/\bI\b/i.test(str)) return '#e74c3c';
 
-    return '#2ecc71'; // Valor por defecto
+    return '#2ecc71'; 
 }
 
 function getNombreFormateadoOTBN(val) {
@@ -1169,9 +1209,10 @@ async function cargarCapaOTBN() {
             return;
         }
 
-        const response = await fetch(urlFGB);
-        if (!response.ok) {
-            throw new Error("Error de red al descargar .fgb: status " + response.status);
+        const response = await fetchWithFallback(urlFGB);
+        if (!response) {
+            console.warn("No se pudo descargar la capa OTBN de forma segura.");
+            return;
         }
 
         const iter = deserializeFn(response.body);
@@ -1179,7 +1220,7 @@ async function cargarCapaOTBN() {
             features.push(feature);
         }
     } catch (err) {
-        console.error("Error al deserializar la capa OTBN:", err);
+        console.warn("Error al deserializar la capa OTBN:", err);
         return;
     }
 
