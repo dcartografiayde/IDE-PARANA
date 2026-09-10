@@ -978,18 +978,18 @@ function obtenerAtributoNombre(properties) {
     return "";
 }
 
-// MODIFICACIÓN: Función auxiliar para diferenciar por índice/secuencia de elemento
+// Función auxiliar para diferenciar por índice/secuencia de elemento
 function obtenerColorSecuencial(featureIndex) {
     // Si el índice del elemento es par asigna Rojo, si es impar asigna Azul
     return (featureIndex % 2 === 0) ? "#ef4444" : "#3b82f6";
 }
 
-// MODIFICACIÓN: Asignación estricta de color Rojo y Azul según el orden de los elementos
+// Asignación estricta de color Rojo y Azul según el orden de los elementos
 function obtenerEstiloCapaTransporte(feature, filename, featureIndex) {
     const isRM = filename.startsWith("rm_");
     const isRecorrido = filename.includes("recorridos") || isRM;
     
-    // MODIFICACIÓN: Color asignado según la alternancia estricta de elementos (0 -> Rojo, 1 -> Azul)
+    // Color asignado según la alternancia estricta de elementos (0 -> Rojo, 1 -> Azul)
     const colorStroke = obtenerColorSecuencial(featureIndex || 0);
 
     if (isRecorrido) {
@@ -1010,6 +1010,7 @@ function obtenerEstiloCapaTransporte(feature, filename, featureIndex) {
     }
 }
 
+// MODIFICACIÓN: Popup de paradas ajustado para mostrar única y exclusivamente el atributo "Name" o "name"
 function asociarPopupTransporte(feature, layer, filename) {
     const isRM = filename.startsWith("rm_");
     const isRecorrido = filename.includes("recorridos");
@@ -1019,14 +1020,13 @@ function asociarPopupTransporte(feature, layer, filename) {
         let nombreVal = nombreValRaw ? decodificarTexto(nombreValRaw) : "Sin nombre";
         layer.bindPopup(`<div class="popup-custom"><div class="popup-header">RECORRIDO</div><div style="padding:4px; font-size:11px; font-weight:bold; text-align:center;">${nombreVal}</div></div>`);
     } else {
-        let content = `<div class="popup-custom"><div class="popup-header">PARADA DE COLECTIVO</div><table class="table-info">`;
-        if (feature.properties) {
-            for (let [k, v] of Object.entries(feature.properties)) {
-                if (v && String(v).trim() !== "") {
-                    content += `<tr><td>${decodificarTexto(k).toUpperCase()}</td><td>${decodificarTexto(String(v))}</td></tr>`;
-                }
-            }
-        }
+        // MODIFICACIÓN: Búsqueda estricta del atributo Name/name
+        let nombreValRaw = obtenerAtributoNombre(feature.properties);
+        let nombreVal = nombreValRaw ? decodificarTexto(nombreValRaw) : "Sin nombre";
+        
+        let content = `<div class="popup-custom"><div class="popup-header">PARADA DE COLECTIVO</div>`;
+        content += `<table class="table-info">`;
+        content += `<tr><td>NOMBRE</td><td>${nombreVal}</td></tr>`;
         content += `</table></div>`;
         layer.bindPopup(content);
     }
@@ -1046,7 +1046,7 @@ async function cargarCapasTransporte() {
             try {
                 const url = BASE_URL + "transporte_publico/" + file;
                 const data = await fetchGeoJSON(url);
-                // MODIFICACIÓN: Contador de elementos por archivo GeoJSON para alternar colores independientemente de los atributos
+                // Contador de elementos por archivo GeoJSON para alternar colores independientemente de los atributos
                 let elemIdx = 0;
                 L.geoJSON(data, {
                     pane: 'transportePane',
@@ -1088,7 +1088,7 @@ async function cargarCapasTransporte() {
         try {
             const url = BASE_URL + "transporte_publico/" + itemRM.file;
             const data = await fetchGeoJSON(url);
-            // MODIFICACIÓN: Contador de elementos por archivo GeoJSON en Recorridos Metropolitanos
+            // Contador de elementos por archivo GeoJSON en Recorridos Metropolitanos
             let elemIdxRM = 0;
             L.geoJSON(data, {
                 pane: 'transportePane',
