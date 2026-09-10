@@ -15,6 +15,11 @@
         body { margin:0; padding:0; font-family: 'Inter', sans-serif; background: #0f172a; overflow: hidden; }
         #map { height: 100vh; width: 100%; z-index: 1; }
 
+        /* Estilos del mapa base OSM en Modo Oscuro (Dark Map OSM Tile Replacement) */
+        .dark-osm-tiles {
+            filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
+        }
+
         /* Estilos de la barra lateral interactiva */
         .sidebar {
             position: absolute; top: 0; left: 0; height: 100vh; width: 360px;
@@ -181,7 +186,7 @@
             <div class="bg-slate-900/50 p-2.5 rounded-lg border border-slate-800 space-y-1.5">
                 <label class="text-[9px] font-bold text-slate-300 uppercase block mb-1">Mapa de Fondo</label>
                 <div class="grid grid-cols-3 gap-1">
-                    <button id="btn-base-dark" class="bg-blue-600 hover:bg-blue-700 text-white text-[9px] font-semibold py-1 px-1.5 rounded transition-colors" onclick="cambiarMapaBase('dark')">Oscuro</button>
+                    <button id="btn-base-dark" class="bg-blue-600 hover:bg-blue-700 text-white text-[9px] font-semibold py-1 px-1.5 rounded transition-colors" onclick="cambiarMapaBase('dark')">Oscuro (OSM)</button>
                     <button id="btn-base-hibrido" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-[9px] font-semibold py-1 px-1.5 rounded transition-colors" onclick="cambiarMapaBase('hibrido')">Híbrido</button>
                     <button id="btn-base-osm" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-[9px] font-semibold py-1 px-1.5 rounded transition-colors" onclick="cambiarMapaBase('osm')">Callejero</button>
                 </div>
@@ -372,12 +377,27 @@ map.createPane('parcelasPane');
 map.getPane('parcelasPane').style.zIndex = 350; 
 map.getPane('parcelasPane').style.pointerEvents = 'auto'; 
 
-var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 22, maxNativeZoom: 19 });
-var dark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 22, maxNativeZoom: 20 });
+/* ================= CONFIGURACIÓN DE MAPAS BASE ================= */
+// Mapa Estándar OpenStreetMap
+var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
+    maxZoom: 22, 
+    maxNativeZoom: 19,
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+});
+
+// Reemplazo del mapa oscuro por Dark Map OSM (OpenStreetMap con filtro modo oscuro)
+var dark = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
+    maxZoom: 22, 
+    maxNativeZoom: 19,
+    className: 'dark-osm-tiles',
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+});
+
 var sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 22, maxNativeZoom: 18 });
 var ref = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}', { maxZoom: 22, maxNativeZoom: 18 });
 var hibrido = L.layerGroup([sat, ref]);
 
+// Activar mapa base oscuro OSM por defecto
 dark.addTo(map);
 
 function getColorDistrito(d) {
@@ -582,7 +602,6 @@ function buscarObrasEnParcela(geomParcela) {
     if (!geomParcela) return obrasDetectadas;
 
     capasObrasConfig.forEach(cfg => {
-        // REQUISITO: Asociar la info de las capas agrupadas en las subcarpetas A y B solamente (asociarAParcela: true)
         if (!cfg.asociarAParcela) return;
 
         const dataCapa = cachedObrasData[cfg.nombre];
@@ -697,7 +716,6 @@ archivosCatastro.forEach(file => {
                         content += `</table>`;
                     }
 
-                    // Se buscan las obras pertenecientes EXCLUSIVAMENTE a las subcarpetas A y B
                     const obrasEncontradas = buscarObrasEnParcela(f.geometry);
                     if (obrasEncontradas.length > 0) {
                         content += `<div style="margin-top: 6px; padding-top: 6px; border-top: 1px dashed #cbd5e1;">`;
@@ -833,7 +851,7 @@ const capasObrasConfig = [
         nombre: "EDIFICIOS DE MAS DE 3 PLANTAS", 
         color: "#ef4444",
         grupo: "c",
-        asociarAParcela: false // NO se asocia al popup de parcela
+        asociarAParcela: false
     }
 ];
 
