@@ -31,6 +31,11 @@
             background: #ffffff !important;
         }
 
+        /* Filtro CSS para convertir OpenStreetMap en una Capa Oscura de Alta Definición con Nombres de Calle completos */
+        .dark-tiles-osm {
+            filter: invert(100%) hue-rotate(180deg) brightness(88%) contrast(105%);
+        }
+
         /* Estilos personalizados para el scrollbar del menú lateral */
         .scrollbar-custom::-webkit-scrollbar {
             width: 6px;
@@ -463,7 +468,7 @@
                 </p>
                 <p class="text-[11px] text-slate-300 leading-tight" id="lbl-parcela-rapida">Cargando...</p>
                 <button onclick="seleccionarManzanaDeParcela()" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs py-1.5 px-3 rounded transition shadow flex items-center justify-center gap-1">
-                    <span>🧱 Seleccionar Manzana de esta Parcela</span>
+                    <span>MB Seleccionar Manzana de esta Parcela</span>
                 </button>
             </div>
         </div>
@@ -580,7 +585,7 @@
                 <div class="space-y-1.5">
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
                         <input type="radio" name="basemap" value="dark" checked onchange="cambiarBaseMap('dark')" class="bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
-                        <span>Mapa Oscuro</span>
+                        <span class="font-bold text-blue-300">Mapa Oscuro Completo (Nombres de Calle)</span>
                     </label>
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
                         <input type="radio" name="basemap" value="hibrido" onchange="cambiarBaseMap('hibrido')" class="bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
@@ -847,7 +852,7 @@
                     <span>Control de Capas y GeoServer WMS</span>
                 </h3>
                 <div class="space-y-2 text-[11px]">
-                    <p><strong class="text-white">Mapas Base:</strong> Oscuro, Híbrido Satelital, OpenStreetMap o Sin Mapa Base (Fondo Blanco).</p>
+                    <p><strong class="text-white">Mapas Base:</strong> Oscuro Completo (OSM Night), Híbrido Satelital, OpenStreetMap o Sin Mapa Base (Fondo Blanco).</p>
                     <p><strong class="text-white">Capas Vectoriales e Integración GeoServer:</strong></p>
                     <ul class="list-disc list-inside text-[10px] text-slate-300 space-y-0.5 pl-2">
                         <li><strong>Parcelario GeoServer (WMS/WFS):</strong> Transmisión en directo del parcelario completo desde `ide.parana.gob.ar` con consultas en tiempo real de titulares (`PROPIE1`).</li>
@@ -1045,7 +1050,15 @@ map.getPane('atlasLabelsPane').style.zIndex = 650;
 map.getPane('atlasLabelsPane').style.pointerEvents = 'none';
 
 var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 22, maxNativeZoom: 19 });
-var dark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 22, maxNativeZoom: 20 });
+
+// Capa Oscura Completa de OpenStreetMap con filtro CSS de alta definición (de index (21).html)
+var dark = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
+    maxZoom: 22, 
+    maxNativeZoom: 19, 
+    className: 'dark-tiles-osm',
+    attribution: '&copy; OpenStreetMap contributors' 
+});
+
 var sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 22, maxNativeZoom: 18 });
 var ref = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}', { maxZoom: 22, maxNativeZoom: 18 });
 var hibrido = L.layerGroup([sat, ref]);
