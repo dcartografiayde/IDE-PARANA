@@ -296,7 +296,7 @@
             <!-- Toggles de Capas de Información Organizados por Subgrupos -->
             <div class="space-y-4 pt-2">
                 
-                <!-- MODIFICACIÓN: SUBGRUPO CATASTRO BÁSICO -->
+                <!-- SUBGRUPO CATASTRO BÁSICO -->
                 <div class="space-y-2">
                     <span class="block text-[10px] font-black text-blue-400 uppercase tracking-wider border-b border-slate-800/80 pb-1">CATASTRO BÁSICO</span>
                     <div class="space-y-2 pl-1">
@@ -331,7 +331,7 @@
                     </div>
                 </div>
 
-                <!-- MODIFICACIÓN: SUBGRUPO REDES INTERSECTORIALES Y BARRIALES -->
+                <!-- SUBGRUPO REDES INTERSECTORIALES Y BARRIALES -->
                 <div class="space-y-2">
                     <span class="block text-[10px] font-black text-emerald-400 uppercase tracking-wider border-b border-slate-800/80 pb-1">Redes Intersectoriales y Barriales</span>
                     <div class="space-y-2 pl-1">
@@ -442,7 +442,8 @@
     <div id="panel-info-mapa" class="panel-info-mapa">
         <div class="panel-header">
             <div style="width:100%;">
-                <div class="panel-titulo" id="titulo-mapa">TÍTULO DEL MAPA</div>
+                <!-- MODIFICACIÓN: Actualización del título del mapa -->
+                <div class="panel-titulo" id="titulo-mapa">REDES INTERSECTORIALES Y BARRIALES</div>
                 <div class="panel-zoom" style="text-align:center;">
                     Zoom: <span id="zoom-indicator">12</span>
                 </div>
@@ -450,8 +451,9 @@
             <button onclick="toggleDescripcionMapa()" id="btn-descripcion">▼</button>
         </div>
 
+        <!-- MODIFICACIÓN: Descripción enfocada en la capa principal de Redes Intersectoriales y Barriales -->
         <div id="descripcion-mapa" class="panel-descripcion">
-            Visualizador cartográfico oficial de la Municipalidad de Paraná. Permite explorar parcelas catastrales, manzanas, vías de circulación y realizar búsquedas de propiedades por partida o dirección.
+            Visualizador de la Municipalidad de Paraná orientado al análisis territorial de la capa de Redes intersectoriales y barriales. Permite la identificación geográfica de las diferentes redes, organizaciones comunales y equipamientos del territorio municipal, complementándose con la información catastral de parcelas, manzanas y red vial.
         </div>
 
         <hr style="margin:8px 0;">
@@ -522,7 +524,6 @@ function decodificarTexto(str) {
     } catch (e) { return str; }
 }
 
-// MODIFICACIÓN: Convierte URLs de GitHub comunes a raw.githubusercontent.com si es necesario
 function normalizarUrlGeoJSON(url) {
     if (url.includes("github.com") && url.includes("/blob/")) {
         return url.replace("github.com", "raw.githubusercontent.com").replace("/blob/", "/");
@@ -570,7 +571,6 @@ function extraerUbicacion(properties) {
     return "-";
 }
 
-// MODIFICACIÓN: Función auxiliar para formatear campos de Popups limpiamente
 function obtenerValorCampoLimpio(valor) {
     if (valor === undefined || valor === null) return "-";
     let str = decodificarTexto(String(valor)).trim();
@@ -714,9 +714,7 @@ function activarEtiquetasCalles() {
     renderLabels();
 }
 
-/* ================= MODIFICACIÓN: CAPAS NUEVAS Y CATASTRO ================= */
-
-// MODIFICACIÓN: Capa Ejido Paraná
+// Capa Ejido Paraná
 var grupoEjido = L.layerGroup().addTo(map);
 fetchGeoJSON("https://github.com/dcartografiayde/IDE-PARANA/blob/main/atlas_pua/redes_intersectoriales_y_barriales/ejido_parana.geojson").then(data => {
     L.geoJSON(data, {
@@ -771,7 +769,7 @@ fetchGeoJSON(BASE_URL + "catastro/manzana.geojson").then(data => {
     console.error("Error al cargar la capa de manzanas:", err);
 });
 
-// MODIFICACIÓN: Capa Espacios Verdes
+// Capa Espacios Verdes
 var grupoEspaciosVerdes = L.layerGroup().addTo(map);
 fetchGeoJSON("https://github.com/dcartografiayde/IDE-PARANA/blob/main/atlas_pua/redes_intersectoriales_y_barriales/espacios_verdes.geojson").then(data => {
     L.geoJSON(data, {
@@ -795,7 +793,7 @@ fetchGeoJSON("https://github.com/dcartografiayde/IDE-PARANA/blob/main/atlas_pua/
     }).addTo(grupoEspaciosVerdes);
 }).catch(err => console.error("Error cargando Espacios Verdes:", err));
 
-// MODIFICACIÓN: Capa Asentamientos Informales
+// Capa Asentamientos Informales
 var grupoAsentamientos = L.layerGroup().addTo(map);
 fetchGeoJSON("https://github.com/dcartografiayde/IDE-PARANA/blob/main/atlas_pua/redes_intersectoriales_y_barriales/asentamientos_informales.geojson").then(data => {
     L.geoJSON(data, {
@@ -815,7 +813,7 @@ fetchGeoJSON("https://github.com/dcartografiayde/IDE-PARANA/blob/main/atlas_pua/
     }).addTo(grupoAsentamientos);
 }).catch(err => console.error("Error cargando Asentamientos Informales:", err));
 
-// MODIFICACIÓN: Capa Vecinales
+// Capa Vecinales
 var grupoVecinales = L.layerGroup().addTo(map);
 fetchGeoJSON("https://github.com/dcartografiayde/IDE-PARANA/blob/main/atlas_pua/redes_intersectoriales_y_barriales/vecinales.geojson").then(data => {
     L.geoJSON(data, {
@@ -835,7 +833,7 @@ fetchGeoJSON("https://github.com/dcartografiayde/IDE-PARANA/blob/main/atlas_pua/
     }).addTo(grupoVecinales);
 }).catch(err => console.error("Error cargando Vecinales:", err));
 
-// MODIFICACIÓN: Capa Especial Redes Intersectoriales y Barriales (Desplegable y Clasificación por "Red")
+// Capa Especial Redes Intersectoriales y Barriales (Desplegable y Clasificación por "Red")
 var gruposRedesBarriales = {};
 const coloresRedes = ["#f1c40f", "#e74c3c", "#3498db", "#9b59b6", "#1abc9c", "#e67e22", "#fd79a8", "#00bec4", "#a29bfe", "#ffeaa7"];
 
@@ -1080,7 +1078,7 @@ function procesarEInsertarParcelasChunked(features, alTerminar) {
                 content += `<div class="adv-sv">Para mejor orientación, haga clic en el frente de la parcela.</div>`;
                 content += `</div>`;
                 
-                l.bindPopup(content, { autoPanPadding: L.point(10, 110) }).openPopup(latlng);
+                l.bindPopup(content, { autoPanPanPadding: L.point(10, 110) }).openPopup(latlng);
             });
 
             if (f.properties.ubicacion && f.properties.ubicacion !== "-" && f.properties.ubicacion.trim() !== "") {
@@ -1223,7 +1221,6 @@ function cambiarBaseMap(tipo) {
     if (tipo === 'osm') osm.addTo(map);
 }
 
-// MODIFICACIÓN: Gestión de encendido/apagado para las nuevas capas vectoriales
 function toggleOverlay(capa) {
     if (capa === 'ejido') {
         let chk = document.getElementById('chk-ejido');
