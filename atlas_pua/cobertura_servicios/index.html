@@ -20,6 +20,11 @@
         body { margin:0; padding:0; font-family: 'Inter', sans-serif; background: #0f172a; overflow: hidden; }
         #map { height: 100vh; width: 100%; z-index: 1; }
 
+        /* MODIFICACIÓN: Filtro CSS dinámico para el Mapa Oscuro Completo en OSM */
+        .osm-dark-tile {
+            filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
+        }
+
         /* Estilos personalizados para el scrollbar del menú lateral */
         .scrollbar-custom::-webkit-scrollbar {
             width: 6px;
@@ -275,9 +280,10 @@
             <div class="space-y-2">
                 <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide">Mapa Base</span>
                 <div class="space-y-1.5">
+                    <!-- MODIFICACIÓN: Cambio de etiqueta de la opción a "Mapa Oscuro Completo" -->
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
                         <input type="radio" name="basemap" value="dark" checked onchange="cambiarBaseMap('dark')" class="bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
-                        <span>Mapa Oscuro</span>
+                        <span>Mapa Oscuro Completo</span>
                     </label>
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
                         <input type="radio" name="basemap" value="hibrido" onchange="cambiarBaseMap('hibrido')" class="bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
@@ -318,7 +324,6 @@
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
                         <input type="checkbox" id="chk-red-agua" checked onchange="toggleOverlay('agua')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
                         <span class="flex items-center gap-2">
-                            <!-- MODIFICACIÓN: Indicadores en el menú sin bordes externos -->
                             <span class="w-3.5 h-3.5 rounded bg-[#007bff]/40 inline-block"></span>
                             <span>Red de Agua</span>
                         </span>
@@ -565,7 +570,14 @@ map.getPane('parcelasPane').style.zIndex = 350;
 map.getPane('parcelasPane').style.pointerEvents = 'auto';
 
 var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 22, maxNativeZoom: 19 });
-var dark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 22, maxNativeZoom: 20 });
+
+// MODIFICACIÓN: Cartografía completa de OpenStreetMap procesada con modo nocturno dinámico
+var dark = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
+    maxZoom: 22, 
+    maxNativeZoom: 19,
+    className: 'osm-dark-tile'
+});
+
 var sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 22, maxNativeZoom: 18 });
 var ref = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}', { maxZoom: 22, maxNativeZoom: 18 });
 var hibrido = L.layerGroup([sat, ref]);
@@ -595,7 +607,6 @@ fetchGeoJSON(BASE_URL + "calles.geojson").then(data => {
     console.warn("No se pudo cargar la capa de calles:", err);
 });
 
-// MODIFICACIÓN: Se quitan los bordes (stroke: false) de las capas de polígonos conservando únicamente el relleno
 function cargarCapaServicioPoligonos({ url, grupo, color }) {
     fetchGeoJSON(url).then(data => {
         L.geoJSON(data, {
@@ -643,7 +654,6 @@ fetchGeoJSON("https://raw.githubusercontent.com/dcartografiayde/IDE-PARANA/main/
 }).catch(err => console.error("Error al cargar la capa de Red de Drenaje:", err));
 
 // 4. Red de Cloaca (Polígono - Rojo sin bordes / Archivo .geojson)
-// MODIFICACIÓN: Apunta correctamente a la URL raw del GeoJSON cargado sin lectura binaria FlatGeobuf
 var grupoRedCloaca = L.layerGroup();
 cargarCapaServicioPoligonos({
     url: "https://raw.githubusercontent.com/dcartografiayde/IDE-PARANA/main/atlas_pua/cobertura_servicios/red_de_cloaca.geojson",
