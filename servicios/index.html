@@ -92,7 +92,7 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
         }
 
-        /* Estilos ajustados para Leaflet Measure */
+        /* Estilos para Leaflet Measure */
         .leaflet-control-measure {
             border: none !important;
             box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
@@ -116,7 +116,7 @@
 
 <body>
 
-<!-- Menú Lateral Escamoteable Unificado (Búsquedas, Estadísticas y Capas) -->
+<!-- Menú Lateral Escamoteable Unificado -->
 <div id="sidebar" class="fixed top-0 left-0 h-full w-[360px] max-w-[85vw] bg-slate-900 border-r border-slate-800 text-slate-100 flex flex-col z-[1000] shadow-2xl transition-transform duration-300 ease-in-out transform">
     
     <!-- Header del Menú -->
@@ -150,7 +150,7 @@
                 </div>
             </div>
 
-            <!-- Búsqueda por Dirección (Calle y Altura con Predictivo) -->
+            <!-- Búsqueda por Dirección (Calle y Altura) -->
             <div class="space-y-1 relative">
                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Buscar Calle y Altura</label>
                 <div class="flex gap-2">
@@ -161,7 +161,7 @@
                 <div id="sugerencias-calles" class="absolute left-0 right-0 bg-slate-900 border border-slate-700 rounded-md max-h-48 overflow-y-auto mt-1 hidden z-[2000] shadow-2xl scrollbar-custom"></div>
             </div>
 
-            <!-- Búsqueda por Lugares de Interés (Google / Nominatim) -->
+            <!-- Búsqueda por Lugares de Interés -->
             <div class="space-y-1">
                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Lugar o Punto de Interés</label>
                 <div class="flex gap-2">
@@ -257,13 +257,16 @@
                 </div>
             </div>
 
-            <!-- Tipos de Pavimento -->
+            <!-- Tipos de Pavimento (Estadísticas con Referencia Visual de Colores) -->
             <div class="space-y-2 pt-1">
                 <span class="text-[10px] font-bold text-emerald-400 uppercase tracking-wide block">Distribución de Pavimento</span>
                 <div class="bg-slate-950/50 p-2.5 rounded-lg border border-slate-800 space-y-2">
                     <div>
-                        <div class="flex justify-between text-[10px] mb-1 text-slate-300">
-                            <span>Asfalto</span>
+                        <div class="flex justify-between text-[10px] mb-1 text-slate-300 items-center">
+                            <span class="flex items-center gap-1.5">
+                                <span class="w-2.5 h-2.5 rounded-full bg-[#57606f] inline-block shadow"></span>
+                                <span>Asfalto</span>
+                            </span>
                             <span id="db-asfalto-km" class="font-bold">0.0 km (0%)</span>
                         </div>
                         <div class="w-full bg-slate-800 h-1 rounded-full overflow-hidden">
@@ -271,8 +274,11 @@
                         </div>
                     </div>
                     <div>
-                        <div class="flex justify-between text-[10px] mb-1 text-slate-300">
-                            <span>Hormigón</span>
+                        <div class="flex justify-between text-[10px] mb-1 text-slate-300 items-center">
+                            <span class="flex items-center gap-1.5">
+                                <span class="w-2.5 h-2.5 rounded-full bg-[#95a5a6] inline-block shadow"></span>
+                                <span>Hormigón</span>
+                            </span>
                             <span id="db-hormigon-km" class="font-bold">0.0 km (0%)</span>
                         </div>
                         <div class="w-full bg-slate-800 h-1 rounded-full overflow-hidden">
@@ -280,8 +286,11 @@
                         </div>
                     </div>
                     <div>
-                        <div class="flex justify-between text-[10px] mb-1 text-slate-300">
-                            <span>Adoquín</span>
+                        <div class="flex justify-between text-[10px] mb-1 text-slate-300 items-center">
+                            <span class="flex items-center gap-1.5">
+                                <span class="w-2.5 h-2.5 rounded-full bg-[#10ac84] inline-block shadow"></span>
+                                <span>Adoquín</span>
+                            </span>
                             <span id="db-adoquin-km" class="font-bold">0.0 km (0%)</span>
                         </div>
                         <div class="w-full bg-slate-800 h-1 rounded-full overflow-hidden">
@@ -289,19 +298,22 @@
                         </div>
                     </div>
                     <div>
-                        <div class="flex justify-between text-[10px] mb-1 text-slate-300">
-                            <span>Tierra / Sin Pavimento</span>
+                        <div class="flex justify-between text-[10px] mb-1 text-slate-300 items-center">
+                            <span class="flex items-center gap-1.5">
+                                <span class="w-2.5 h-2.5 rounded-full bg-[#b91c1c] inline-block shadow"></span>
+                                <span>Tierra / Sin Pavimento</span>
+                            </span>
                             <span id="db-tierra-km" class="font-bold">0.0 km (0%)</span>
                         </div>
                         <div class="w-full bg-slate-800 h-1 rounded-full overflow-hidden">
-                            <div id="db-tierra-bar" class="bg-red-900 h-full" style="width: 0%"></div>
+                            <div id="db-tierra-bar" class="bg-[#b91c1c] h-full" style="width: 0%"></div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Bloque 3: Control de Capas y Mapas Base -->
+        <!-- Bloque 3: Control de Capas y Mapas Base con Leyenda de Pavimento Detallada -->
         <div class="space-y-3">
             <h2 class="text-[11px] font-extrabold uppercase tracking-widest text-slate-400 border-b border-slate-800 pb-1">Control de Capas</h2>
             
@@ -322,7 +334,7 @@
                 </label>
             </div>
 
-            <!-- Toggles de Capas Vectoriales -->
+            <!-- Toggles de Capas Vectoriales con Referencias Claras -->
             <div class="space-y-2 pt-2 border-t border-slate-800">
                 <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide">Capas de Catastro y Servicios</span>
                 
@@ -358,15 +370,39 @@
                     </span>
                 </label>
 
-                <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer hover:text-white transition">
-                    <input type="checkbox" id="chk-capa-pavimento" checked onchange="toggleCapa('pavimento')" class="rounded bg-slate-800 border-slate-700 text-blue-500">
-                    <span class="flex items-center gap-2">
-                        <span class="w-3.5 h-1 bg-gradient-to-r from-[#10ac84] via-[#57606f] to-[#95a5a6] inline-block rounded"></span>
-                        <span>Tipo de Pavimento</span>
-                    </span>
-                </label>
+                <!-- CAPA DE PAVIMENTO Y SU LEYENDA DETALLADA DE COLORES EN EL MAPA -->
+                <div class="space-y-1.5 pt-1">
+                    <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer hover:text-white transition">
+                        <input type="checkbox" id="chk-capa-pavimento" checked onchange="toggleCapa('pavimento')" class="rounded bg-slate-800 border-slate-700 text-blue-500">
+                        <span class="flex items-center gap-2 font-bold text-slate-200">
+                            <span class="w-3.5 h-1 bg-gradient-to-r from-[#10ac84] via-[#57606f] to-[#95a5a6] inline-block rounded"></span>
+                            <span>Tipo de Pavimento</span>
+                        </span>
+                    </label>
 
-                <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer hover:text-white transition pt-1">
+                    <!-- LEYENDA DE COLORES EN EL MAPA -->
+                    <div id="leyenda-pavimento" class="ml-5 pl-2 border-l-2 border-slate-800 space-y-1 text-[10px] text-slate-300 bg-slate-950/60 p-2 rounded-r-md border-r border-y border-slate-800/80">
+                        <div class="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">Referencia en Mapa:</div>
+                        <div class="flex items-center gap-2">
+                            <span class="w-3.5 h-1.5 bg-[#57606f] inline-block rounded-xs shadow"></span>
+                            <span><strong>Asfalto</strong> (Gris Oscuro)</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="w-3.5 h-1.5 bg-[#95a5a6] inline-block rounded-xs shadow"></span>
+                            <span><strong>Hormigón</strong> (Gris Cemento)</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="w-3.5 h-1.5 bg-[#10ac84] inline-block rounded-xs shadow"></span>
+                            <span><strong>Adoquín</strong> (Verde Esmeralda)</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="w-3.5 h-1.5 bg-[#b91c1c] inline-block rounded-xs shadow"></span>
+                            <span><strong>Tierra / Sin Pavimento</strong> (Rojo)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer hover:text-white transition pt-1 border-t border-slate-800/60">
                     <input type="checkbox" id="chk-capa-parcelas" checked onchange="toggleCapa('parcelas')" class="rounded bg-slate-800 border-slate-700 text-blue-500">
                     <span class="flex items-center gap-2">
                         <span class="w-3.5 h-3.5 border border-[#2980b9] bg-[rgba(41,128,185,0.2)] inline-block rounded-xs"></span>
@@ -785,13 +821,13 @@ fetchGeoJSON(BASE_URL + "servicios/calle_servicios.geojson").then(data => {
         style: { color: "#f1c40f", weight: 6, opacity: 0.85 }
     }).addTo(grupoServicioAlumbrado);
 
-    // Pavimento
+    // Pavimento (Estilizado con colores mapeados a la leyenda)
     L.geoJSON(data, {
         pane: 'serviciosPane',
         filter: (f) => f && f.properties && f.properties.pav_tipo && String(f.properties.pav_tipo).trim() !== "",
         style: (f) => {
             let tipo = String(f.properties.pav_tipo).toUpperCase().trim();
-            let col = "#95a5a6";
+            let col = "#b91c1c"; // Rojo para Tierra / Sin Pavimento por defecto
             if (tipo === "ADOQUIN") col = "#10ac84";
             else if (tipo === "ASFALTO") col = "#57606f";
             else if (tipo === "HORMIGON") col = "#95a5a6";
@@ -853,7 +889,7 @@ function evaluarServiciosFrenteParcela(lat, lng) {
         });
     });
 
-    if (closestFeature && minDist < 100) { // Umbral de cercanía aceptable (100m)
+    if (closestFeature && minDist < 100) { 
         let props = closestFeature.properties || {};
         return {
             distanciaMetros: Math.round(minDist),
@@ -1167,8 +1203,16 @@ function toggleCapa(tipo) {
     const el = document.getElementById(item.id);
     if (el && el.checked) {
         if (!map.hasLayer(item.layer)) map.addLayer(item.layer);
+        if (tipo === 'pavimento') {
+            const ley = document.getElementById('leyenda-pavimento');
+            if (ley) ley.style.display = 'block';
+        }
     } else {
         if (map.hasLayer(item.layer)) map.removeLayer(item.layer);
+        if (tipo === 'pavimento') {
+            const ley = document.getElementById('leyenda-pavimento');
+            if (ley) ley.style.display = 'none';
+        }
     }
 }
 
