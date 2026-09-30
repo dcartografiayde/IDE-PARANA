@@ -291,6 +291,11 @@
             padding: 4px 8px !important;
             box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
         }
+
+        /* MODIFICACIÓN: Filtro CSS para convertir OpenStreetMap en "Mapa Oscuro Completo" */
+        .osm-dark-mode {
+            filter: invert(100%) hue-rotate(180deg) brightness(85%) contrast(110%);
+        }
     </style>
 </head>
 
@@ -369,12 +374,9 @@
                 <div class="space-y-1.5">
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
                         <input type="radio" name="basemap" value="dark" checked onchange="cambiarBaseMap('dark')" class="bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
-                        <span>CartoDB Oscuro</span>
+                        <span>Mapa Oscuro Completo</span>
                     </label>
-                    <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
-                        <input type="radio" name="basemap" value="voyager" onchange="cambiarBaseMap('voyager')" class="bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
-                        <span>CartoDB Voyager (Barrios)</span>
-                    </label>
+                    <!-- MODIFICACIÓN: Se eliminó el radio button del fondo CartoDB Voyager (barrios) -->
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
                         <input type="radio" name="basemap" value="hibrido" onchange="cambiarBaseMap('hibrido')" class="bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
                         <span>Híbrido (Satelital)</span>
@@ -671,8 +673,12 @@ map.getPane('parcelasPane').style.zIndex = 350;
 map.getPane('parcelasPane').style.pointerEvents = 'auto';
 
 /* Capas Base */
-var dark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 22, maxNativeZoom: 20 });
-var cartoDB_Voyager = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 22, maxNativeZoom: 19 });
+var dark = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
+    maxZoom: 22, 
+    maxNativeZoom: 19,
+    className: 'osm-dark-mode'
+});
+// MODIFICACIÓN: Se eliminó la capa tileLayer cartoDB_Voyager
 var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 22, maxNativeZoom: 19 });
 var sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 22, maxNativeZoom: 18 });
 var ref = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}', { maxZoom: 22, maxNativeZoom: 18 });
@@ -955,7 +961,6 @@ function seleccionarVecinal(nombreVecinal, layer, parcelProps = null, opciones =
         });
         layer.bringToFront();
         
-        // Solo ajustar encuadre del mapa si la opción centrarMapa está explícitamente activada (p. ej. al consultar vecinal directamente)
         if (opciones && opciones.centrarMapa) {
             map.fitBounds(layer.getBounds(), { padding: [30, 30] });
         }
@@ -964,7 +969,6 @@ function seleccionarVecinal(nombreVecinal, layer, parcelProps = null, opciones =
     let pobVal = poblacionPorVecinal[nombreVecinal];
     let pobTxt = (pobVal !== undefined && pobVal !== null) ? formatNumber(pobVal) + ' hab.' : 'Calculando...';
 
-    // Construcción de la tabla completa de campos de la vecinal
     let htmlCamposVecinal = "";
     if (featProps) {
         htmlCamposVecinal += `<table class="table-info mt-2 border-t border-slate-800 pt-1">`;
@@ -993,7 +997,6 @@ function seleccionarVecinal(nombreVecinal, layer, parcelProps = null, opciones =
         </div>
     `;
 
-    // Botón para desplegar información de parcelas
     let htmlBotonParcela = `
         <div style="margin-top:8px;">
             <button id="btn-toggle-parcela-info" onclick="toggleInfoParcelaBoton()" class="w-full bg-slate-800 hover:bg-slate-700 text-sky-400 border border-slate-700 font-bold text-[11px] py-1.5 px-3 rounded-lg transition shadow flex items-center justify-center">
@@ -1175,7 +1178,6 @@ function activarEtiquetasCalles() {
         let z = map.getZoom();
         const activeOnMap = map.hasLayer(grupoCalles);
 
-        // Limpiar todas las etiquetas existentes en cada renderizado para evitar superposición
         grupoCalles.eachLayer(geoJsonGroup => {
             geoJsonGroup.eachLayer(ly => {
                 if (ly.setText) {
@@ -1184,7 +1186,6 @@ function activarEtiquetasCalles() {
             });
         });
 
-        // Únicamente desplegar etiquetas de calles a partir de ZOOM >= 17
         if (!activeOnMap || z < 17) return;
 
         const bounds = map.getBounds();
@@ -1382,7 +1383,6 @@ function procesarEInsertarParcelasChunked(features, alTerminar) {
                 let vecinalNom = obtenerVecinalDePunto(latlng);
                 let sv = `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${latlng.lat},${latlng.lng}`;
 
-                // Resaltar la parcela seleccionada sin perder el encuadre actual
                 if (layerParcelaSeleccionada && layerParcelaSeleccionada.setStyle) {
                     try {
                         let esPHAnterior = layerParcelaSeleccionada.feature.properties.esPH;
@@ -1421,7 +1421,6 @@ function procesarEInsertarParcelasChunked(features, alTerminar) {
                 
                 l.bindPopup(content, { autoPanPadding: L.point(10, 110) }).openPopup(latlng);
 
-                // Actualizar la vecinal en el panel lateral SIN mover el encuadre del mapa
                 seleccionarVecinal(vecinalNom, null, p.full, { centrarMapa: false });
             });
 
@@ -1517,7 +1516,6 @@ function controlarVisibilidadDinamica() {
         let zoomElem = document.getElementById('zoom-indicator');
         if (zoomElem) zoomElem.innerText = zoomActual;
 
-        // Capa Vecinales y Visibilidad de Etiquetas únicamente a partir de ZOOM >= 16
         const chkVecinales = document.getElementById('chk-vecinales')?.checked;
         if (chkVecinales) {
             if (!map.hasLayer(grupoVecinales)) map.addLayer(grupoVecinales);
@@ -1528,7 +1526,6 @@ function controlarVisibilidadDinamica() {
             if (map.hasLayer(grupoVecinales)) map.removeLayer(grupoVecinales);
         }
 
-        // Capa Poblacion Censo 2022
         const chkPoblacion = document.getElementById('chk-poblacion')?.checked;
         if (chkPoblacion) {
             if (!map.hasLayer(grupoPoblacion)) map.addLayer(grupoPoblacion);
@@ -1539,7 +1536,6 @@ function controlarVisibilidadDinamica() {
             if (map.hasLayer(grupoPoblacion)) map.removeLayer(grupoPoblacion);
         }
 
-        // Capa Manzanas
         const chkManzanas = document.getElementById('chk-manzanas')?.checked;
         if (chkManzanas) {
             if (!map.hasLayer(grupoManzanas)) map.addLayer(grupoManzanas);
@@ -1553,7 +1549,6 @@ function controlarVisibilidadDinamica() {
             if (map.hasLayer(grupoEtiquetasManzanas)) map.removeLayer(grupoEtiquetasManzanas);
         }
 
-        // Capa Calles
         const chkCalles = document.getElementById('chk-calles')?.checked;
         if (chkCalles && zoomActual >= 15) {
             if (!map.hasLayer(grupoCalles)) map.addLayer(grupoCalles);
@@ -1561,7 +1556,6 @@ function controlarVisibilidadDinamica() {
             if (map.hasLayer(grupoCalles)) map.removeLayer(grupoCalles);
         }
 
-        // Capa Parcelas FGB
         const chkParcelas = document.getElementById('chk-parcelas')?.checked;
         if (chkParcelas && zoomActual >= 16) {
             if (!map.hasLayer(grupoParcelas)) map.addLayer(grupoParcelas);
@@ -1591,11 +1585,10 @@ function toggleSidebar() {
 
 function cambiarBaseMap(tipo) {
     map.removeLayer(dark);
-    map.removeLayer(cartoDB_Voyager);
+    // MODIFICACIÓN: Se eliminó la remoción y comprobación de cartoDB_Voyager
     map.removeLayer(hibrido);
     map.removeLayer(osm);
     if (tipo === 'dark') dark.addTo(map);
-    if (tipo === 'voyager') cartoDB_Voyager.addTo(map);
     if (tipo === 'hibrido') hibrido.addTo(map);
     if (tipo === 'osm') osm.addTo(map);
 }
