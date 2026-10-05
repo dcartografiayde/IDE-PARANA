@@ -32,9 +32,9 @@
 </head>
 <body class="bg-bg-dark text-slate-200 min-h-screen flex flex-col justify-between">
 
-    <div class="max-w-5xl mx-auto px-4 py-16 w-full">
+    <div class="max-w-6xl mx-auto px-4 py-12 w-full">
         <!-- ENCABEZADO Y LOGO MUNICIPAL -->
-        <header class="mb-12 text-center space-y-6">
+        <header class="mb-10 text-center space-y-6">
             <div class="flex justify-center mb-6">
                 <img src="https://raw.githubusercontent.com/dcartografiayde/IDE-PARANA/main/catastro/PUA%20-%20Logo%20horizontal_pages-to-jpg-0001%20(1).jpg" 
                      onerror="this.src='PUA%20-%20Logo%20horizontal_pages-to-jpg-0001%20(1).jpg'" 
@@ -42,40 +42,114 @@
                      class="h-20 md:h-24 w-auto object-contain bg-white/5 p-3 rounded-xl border border-slate-700/50 shadow-xl transition-all hover:scale-105 duration-300">
             </div>
             
-            <h1 class="text-4xl md:text-5xl font-extrabold text-white tracking-tight">Atlas Territorial Interactivo</h1>
-            <p class="text-lg text-slate-400 max-w-3xl mx-auto leading-relaxed">
+            <h1 class="text-3xl md:text-5xl font-extrabold text-white tracking-tight">Atlas Territorial Interactivo</h1>
+            <p class="text-base md:text-lg text-slate-400 max-w-3xl mx-auto leading-relaxed">
                 El <strong>Plan Urbano Ambiental (PUA)</strong> de Paraná trasciende la planificación técnica para constituirse en un <strong>espacio de participación ciudadana y construcción colectiva</strong>.
             </p>
         </header>
 
-        <!-- NAVEGACIÓN ENTRE PESTAÑAS -->
-        <div class="flex justify-center mb-12">
-            <div class="bg-card-dark p-1 rounded-xl shadow-lg border border-slate-700 inline-flex">
-                <button onclick="openTab(event, 'visores')" class="tab-btn active px-8 py-3 font-semibold rounded-lg text-slate-300 hover:text-white">Visores IDE PARANA</button>
-                <button onclick="openTab(event, 'atlas')" class="tab-btn px-8 py-3 font-semibold rounded-lg text-slate-300 hover:text-white">Atlas PUA (Interactivos)</button>
+        <!-- NAVEGACIÓN ENTRE PESTAÑAS (3 PESTAÑAS ORGANIZADAS) -->
+        <div class="flex justify-center mb-10">
+            <div class="bg-card-dark p-1.5 rounded-xl shadow-lg border border-slate-700 flex flex-wrap justify-center gap-1.5 max-w-full">
+                <button onclick="openTab(event, 'publicos')" class="tab-btn active px-4 py-3 text-xs md:text-sm font-semibold rounded-lg text-slate-300 hover:text-white flex items-center gap-2">
+                    <svg class="w-4 h-4 text-muni-green" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 002 2h1.5a2.5 2.5 0 002.5-2.5V11a2 2 0 012-2h1.055M15 20.488V18a2 2 0 012-2h3.055"/></svg>
+                    Visores abiertos al público general
+                </button>
+                <button onclick="openTab(event, 'atlas')" class="tab-btn px-4 py-3 text-xs md:text-sm font-semibold rounded-lg text-slate-300 hover:text-white flex items-center gap-2">
+                    <svg class="w-4 h-4 text-sky-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
+                    Plan Urbano Ambiental (PUA): Visores interactivos
+                </button>
+                <button onclick="openTab(event, 'municipal')" class="tab-btn px-4 py-3 text-xs md:text-sm font-semibold rounded-lg text-slate-300 hover:text-white flex items-center gap-2">
+                    <svg class="w-4 h-4 text-amber-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" /></svg>
+                    Visores cartográficos para uso exclusivo Personal Municipal
+                </button>
             </div>
         </div>
 
-        <!-- CONTENIDO PESTAÑA 1: VISORES IDE -->
-        <div id="visores" class="tab-content active">
+        <!-- CONTENIDO PESTAÑA 1: VISORES ABIERTOS AL PÚBLICO GENERAL -->
+        <div id="publicos" class="tab-content active">
             <div class="mb-8 p-6 bg-slate-800/50 border-l-4 border-muni-green rounded-r-xl">
-                <h3 class="font-bold text-white mb-2">Visores de la Infraestructura de Datos Espaciales (IDE)</h3>
+                <h3 class="font-bold text-white mb-2 flex items-center gap-2 text-lg">
+                    <span>🌍</span> Visores Geográficos Abiertos a la Comunidad
+                </h3>
                 <p class="text-sm text-slate-300 leading-relaxed italic">
-                    Representan el "dato vivo" municipal e inventariado técnico. Son visores del catastro parcelario actualizado y las trazas operativas de redes de infraestructura (agua, cloacas, gas, transporte, alumbrado público) mantenidos periódicamente por las áreas técnicas productoras. Su flujo operativo se administra en QGIS mediante los esquemas de bases de datos espaciales (reproyectados de POSGAR 98 / EPSG:22185 a EPSG:4326 para publicación).
+                    Acceso libre e interactivo a la cartografía oficial parcelaria, delimitaciones vecinales, patrimonio de preservación, datos censales e información de desarrollo urbano de la ciudad de Paraná.
                 </p>
             </div>
-            <div class="grid md:grid-cols-3 gap-6" id="ide-grid"></div>
+            <div class="grid md:grid-cols-3 gap-6" id="publicos-grid"></div>
         </div>
 
-        <!-- CONTENIDO PESTAÑA 2: ATLAS PUA -->
+        <!-- CONTENIDO PESTAÑA 2: PLAN URBANO AMBIENTAL (PUA): VISORES INTERACTIVOS -->
         <div id="atlas" class="tab-content">
             <div class="mb-8 p-6 bg-slate-800/50 border-l-4 border-muni-green rounded-r-xl">
-                <h3 class="font-bold text-white mb-2">Atlas del Plan Urbano Ambiental (PUA)</h3>
+                <h3 class="font-bold text-white mb-2 flex items-center gap-2 text-lg">
+                    <span>📐</span> Plan Urbano Ambiental (PUA): Visores interactivos
+                </h3>
                 <p class="text-sm text-slate-300 leading-relaxed italic">
                     Representan la cartografía temática estratégica e instrumentos de planificación. En lugar de ser capas técnicas directas, son mapas analíticos de síntesis territorial que cruzan y modelan múltiples fuentes de la IDE para dar soporte a la toma de decisiones, la zonificación legal y el ordenamiento de la ciudad. Permiten analizar vulnerabilidades socio-ambientales, expansión urbana, vacíos edificables y movilidad sustentable bajo el marco regulatorio del Código Urbano (Ordenanza 8563).
                 </p>
             </div>
             <div class="grid md:grid-cols-3 gap-6" id="atlas-grid"></div>
+        </div>
+
+        <!-- CONTENIDO PESTAÑA 3: VISORES CARTOGRÁFICOS PERSONAL MUNICIPAL (RESTRINGIDO CON LOGIN) -->
+        <div id="municipal" class="tab-content">
+            <!-- PANEL DE AUTENTICACIÓN -->
+            <div id="login-container" class="max-w-md mx-auto my-8 bg-card-dark p-8 rounded-2xl border border-amber-500/40 shadow-2xl space-y-6">
+                <div class="text-center space-y-2">
+                    <div class="w-16 h-16 bg-amber-500/20 text-amber-400 rounded-2xl mx-auto flex items-center justify-center border border-amber-500/30">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-white">Acceso Restringido</h3>
+                    <p class="text-xs text-amber-400/90 font-medium">Uso exclusivo para Personal Municipal autorizado</p>
+                </div>
+
+                <form onsubmit="handleLogin(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Usuario</label>
+                        <input type="text" id="username-input" required placeholder="Ingrese usuario" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-amber-500 transition-colors text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Contraseña</label>
+                        <input type="password" id="password-input" required placeholder="••••••••" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-amber-500 transition-colors text-sm">
+                    </div>
+
+                    <div id="login-error" class="hidden p-3 rounded-xl bg-red-950/60 border border-red-500/40 text-red-300 text-xs font-medium text-center">
+                        Usuario o contraseña incorrectos.
+                    </div>
+
+                    <button type="submit" class="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold py-3 rounded-xl transition-all shadow-lg shadow-amber-500/20 text-sm">
+                        Ingresar al Sistema
+                    </button>
+                </form>
+            </div>
+
+            <!-- CONTENIDO DE MAPAS MUNICIPALES (OCULTO HASTA INICIAR SESIÓN) -->
+            <div id="municipal-content" class="hidden space-y-6">
+                <div class="flex items-center justify-between p-4 bg-amber-950/30 border border-amber-500/40 rounded-xl">
+                    <div class="flex items-center gap-3">
+                        <span class="relative flex h-3 w-3">
+                          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                          <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                        </span>
+                        <span class="text-xs font-semibold text-amber-200">Sesión Activa: Personal Municipal (Cartografía)</span>
+                    </div>
+                    <button onclick="handleLogout()" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg border border-slate-600 transition-colors">
+                        Cerrar Sesión
+                    </button>
+                </div>
+
+                <div class="p-6 bg-slate-800/50 border-l-4 border-amber-500 rounded-r-xl">
+                    <h3 class="font-bold text-white mb-2">Visores Cartográficos - Personal Municipal</h3>
+                    <p class="text-sm text-slate-300 leading-relaxed italic">
+                        Representan el "dato vivo" municipal e inventariado técnico interno. Son visores del catastro parcelario con titularidad dominial, trazados operativos de infraestructura, obras privadas y herramientas geodésicas administradas por las áreas técnicas municipales.
+                    </p>
+                </div>
+
+                <div class="grid md:grid-cols-3 gap-6" id="municipal-grid"></div>
+            </div>
         </div>
     </div>
 
@@ -129,8 +203,20 @@
 
     <!-- LÓGICA Y DATOS -->
     <script>
-        const ideMaps = [
+        // ESTADO DE AUTENTICACIÓN
+        let isAuthenticated = false;
+
+        // 1. VISORES ABIERTOS AL PÚBLICO GENERAL (5 Mapas)
+        const publicMaps = [
             { title: "Catastro", desc: "Parcelario y zonificaciones.", link: "https://dcartografiayde.github.io/IDE-PARANA/catastro/", icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M3 14h18m-9-9v14m-5-14v14m10-14v14" /></svg>` },
+            { title: "Preservación", desc: "Patrimonio histórico.", link: "https://dcartografiayde.github.io/IDE-PARANA/preservacion/", icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v1H4v-1z" /></svg>` },
+            { title: "Censo 2022", desc: "Resultados poblacionales.", link: "https://dcartografiayde.github.io/IDE-PARANA/censo_2022/", icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>` },
+            { title: "Urbanizaciones", desc: "Monitoreo y desarrollo urbanístico.", link: "https://dcartografiayde.github.io/IDE-PARANA/backdoor/", icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>` },
+            { title: "Vecinales", desc: "Límites jurisdiccionales de comisiones vecinales.", link: "https://dcartografiayde.github.io/IDE-PARANA/backdoor/vecinales/", icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>` }
+        ];
+
+        // 2. VISORES CARTOGRÁFICOS PERSONAL MUNICIPAL (Restringidos con clave)
+        const municipalMaps = [
             { 
                 title: "Catastro con datos de propietarios", 
                 desc: "Consulta parcelaria integrada con la información registral de titularidad dominial.", 
@@ -141,16 +227,15 @@
             },
             { title: "Mapa Base", desc: "Trama vial y urbana.", link: "https://dcartografiayde.github.io/IDE-PARANA/mapa base/", icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" /></svg>` },
             { title: "Obras Privadas", desc: "Permisos de construcción.", link: "https://dcartografiayde.github.io/IDE-PARANA/obras_privadas/", icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>` },
-            { title: "Preservación", desc: "Patrimonio histórico.", link: "https://dcartografiayde.github.io/IDE-PARANA/preservacion/", icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v1H4v-1z" /></svg>` },
-            { title: "Censo 2022", desc: "Resultados poblacionales.", link: "https://dcartografiayde.github.io/IDE-PARANA/censo_2022/", icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>` },
-            { title: "Urbanizaciones", desc: "Monitoreo y desarrollo urbanístico.", link: "https://dcartografiayde.github.io/IDE-PARANA/backdoor/", icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>` },
             { title: "Urbanizaciones - Versión para celular", desc: "Monitoreo de desarrollos adaptado a pantallas táctiles.", link: "https://dcartografiayde.github.io/IDE-PARANA/backdoor/visor_urbanizaciones_celular.html", icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2zM9 9h6" /></svg>` },
-            { title: "Vecinales", desc: "Límites jurisdiccionales de comisiones vecinales.", link: "https://dcartografiayde.github.io/IDE-PARANA/backdoor/vecinales/", icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>` },
             { title: "Servicios por Calle", desc: "Cobertura de servicios públicos por red vial.", link: "https://dcartografiayde.github.io/IDE-PARANA/servicios/", icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>` },
             { title: "Posicion Georeferenciada de lotes", desc: "Cálculo de centro de manzana y Línea de Frente Interno.", link: "https://dcartografiayde.github.io/IDE-PARANA/posicion_georeferenciada/", icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" /><path stroke-linecap="round" stroke-linejoin="round" d="M12 2v3m0 14v3M2 12h3m14 0h3M12 8a4 4 0 110 8 4 4 0 010-8z" /></svg>` },
-            { title: "Barrios IAPV", desc: "Loteos y viviendas sociales de la provincia.", link: "https://dcartografiayde.github.io/IDE-PARANA/IAPV/index.html", icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2" /></svg>` }
+            { title: "Redes Institucionales", desc: "Protección de derechos (Niñez y Familia - COPNAF).", icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04" /></svg>` },
+            { title: "Barrios IAPV", desc: "Loteos construidos por el IAPV desde 1954.", link: "https://dcartografiayde.github.io/IDE-PARANA/IAPV/index.html", icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2" /></svg>` },
+            { title: "Mapa de Riesgo Ambiental", desc: "Priorización territorial para la gestión del riesgo socioambiental y sectores expuestos.", link: "https://dcartografiayde.github.io/IDE-PARANA/riesgo_ambiental/visor_urbano_y_riesgo_ambiental_paran%20(3).html", icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>` }
         ];
 
+        // 3. PLAN URBANO AMBIENTAL (PUA)
         const atlasMaps = [
             { title: "Crecimiento Huella Urbana", desc: "Análisis histórico de expansión (1967-2023).", link: "https://dcartografiayde.github.io/IDE-PARANA/atlas_pua/crecimiento_huella_urbana/", icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>` },
             { title: "Cuencas Hidrográficas", desc: "Delimitación de las 17 cuencas hídricas.", link: "https://dcartografiayde.github.io/IDE-PARANA/atlas_pua/cuencas_hidrograficas/", icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 12c1.5 0 2.5-1 4-1s2.5 1 4 1 2.5-1 4-1 2.5 1 4 1M4 16c1.5 0 2.5-1 4-1s2.5 1 4 1 2.5-1 4-1 2.5 1 4 1" /></svg>` },
@@ -163,27 +248,23 @@
             { title: "Áreas Servidas - No Servidas", desc: "Cobertura de agua, gas, cloacas y alumbrado público.", link: "https://dcartografiayde.github.io/IDE-PARANA/atlas_pua/cobertura_servicios/", icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547" /></svg>` },
             { title: "Redes de Servicios Individuales", desc: "Detalle técnico de redes por tipo de servicio.", icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10" /></svg>` },
             { title: "Red de Drenaje", desc: "Infraestructura pluvial noroeste y central (2020-2022).", icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 4H21v3" /></svg>` },
-            { title: "Presupuesto Participativo 2023", desc: "Intervenciones comunitarias y proyectos lineales.", icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8" /></svg>` },
-            { title: "Redes Institucionales", desc: "Protección de derechos (Niñez y Familia - COPNAF).", icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04" /></svg>` },
             { title: "Equipamientos e Infraestructuras", desc: "Usos del suelo (Salud, Recreación, Comercio).", icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5" /></svg>` },
             { title: "Asentamientos Informales", desc: "Localización RENABAP 2023 y análisis territorial.", link: "https://dcartografiayde.github.io/IDE-PARANA/atlas_pua/asentamientos_informales/", icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2" /></svg>` },
             { title: "Áreas de Influencia", desc: "Accesibilidad a equipamientos públicos y educativos.", icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><circle cx="12" cy="12" r="5" /><circle cx="12" cy="12" r="1" /></svg>` },
-            { title: "Barrios IAPV", desc: "Loteos construidos por el IAPV desde 1954.", link: "https://dcartografiayde.github.io/IDE-PARANA/IAPV/index.html", icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2" /></svg>` },
             { title: "Protección Patrimonial", desc: "Edificios con declaratoria de protección.", link: "https://dcartografiayde.github.io/IDE-PARANA/preservacion/", icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>` },
             { title: "Espacios Verdes Públicos", desc: "Distribución, accesibilidad y cobertura de áreas verdes de la ciudad.", link: "https://dcartografiayde.github.io/IDE-PARANA/atlas_pua/espacios_verdes_publicos/", icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19V22M12 15C15 15 17 12 17 9C17 5 14 2 12 2C10 2 7 5 7 9C7 12 9 15 12 15Z" /></svg>` },
-            { title: "Mapa de Riesgo Ambiental", desc: "Priorización territorial para la gestión del riesgo socioambiental y sectores expuestos.", link: "https://dcartografiayde.github.io/IDE-PARANA/riesgo_ambiental/visor_urbano_y_riesgo_ambiental_paran%20(3).html", icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>` },
             { title: "MAPA DE TRANSPORTE PUBLICO", desc: "Recorridos, líneas, paradas y cobertura del sistema de transporte urbano e interurbano de pasajeros.", link: "https://dcartografiayde.github.io/IDE-PARANA/transporte_publico/", icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7h8m-8 4h8m-4 8v2m-6 0h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v10a2 2 0 002 2zM6 17a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm12 0a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" /></svg>` }
         ];
 
         const mapExplanations = {
             "Catastro": { what: "Representación vectorial georreferenciada de la subdivisión parcelaria de Paraná, integrada con las capas normativas de zonificación urbana y coeficientes de edificación (FOS/FOT) vigentes según ordenanza municipal.", use: "Te permite conocer con exactitud dónde termina tu terreno y qué tipo de construcción tenés permitido edificar de manera legal." },
-            "Catastro con datos de propietarios": { what: "Visor de la subdivisión parcelaria de la ciudad de Paraná vinculado directamente a las bases registrales formales que detallan la titularidad de dominio y los datos patrimrimoniales de cada inmueble.", use: "Herramienta técnica reservada exclusivamente para la administración y validación dominial interna de los funcionarios municipales en trámites oficiales." },
+            "Catastro con datos de propietarios": { what: "Visor de la subdivisión parcelaria de la ciudad de Paraná vinculado directamente a las bases registrales formales que detallan la titularidad de dominio y los datos patrimoniales de cada inmueble.", use: "Herramienta técnica reservada exclusivamente para la administración y validación dominial interna de los funcionarios municipales en trámites oficiales." },
             "Mapa Base": { what: "Cartografía vectorial de la red de conectividad vial jerarquizada, amanzanamiento consolidado oficial de Paraná y el polígono poligonal geodésico que delimita el ejido urbano municipal.", use: "Te sirve para ubicarte con precisión en el plano de la ciudad con nombres oficiales de calles, formas reales de las manzanas y límites territoriales de Paraná." },
             "Obras Privadas": { what: "Inventario espacializado y registro administrativo de expedientes constructivos, estados de factibilidad de obras civiles nuevas, y proyectos y relevamientos de obras civiles.", use: "Te ayuda a verificar que cualquier obra o edificio nuevo que se levante al lado de tu casa cuente con planos aprobados y esté debidamente habilitado por el municipio." },
-            "Preservación": { what: "Base de datos geográfica de inmuebles catalogados como patrimonio arquitectónico, monumental e histórico de Paraná, detallando grados de protección e inventario estructural.", use: "Te sirve para valorar las fachadas antiguas de la ciudad y confirmar si tu vivienda o las que te rodean están protegidas contra reformas bruscas o demoliciones." },
+            "Preservación": { what: "Base de datos geográfica de inmuebles catalogados como patrimonio arquitectónico, monumental e histórico de Paraná, detallando grados de protección e inventario structural.", use: "Te sirve para valorar las fachadas antiguas de la ciudad y confirmar si tu vivienda o las que te rodean están protegidas contra reformas bruscas o demoliciones." },
             "Censo 2022": { what: "Asociación geoespacial de indicadores socio-demográficos oficiales nacionales organizados por la agregación de radios censales y fracciones dentro de la geografía del municipio de Paraná.", use: "Te ayuda a entender en qué barrios vive más gente y permite a comerciantes y emprendedores analizar dónde instalar un local según la cantidad de familias que residen en la zona." },
-            "Urbanizaciones": { what: "Polígonos delimitadores de urbanizaciones de iniciativa pública y privada (loteos privados y barrios de IAPV), clasificando el estado del tramite.", use: "¡Te protege contra fraudes! Sirve para comprobar en segundos si un lote que te quieren vender en la periferia de la ciudad cuenta con todos los planos técnicos aprobados." },
-            "Urbanizaciones - Versión para celular": { what: "Visualizador espacial optimizado para vusualizar en celulares (Mobile GIS) diseñado para la lectura y verificación geográfica in situ de polígonos de loteos aprobados o en proceso técnico de aprobacion.", use: "Te permite consultar los límites de un terreno y si tiene su habilitación municipal correspondiente en regla directamente desde tu celular mientras estás parado en el lote." },
+            "Urbanizaciones": { what: "Polígonos delimitadores de urbanizaciones de iniciativa pública y privada (loteos privados y barrios de IAPV), clasificando el estado del trámite.", use: "¡Te protege contra fraudes! Sirve para comprobar en segundos si un lote que te quieren vender en la periferia de la ciudad cuenta con todos los planos técnicos aprobados." },
+            "Urbanizaciones - Versión para celular": { what: "Visualizador espacial optimizado para visualizar en celulares (Mobile GIS) diseñado para la lectura y verificación geográfica in situ de polígonos de loteos aprobados o en proceso técnico de aprobación.", use: "Te permite consultar los límites de un terreno y si tiene su habilitación municipal correspondiente en regla directamente desde tu celular mientras estás parado en el lote." },
             "Vecinales": { what: "Límites geométricos poligonales y áreas de influencia administrativa de las comisiones vecinales oficialmente conformadas bajo el marco regulatorio municipal vigente.", use: "Te permite saber exactamente a qué comisión vecinal pertenecés, contactar a tus representantes barriales y proponer proyectos conjuntos de mejoras en tu vecindad." },
             "Servicios por Calle": { what: "Modelado lineal de la red vial asignando atributos específicos de cobertura física de servicios de saneamiento (cloacas, agua de red, gas y alumbrado) y asfalto tramo por tramo.", use: "Te sirve para verificar el estado de urbanización oficial de tu cuadra, lo cual es muy útil para reclamar asfalto, cordón cuneta o iluminación ante tu vecinal." },
             "Posicion Georeferenciada de lotes": { what: "Delimitación técnica de la Línea de Frente Interno (Art. 139° Ord. 8563) que actúa como traza del plano que limita la edificación permitida para preservar el centro libre de manzana. Método de Trazado: Se calcula uniendo los tercios centrales de los lados opuestos. Casos Particulares: Las manzanas de lados irregulares, curvos o con longitudes mayores a 200m son evaluadas por la Comisión Asesora.", use: "Te permite calcular de manera exacta el límite de edificación permitido en el fondo de tu terreno para preservar el pulmón o espacio de aire libre obligatorio en la manzana." },
@@ -194,14 +275,13 @@
             "Distrito Código Urbano": { what: "Representación cartográfica de la zonificación morfológica y regulatoria de la Ordenanza N° 8.563, con indicación de distritos, alturas y retiros permitidos.", use: "Te sirve para controlar de forma directa qué se puede construir en tu cuadra, evitando que te hagan un edificio de departamentos pegado a tu medianera sin permiso." },
             "Densidad de Población": { what: "Mapa temático de densidad habitacional neta, expresado en habitantes por hectárea, modelado para la distribución por manzana y radio censal.", use: "Te ayuda a ver en qué barrios vive más gente junta, lo que explica por qué en esas zonas suele haber más demanda de servicios o mayor tránsito en horas pico." },
             "Curvas de Nivel e Hidrografía": { what: "Representación topográfica altimétrica mediante isolíneas de nivel (curvas topográficas cada 1 metro de elevación) y su vinculación directa con la hidrografía de Paraná.", use: "Información muy valiosa si vas a construir o comprar, ya que te indica la inclinación real del suelo y hacia dónde corre el agua de lluvia en tu terreno." },
-            "Áreas Ecológicas": { what: "Delimitación poligonal de áreas de preservación natural, reservas biológicas, humedales y bordes de barranca con categorizaciones de valor ecológico y conservación.", use: "Te ayuda a ubicar los pulmones verdes y entornos naturales protegidos de Paraná que debemos cuidar, evitando arrojar basura o realizar desmontes ileales." },
+            "Áreas Ecológicas": { what: "Delimitación poligonal de áreas de preservación natural, reservas biológicas, humedales y bordes de barranca con categorizaciones de valor ecológico y conservación.", use: "Te ayuda a ubicar los pulmones verdes y entornos naturales protegidos de Paraná que debemos cuidar, evitando arrojar basura o realizar desmontes ilegales." },
             "Áreas Servidas - No Servidas": { 
                 what: "Mapeo temático de la cobertura integral de redes de infraestructura (Agua Potable, Cloacas, Gas Natural y Alumbrado Público), permitiendo la identificación de sectores consolidados, áreas en transición y zonas con déficit prioritario de servicios en el ejido municipal.", 
                 use: "Te permite verificar qué servicios básicos llegan formalmente a tu manzana o barrio, constituyendo una herramienta transparente de consulta para planificar mejoras, solicitar extensiones de red o realizar reclamos vecinales." 
             },
             "Redes de Servicios Individuales": { what: "Trazado lineal y técnico de conductos principales, cañerías maestras y nodos de conexión para las redes de agua potable, cloaca y gas en Paraná.", use: "Te sirve para saber si pasa la red por la puerta de tu casa y evita accidentes graves rompiendo caños importantes al realizar excavaciones domiciliarias en la vereda." },
             "Red de Drenaje": { what: "Modelado de la infraestructura de conductos pluviales subterráneos, sumideros principales y bocas de tormenta de las áreas central y noroeste de la ciudad.", use: "Te permite conocer hacia dónde drenan las lluvias en tu zona e identificar la boca de tormenta más cercana para mantenerla libre de hojas y residuos." },
-            "Presupuesto Participativo 2023": { what: "Georreferenciación puntual y lineal de proyectos comunitarios de infraestructura y equipamiento priorizados y electos mediante los presupuestos participativos de Paraná.", use: "Te permite realizar un seguimiento vecinal transparente sobre el avance y la ubicación de las obras que tu barrio debatió y votó democráticamente." },
             "Redes Institucionales": { what: "Distribución espacial y categorización funcional de dependencias de derechos de la niñez (COPNAF), centros comunitarios, comedores y redes de soporte social institucional.", use: "Funciona como una guía rápida para que encuentres fácilmente dependencias de contención para familias, salud infantil o ayuda social cerca de tu domicilio." },
             "Equipamientos e Infraestructuras": { what: "Puntos geoespacializados clasificados de la infraestructura de servicios públicos (Salud de media y alta complejidad, Educación por niveles y espacios deportivos de Paraná).", use: "Te sirve como mapa directo de consulta rápida para encontrar el hospital, centro de salud, club deportivo o escuela más cercana a tu hogar." },
             "Asentamientos Informales": { what: "Representación poligonal de los asentamientos y barrios populares integrados en el registro nacional (RENABAP 2023) geolocalizados dentro de Paraná.", use: "Te permite visualizar las realidades habitacionales complejas del ejido para acompañar y demandar el avance de las urbanizaciones de estos sectores." },
@@ -219,8 +299,11 @@
             }
         };
 
+        // RENDERIZADO DE TARJETAS DE MAPAS
         function renderCards(data, containerId) {
             const container = document.getElementById(containerId);
+            if (!container) return;
+            
             container.innerHTML = data.map(m => {
                 const isReady = !!m.link;
                 const isRestricted = !!m.restricted;
@@ -274,9 +357,48 @@
             `}).join('');
         }
 
-        renderCards(ideMaps, 'ide-grid');
+        // INICIALIZAR GRIDS EN CADA PESTAÑA
+        renderCards(publicMaps, 'publicos-grid');
         renderCards(atlasMaps, 'atlas-grid');
+        renderCards(municipalMaps, 'municipal-grid');
 
+        // MANEJO DE INICIO DE SESIÓN
+        function handleLogin(event) {
+            if (event) event.preventDefault();
+            const userVal = document.getElementById('username-input').value.trim();
+            const passVal = document.getElementById('password-input').value.trim();
+            const errorMsg = document.getElementById('login-error');
+
+            if (userVal === 'Cartografia' && passVal === 'Cartografia') {
+                isAuthenticated = true;
+                if (errorMsg) errorMsg.classList.add('hidden');
+                document.getElementById('username-input').value = '';
+                document.getElementById('password-input').value = '';
+                updateAuthUI();
+            } else {
+                if (errorMsg) errorMsg.classList.remove('hidden');
+            }
+        }
+
+        function handleLogout() {
+            isAuthenticated = false;
+            updateAuthUI();
+        }
+
+        function updateAuthUI() {
+            const loginContainer = document.getElementById('login-container');
+            const municipalContent = document.getElementById('municipal-content');
+            
+            if (isAuthenticated) {
+                if (loginContainer) loginContainer.classList.add('hidden');
+                if (municipalContent) municipalContent.classList.remove('hidden');
+            } else {
+                if (loginContainer) loginContainer.classList.remove('hidden');
+                if (municipalContent) municipalContent.classList.add('hidden');
+            }
+        }
+
+        // FUNCIONALIDAD DEL MODAL
         function showPuaAnalysis(mapTitle) {
             const modal = document.getElementById('pua-modal');
             const modalContainer = document.getElementById('modal-container');
@@ -310,6 +432,7 @@
 
         function closePuaModalOnOutsideClick(event) { if (event.target.id === 'pua-modal') closePuaModal(); }
 
+        // CAMBIO DE PESTAÑAS
         function openTab(evt, tabName) {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
