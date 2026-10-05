@@ -11,6 +11,10 @@
     <script src="https://cdn.jsdelivr.net/npm/leaflet-textpath@1.2.3/leaflet.textpath.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
 
+    <!-- Librería Turf.js para unión y disolución de buffers en cliente -->
+    <!-- MODIFICACIÓN: Inclusión de Turf.js para fusionar polígonos del buffer sin superposición -->
+    <script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script>
+
     <!-- Librería FlatGeobuf para lectura binaria y deserialización de parcelas -->
     <script src="https://unpkg.com/flatgeobuf@3.32.0/dist/flatgeobuf-geojson.min.js"></script>
 
@@ -225,6 +229,8 @@
             padding: 4px 8px !important;
             box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
         }
+
+        /* MODIFICACIÓN: Eliminamos mix-blend-mode innecesario al estar unificados los polígonos de buffer */
     </style>
 </head>
 
@@ -300,6 +306,14 @@
                 <div class="space-y-2">
                     <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide border-b border-slate-800/60 pb-1">Catastro Básico</span>
                     <div class="space-y-2 pl-1">
+                        <!-- MODIFICACIÓN: Inclusión de la capa Ejido de Paraná en Catastro Básico -->
+                        <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
+                            <input type="checkbox" id="chk-ejido-parana" checked onchange="toggleOverlay('ejido_parana')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
+                            <span class="flex items-center gap-2">
+                                <span class="w-3.5 h-1 border-b-2 border-dashed border-[#ef4444] inline-block"></span>
+                                <span>Ejido de Paraná</span>
+                            </span>
+                        </label>
                         <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
                             <input type="checkbox" id="chk-manzanas" onchange="toggleOverlay('manzanas')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
                             <span class="flex items-center gap-2">
@@ -363,7 +377,7 @@
                                 <span>Red secundaria</span>
                             </span>
                         </label>
-                        <!-- MODIFICACIÓN: Checkbox de Ferrocarril -->
+                        <!-- Checkbox de Ferrocarril -->
                         <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
                             <input type="checkbox" id="chk-ferrocarril" checked onchange="toggleOverlay('ferrocarril')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
                             <span class="flex items-center gap-2">
@@ -583,6 +597,11 @@ var map = L.map('map', {
 });
 
 // Paneles Leaflet ordenados por Z-Index
+map.createPane('bufferPane');
+map.getPane('bufferPane').style.zIndex = 280;
+map.getPane('bufferPane').style.pointerEvents = 'none';
+map.getPane('bufferPane').classList.add('leaflet-buffer-pane');
+
 map.createPane('manzanasPane');
 map.getPane('manzanasPane').style.zIndex = 300; 
 map.getPane('manzanasPane').style.pointerEvents = 'none';
@@ -760,15 +779,33 @@ var parcelasLayers = [];
 var listaParcelasUbicacion = [];
 
 /* Definición e integración de las capas vectoriales */
+// MODIFICACIÓN: Creación del grupo para el Ejido de Paraná
+var grupoEjidoParana = L.layerGroup().addTo(map);
+
 var grupoEspaciosVerdes = L.layerGroup().addTo(map);
+
+var grupoBufferPlazasParques = L.layerGroup().addTo(map);
 var grupoPlazasParques = L.layerGroup().addTo(map);
+
 var grupoRedPrimaria = L.layerGroup().addTo(map);
 var grupoRedSecundaria = L.layerGroup().addTo(map);
 
-// MODIFICACIÓN: Definición del grupo para Ferrocarril
 var grupoFerrocarril = L.layerGroup().addTo(map);
 
 var grupoHuellaUrbana = L.layerGroup();
+
+// MODIFICACIÓN: Carga de la capa Ejido de Paraná (línea de guiones roja gruesa, sin popup)
+fetchGeoJSON(BASE_URL + "atlas_pua/espacios_verdes_publicos/ejido_parana.geojson").then(data => {
+    L.geoJSON(data, {
+        style: {
+            color: "#ef4444",
+            weight: 4.5,
+            dashArray: "8, 8",
+            fill: false
+        },
+        interactive: false
+    }).addTo(grupoEjidoParana);
+}).catch(err => console.warn("Error cargando ejido de Paraná:", err));
 
 function crearPopupAtributosVerdes(f) {
     let props = f.properties || {};
@@ -796,10 +833,38 @@ fetchGeoJSON(BASE_URL + "atlas_pua/espacios_verdes_publicos/espacios_verdes.geoj
     }).addTo(grupoEspaciosVerdes);
 }).catch(err => console.warn("Error cargando espacios verdes:", err));
 
+// MODIFICACIÓN: Carga del buffer de Plazas y Parques procesando la disolución/unión mediante Turf.js para formar un polígono continuo único sin superposiciones
+fetchGeoJSON(BASE_URL + "atlas_pua/espacios_verdes_publicos/buffer_plazas_parques.geojson").then(data => {
+    let geojsonProcesado = data;
+    
+    try {
+        if (typeof turf !== 'undefined' && data && data.features && data.features.length > 0) {
+            let unionPoligonos = data.features[0];
+            for (let i = 1; i < data.features.length; i++) {
+                unionPoligonos = turf.union(unionPoligonos, data.features[i]);
+            }
+            geojsonProcesado = unionPoligonos;
+        }
+    } catch (e) {
+        console.warn("Falla en la unificación con Turf, visualizando GeoJSON estándar:", e);
+    }
+
+    L.geoJSON(geojsonProcesado, {
+        pane: 'bufferPane',
+        style: { 
+            stroke: false,
+            fillColor: "#86efac", 
+            fillOpacity: 0.25,
+            weight: 0 
+        },
+        interactive: false
+    }).addTo(grupoBufferPlazasParques);
+}).catch(err => console.warn("Error cargando buffer de plazas y parques:", err));
+
 // Carga de Plazas y Parques
 fetchGeoJSON(BASE_URL + "atlas_pua/espacios_verdes_publicos/plazas_parques.geojson").then(data => {
     L.geoJSON(data, {
-        style: { color: "#166534", fillColor: "#15803d", fillOpacity: 0.7, weight: 1.5 },
+        style: { color: "#052e16", fillColor: "#15803d", fillOpacity: 0.85, weight: 2.5, opacity: 1 },
         onEachFeature: (f, l) => {
             l.bindPopup(crearPopupAtributosVerdes(f));
         }
@@ -830,7 +895,7 @@ fetchGeoJSON(BASE_URL + "atlas_pua/espacios_verdes_publicos/red_vial.geojson").t
     }).addTo(grupoRedSecundaria);
 }).catch(err => console.warn("Error cargando red vial:", err));
 
-// MODIFICACIÓN: Carga de Ferrocarril (Sin popup y con estilo de línea y trazos perpendiculares)
+// Carga de Ferrocarril
 fetchGeoJSON(BASE_URL + "atlas_pua/espacios_verdes_publicos/ffcc.geojson").then(data => {
     L.geoJSON(data, {
         style: { color: "#000000", weight: 2, opacity: 0.9 },
@@ -1104,6 +1169,13 @@ function controlarVisibilidadDinamica() {
     let zoomActual = map.getZoom();
     document.getElementById('zoom-indicator').innerText = zoomActual;
 
+    /* MODIFICACIÓN: Lógica de encendido/apagado para la capa Ejido de Paraná */
+    const chkEjidoParana = document.getElementById('chk-ejido-parana');
+    if (chkEjidoParana) {
+        if (chkEjidoParana.checked) { if (!map.hasLayer(grupoEjidoParana)) map.addLayer(grupoEjidoParana); }
+        else { if (map.hasLayer(grupoEjidoParana)) map.removeLayer(grupoEjidoParana); }
+    }
+
     const chkManzanas = document.getElementById('chk-manzanas').checked;
     if (chkManzanas) {
         if (!map.hasLayer(grupoManzanas)) map.addLayer(grupoManzanas);
@@ -1140,8 +1212,13 @@ function controlarVisibilidadDinamica() {
 
     const chkPlazasParques = document.getElementById('chk-plazas-parques');
     if (chkPlazasParques) {
-        if (chkPlazasParques.checked) { if (!map.hasLayer(grupoPlazasParques)) map.addLayer(grupoPlazasParques); }
-        else { if (map.hasLayer(grupoPlazasParques)) map.removeLayer(grupoPlazasParques); }
+        if (chkPlazasParques.checked) { 
+            if (!map.hasLayer(grupoBufferPlazasParques)) map.addLayer(grupoBufferPlazasParques); 
+            if (!map.hasLayer(grupoPlazasParques)) map.addLayer(grupoPlazasParques); 
+        } else { 
+            if (map.hasLayer(grupoBufferPlazasParques)) map.removeLayer(grupoBufferPlazasParques); 
+            if (map.hasLayer(grupoPlazasParques)) map.removeLayer(grupoPlazasParques); 
+        }
     }
 
     const chkRedPrimaria = document.getElementById('chk-red-primaria');
@@ -1156,7 +1233,6 @@ function controlarVisibilidadDinamica() {
         else { if (map.hasLayer(grupoRedSecundaria)) map.removeLayer(grupoRedSecundaria); }
     }
 
-    // MODIFICACIÓN: Control de visibilidad de la capa Ferrocarril
     const chkFerrocarril = document.getElementById('chk-ferrocarril');
     if (chkFerrocarril) {
         if (chkFerrocarril.checked) { if (!map.hasLayer(grupoFerrocarril)) map.addLayer(grupoFerrocarril); }
