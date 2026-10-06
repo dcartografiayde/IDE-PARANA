@@ -15,9 +15,9 @@
         body { margin:0; padding:0; font-family: 'Inter', sans-serif; background: #0f172a; overflow: hidden; }
         #map { height: 100vh; width: 100%; z-index: 1; }
 
-        /* MODIFICACIÓN: Estilo CSS para renderizar OpenStreetMap en modo Mapa Oscuro Completo dinámico */
-        .leaflet-tile-pane .leaflet-layer.osm-dark-mode {
-            filter: brightness(0.6) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3) brightness(0.7);
+        /* MODIFICACIÓN: Filtro CSS para convertir OpenStreetMap en una Capa Oscura de Alta Definición con Nombres de Calle completos (importado de mapa base (2)) */
+        .dark-tiles-osm {
+            filter: invert(100%) hue-rotate(180deg) brightness(88%) contrast(105%);
         }
 
         /* Barra de desplazamiento premium personalizada para el panel lateral */
@@ -258,18 +258,22 @@
             <div class="space-y-2">
                 <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide">Mapa Base</span>
                 <div class="space-y-1.5">
-                    <!-- MODIFICACIÓN: Cambio de la opción de mapa oscuro de CartoDB por "Mapa Oscuro Completo" (OpenStreetMap en modo nocturno) -->
+                    <!-- MODIFICACIÓN: Se elimina el radio button de CartoDB Dark Matter -->
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
                         <input type="radio" name="basemap" value="dark" checked onchange="cambiarBaseMap('dark')" class="bg-slate-800 border-slate-700 text-sky-500 focus:ring-sky-500">
-                        <span>Mapa Oscuro Completo</span>
+                        <span>Mapa Oscuro (OSM HD)</span>
                     </label>
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
                         <input type="radio" name="basemap" value="hibrido" onchange="cambiarBaseMap('hibrido')" class="bg-slate-800 border-slate-700 text-sky-500 focus:ring-sky-500">
-                        <span>Híbrido (Satelital)</span>
+                        <span>Satelital Híbrido</span>
                     </label>
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
                         <input type="radio" name="basemap" value="osm" onchange="cambiarBaseMap('osm')" class="bg-slate-800 border-slate-700 text-sky-500 focus:ring-sky-500">
-                        <span>OpenStreetMap</span>
+                        <span>OpenStreetMap Estándar</span>
+                    </label>
+                    <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
+                        <input type="radio" name="basemap" value="topo" onchange="cambiarBaseMap('topo')" class="bg-slate-800 border-slate-700 text-sky-500 focus:ring-sky-500">
+                        <span>Topográfico (OpenTopo)</span>
                     </label>
                 </div>
             </div>
@@ -455,8 +459,6 @@ function decodificarTexto(str) {
             { mal: /Torre[ïÏ]¿½n/gi, bien: 'Torreón' },
             { mal: /APROBACI[ïÏ]¿½N/gi, bien: 'APROBACIÓN' },
             { mal: /Aprobaci[ïÏ]¿½n/gi, bien: 'Aprobación' },
-            { mal: /ASOCIACI[ïÏ]¿½N/gi, bien: 'ASOCIACIÓN' },
-            { mal: /Asociaci[ïÏ]¿½n/gi, bien: 'Asociación' },
             { mal: /CONSTITUCI[ïÏ]¿½N/gi, bien: 'CONSTITUCIÓN' },
             { mal: /Constituci[ïÏ]¿½n/gi, bien: 'Constitución' },
             { mal: /DECLARACI[ïÏ]¿½N/gi, bien: 'DECLARACIÓN' },
@@ -557,17 +559,19 @@ map.createPane('atlasLabelsPane');
 map.getPane('atlasLabelsPane').style.zIndex = 650;
 map.getPane('atlasLabelsPane').style.pointerEvents = 'none';
 
-// MODIFICACIÓN: Definición de Capas Base (Sustituido CartoDB por "Mapa Oscuro Completo" sobre OpenStreetMap con clase personalizada para el modo nocturno)
-var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 22, maxNativeZoom: 19, pane: 'basemapPane' });
+// MODIFICACIÓN: Se elimina la variable 'carto' y la definición del mapa base CartoDB Dark Matter
 var dark = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
     maxZoom: 22, 
     maxNativeZoom: 19, 
     pane: 'basemapPane',
-    className: 'osm-dark-mode'
+    className: 'dark-tiles-osm',
+    attribution: '© OpenStreetMap'
 });
 var sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 22, maxNativeZoom: 18, pane: 'basemapPane' });
 var ref = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}', { maxZoom: 22, maxNativeZoom: 18, pane: 'basemapPane' });
 var hibrido = L.layerGroup([sat, ref]);
+var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 22, maxNativeZoom: 19, pane: 'basemapPane' });
+var topo = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', { maxZoom: 22, maxNativeZoom: 17, pane: 'basemapPane' });
 
 dark.addTo(map);
 
@@ -1285,14 +1289,17 @@ function toggleSidebar() {
     }
 }
 
+// MODIFICACIÓN: Se elimina la opción 'carto' en el conmutador de capas base
 function cambiarBaseMap(tipo) {
     map.removeLayer(dark);
     map.removeLayer(hibrido);
     map.removeLayer(osm);
+    map.removeLayer(topo);
     
     if (tipo === 'dark') dark.addTo(map);
     if (tipo === 'hibrido') hibrido.addTo(map);
     if (tipo === 'osm') osm.addTo(map);
+    if (tipo === 'topo') topo.addTo(map);
 }
 
 function toggleOverlay(capa) {
