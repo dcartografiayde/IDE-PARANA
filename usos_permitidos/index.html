@@ -30,6 +30,11 @@
             background: #ffffff !important;
         }
 
+        /* MODIFICACIÓN: Filtro CSS para convertir OpenStreetMap estándar en modo oscuro completo */
+        .mapa-oscuro-osm {
+            filter: brightness(0.6) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3) brightness(0.7) !important;
+        }
+
         /* Estilos personalizados para el scrollbar del menú lateral */
         .scrollbar-custom::-webkit-scrollbar {
             width: 6px;
@@ -484,9 +489,10 @@
             <div class="space-y-2">
                 <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide">Mapa Base</span>
                 <div class="space-y-1.5">
+                    <!-- MODIFICACIÓN: Actualizada la etiqueta del mapa oscuro para reflejar "Mapa Oscuro Completo" con OSM dinámico -->
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
                         <input type="radio" name="basemap" value="dark" checked onchange="cambiarBaseMap('dark')" class="bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
-                        <span>Mapa Oscuro</span>
+                        <span>Mapa Oscuro Completo</span>
                     </label>
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
                         <input type="radio" name="basemap" value="hibrido" onchange="cambiarBaseMap('hibrido')" class="bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
@@ -806,7 +812,12 @@ map.getPane('atlasLabelsPane').style.zIndex = 650;
 map.getPane('atlasLabelsPane').style.pointerEvents = 'none';
 
 var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 22, maxNativeZoom: 19 });
-var dark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 22, maxNativeZoom: 20 });
+// MODIFICACIÓN: "Mapa Oscuro Completo" utilizando la cartografía completa de OpenStreetMap tratada en modo nocturno
+var dark = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
+    maxZoom: 22, 
+    maxNativeZoom: 19,
+    className: 'mapa-oscuro-osm'
+});
 var sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 22, maxNativeZoom: 18 });
 var ref = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}', { maxZoom: 22, maxNativeZoom: 18 });
 var hibrido = L.layerGroup([sat, ref]);
@@ -1616,1257 +1627,855 @@ function renderizarSeccionDistrito(distIndex, latlng) {
             <div class="text-[9px] text-slate-700 font-bold mb-1">¿Es este el distrito urbano correcto?</div>
             
             <div class="flex gap-1.5 mb-2">
-                <button onclick="abrirReporteZonificacion(${distIndex})" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold py-1.5 px-2 rounded text-[8.5px] uppercase transition flex items-center justify-center gap-1 shadow-sm">
-                    <span>✅ Sí, Confirmar y Generar Reporte</span>
+                <button onclick="abrirReporteZonificacion(${distIndex})" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-[8.5px] py-1 px-2 rounded transition shadow flex items-center justify-center gap-1 uppercase">
+                    <span>📋 Ver Usos y Normativa</span>
                 </button>
             </div>
             
-            <div class="text-[8px] text-slate-500 font-bold mb-0.5">Si está en límite de zona, seleccione el distrito correcto:</div>
-            ${selectHtml}
+            <div class="border-t border-indigo-200/80 pt-1.5">
+                <label class="block text-[8px] font-bold text-indigo-900 uppercase">Cambiar Distrito manualmente:</label>
+                ${selectHtml}
+            </div>
         </div>
     `;
 }
 
-function cambiarDistritoSeleccionadoPopup(newIdx, lat, lng) {
-    let idx = parseInt(newIdx);
-    let container = document.getElementById('distrito-info-container');
-    if (container) {
-        container.innerHTML = renderizarSeccionDistrito(idx, L.latLng(lat, lng));
+function cambiarDistritoSeleccionadoPopup(newIndex, lat, lng) {
+    let idx = parseInt(newIndex, 10);
+    activePopupDistritoIndex = idx;
+    let contenedor = document.getElementById("contenedor-seccion-distrito");
+    if (contenedor) {
+        contenedor.innerHTML = renderizarSeccionDistrito(idx, L.latLng(lat, lng));
     }
 }
 
-function mostrarPopupDeParcela(f, latlng) {
-    let p = f.properties;
-    let sv = `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${latlng.lat},${latlng.lng}`;
-
-    ultimaParcelaSeleccionada = f;
-
-    let partidaTexto = f.properties.partidas ? f.properties.partidas.join(", ") : (f.properties.nropasd || "N/A");
-    document.getElementById('lbl-parcela-rapida').innerText = `Partida: ${partidaTexto} - ${decodificarTexto(f.properties.ubicacion || "")}`;
-    document.getElementById('panel-mza-rapida-parcela').classList.remove('hidden');
-
-    let content = `<div class="popup-custom"><div class="popup-header">DATOS DE LA PARCELA</div>`;
+function abrirReporteZonificacion(distIndex) {
+    if (distIndex < 0 || distIndex >= listaDistritosUnicos.length) {
+        alert("Seleccione un distrito válido para visualizar la Ficha Técnica de Zonificación.");
+        return;
+    }
     
-    if (p.esPH) {
-        content += `<div style="padding:2px; font-size:9px;"><b>PH DETECTADA</b><br><b>PARTIDAS:</b> ${p.partidas.join(", ")}<br><b>UBICACIÓN:</b> ${decodificarTexto(p.ubicacion)}</div>`;
+    let distObj = listaDistritosUnicos[distIndex];
+    let distCode = distObj.codigo;
+    let infoDetalle = buscarDetallesDistrito(distCode);
+    
+    let contenidoModal = document.getElementById("reporte-contenido");
+    if (!contenidoModal) return;
+    
+    let html = `
+        <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 flex justify-between items-center">
+            <div>
+                <span class="text-[10px] font-extrabold text-indigo-400 uppercase tracking-wider block">Distrito Urbano</span>
+                <h2 class="text-2xl font-black text-white tracking-tight">${distCode}</h2>
+            </div>
+            <div class="text-right">
+                <span class="px-3 py-1 bg-indigo-600/30 border border-indigo-500/40 text-indigo-300 font-bold text-xs rounded-full inline-block">
+                    Ordenanza N° 8563
+                </span>
+            </div>
+        </div>
+    `;
+    
+    if (infoDetalle) {
+        html += `<div class="grid grid-cols-1 md:grid-cols-2 gap-4">`;
+        
+        let clavesPrioritarias = ["Caracter", "Carácter", "Usos Permitidos", "Usos Prohibidos", "FOS", "FOT", "Altura Máxima", "Retiros"];
+        
+        for (let [k, v] of Object.entries(infoDetalle)) {
+            if (v && String(v).trim() !== "" && String(v).trim() !== "null") {
+                let keyDecoded = decodificarTexto(k);
+                let valDecoded = decodificarTexto(String(v));
+                
+                html += `
+                    <div class="bg-slate-950/60 border border-slate-800/80 rounded-xl p-3.5 space-y-1">
+                        <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block border-b border-slate-800 pb-1">${keyDecoded}</span>
+                        <p class="text-xs text-slate-200 font-medium leading-relaxed pt-1 whitespace-pre-line">${valDecoded}</p>
+                    </div>
+                `;
+            }
+        }
+        
+        html += `</div>`;
     } else {
+        html += `
+            <div class="p-4 bg-amber-950/30 border border-amber-800/40 rounded-xl text-amber-200 text-xs leading-relaxed">
+                <p><strong>Descripción Geográfica:</strong> ${decodificarTexto(distObj.descripcion) || "Información descriptiva no disponible en la base de datos principal."}</p>
+                <p class="mt-2 text-[11px] text-amber-400">Nota: No se han encontrado parámetros cuantitativos adicionales (FOS, FOT) tabulados para este código específico en el archivo adjunto.</p>
+            </div>
+        `;
+    }
+    
+    contenidoModal.innerHTML = html;
+    let modal = document.getElementById("reporte-modal");
+    if (modal) modal.classList.remove("hidden");
+}
+
+function cerrarReporte() {
+    let modal = document.getElementById("reporte-modal");
+    if (modal) modal.classList.add("hidden");
+}
+
+function imprimirReporte() {
+    window.print();
+}
+
+function renderizarMenuSugerenciasUbicacion(query) {
+    let divContenedor = document.getElementById("sugerencias-ubicacion");
+    if (!divContenedor) return;
+    
+    let qNorm = decodificarTexto(query).toUpperCase().trim();
+    if (qNorm.length < 2) {
+        divContenedor.classList.add("hidden");
+        divContenedor.innerHTML = "";
+        return;
+    }
+    
+    let coincidencias = listaParcelasUbicacion.filter(p => p.texto.includes(qNorm)).slice(0, 25);
+    
+    if (coincidencias.length === 0) {
+        divContenedor.classList.add("hidden");
+        divContenedor.innerHTML = "";
+        return;
+    }
+    
+    let html = "";
+    coincidencias.forEach((item, index) => {
+        html += `
+            <div class="p-2 border-b border-slate-800 hover:bg-slate-800 cursor-pointer transition text-xs text-slate-200 flex justify-between items-center" onclick="seleccionarUbicacionPredictiva(${index})">
+                <span class="font-semibold">${item.texto}</span>
+                <span class="text-[9px] font-bold text-blue-400 bg-blue-950/60 px-1.5 py-0.5 rounded border border-blue-800/50">PARTIDA: ${item.feature.properties.nropasd}</span>
+            </div>
+        `;
+    });
+    
+    window._coincidenciasUbicacionActuales = coincidencias;
+    divContenedor.innerHTML = html;
+    divContenedor.classList.remove("hidden");
+}
+
+function seleccionarUbicacionPredictiva(index) {
+    let divContenedor = document.getElementById("sugerencias-ubicacion");
+    if (divContenedor) divContenedor.classList.add("hidden");
+    
+    if (window._coincidenciasUbicacionActuales && window._coincidenciasUbicacionActuales[index]) {
+        let selected = window._coincidenciasUbicacionActuales[index];
+        document.getElementById("input-ubicacion").value = selected.texto;
+        
+        let feature = selected.feature;
+        if (feature._bounds) {
+            map.fitBounds(feature._bounds, { maxZoom: 19 });
+        }
+        
+        let tempGeo = L.geoJSON(feature);
+        let center = feature._bounds ? feature._bounds.getCenter() : tempGeo.getBounds().getCenter();
+        
+        let props = feature.properties;
+        let distFeature = encontrarDistritoDeCoordenada(center);
+        
+        ultimaParcelaSeleccionada = { feature: feature, layer: tempGeo, center: center };
+        mostrarPanelManzanaRapida(props.full.manzana || props.full.MANZANA || props.full.mza || props.full.NROMZA || "");
+        
+        let content = `<div class="popup-custom"><div class="popup-header" style="border-bottom: 2px solid #2980b9;">Parcela Seleccionada</div>`;
         content += `<table class="table-info">`;
-        for (let [k, v] of Object.entries(p.full)) { 
-            if (v && v !== "0") content += `<tr><td>${decodificarTexto(k).toUpperCase()}</td><td>${decodificarTexto(String(v))}</td></tr>`; 
+        
+        if (props.esPH) {
+            content += `<tr><td>PARTIDAS (PH)</td><td>${props.partidas.join(", ")}</td></tr>`;
+        } else {
+            content += `<tr><td>PARTIDA (PM)</td><td>${props.nropasd}</td></tr>`;
+        }
+        content += `<tr><td>DIRECCIÓN</td><td>${props.ubicacion}</td></tr>`;
+        
+        for (let [k, v] of Object.entries(props.full)) {
+            if (k !== "ubipar1" && k !== "nropasd" && k !== "nropas" && v && v !== "0") {
+                content += `<tr><td>${decodificarTexto(k).toUpperCase()}</td><td>${decodificarTexto(String(v))}</td></tr>`;
+            }
         }
         content += `</table>`;
-    }
-
-    // Inyección de la consulta de Distritos integrada con control aledaño
-    if (listaDistritosUnicos.length > 0) {
-        let defDist = encontrarDistritoDeCoordenada(latlng);
-        content += `
-            <div class="border-t border-slate-200 mt-2 pt-1.5">
-                <div id="distrito-info-container">
-                    ${generarHtmlSeccionDistrito(defDist, latlng)}
-                </div>
-            </div>
-        `;
-    }
-
-    content += `
-        <button onclick="seleccionarManzanaDeParcela()" class="w-full mt-2 bg-amber-600 hover:bg-amber-500 text-white font-bold py-1.5 px-2 rounded text-[9px] tracking-wider uppercase transition flex items-center justify-center gap-1">
-            <span>🧱 Seleccionar Manzana</span>
-        </button>
-    `;
-
-    let point = [latlng.lng, latlng.lat];
-    let posesionEncontrada = null;
-    let capaProcedencia = "";
-
-    for (let posFeature of posesiones1Features) {
-        if (isPointInFeature(point, posFeature)) {
-            posesionEncontrada = posFeature;
-            capaProcedencia = "Posesiones Capa 1";
-            break;
-        }
-    }
-
-    if (!posesionEncontrada) {
-        for (let posFeature of posesiones2Features) {
-            if (isPointInFeature(point, posFeature)) {
-                posesionEncontrada = posFeature;
-                capaProcedencia = "Posesiones Capa 2";
-                break;
-            }
-        }
-    }
-
-    if (posesionEncontrada) {
-        content += `
-            <div class="mt-2 p-2 bg-red-950/20 border border-red-500 rounded text-[9px] text-red-200">
-                <div class="font-bold uppercase tracking-wider text-red-400 flex items-center gap-1 mb-1">
-                    ⚠️ ADVERTENCIA: POSESIÓN REGISTRADA
-                </div>
-                <p class="mb-1 leading-normal">Esta parcela se encuentra afectada por una ocupación o posesión activa registrada en la base de datos (${capaProcedencia}).</p>
-                <button onclick="consultarDetallesPosesion(${JSON.stringify(posesionEncontrada.properties).replace(/"/g, '&quot;')}, '${capaProcedencia}')" class="w-full mt-1 bg-red-600 hover:bg-red-500 text-white font-bold py-1 px-2 rounded text-[8px] tracking-wider uppercase transition">
-                    Consultar Posesión
-                </button>
-            </div>
-        `;
-    }
-
-    content += `<a href="${sv}" target="_blank" class="btn-streetview">📍 STREET VIEW</a>`;
-    content += `<div class="adv-sv">Para mejor orientación, haga clic en el frente de la parcela.</div>`;
-    content += `</div>`;
-    
-    L.popup({ autoPanPadding: L.point(10, 110) })
-        .setLatLng(latlng)
-        .setContent(content)
-        .openOn(map);
-}
-
-function consultarDetallesPosesion(properties, capa) {
-    let content = `<div class="popup-custom"><div class="popup-header" style="border-bottom: 2px solid #e11d48; color: #e11d48;">${capa.toUpperCase()}</div>`;
-    content += `<table class="table-info">`;
-    for (let [k, v] of Object.entries(properties)) {
-        if (v && v !== "0") {
-            content += `<tr><td>${decodificarTexto(k).toUpperCase()}</td><td>${decodificarTexto(String(v))}</td></tr>`;
-        }
-    }
-    content += `</table></div>`;
-    
-    L.popup({ autoPanPadding: L.point(10, 110) })
-        .setLatLng(map.getBounds().getCenter())
-        .setContent(content)
-        .openOn(map);
-}
-
-function actualizarParcelasEnVista() {
-    let zoomActual = map.getZoom();
-    const chkParcelas = document.getElementById('chk-parcelas').checked;
-
-    grupoParcelas.clearLayers();
-
-    if (!chkParcelas || zoomActual < 16) {
-        return; 
-    }
-
-    let bounds = map.getBounds();
-    let featuresEnVista = [];
-
-    for (let i = 0; i < parcelasFeaturesGlobal.length; i++) {
-        let f = parcelasFeaturesGlobal[i];
-        if (f && f._bounds && typeof f._bounds.intersects === 'function') {
-            try {
-                if (bounds.intersects(f._bounds)) {
-                    featuresEnVista.push(f);
-                }
-            } catch (err) {
-                console.warn("Límites inválidos omitidos para evitar ruptura en el visor.", err, f);
-            }
-        }
-    }
-
-    L.geoJSON(featuresEnVista, {
-        pane: 'parcelasPane', 
-        style: f => ({ 
-            color: f.properties.esPH ? "#8e44ad" : "#2980b9", 
-            weight: 0.8, 
-            fillColor: f.properties.esPH ? "#8e44ad" : "#2980b9", 
-            fillOpacity: 0.12 
-        }),
-        onEachFeature: (f, l) => {
-            l.on('click', e => {
-                if (modoMedicion || modoSeleccionManzana) return;
-                let latlng = e.latlng || l.getBounds().getCenter();
-                mostrarPopupDeParcela(f, latlng);
-            });
-        }
-    }).addTo(grupoParcelas);
-}
-
-function controlarVisibilidadDinamica() {
-    let zoomActual = map.getZoom();
-    document.getElementById('zoom-indicator').innerText = zoomActual.toFixed(1);
-
-    const chkPosesiones = document.getElementById('chk-posesiones').checked;
-    if (chkPosesiones && zoomActual >= 14) {
-        if (!map.hasLayer(grupoPosesiones)) {
-            map.addLayer(grupoPosesiones);
-        }
-    } else {
-        if (map.hasLayer(grupoPosesiones)) {
-            map.removeLayer(grupoPosesiones);
-        }
-    }
-
-    const chkDistritos = document.getElementById('chk-distritos') ? document.getElementById('chk-distritos').checked : true;
-    if (chkDistritos) {
-        if (!map.hasLayer(grupoDistritos)) map.addLayer(grupoDistritos);
-        if (!map.hasLayer(grupoEtiquetasDistritos)) map.addLayer(grupoEtiquetasDistritos); // Mantener capa agregada
-        actualizarEtiquetasDistritosDinamicas(); // Recalcular posiciones dinámicamente según viewport
-    } else {
-        if (map.hasLayer(grupoDistritos)) map.removeLayer(grupoDistritos);
-        if (map.hasLayer(grupoEtiquetasDistritos)) map.removeLayer(grupoEtiquetasDistritos);
-    }
-
-    const chkSecciones = document.getElementById('chk-secciones').checked;
-    if (chkSecciones) {
-        if (!map.hasLayer(grupoSecciones)) map.addLayer(grupoSecciones);
-        if (zoomActual >= 13) {
-            if (!map.hasLayer(grupoEtiquetasSecciones)) map.addLayer(grupoEtiquetasSecciones);
-        } else {
-            if (map.hasLayer(grupoEtiquetasSecciones)) map.removeLayer(grupoEtiquetasSecciones);
-        }
-    } else {
-        if (map.hasLayer(grupoSecciones)) map.removeLayer(grupoSecciones);
-        if (map.hasLayer(grupoEtiquetasSecciones)) map.removeLayer(grupoEtiquetasSecciones);
-    }
-
-    const chkGrupos = document.getElementById('chk-grupos').checked;
-    if (chkGrupos && zoomActual >= 13) {
-        if (!map.hasLayer(grupoGrupos)) map.addLayer(grupoGrupos);
-        if (zoomActual >= 14) {
-            if (!map.hasLayer(grupoEtiquetasGrupos)) map.addLayer(grupoEtiquetasGrupos);
-        } else {
-            if (map.hasLayer(grupoEtiquetasGrupos)) map.removeLayer(grupoEtiquetasGrupos);
-        }
-    } else {
-        if (map.hasLayer(grupoGrupos)) map.removeLayer(grupoGrupos);
-        if (map.hasLayer(grupoEtiquetasGrupos)) map.removeLayer(grupoEtiquetasGrupos);
-    }
-
-    const chkManzanas = document.getElementById('chk-manzanas').checked;
-    if (chkManzanas && zoomActual >= 14) {
-        if (!map.hasLayer(grupoManzanas)) map.addLayer(grupoManzanas);
-        // Nota: se ha quitado la visibilidad de etiquetas de manzana
-    } else {
-        if (map.hasLayer(grupoManzanas)) map.removeLayer(grupoManzanas);
-    }
-
-    const chkCalles = document.getElementById('chk-calles').checked;
-    if (chkCalles && zoomActual >= 15) {
-        if (!map.hasLayer(grupoCalles)) map.addLayer(grupoCalles);
-    } else {
-        if (map.hasLayer(grupoCalles)) map.removeLayer(grupoCalles);
-    }
-
-    const chkParcelas = document.getElementById('chk-parcelas').checked;
-    if (chkParcelas && zoomActual >= 16) {
-        if (!map.hasLayer(grupoParcelas)) {
-            map.addLayer(grupoParcelas);
-        }
-        actualizarParcelasEnVista();
-    } else {
-        if (map.hasLayer(grupoParcelas)) {
-            map.removeLayer(grupoParcelas);
-        }
-        grupoParcelas.clearLayers();
-    }
-}
-
-// Eventos de movimiento y zoom vinculados al recálculo dinámico de etiquetas
-map.on('zoomend moveend', () => {
-    controlarVisibilidadDinamica();
-    actualizarEtiquetasDistritosDinamicas();
-});
-
-function toggleSidebar() {
-    const sidebar = document.getElementById('sidebar');
-    const toggleIcon = document.getElementById('toggle-icon');
-
-    if (sidebar.classList.contains('-translate-x-full')) {
-        sidebar.classList.remove('-translate-x-full');
-        toggleIcon.classList.remove('rotate-180');
-    } else {
-        sidebar.classList.add('-translate-x-full');
-        toggleIcon.classList.add('rotate-180');
-    }
-}
-
-function cambiarBaseMap(tipo) {
-    map.removeLayer(dark);
-    map.removeLayer(hibrido);
-    map.removeLayer(osm);
-    
-    if (tipo === 'dark') dark.addTo(map);
-    if (tipo === 'hibrido') hibrido.addTo(map);
-    if (tipo === 'osm') osm.addTo(map);
-}
-
-function toggleOverlay(capa) {
-    controlarVisibilidadDinamica();
-}
-
-function buscarPM() {
-    let val = document.getElementById('input-pm').value.trim();
-    if (!val) return;
-
-    let encontrado = false;
-    for (let f of parcelasFeaturesGlobal) {
-        if (f.properties.partidas.includes(val)) {
-            let bounds = f._bounds;
-            if (!bounds) continue; 
-
-            let center = bounds.getCenter();
-
-            map.fitBounds(bounds, { maxZoom: 19 });
-            document.getElementById('chk-parcelas').checked = true;
-            
-            controlarVisibilidadDinamica();
-            mostrarPopupDeParcela(f, center);
-            encontrado = true;
-            break;
-        }
-    }
-
-    if (!encontrado) {
-        L.popup()
-            .setLatLng(map.getCenter())
-            .setContent(`<div class="p-2 text-xs font-bold text-slate-800">⚠️ No se encontró la partida PM: ${val}</div>`)
+        
+        let sv = `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${center.lat},${center.lng}`;
+        content += `<a href="${sv}" target="_blank" class="btn-streetview">📍 GOOGLE STREET VIEW</a>`;
+        
+        content += `<div id="contenedor-seccion-distrito">${generarHtmlSeccionDistrito(distFeature, center)}</div>`;
+        content += `</div>`;
+        
+        L.popup({ autoPanPadding: L.point(10, 110) })
+            .setLatLng(center)
+            .setContent(content)
             .openOn(map);
     }
 }
 
-function buscarPredictivoUbicacion(query) {
-    if (!query || query.length < 3) return [];
-    let cleanQuery = query.toUpperCase().trim();
-    let matches = [];
-
-    for (let i = 0; i < listaParcelasUbicacion.length; i++) {
-        let item = listaParcelasUbicacion[i];
-        if (item.texto.startsWith(cleanQuery)) {
-            matches.push(item);
-            if (matches.length >= 10) break; 
-        }
-    }
-
-    if (matches.length < 10) {
-        for (let i = 0; i < listaParcelasUbicacion.length; i++) {
-            let item = listaParcelasUbicacion[i];
-            if (!item.texto.startsWith(cleanQuery) && item.texto.includes(cleanQuery)) {
-                matches.push(item);
-                if (matches.length >= 12) break;
-            }
-        }
-    }
-    return matches;
-}
-
-function configurarBuscadorUbicaciones() {
-    const input = document.getElementById('input-ubicacion');
-    const sug = document.getElementById('sugerencias-ubicacion');
-
-    input.addEventListener('input', () => {
-        let val = input.value;
-        sug.innerHTML = '';
-        if (val.length < 3) {
-            sug.style.display = 'none';
-            return;
-        }
-
-        let matches = buscarPredictivoUbicacion(val);
-
-        if (matches.length > 0) {
-            sug.style.display = 'block';
-            let textosAgregados = new Set();
-
-            matches.forEach(m => {
-                if (!textosAgregados.has(m.texto)) {
-                    textosAgregados.add(m.texto);
-                    let d = document.createElement('div');
-                    d.className = 'px-3 py-1.5 cursor-pointer text-xs text-white bg-slate-900 hover:bg-blue-600 hover:text-white border-b border-slate-800 last:border-none transition duration-150';
-                    d.innerText = m.texto;
-                    d.onclick = () => {
-                        input.value = m.texto;
-                        sug.style.display = 'none';
-                        
-                        if (m.feature) {
-                            let bounds = m.feature._bounds;
-                            if (bounds) {
-                                map.fitBounds(bounds, { maxZoom: 19 });
-                                document.getElementById('chk-parcelas').checked = true;
-                                controlarVisibilidadDinamica();
-                                mostrarPopupDeParcela(m.feature, bounds.getCenter());
-                            } else {
-                                console.warn("Límites espaciales no válidos para este registro predictivo.");
-                            }
-                        }
-                    };
-                    sug.appendChild(d);
-                }
-            });
-        } else {
-            sug.style.display = 'none';
-        }
-    });
-
-    document.addEventListener('click', (e) => {
-        if (e.target !== input && e.target !== sug) {
-            sug.style.display = 'none';
-        }
-    });
-}
-
-function buscarGoogle() {
-    let val = document.getElementById('input-google').value.trim();
-    if (!val) return;
-    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(val + ", Paraná, Entre Ríos")}`)
-        .then(r => r.json()).then(data => {
-            if (data && data.length > 0) {
-                const lat = parseFloat(data[0].lat);
-                const lon = parseFloat(data[0].lon);
-                map.setView([lat, lon], 18);
-                L.marker([lat, lon]).addTo(map).bindPopup(`<b>Resultado de Búsqueda:</b><br>${val}`).openPopup();
+document.addEventListener("DOMContentLoaded", () => {
+    let inputUbi = document.getElementById("input-ubicacion");
+    if (inputUbi) {
+        inputUbi.addEventListener("input", (e) => {
+            renderizarMenuSugerenciasUbicacion(e.target.value);
+        });
+        
+        inputUbi.addEventListener("focus", (e) => {
+            if (e.target.value.trim().length >= 2) {
+                renderizarMenuSugerenciasUbicacion(e.target.value);
             }
         });
-}
+    }
+    
+    document.addEventListener("click", (e) => {
+        let input = document.getElementById("input-ubicacion");
+        let sugerencias = document.getElementById("sugerencias-ubicacion");
+        if (input && sugerencias && !input.contains(e.target) && !sugerencias.contains(e.target)) {
+            sugerencias.classList.add("hidden");
+        }
+    });
+});
 
 var modoMedicion = null; 
 var puntosMedicion = [];
-var grupoCapasMedicion = L.featureGroup().addTo(map);
-var lineaMedicionActiva = null;
-var poligonoMedicionActivo = null;
-var marcadoresPuntosMedicion = [];
+var capaMedicion = L.layerGroup().addTo(map);
 
 function toggleMedicion(tipo) {
     if (modoMedicion === tipo) {
-        desactivarMedicion();
-    } else {
-        desactivarMedicion();
-        modoMedicion = tipo;
-        
-        let btnDist = document.getElementById('btn-medir-distancia');
-        let btnSup = document.getElementById('btn-medir-superficie');
-        
-        if (tipo === 'distancia') {
-            btnDist.classList.add('border-blue-500', 'bg-blue-950/40', 'text-blue-400');
-        } else {
-            btnSup.classList.add('border-emerald-500', 'bg-emerald-950/40', 'text-emerald-400');
-        }
-
-        document.getElementById('consola-medicion').classList.remove('hidden');
-        document.getElementById('texto-consola-instruccion').innerText = `Modo ${tipo === 'distancia' ? 'Distancia' : 'Superficie'} activo. Haga clic en el mapa...`;
-        document.getElementById('resultado-consola-medicion').innerText = tipo === 'distancia' ? '0.00 m' : '0.00 m²';
-        
-        map.getContainer().style.cursor = 'crosshair';
-        map.closePopup();
+        finalizarMedicion();
+        return;
     }
+    
+    limpiarMedicion();
+    modoMedicion = tipo;
+    
+    let btnDist = document.getElementById("btn-medir-distancia");
+    let btnSup = document.getElementById("btn-medir-superficie");
+    let consola = document.getElementById("consola-medicion");
+    let instruccion = document.getElementById("texto-consola-instruccion");
+    
+    if (btnDist) btnDist.className = tipo === 'distancia' ? "flex items-center justify-between gap-3 px-3 py-2 rounded-lg bg-blue-600 text-white text-xs font-semibold transition border border-blue-400 focus:outline-none w-36 shadow-md" : "flex items-center justify-between gap-3 px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-100 text-xs font-semibold transition border border-transparent focus:outline-none w-36 shadow-md";
+    if (btnSup) btnSup.className = tipo === 'superficie' ? "flex items-center justify-between gap-3 px-3 py-2 rounded-lg bg-emerald-600 text-white text-xs font-semibold transition border border-emerald-400 focus:outline-none w-36 shadow-md" : "flex items-center justify-between gap-3 px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-100 text-xs font-semibold transition border border-transparent focus:outline-none w-36 shadow-md";
+    
+    if (consola) consola.classList.remove("hidden");
+    if (instruccion) instruccion.innerText = tipo === 'distancia' ? "Haga clic para medir la distancia..." : "Haga clic para medir la superficie...";
+    
+    map.getContainer().style.cursor = "crosshair";
 }
 
-function desactivarMedicion() {
-    modoMedicion = null;
+function calcularAreaPoligono(latlngs) {
+    if (latlngs.length < 3) return 0;
+    let radius = 6378137;
+    let area = 0;
     
-    let btnDist = document.getElementById('btn-medir-distancia');
-    let btnSup = document.getElementById('btn-medir-superficie');
+    for (let i = 0; i < latlngs.length; i++) {
+        let p1 = latlngs[i];
+        let p2 = latlngs[(i + 1) % latlngs.length];
+        
+        let lat1 = p1.lat * Math.PI / 180;
+        let lat2 = p2.lat * Math.PI / 180;
+        let lon1 = p1.lng * Math.PI / 180;
+        let lon2 = p2.lng * Math.PI / 180;
+        
+        area += (lon2 - lon1) * (2 + Math.sin(lat1) + Math.sin(lat2));
+    }
     
-    btnDist.className = "flex items-center justify-between gap-3 px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-100 text-xs font-semibold transition border border-transparent hover:border-blue-500/50 focus:outline-none w-36 shadow-md";
-    btnSup.className = "flex items-center justify-between gap-3 px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-100 text-xs font-semibold transition border border-transparent hover:border-emerald-500/50 focus:outline-none w-36 shadow-md";
+    area = Math.abs(area * radius * radius / 2);
+    return area;
+}
 
-    document.getElementById('consola-medicion').classList.add('hidden');
-    map.getContainer().style.cursor = '';
+map.on('click', (e) => {
+    if (!modoMedicion) return;
+    
+    puntosMedicion.push(e.latlng);
+    
+    L.circleMarker(e.latlng, {
+        radius: 4,
+        color: modoMedicion === 'distancia' ? '#3b82f6' : '#10b981',
+        fillColor: '#ffffff',
+        fillOpacity: 1,
+        weight: 2
+    }).addTo(capaMedicion);
+    
+    let resText = document.getElementById("resultado-consola-medicion");
+    
+    if (modoMedicion === 'distancia') {
+        if (puntosMedicion.length > 1) {
+            L.polyline(puntosMedicion, {
+                color: '#3b82f6',
+                weight: 3,
+                dashArray: '5, 5'
+            }).addTo(capaMedicion);
+            
+            let distTotal = 0;
+            for (let i = 0; i < puntosMedicion.length - 1; i++) {
+                distTotal += puntosMedicion[i].distanceTo(puntosMedicion[i+1]);
+            }
+            
+            if (resText) {
+                if (distTotal >= 1000) {
+                    resText.innerText = `${(distTotal / 1000).toFixed(2)} km`;
+                } else {
+                    resText.innerText = `${distTotal.toFixed(2)} m`;
+                }
+            }
+        }
+    } else if (modoMedicion === 'superficie') {
+        if (puntosMedicion.length >= 3) {
+            capaMedicion.eachLayer(l => {
+                if (l instanceof L.Polygon) capaMedicion.removeLayer(l);
+            });
+            
+            L.polygon(puntosMedicion, {
+                color: '#10b981',
+                fillColor: '#10b981',
+                fillOpacity: 0.25,
+                weight: 2
+            }).addTo(capaMedicion);
+            
+            let area = calcularAreaPoligono(puntosMedicion);
+            if (resText) {
+                if (area >= 10000) {
+                    resText.innerText = `${(area / 10000).toFixed(2)} ha`;
+                } else {
+                    resText.innerText = `${area.toFixed(2)} m²`;
+                }
+            }
+        }
+    }
+});
+
+function finalizarMedicion() {
+    modoMedicion = null;
+    map.getContainer().style.cursor = "";
+    
+    let btnDist = document.getElementById("btn-medir-distancia");
+    let btnSup = document.getElementById("btn-medir-superficie");
+    
+    if (btnDist) btnDist.className = "flex items-center justify-between gap-3 px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-100 text-xs font-semibold transition border border-transparent focus:outline-none w-36 shadow-md";
+    if (btnSup) btnSup.className = "flex items-center justify-between gap-3 px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-100 text-xs font-semibold transition border border-transparent focus:outline-none w-36 shadow-md";
 }
 
 function limpiarMedicion() {
     puntosMedicion = [];
-    grupoCapasMedicion.clearLayers();
-    lineaMedicionActiva = null;
-    poligonoMedicionActivo = null;
-    marcadoresPuntosMedicion = [];
-    document.getElementById('resultado-consola-medicion').innerText = modoMedicion === 'distancia' ? '0.00 m' : '0.00 m²';
-    document.getElementById('texto-consola-instruccion').innerText = 'Dibujo limpio. Haga clic para comenzar de nuevo...';
+    capaMedicion.clearLayers();
+    let resText = document.getElementById("resultado-consola-medicion");
+    if (resText) resText.innerText = "0.00 m";
 }
 
-function finalizarMedicion() {
-    desactivarMedicion();
-}
-
-function calcularAreaPlana(pts) {
-    if (pts.length < 3) return 0;
-    let origin = pts[0];
+function cambiarBaseMap(tipo) {
+    map.removeLayer(osm);
+    map.removeLayer(dark);
+    map.removeLayer(hibrido);
     
-    let coords = pts.map(p => {
-        return {
-            y: (p.lat - origin.lat) * 111132.954,
-            x: (p.lng - origin.lng) * 111132.954 * Math.cos(origin.lat * Math.PI / 180)
-        };
+    if (tipo === 'dark') dark.addTo(map);
+    else if (tipo === 'osm') osm.addTo(map);
+    else if (tipo === 'hibrido') hibrido.addTo(map);
+}
+
+function toggleOverlay(nombre) {
+    if (nombre === 'distritos') {
+        if (map.hasLayer(grupoDistritos)) {
+            map.removeLayer(grupoDistritos);
+            map.removeLayer(grupoEtiquetasDistritos);
+        } else {
+            grupoDistritos.addTo(map);
+            grupoEtiquetasDistritos.addTo(map);
+            actualizarEtiquetasDistritosDinamicas();
+        }
+    } else if (nombre === 'posesiones') {
+        if (map.hasLayer(grupoPosesiones)) map.removeLayer(grupoPosesiones);
+        else grupoPosesiones.addTo(map);
+    } else if (nombre === 'parcelas') {
+        if (map.hasLayer(grupoParcelas)) map.removeLayer(grupoParcelas);
+        else {
+            grupoParcelas.addTo(map);
+            actualizarParcelasEnVista();
+        }
+    } else if (nombre === 'manzanas') {
+        if (map.hasLayer(grupoManzanas)) {
+            map.removeLayer(grupoManzanas);
+            map.removeLayer(grupoEtiquetasManzanas);
+        } else {
+            grupoManzanas.addTo(map);
+            controlarVisibilidadDinamica();
+        }
+    } else if (nombre === 'grupos') {
+        if (map.hasLayer(grupoGrupos)) {
+            map.removeLayer(grupoGrupos);
+            map.removeLayer(grupoEtiquetasGrupos);
+        } else {
+            grupoGrupos.addTo(map);
+            controlarVisibilidadDinamica();
+        }
+    } else if (nombre === 'secciones') {
+        if (map.hasLayer(grupoSecciones)) {
+            map.removeLayer(grupoSecciones);
+            map.removeLayer(grupoEtiquetasSecciones);
+        } else {
+            grupoSecciones.addTo(map);
+            controlarVisibilidadDinamica();
+        }
+    } else if (nombre === 'calles') {
+        if (map.hasLayer(grupoCalles)) map.removeLayer(grupoCalles);
+        else grupoCalles.addTo(map);
+    }
+}
+
+function controlarVisibilidadDinamica() {
+    let z = map.getZoom();
+    let indicator = document.getElementById("zoom-indicator");
+    if (indicator) indicator.innerText = Math.round(z);
+
+    const chkManzanas = document.getElementById('chk-manzanas') ? document.getElementById('chk-manzanas').checked : true;
+    const chkGrupos = document.getElementById('chk-grupos') ? document.getElementById('chk-grupos').checked : true;
+    const chkSecciones = document.getElementById('chk-secciones') ? document.getElementById('chk-secciones').checked : true;
+
+    if (chkManzanas) {
+        if (z >= 14) {
+            if (!map.hasLayer(grupoEtiquetasManzanas)) map.addLayer(grupoEtiquetasManzanas);
+        } else {
+            if (map.hasLayer(grupoEtiquetasManzanas)) map.removeLayer(grupoEtiquetasManzanas);
+        }
+    }
+
+    if (chkGrupos) {
+        if (z >= 12 && z <= 15) {
+            if (!map.hasLayer(grupoEtiquetasGrupos)) map.addLayer(grupoEtiquetasGrupos);
+        } else {
+            if (map.hasLayer(grupoEtiquetasGrupos)) map.removeLayer(grupoEtiquetasGrupos);
+        }
+    }
+
+    if (chkSecciones) {
+        if (z < 14) {
+            if (!map.hasLayer(grupoEtiquetasSecciones)) map.addLayer(grupoEtiquetasSecciones);
+        } else {
+            if (map.hasLayer(grupoEtiquetasSecciones)) map.removeLayer(grupoEtiquetasSecciones);
+        }
+    }
+
+    actualizarEtiquetasDistritosDinamicas();
+}
+
+function actualizarParcelasEnVista() {
+    let z = map.getZoom();
+    const chkParcelas = document.getElementById('chk-parcelas') ? document.getElementById('chk-parcelas').checked : true;
+    
+    if (!chkParcelas || z < 16) {
+        grupoParcelas.clearLayers();
+        parcelasLayers = [];
+        return;
+    }
+
+    let bounds = map.getBounds();
+    let visibleFeatures = parcelasFeaturesGlobal.filter(f => f._bounds && bounds.intersects(f._bounds));
+
+    grupoParcelas.clearLayers();
+    parcelasLayers = [];
+
+    let geoJsonLayer = L.geoJSON(visibleFeatures, {
+        pane: 'parcelasPane',
+        style: (f) => ({
+            color: f.properties.esPH ? "#8e44ad" : "#2980b9",
+            weight: 1.2,
+            fillColor: f.properties.esPH ? "#8e44ad" : "#2980b9",
+            fillOpacity: 0.15
+        }),
+        onEachFeature: (f, l) => {
+            l.on('click', (e) => {
+                if (modoMedicion || modoSeleccionManzana) return;
+                
+                let props = f.properties;
+                let latlng = e.latlng || l.getBounds().getCenter();
+                let distFeature = encontrarDistritoDeCoordenada(latlng);
+                
+                ultimaParcelaSeleccionada = { feature: f, layer: l, center: latlng };
+                mostrarPanelManzanaRapida(props.full.manzana || props.full.MANZANA || props.full.mza || props.full.NROMZA || "");
+                
+                let content = `<div class="popup-custom"><div class="popup-header" style="border-bottom: 2px solid ${props.esPH ? '#8e44ad' : '#2980b9'};">Parcela Seleccionada</div>`;
+                content += `<table class="table-info">`;
+                
+                if (props.esPH) {
+                    content += `<tr><td>PARTIDAS (PH)</td><td>${props.partidas.join(", ")}</td></tr>`;
+                } else {
+                    content += `<tr><td>PARTIDA (PM)</td><td>${props.nropasd}</td></tr>`;
+                }
+                content += `<tr><td>DIRECCIÓN</td><td>${props.ubicacion}</td></tr>`;
+                
+                for (let [k, v] of Object.entries(props.full)) {
+                    if (k !== "ubipar1" && k !== "nropasd" && k !== "nropas" && v && v !== "0") {
+                        content += `<tr><td>${decodificarTexto(k).toUpperCase()}</td><td>${decodificarTexto(String(v))}</td></tr>`;
+                    }
+                }
+                content += `</table>`;
+                
+                let sv = `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${latlng.lat},${latlng.lng}`;
+                content += `<a href="${sv}" target="_blank" class="btn-streetview">📍 GOOGLE STREET VIEW</a>`;
+                
+                content += `<div id="contenedor-seccion-distrito">${generarHtmlSeccionDistrito(distFeature, latlng)}</div>`;
+                content += `</div>`;
+                
+                L.popup({ autoPanPadding: L.point(10, 110) })
+                    .setLatLng(latlng)
+                    .setContent(content)
+                    .openOn(map);
+            });
+        }
     });
 
-    let area = 0;
-    let j = coords.length - 1;
-    for (let i = 0; i < coords.length; i++) {
-        area += (coords[j].x + coords[i].x) * (coords[j].y - coords[i].y);
-        j = i;
-    }
-    return Math.abs(area / 2);
+    grupoParcelas.addLayer(geoJsonLayer);
 }
 
-function actualizarDibujosMedicion(puntosTemporales = null) {
-    if (lineaMedicionActiva) grupoCapasMedicion.removeLayer(lineaMedicionActiva);
-    if (poligonoMedicionActivo) grupoCapasMedicion.removeLayer(poligonoMedicionActivo);
+map.on('moveend zoomend', () => {
+    controlarVisibilidadDinamica();
+    actualizarParcelasEnVista();
+});
 
-    let pts = puntosTemporales || puntosMedicion;
-    if (pts.length === 0) return;
-
-    if (modoMedicion === 'distancia') {
-        lineaMedicionActiva = L.polyline(pts, {
-            color: '#3b82f6',
-            weight: 3.5,
-            dashArray: '6, 6'
-        }).addTo(grupoCapasMedicion);
-
-        let dTotal = 0;
-        for (let i = 0; i < pts.length - 1; i++) {
-            dTotal += pts[i].distanceTo(pts[i+1]);
-        }
-        let dText = dTotal < 1000 ? `${dTotal.toFixed(2)} m` : `${(dTotal/1000).toFixed(3)} km`;
-        document.getElementById('resultado-consola-medicion').innerText = dText;
-        
-    } else if (modoMedicion === 'superficie') {
-        if (pts.length === 2) {
-            lineaMedicionActiva = L.polyline(pts, {
-                color: '#10b981',
-                weight: 2,
-                dashArray: '3, 3'
-            }).addTo(grupoCapasMedicion);
-            document.getElementById('resultado-consola-medicion').innerText = "Añadir 3er punto...";
-        } else if (pts.length >= 3) {
-            poligonoMedicionActivo = L.polygon(pts, {
-                color: '#10b981',
-                fillColor: '#10b981',
-                fillOpacity: 0.28,
-                weight: 3.5,
-                dashArray: '6, 6'
-            }).addTo(grupoCapasMedicion);
-
-            let area = calcularAreaPlana(pts);
-            let areaText = area < 10000 ? `${area.toFixed(2)} m²` : `${(area/10000).toFixed(4)} ha`;
-            document.getElementById('resultado-consola-medicion').innerText = areaText;
-        }
-    }
-}
-
-map.on('click', function(e) {
-    if (!modoMedicion) return;
-
-    let latlng = e.latlng;
-    puntosMedicion.push(latlng);
-
-    let m = L.circleMarker(latlng, {
-        radius: 5,
-        fillColor: modoMedicion === 'distancia' ? '#3b82f6' : '#10b981',
-        fillOpacity: 1,
-        color: '#ffffff',
-        weight: 1.5,
-        pane: 'atlasLabelsPane'
-    }).addTo(grupoCapasMedicion);
+function buscarPM() {
+    let input = document.getElementById("input-pm");
+    if (!input || !input.value.trim()) return;
     
-    marcadoresPuntosMedicion.push(m);
-    actualizarDibujosMedicion();
-    document.getElementById('texto-consola-instruccion').innerText = `Punto ${puntosMedicion.length} añadido con éxito.`;
-});
-
-map.on('mousemove', function(e) {
-    if (!modoMedicion || puntosMedicion.length === 0) return;
-    let latlng = e.latlng;
-    let puntosTemporales = [...puntosMedicion, latlng];
-    actualizarDibujosMedicion(puntosTemporales);
-});
-
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-        if (modoMedicion) desactivarMedicion();
-        if (modoSeleccionManzana) desactivarSeleccionGraficaManzana();
+    let query = input.value.trim();
+    let encontrada = parcelasFeaturesGlobal.find(f => f.properties.partidas.includes(query) || f.properties.nropasd === query);
+    
+    if (encontrada) {
+        if (encontrada._bounds) {
+            map.fitBounds(encontrada._bounds, { maxZoom: 19 });
+        }
+        let tempGeo = L.geoJSON(encontrada);
+        let center = encontrada._bounds ? encontrada._bounds.getCenter() : tempGeo.getBounds().getCenter();
+        
+        let props = encontrada.properties;
+        let distFeature = encontrarDistritoDeCoordenada(center);
+        
+        ultimaParcelaSeleccionada = { feature: encontrada, layer: tempGeo, center: center };
+        mostrarPanelManzanaRapida(props.full.manzana || props.full.MANZANA || props.full.mza || props.full.NROMZA || "");
+        
+        let content = `<div class="popup-custom"><div class="popup-header" style="border-bottom: 2px solid #2980b9;">Parcela Seleccionada</div>`;
+        content += `<table class="table-info">`;
+        
+        if (props.esPH) {
+            content += `<tr><td>PARTIDAS (PH)</td><td>${props.partidas.join(", ")}</td></tr>`;
+        } else {
+            content += `<tr><td>PARTIDA (PM)</td><td>${props.nropasd}</td></tr>`;
+        }
+        content += `<tr><td>DIRECCIÓN</td><td>${props.ubicacion}</td></tr>`;
+        
+        for (let [k, v] of Object.entries(props.full)) {
+            if (k !== "ubipar1" && k !== "nropasd" && k !== "nropas" && v && v !== "0") {
+                content += `<tr><td>${decodificarTexto(k).toUpperCase()}</td><td>${decodificarTexto(String(v))}</td></tr>`;
+            }
+        }
+        content += `</table>`;
+        
+        let sv = `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${center.lat},${center.lng}`;
+        content += `<a href="${sv}" target="_blank" class="btn-streetview">📍 GOOGLE STREET VIEW</a>`;
+        
+        content += `<div id="contenedor-seccion-distrito">${generarHtmlSeccionDistrito(distFeature, center)}</div>`;
+        content += `</div>`;
+        
+        L.popup({ autoPanPadding: L.point(10, 110) })
+            .setLatLng(center)
+            .setContent(content)
+            .openOn(map);
+    } else {
+        alert("No se encontró la parcela solicitada con la Partida ingresada.");
     }
-});
+}
+
+function buscarGoogle() {
+    let input = document.getElementById("input-google");
+    if (!input || !input.value.trim()) return;
+    
+    let query = encodeURIComponent(input.value.trim() + ", Paraná, Entre Ríos, Argentina");
+    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data && data.length > 0) {
+                let first = data[0];
+                let lat = parseFloat(first.lat);
+                let lon = parseFloat(first.lon);
+                map.setView([lat, lon], 17);
+                
+                L.popup()
+                    .setLatLng([lat, lon])
+                    .setContent(`<b style="font-size:11px;">${first.display_name}</b>`)
+                    .openOn(map);
+            } else {
+                alert("No se obtuvieron resultados para la búsqueda ingresada.");
+            }
+        })
+        .catch(err => alert("Error en la consulta de búsqueda externa."));
+}
+
+function toggleSidebar() {
+    let sidebar = document.getElementById("sidebar");
+    let icon = document.getElementById("toggle-icon");
+    if (!sidebar) return;
+    
+    if (sidebar.classList.contains("-translate-x-full")) {
+        sidebar.classList.remove("-translate-x-full");
+        if (icon) icon.classList.remove("rotate-180");
+    } else {
+        sidebar.classList.add("-translate-x-full");
+        if (icon) icon.classList.add("rotate-180");
+    }
+}
 
 var modoSeleccionManzana = false;
-var manzanaSeleccionadaGeoJSON = null;
-var capaHighlightManzana = L.layerGroup().addTo(map);
-var grupoEtiquetasParcelasMza = L.layerGroup().addTo(map);
+var manzanaSeleccionadaActual = null;
+var grupoEtiquetasEtiquetadoManzana = L.layerGroup().addTo(map);
 
-function obtenerNumeroManzana(f) {
-    let propNum = "";
-    for (let k in f.properties) {
-        let kLower = k.toLowerCase();
-        if (kLower.includes("manz") || kLower === "nro" || kLower === "num" || kLower.includes("mza")) {
-            propNum = f.properties[k];
-            break;
+function mostrarPanelManzanaRapida(numMza) {
+    let panel = document.getElementById("panel-mza-rapida-parcela");
+    let lbl = document.getElementById("lbl-parcela-rapida");
+    if (!panel || !lbl) return;
+
+    if (numMza && numMza !== "0" && numMza !== "-") {
+        lbl.innerText = `Asociada a Manzana Nº ${numMza}`;
+        panel.classList.remove("hidden");
+    } else {
+        lbl.innerText = "Sin Manzana asociada explícita.";
+        panel.classList.remove("hidden");
+    }
+}
+
+function seleccionarManzanaDeParcela() {
+    if (!ultimaParcelaSeleccionada) return;
+    let props = ultimaParcelaSeleccionada.feature.properties.full;
+    let numMza = props.manzana || props.MANZANA || props.mza || props.NROMZA || "";
+    
+    if (numMza) {
+        document.getElementById("input-num-mza").value = numMza;
+        buscarManzanaPorNumero();
+    } else {
+        let center = ultimaParcelaSeleccionada.center;
+        let pt = [center.lng, center.lat];
+        let encontrada = manzanaFeaturesGlobal.find(f => isPointInFeature(pt, f));
+        if (encontrada) {
+            seleccionarManzana(encontrada, L.geoJSON(encontrada));
+        } else {
+            alert("No se pudo delimitar geométricamente la manzana para esta parcela.");
         }
     }
-    if (!propNum && f.properties.nropasd) propNum = f.properties.nropasd;
-    return String(propNum).trim();
 }
 
 function activarSeleccionGraficaManzana() {
-    modoSeleccionManzana = !modoSeleccionManzana;
-    let btn = document.getElementById('btn-sel-grafica-mza');
-    if (modoSeleccionManzana) {
-        btn.classList.add('bg-amber-600', 'text-white', 'border-amber-500');
-        btn.innerText = '📍 Click en una manzana...';
-        map.getContainer().style.cursor = 'help';
-        
-        map.getPane('manzanasPane').style.pointerEvents = 'auto';
-        
-        if (modoMedicion) desactivarMedicion();
-    } else {
-        desactivarSeleccionGraficaManzana();
+    modoSeleccionManzana = true;
+    map.getContainer().style.cursor = "pointer";
+    let btn = document.getElementById("btn-sel-grafica-mza");
+    if (btn) {
+        btn.className = "w-full bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs py-2 px-3 rounded-md transition border border-amber-400 flex items-center justify-center gap-2 shadow";
+        btn.innerHTML = "<span>📍 Haga clic en una Manzana...</span>";
     }
 }
 
 function desactivarSeleccionGraficaManzana() {
     modoSeleccionManzana = false;
-    let btn = document.getElementById('btn-sel-grafica-mza');
-    btn.className = "w-full bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-bold text-xs py-2 px-3 rounded-md transition border border-slate-700 flex items-center justify-center gap-2";
-    btn.innerText = '📍 Seleccionar Gráficamente';
-    map.getContainer().style.cursor = '';
-    
-    map.getPane('manzanasPane').style.pointerEvents = 'none';
+    map.getContainer().style.cursor = "";
+    let btn = document.getElementById("btn-sel-grafica-mza");
+    if (btn) {
+        btn.className = "w-full bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-bold text-xs py-2 px-3 rounded-md transition border border-slate-700 flex items-center justify-center gap-2";
+        btn.innerHTML = "<span>📍 Seleccionar Gráficamente</span>";
+    }
 }
 
 function seleccionarManzana(feature, layer) {
-    capaHighlightManzana.clearLayers();
-    manzanaSeleccionadaGeoJSON = feature;
-
-    let propNum = obtenerNumeroManzana(feature);
-
-    L.geoJSON(feature, {
-        style: {
-            color: "#f59e0b",
-            weight: 4,
-            fillColor: "#f59e0b",
-            fillOpacity: 0.25
-        }
-    }).addTo(capaHighlightManzana);
-
-    document.getElementById('panel-etiquetado-mza-acciones').classList.remove('hidden');
-    document.getElementById('lbl-mza-seleccionada').innerText = `Manzana seleccionada: Nº ${decodificarTexto(propNum)}`;
-
     desactivarSeleccionGraficaManzana();
-}
-
-function encontrarManzanaDeParcela(f_parcela) {
-    if (!f_parcela || !f_parcela._bounds) return null;
-    let centroParcela = f_parcela._bounds.getCenter();
-    let point = [centroParcela.lng, centroParcela.lat];
+    manzanaSeleccionadaActual = { feature: feature, layer: layer };
     
-    for (let mza of manzanaFeaturesGlobal) {
-        if (mza._fastBounds) {
-            if (point[1] >= mza._fastBounds.minLat && point[1] <= mza._fastBounds.maxLat &&
-                point[0] >= mza._fastBounds.minLng && point[0] <= mza._fastBounds.maxLng) {
-                
-                if (isPointInFeature(point, mza)) {
-                    return mza;
-                }
-            }
-        }
-    }
+    let props = feature.properties || {};
+    let numMza = props.manzana || props.MANZANA || props.nro_manzana || props.NROMZA || props.mza || "S/N";
     
-    let minMza = null;
-    let minDist = Infinity;
-    for (let mza of manzanaFeaturesGlobal) {
-        if (mza._fastCenter) {
-            let dist = centroParcela.distanceTo(mza._fastCenter);
-            if (dist < minDist) {
-                minDist = dist;
-                minMza = mza;
-            }
-        }
-    }
+    let panelAcciones = document.getElementById("panel-etiquetado-mza-acciones");
+    let lblMza = document.getElementById("lbl-mza-seleccionada");
     
-    if (minMza && minDist < 150) {
-        return minMza;
-    }
+    if (lblMza) lblMza.innerText = `Manzana Seleccionada: Nº ${numMza}`;
+    if (panelAcciones) panelAcciones.classList.remove("hidden");
     
-    return null;
-}
-
-function seleccionarManzanaDeParcela() {
-    if (!ultimaParcelaSeleccionada) return;
-    
-    let mza = encontrarManzanaDeParcela(ultimaParcelaSeleccionada);
-    
-    if (mza) {
-        let tempLayer = L.geoJSON(mza);
-        seleccionarManzana(mza, tempLayer);
-        
-        map.fitBounds(tempLayer.getBounds(), { maxZoom: 18 });
-        map.closePopup();
-    } else {
-        let centro = ultimaParcelaSeleccionada._bounds ? ultimaParcelaSeleccionada._bounds.getCenter() : map.getCenter();
-        L.popup()
-            .setLatLng(centro)
-            .setContent(`<div class="p-2 text-xs font-bold text-slate-850">⚠️ No se pudo determinar la manzana contenedora de forma automática. Intente seleccionarla gráficamente.</div>`)
-            .openOn(map);
-    }
+    try {
+        let bounds = feature._fastBounds ? L.latLngBounds([feature._fastBounds.minLat, feature._fastBounds.minLng], [feature._fastBounds.maxLat, feature._fastBounds.maxLng]) : layer.getBounds();
+        map.fitBounds(bounds, { padding: [20, 20], maxZoom: 19 });
+    } catch(e) {}
 }
 
 function buscarManzanaPorNumero() {
-    let num = document.getElementById('input-num-mza').value.trim();
-    if (!num) return;
+    let input = document.getElementById("input-num-mza");
+    if (!input || !input.value.trim()) return;
     
-    let encontrado = false;
-    for (let f of manzanaFeaturesGlobal) {
-        let propNum = obtenerNumeroManzana(f);
-
-        if (propNum.toUpperCase() === num.toUpperCase()) {
-            let tempLayer = L.geoJSON(f);
-            let bounds = tempLayer.getBounds();
-            map.fitBounds(bounds, { maxZoom: 18 });
-            seleccionarManzana(f, tempLayer);
-            encontrado = true;
-            break;
-        }
-    }
-
-    if (!encontrado) {
-        L.popup()
-            .setLatLng(map.getCenter())
-            .setContent(`<div class="p-2 text-xs font-bold text-slate-800">⚠️ No se encontró la Manzana Nº ${num} en el catastro actual.</div>`)
-            .openOn(map);
+    let num = input.value.trim().toUpperCase();
+    let encontrada = manzanaFeaturesGlobal.find(f => {
+        let p = f.properties || {};
+        let val = String(p.manzana || p.MANZANA || p.nro_manzana || p.NROMZA || p.mza || "").toUpperCase().trim();
+        return val === num;
+    });
+    
+    if (encontrada) {
+        seleccionarManzana(encontrada, L.geoJSON(encontrada));
+    } else {
+        alert(`No se encontró la Manzana Nº ${num} en la base gráfica.`);
     }
 }
 
-function calcularAnguloOrientacionParcela(coordinates) {
-    let pts = coordinates;
-    if (Array.isArray(pts[0]) && Array.isArray(pts[0][0])) {
-        pts = pts[0];
-    }
-    
-    let maxDistSq = 0;
-    let mejorAngulo = 0;
-
-    for (let i = 0; i < pts.length - 1; i++) {
-        let p1 = pts[i];
-        let p2 = pts[i+1];
+function calcularAnguloOrientacionParcela(feature) {
+    try {
+        if (!feature || !feature.geometry || !feature.geometry.coordinates) return 0;
+        let coords = feature.geometry.coordinates;
+        let pts = [];
         
-        if (p1 && p2) {
-            let dx = (p2[0] - p1[0]) * Math.cos(p1[1] * Math.PI / 180);
-            let dy = p2[1] - p1[1];
-            
-            let distSq = dx * dx + dy * dy;
-            if (distSq > maxDistSq) {
-                maxDistSq = distSq;
-                mejorAngulo = Math.atan2(dy, dx) * 180 / Math.PI;
+        if (feature.geometry.type === "Polygon") {
+            pts = coords[0];
+        } else if (feature.geometry.type === "MultiPolygon") {
+            pts = coords[0][0];
+        }
+        
+        if (!pts || pts.length < 3) return 0;
+        
+        let maxDist = 0;
+        let p1 = pts[0], p2 = pts[1];
+        
+        for (let i = 0; i < pts.length - 1; i++) {
+            let dx = pts[i+1][0] - pts[i][0];
+            let dy = pts[i+1][1] - pts[i][1];
+            let dist = Math.sqrt(dx*dx + dy*dy);
+            if (dist > maxDist) {
+                maxDist = dist;
+                p1 = pts[i];
+                p2 = pts[i+1];
             }
         }
+        
+        let angle = Math.atan2(p2[1] - p1[1], p2[0] - p1[0]) * (180 / Math.PI);
+        if (angle > 90) angle -= 180;
+        if (angle < -90) angle += 180;
+        
+        return -angle; 
+    } catch(e) {
+        return 0;
     }
-
-    if (mejorAngulo > 90) mejorAngulo -= 180;
-    if (mejorAngulo < -90) mejorAngulo += 180;
-    
-    return mejorAngulo;
 }
 
 function etiquetarManzanaSeleccionada() {
-    if (!manzanaSeleccionadaGeoJSON) return;
+    if (!manzanaSeleccionadaActual) return;
     
-    grupoEtiquetasParcelasMza.clearLayers();
-    let contadorLabels = 0;
+    grupoEtiquetasEtiquetadoManzana.clearLayers();
+    let mzaFeature = manzanaSeleccionadaActual.feature;
     
-    parcelasFeaturesGlobal.forEach(f => {
-        if (!f.geometry || !f.geometry.coordinates) return;
-        if (!f._bounds || typeof f._bounds.getCenter !== 'function') return;
-        
-        try {
-            let center = f._bounds.getCenter();
-            let inside = isPointInFeature([center.lng, center.lat], manzanaSeleccionadaGeoJSON);
-            
-            if (inside) {
-                let labelText = f.properties.nropasd;
-                if (labelText && labelText !== "-") {
-                    let coords = f.geometry.coordinates;
-                    let angulo = calcularAnguloOrientacionParcela(coords);
-                    
-                    let labelHtml = `
-                        <div style="transform: rotate(${-angulo}deg); transform-origin: center center;" class="etiqueta-rotada-parcela">
-                            ${labelText}
-                        </div>
-                    `;
-                    
-                    L.marker(center, {
-                        icon: L.divIcon({
-                            className: 'bg-transparent border-none flex items-center justify-center',
-                            html: labelHtml,
-                            iconSize: [40, 16],
-                            iconAnchor: [20, 8]
-                        }),
-                        interactive: false
-                    }).addTo(grupoEtiquetasParcelasMza);
-                    
-                    contadorLabels++;
-                }
-            }
-        } catch (e) {
-            console.error("Error al etiquetar parcela individual:", e, f);
-        }
+    let parcelasEnManzana = parcelasFeaturesGlobal.filter(p => {
+        if (!p._bounds) return false;
+        let center = p._bounds.getCenter();
+        return isPointInFeature([center.lng, center.lat], mzaFeature);
     });
-
-    if (contadorLabels === 0) {
-        L.popup()
-            .setLatLng(map.getCenter())
-            .setContent(`<div class="p-2 text-xs text-slate-800">⚠️ No se encontraron parcelas válidas con datos de 'NROPASD' en esta manzana.</div>`)
-            .openOn(map);
-    }
-}
-
-function limpiarEtiquetasManzana() {
-    grupoEtiquetasParcelasMza.clearLayers();
-    capaHighlightManzana.clearLayers();
-    manzanaSeleccionadaGeoJSON = null;
-    document.getElementById('panel-etiquetado-mza-acciones').classList.add('hidden');
-}
-
-function activarImpresionDirecta() {
-    let chk = document.getElementById('chk-ver-cuadro-impresion');
-    if (chk) {
-        chk.checked = true;
-        toggleCuadroImpresion();
-    }
-    if (manzanaSeleccionadaGeoJSON) {
-        let mzaLayer = L.geoJSON(manzanaSeleccionadaGeoJSON);
-        map.setView(mzaLayer.getBounds().getCenter(), 18);
-    }
-    let sidebar = document.querySelector('.scrollbar-custom');
-    if (sidebar) {
-        let printSection = Array.from(sidebar.querySelectorAll('h2')).find(el => el.textContent.includes('Impresión'));
-        if (printSection) {
-            printSection.scrollIntoView({ behavior: 'smooth' });
-        }
-    }
-}
-
-var capaPreviewImpresion = L.layerGroup().addTo(map);
-var rectanguloPreview = null;
-
-function obtenerLimitesImpresion(centro, anchoMm, altoMm, escala) {
-    let anchoMetros = (anchoMm / 1000) * escala;
-    let altoMetros = (altoMm / 1000) * escala;
     
-    let dLat = altoMetros / 111132.954;
-    let dLng = anchoMetros / (111132.954 * Math.cos(centro.lat * Math.PI / 180));
-    
-    let sur = centro.lat - dLat / 2;
-    let norte = centro.lat + dLat / 2;
-    let oeste = centro.lng - dLng / 2;
-    let este = centro.lng + dLng / 2;
-    
-    return L.latLngBounds([sur, oeste], [norte, este]);
-}
-
-function calcularZoomParaEscala(escala, lat) {
-    const R = 6378137; 
-    const latRad = lat * Math.PI / 180;
-    const metrosPorPixelPapel = (0.0254 / 96) * escala;
-    const C = 2 * Math.PI * R * Math.cos(latRad);
-    const zoom = Math.log2(C / (256 * metrosPorPixelPapel));
-    return zoom;
-}
-
-function actualizarCuadroImpresion() {
-    capaPreviewImpresion.clearLayers();
-    
-    const verCuadro = document.getElementById('chk-ver-cuadro-impresion').checked;
-    if (!verCuadro) return;
-
-    let papel = document.getElementById('select-papel').value;
-    let orientacion = document.getElementById('select-orientacion').value;
-    let escala = parseInt(document.getElementById('select-escala').value);
-    
-    let dim = DIMENSIONES_FISICAS[papel] || DIMENSIONES_FISICAS.a4;
-    let anchoMm = orientacion === 'retrato' ? dim.mapW : dim.mapH;
-    let altoMm = orientacion === 'retrato' ? dim.mapH : dim.mapW;
-
-    let centro = map.getCenter();
-    let bounds = obtenerLimitesImpresion(centro, anchoMm, altoMm, escala);
-
-    rectanguloPreview = L.rectangle(bounds, {
-        color: "#6366f1",
-        weight: 2,
-        dashArray: "6, 6",
-        fillColor: "#6366f1",
-        fillOpacity: 0.08,
-        interactive: false
-    }).addTo(capaPreviewImpresion);
-}
-
-function toggleCuadroImpresion() {
-    const verCuadro = document.getElementById('chk-ver-cuadro-impresion').checked;
-    if (verCuadro) {
-        actualizarCuadroImpresion();
-        map.on('move', actualizarCuadroImpresion);
-    } else {
-        capaPreviewImpresion.clearLayers();
-        map.off('move', actualizarCuadroImpresion);
-    }
-}
-
-function actualizarEstiloPaginaImpresion(papel, orientacion) {
-    let styleId = "dynamic-print-page-style";
-    let styleEl = document.getElementById(styleId);
-    if (!styleEl) {
-        styleEl = document.createElement('style');
-        styleEl.id = styleId;
-        document.head.appendChild(styleEl);
-    }
-    
-    let sizeKeyword = "A4";
-    if (papel === "a3") sizeKeyword = "A3";
-    if (papel === "letter") sizeKeyword = "letter";
-    
-    let orientationKeyword = orientacion === "apaisado" ? "landscape" : "portrait";
-    
-    let atenuarSatelite = document.getElementById('chk-atenuar-satelite').checked;
-    let filterPrintStyle = "";
-    if (atenuarSatelite) {
-        filterPrintStyle = `
-            .leaflet-tile-container img {
-                filter: grayscale(100%) brightness(1.25) contrast(0.95) opacity(0.5) !important;
-                -webkit-filter: grayscale(100%) brightness(1.25) contrast(0.95) opacity(0.5) !important;
-            }
-        `;
-    }
-    
-    styleEl.innerHTML = `
-        @media print {
-            @page {
-                size: ${sizeKeyword} ${orientationKeyword};
-                margin: 0 !important;
-            }
-            ${filterPrintStyle}
-        }
-    `;
-}
-
-function imprimirMapa() {
-    let papel = document.getElementById('select-papel').value;
-    let orientacion = document.getElementById('select-orientacion').value;
-    let escala = parseInt(document.getElementById('select-escala').value);
-    
-    document.getElementById('print-scale-text').innerText = "ESCALA REAL: 1:" + escala;
-    
-    let hoy = new Date();
-    let dateString = hoy.getDate().toString().padStart(2, '0') + '/' + (hoy.getMonth()+1).toString().padStart(2, '0') + '/' + hoy.getFullYear();
-    document.getElementById('print-date-text').innerText = "FECHA DE EMISIÓN: " + dateString;
-
-    actualizarEstiloPaginaImpresion(papel, orientacion);
-
-    let mapContainer = document.getElementById('map');
-    let originalMapStyle = mapContainer.getAttribute('style') || '';
-    
-    let printWrapper = document.getElementById('print-wrapper');
-    let originalWrapperStyle = printWrapper.getAttribute('style') || '';
-
-    let dim = DIMENSIONES_FISICAS[papel] || DIMENSIONES_FISICAS.a4;
-    let printW_mm = orientacion === 'retrato' ? dim.totalW : dim.totalH;
-    let printH_mm = orientacion === 'retrato' ? dim.totalH : dim.totalW;
-    
-    let mapW_mm = orientacion === 'retrato' ? dim.mapW : dim.mapH;
-    let mapH_mm = orientacion === 'retrato' ? dim.mapH : dim.mapW;
-
-    let dpiFactor = 3.779527559; 
-    let mapW_px = Math.round(mapW_mm * dpiFactor);
-    let mapH_px = Math.round(mapH_mm * dpiFactor);
-
-    document.getElementById('sidebar').style.display = 'none';
-    let panelsFlotantes = document.querySelectorAll('.fixed, .adv-distrito');
-    panelsFlotantes.forEach(p => p.classList.add('print-hidden'));
-
-    capaPreviewImpresion.clearLayers();
-
-    printWrapper.style.width = printW_mm + 'mm';
-    printWrapper.style.height = printH_mm + 'mm';
-    printWrapper.style.padding = '18mm 12mm 18mm 12mm'; 
-    printWrapper.style.boxSizing = 'border-box';
-    printWrapper.style.background = '#ffffff';
-
-    mapContainer.style.width = mapW_px + 'px';
-    mapContainer.style.height = mapH_px + 'px';
-    mapContainer.style.flex = 'none'; 
-    mapContainer.style.margin = '4px auto';
-    mapContainer.style.border = '2px solid #000000';
-    mapContainer.style.boxShadow = 'none';
-
-    map.invalidateSize();
-
-    let centro = map.getCenter();
-    
-    let exactZoom = calcularZoomParaEscala(escala, centro.lat);
-    map.setView(centro, exactZoom, { animate: false });
-
-    setTimeout(() => {
-        window.print();
-        
-        mapContainer.setAttribute('style', originalMapStyle);
-        printWrapper.setAttribute('style', originalWrapperStyle);
-        
-        document.getElementById('sidebar').style.display = 'flex';
-        panelsFlotantes.forEach(p => p.classList.remove('print-hidden'));
-        
-        map.invalidateSize();
-        controlarVisibilidadDinamica();
-        
-        if (document.getElementById('chk-ver-cuadro-impresion').checked) {
-            actualizarCuadroImpresion();
-        }
-    }, 1200);
-}
-
-// Transcribe todos los parámetros de zonificación de la capa en una tabla estructurada
-function obtenerTablaUsosTrancritos(properties) {
-    if (!properties) return "";
-    
-    // Filtramos claves que no corresponden a regulaciones o usos específicos
-    let excludedKeys = [
-        'fid', 'id', 'objectid', 'shape', 'geom', 'geometry', 'distrito', 'codigo', 
-        'cod', 'descrip', 'tipo', 'sup', 'color', 'capa', 'layer', 'path', 
-        'usos', 'usos_perm', 'uso', 'caracter', 'descripcion', 'descripcio'
-    ];
-    
-    let html = `
-        <div class="overflow-x-auto mt-3">
-            <table class="w-full text-[11px] text-left border-collapse bg-slate-900/30 rounded-lg overflow-hidden border border-slate-800">
-                <thead>
-                    <tr class="bg-slate-950/80 border-b border-slate-800 text-amber-400">
-                        <th class="px-3 py-2 font-black uppercase tracking-wider">Normativa / Rubro / Usos Permitidos</th>
-                        <th class="px-3 py-2 font-black uppercase tracking-wider">Permisibilidad / Parámetro</th>
-                    </tr>
-                </thead>
-                <tbody>
-    `;
-    
-    let count = 0;
-    for (let [k, v] of Object.entries(properties)) {
-        let kLower = k.toLowerCase().trim();
-        if (v && v !== "0" && String(v).trim() !== "" && !excludedKeys.some(ex => kLower === ex || kLower.includes(ex))) {
-            html += `
-                <tr class="border-b border-slate-850/60 hover:bg-slate-900/40">
-                    <td class="px-3 py-1.5 font-bold text-slate-300 uppercase">${decodificarTexto(k)}</td>
-                    <td class="px-3 py-1.5 text-slate-100 font-medium">${decodificarTexto(String(v))}</td>
-                </tr>
-            `;
-            count++;
-        }
-    }
-    
-    html += `
-                </tbody>
-            </table>
-        </div>
-    `;
-    
-    if (count === 0) {
-        return `
-            <div class="text-[11px] text-slate-400 italic bg-slate-900/20 p-3 rounded border border-slate-850 mt-2">
-                No se registraron parámetros específicos estructurados en las propiedades vectoriales de este distrito.
-            </div>
-        `;
-    }
-    
-    return html;
-}
-
-function abrirReporteZonificacion(distIndex) {
-    if (distIndex === -1) {
-        L.popup()
-            .setLatLng(map.getCenter())
-            .setContent(`<div class="p-2 text-xs font-bold text-slate-800">⚠️ Por favor, seleccione un distrito válido primero.</div>`)
-            .openOn(map);
+    if (parcelasEnManzana.length === 0) {
+        alert("No se detectaron parcelas dentro de los límites de la manzana elegida.");
         return;
     }
     
-    let distObj = listaDistritosUnicos[distIndex];
-    if (!distObj) return;
-    
-    // 1. Obtener usos de la capa original de distritos (transcripción)
-    let usosText = distObj.properties.usos || distObj.properties.USOS || distObj.properties.uso || distObj.properties.usos_perm || "No se registran especificaciones de usos detalladas en la capa geográfica para esta zona.";
-    
-    // 2. Buscar especificaciones del catálogo distritos_urbanos_paran_c_digo_urbano.json
-    let extraDetails = buscarDetallesDistrito(distObj.codigo);
-    
-    let characteristicsHtml = "";
-    if (extraDetails) {
-        characteristicsHtml += `<div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-950/40 p-4 rounded-xl border border-slate-800">`;
+    parcelasEnManzana.forEach(p => {
+        let center = p._bounds.getCenter();
+        let partida = p.properties.nropasd || (p.properties.partidas ? p.properties.partidas[0] : "");
+        let rotacion = calcularAnguloOrientacionParcela(p);
         
-        let mainKeys = [];
-        let otherKeys = [];
-        for (let [k, v] of Object.entries(extraDetails)) {
-            let kLower = k.toLowerCase();
-            if (['caracter', 'caracteristicas', 'descrip', 'indicador', 'fos', 'fot', 'retiro', 'altura'].some(x => kLower.includes(x))) {
-                mainKeys.push({ k, v });
-            } else {
-                otherKeys.push({ k, v });
-            }
-        }
-        
-        if (mainKeys.length > 0) {
-            characteristicsHtml += `<div class="col-span-1 md:col-span-2 space-y-3">`;
-            mainKeys.forEach(item => {
-                characteristicsHtml += `
-                    <div>
-                        <span class="text-xs font-black text-amber-400 uppercase block mb-0.5">${decodificarTexto(item.k)}</span>
-                        <p class="text-xs text-slate-200 leading-relaxed font-medium bg-slate-900/50 p-2.5 rounded border border-slate-800/40">${decodificarTexto(String(item.v))}</p>
-                    </div>
-                `;
+        if (partida) {
+            let marker = L.marker(center, {
+                pane: 'atlasLabelsPane',
+                icon: L.divIcon({
+                    className: 'etiqueta-rotada-parcela',
+                    html: `<div style="transform: rotate(${rotacion}deg); transform-origin: center center;">${partida}</div>`,
+                    iconSize: [40, 14],
+                    iconAnchor: [20, 7]
+                }),
+                interactive: false
             });
-            characteristicsHtml += `</div>`;
+            grupoEtiquetasEtiquetadoManzana.addLayer(marker);
         }
-        
-        if (otherKeys.length > 0) {
-            characteristicsHtml += `
-                <div class="col-span-1 md:col-span-2 mt-2">
-                    <span class="text-xs font-black text-blue-400 uppercase block mb-1.5">Parámetros Técnicos Adicionales</span>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-[11px] text-left border-collapse">
-                            <thead>
-                                <tr class="border-b border-slate-800 text-slate-400">
-                                    <th class="py-1.5 font-black uppercase">Parámetro</th>
-                                    <th class="py-1.5 font-black uppercase">Valor / Especificación</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-            `;
-            otherKeys.forEach(item => {
-                if (item.v && String(item.v).trim() !== "" && String(item.v) !== "0") {
-                    characteristicsHtml += `
-                        <tr class="border-b border-slate-850/60 hover:bg-slate-900/30">
-                            <td class="py-1.5 font-bold text-slate-400 uppercase">${decodificarTexto(item.k)}</td>
-                            <td class="py-1.5 text-slate-200 font-medium">${decodificarTexto(String(item.v))}</td>
-                        </tr>
-                    `;
-                }
-            });
-            characteristicsHtml += `
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            `;
-        }
-        
-        characteristicsHtml += `</div>`;
-    } else {
-        characteristicsHtml = `
-            <div class="bg-amber-950/20 border border-amber-500/30 p-4 rounded-xl text-amber-200 text-xs">
-                ⚠️ No se encontraron características específicas cargadas para el distrito <strong>${distObj.codigo}</strong> en el catálogo de distritos urbanos del Código Urbano de Paraná.
-            </div>
-        `;
+    });
+}
+
+function limpiarEtiquetasManzana() {
+    grupoEtiquetasEtiquetadoManzana.clearLayers();
+    let panel = document.getElementById("panel-etiquetado-mza-acciones");
+    if (panel) panel.classList.add("hidden");
+    manzanaSeleccionadaActual = null;
+}
+
+var cuadroImpresionLayer = L.layerGroup().addTo(map);
+
+function obtenerDimensionesAreaImpresionMetros() {
+    let papel = document.getElementById("select-papel") ? document.getElementById("select-papel").value : "a4";
+    let orientacion = document.getElementById("select-orientacion") ? document.getElementById("select-orientacion").value : "retrato";
+    let escalaVal = parseInt(document.getElementById("select-escala") ? document.getElementById("select-escala").value : "1000", 10);
+    
+    let dim = DIMENSIONES_FISICAS[papel] || DIMENSIONES_FISICAS.a4;
+    let wMm = orientacion === "apaisado" ? dim.mapH : dim.mapW;
+    let hMm = orientacion === "apaisado" ? dim.mapW : dim.mapH;
+    
+    let anchoMetros = (wMm / 1000) * escalaVal;
+    let altoMetros = (hMm / 1000) * escalaVal;
+    
+    return { anchoMetros, altoMetros, escalaVal, papel, orientacion };
+}
+
+function actualizarCuadroImpresion() {
+    cuadroImpresionLayer.clearLayers();
+    let chk = document.getElementById("chk-ver-cuadro-impresion");
+    if (!chk || !chk.checked) return;
+    
+    let center = map.getCenter();
+    let dims = obtenerDimensionesAreaImpresionMetros();
+    
+    let deltaLat = (dims.altoMetros / 2) / 111132;
+    let deltaLng = (dims.anchoMetros / 2) / (111132 * Math.cos(center.lat * Math.PI / 180));
+    
+    let bounds = L.latLngBounds(
+        [center.lat - deltaLat, center.lng - deltaLng],
+        [center.lat + deltaLat, center.lng + deltaLng]
+    );
+    
+    L.rectangle(bounds, {
+        color: "#6366f1",
+        weight: 2,
+        fillColor: "#6366f1",
+        fillOpacity: 0.08,
+        dashArray: "6, 6",
+        interactive: false
+    }).addTo(cuadroImpresionLayer);
+    
+    let lblEscala = document.getElementById("print-scale-text");
+    if (lblEscala) lblEscala.innerText = `ESCALA: 1:${dims.escalaVal}`;
+}
+
+function toggleCuadroImpresion() {
+    actualizarCuadroImpresion();
+}
+
+map.on('move', () => {
+    let chk = document.getElementById("chk-ver-cuadro-impresion");
+    if (chk && chk.checked) actualizarCuadroImpresion();
+});
+
+function activarImpresionDirecta() {
+    let chk = document.getElementById("chk-ver-cuadro-impresion");
+    if (chk) {
+        chk.checked = true;
+        actualizarCuadroImpresion();
+    }
+}
+
+function imprimirMapa() {
+    let hoy = new Date();
+    let fechaStr = `${String(hoy.getDate()).padStart(2, '0')}/${String(hoy.getMonth() + 1).padStart(2, '0')}/${hoy.getFullYear()}`;
+    let lblFecha = document.getElementById("print-date-text");
+    if (lblFecha) lblFecha.innerText = `FECHA: ${fechaStr}`;
+
+    let chkAtenuar = document.getElementById("chk-atenuar-satelite");
+    let container = map.getContainer();
+    
+    if (chkAtenuar && chkAtenuar.checked) {
+        container.style.filter = "saturate(0.4) opacity(0.8)";
     }
 
-    let parcelId = "N/A";
-    let parcelLocation = "No especificada";
-    if (ultimaParcelaSeleccionada) {
-        parcelId = ultimaParcelaSeleccionada.properties.partidas ? ultimaParcelaSeleccionada.properties.partidas.join(", ") : (ultimaParcelaSeleccionada.properties.nropasd || "N/A");
-        parcelLocation = decodificarTexto(ultimaParcelaSeleccionada.properties.ubicacion || "No especificada");
-    }
+    window.print();
 
-    let reportHtml = `
-        <div class="space-y-4">
-            <div class="bg-slate-950/60 p-4 rounded-xl border border-slate-800 flex flex-col md:flex-row md:justify-between gap-4">
-                <div>
-                    <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Nomenclatura / Partida</span>
-                    <span class="text-lg font-black text-white">${parcelId}</span>
-                </div>
-                <div>
-                    <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Ubicación Registrada</span>
-                    <span class="text-xs font-bold text-slate-200 block mt-0.5">${parcelLocation}</span>
-                </div>
-                <div class="text-right">
-                    <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Distrito Confirmado</span>
-                    <span class="inline-block px-2.5 py-1 bg-indigo-600 text-white font-extrabold text-sm rounded-lg mt-0.5 uppercase tracking-wide">${distObj.codigo}</span>
-                </div>
-            </div>
-
-            <!-- Características del Distrito -->
-            <div>
-                <h4 class="text-xs font-black tracking-wider text-amber-500 uppercase mb-2 flex items-center gap-2">
-                    <span class="w-2 h-2 rounded-full bg-amber-500 inline-block"></span>
-                    Características del Distrito (Código Urbano de Paraná)
-                </h4>
-                ${characteristicsHtml}
-            </div>
-
-            <!-- Usos del Suelo -->
-            <div>
-                <h4 class="text-xs font-black tracking-wider text-emerald-500 uppercase mb-2 flex items-center gap-2">
-                    <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span>
-                    Cuadro de Usos Permitidos (Normativa Ord. 8563)
-                </h4>
-                <div class="bg-slate-950/40 p-4 rounded-xl border border-slate-800">
-                    
-                    <!-- Mensaje de advertencia de verificación obligatoria solicitado -->
-                    <div class="bg-amber-950/45 border-l-4 border-amber-500 p-3.5 rounded-r-xl text-amber-200 text-[10.5px] mb-4 flex items-start gap-2.5">
-                        <span class="text-sm mt-0.5">⚠️</span>
-                        <div class="leading-relaxed">
-                            <strong class="block uppercase tracking-wider text-[9px] text-amber-400 font-extrabold mb-1">Advertencia de Verificación Obligatoria</strong>
-                            Se advierte formal y explícitamente al usuario que es requisito indispensable verificar de forma directa la vigencia de estos datos, así como la aplicabilidad técnica concreta de todos los parámetros de zonificación y usos de este distrito, con el área municipal correspondiente responsable del planeamiento urbano y habilitaciones antes de iniciar cualquier trámite administrativo, transacción comercial, inversión o proyecto de obra.
-                        </div>
-                    </div>
-
-                    <!-- Transcripción estructurada de la capa de distritos -->
-                    <div class="space-y-3">
-                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Transcripción de Parámetros Directos de la Capa Geográfica</span>
-                        ${obtenerTablaUsosTrancritos(distObj.properties)}
-                        
-                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mt-4">Detalle General de Usos</span>
-                        <p class="text-xs text-slate-200 leading-relaxed font-medium bg-slate-900/50 p-3 rounded border border-slate-800/40 whitespace-pre-line">${decodificarTexto(String(usosText))}</p>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="text-[9px] text-slate-500 italic text-center border-t border-slate-850 pt-3">
-                Este reporte es de carácter informativo y de consulta preliminar. Para cualquier trámite formal de edificación o habilitación comercial, se deberá solicitar el Certificado de Uso y de Edificación definitivo ante la oficina técnica municipal de la Municipalidad de Paraná.
-            </div>
-        </div>
-    `;
-
-    document.getElementById('reporte-contenido').innerHTML = reportHtml;
-    document.getElementById('reporte-modal').classList.remove('hidden');
+    setTimeout(() => {
+        container.style.filter = "";
+    }, 1000);
 }
-
-function cerrarReporte() {
-    document.getElementById('reporte-modal').classList.add('hidden');
-}
-
-function imprimirReporte() {
-    const content = document.getElementById('reporte-contenido').innerHTML;
-    const printWindow = window.open('', '_blank');
-    printWindow.document.write(`
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>Ficha de Zonificación - Paraná</title>
-            <link href="https://cdn.tailwindcss.com" rel="stylesheet">
-            <style>
-                body { font-family: 'Inter', sans-serif; background: #fff; color: #000; padding: 40px; }
-                @media print {
-                    body { padding: 0; }
-                    .bg-slate-950\\/60 { background-color: #f8fafc !important; border: 1px solid #cbd5e1 !important; color: #000 !important; }
-                    .bg-slate-950\\/40 { background-color: #f1f5f9 !important; border: 1px solid #cbd5e1 !important; color: #000 !important; }
-                    .bg-slate-900\\/50 { background-color: #ffffff !important; border: 1px dashed #cbd5e1 !important; color: #000 !important; }
-                    .text-white { color: #000000 !important; }
-                    .text-slate-200 { color: #1e293b !important; }
-                    .text-slate-400 { color: #475569 !important; }
-                    .text-amber-400 { color: #b45309 !important; }
-                    .text-blue-400 { color: #1d4ed8 !important; }
-                    .bg-amber-950\\/45 { background-color: #fffbeb !important; border-left: 4px solid #d97706 !important; color: #78350f !important; }
-                    .bg-indigo-600 { background-color: #1d4ed8 !important; color: #ffffff !important; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
-                }
-            </style>
-        </head>
-        <body onload="setTimeout(function(){ window.print(); window.close(); }, 500);">
-            <div class="max-w-4xl mx-auto p-4">
-                <div class="text-center border-b-4 border-double border-black pb-4 mb-6">
-                    <h1 class="text-2xl font-black tracking-wide uppercase">REPORTE DE ZONIFICACIÓN Y USOS DEL SUELO</h1>
-                    <h2 class="text-xs font-bold text-gray-700 uppercase">MUNICIPALIDAD DE PARANÁ - DIRECCIÓN DE CARTOGRAFÍA Y DATOS ESPACIALES</h2>
-                </div>
-                ${content}
-            </div>
-        </body>
-        </html>
-    `);
-    printWindow.document.close();
-}
-
-// Configuración inicial de componentes y controladores de mapa
-configurarBuscadorUbicaciones();
-controlarVisibilidadDinamica();
 </script>
+
 </body>
 </html>
