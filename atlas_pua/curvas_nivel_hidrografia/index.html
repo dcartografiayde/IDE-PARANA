@@ -18,6 +18,11 @@
         body { margin:0; padding:0; font-family: 'Inter', sans-serif; background: #0f172a; overflow: hidden; }
         #map { height: 100vh; width: 100%; z-index: 1; }
 
+        /* MODIFICACIÓN: Filtro CSS para transformar OpenStreetMap en Mapa Oscuro Completo dinámico */
+        .osm-dark-tile {
+            filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
+        }
+
         /* Estilos personalizados para el scrollbar del menú lateral */
         .scrollbar-custom::-webkit-scrollbar {
             width: 6px;
@@ -273,9 +278,10 @@
             <div class="space-y-2">
                 <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide">Mapa Base</span>
                 <div class="space-y-1.5">
+                    <!-- MODIFICACIÓN: Etiqueta actualizada para reflejar Mapa Oscuro Completo (OSM nocturno) -->
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
                         <input type="radio" name="basemap" value="dark" checked onchange="cambiarBaseMap('dark')" class="bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
-                        <span>Mapa Oscuro</span>
+                        <span>Mapa Oscuro Completo</span>
                     </label>
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
                         <input type="radio" name="basemap" value="hibrido" onchange="cambiarBaseMap('hibrido')" class="bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
@@ -313,7 +319,7 @@
                             <span>Parcelas Catastrales</span>
                         </span>
                     </label>
-                    <!-- MODIFICACIÓN: Capa de Curvas de nivel (.fgb) -->
+                    <!-- Capa de Curvas de nivel (.fgb) -->
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
                         <input type="checkbox" id="chk-curvas" onchange="toggleOverlay('curvas')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
                         <span class="flex items-center gap-2">
@@ -321,7 +327,7 @@
                             <span>Curvas de nivel</span>
                         </span>
                     </label>
-                    <!-- MODIFICACIÓN: Capa de Arroyos (.geojson) -->
+                    <!-- Capa de Arroyos (.geojson) -->
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
                         <input type="checkbox" id="chk-arroyos" onchange="toggleOverlay('arroyos')" class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
                         <span class="flex items-center gap-2">
@@ -535,7 +541,14 @@ map.getPane('parcelasPane').style.zIndex = 350;
 map.getPane('parcelasPane').style.pointerEvents = 'auto';
 
 var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 22, maxNativeZoom: 19 });
-var dark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 22, maxNativeZoom: 20 });
+
+/* MODIFICACIÓN: Configuración de "Mapa Oscuro Completo" reutilizando OpenStreetMap con renderizado nocturno mediante CSS */
+var dark = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
+    maxZoom: 22, 
+    maxNativeZoom: 19,
+    className: 'osm-dark-tile'
+});
+
 var sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 22, maxNativeZoom: 18 });
 var ref = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}', { maxZoom: 22, maxNativeZoom: 18 });
 var hibrido = L.layerGroup([sat, ref]);
@@ -565,7 +578,7 @@ fetchGeoJSON(BASE_URL + "calles.geojson").then(data => {
     console.warn("No se pudo cargar la capa de calles:", err);
 });
 
-/* MODIFICACIÓN: Lógica e integración de capa de Arroyos (.geojson) */
+/* Lógica e integración de capa de Arroyos (.geojson) */
 var grupoArroyos = L.layerGroup();
 fetchGeoJSON(BASE_URL + "hidrografia/arroyos.geojson").then(data => {
     L.geoJSON(data, {
@@ -580,7 +593,7 @@ fetchGeoJSON(BASE_URL + "hidrografia/arroyos.geojson").then(data => {
     console.warn("No se pudo cargar la capa de arroyos:", err);
 });
 
-/* MODIFICACIÓN: Lógica e integración de capa de Curvas de nivel (.fgb) */
+/* Lógica e integración de capa de Curvas de nivel (.fgb) */
 var grupoCurvas = L.layerGroup();
 async function cargarCurvasNivel() {
     try {
@@ -998,7 +1011,7 @@ function controlarVisibilidadDinamica() {
         if (map.hasLayer(grupoParcelas)) map.removeLayer(grupoParcelas);
     }
 
-    /* MODIFICACIÓN: Visibilidad de capas adicionales restauradas */
+    /* Visibilidad de capas adicionales */
     const chkCurvas = document.getElementById('chk-curvas')?.checked;
     if (chkCurvas) {
         if (!map.hasLayer(grupoCurvas)) map.addLayer(grupoCurvas);
