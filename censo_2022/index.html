@@ -103,6 +103,11 @@
             border: 1px solid rgba(0,0,0,0.1); box-shadow: 0 4px 15px rgba(0,0,0,0.15);
             width: 280px; pointer-events: auto; backdrop-filter: blur(4px);
         }
+
+        /* MODIFICACIÓN: Inversión y tratamiento de color CSS dinámico para convertir OSM estándar en modo nocturno completo */
+        .mapa-oscuro-completo {
+            filter: brightness(0.6) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3) brightness(0.7);
+        }
     </style>
 </head>
 
@@ -242,12 +247,19 @@ map.getPane('manzanasPane').style.zIndex = 300; // Capa inferior de fondo
 map.getPane('manzanasPane').style.pointerEvents = 'none'; // Clics pasan de largo
 
 var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 22, maxNativeZoom: 19 });
-var dark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 22, maxNativeZoom: 20 });
+
+// MODIFICACIÓN: Reemplazo de la capa CartoDB por OpenStreetMap completa tratada dinámicamente en modo nocturno vía CSS
+var mapaOscuroCompleto = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
+    maxZoom: 22, 
+    maxNativeZoom: 19,
+    className: 'mapa-oscuro-completo'
+});
+
 var sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 22, maxNativeZoom: 18 });
 var ref = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}', { maxZoom: 22, maxNativeZoom: 18 });
 var hibrido = L.layerGroup([sat, ref]);
 
-dark.addTo(map);
+mapaOscuroCompleto.addTo(map);
 
 // Calles cargadas asíncronamente
 var grupoCalles = L.layerGroup();
@@ -453,7 +465,7 @@ function normalizarKey(str) {
     s = s.replace(/¢/g, 'O') // Reemplaza centavo/ó rota de PC850 por O
          .replace(/0/g, 'O') // Mapea ceros por letras O para uniformidad en POBLACION
          .replace(/Ã‘/g, 'Ñ')
-         .replace(/Ã/g, 'Ñ')
+         .replace(/Ã /g, 'Ñ')
          .replace(/Ã³/g, 'O')
          .replace(/Ã¡/g, 'A')
          .replace(/Ã©/g, 'E')
@@ -754,8 +766,9 @@ const overlays = {
     "<span class='layer-legend-icon' style='background:#FFFF00; height:4px; border:1px solid #000;'></span> Nombres de Calles": grupoCalles
 };
 
+// MODIFICACIÓN: Actualización del control de capas base para incluir "Mapa Oscuro Completo" sobre OpenStreetMap tratada dinámicamente
 L.control.layers(
-    { "Mapa Oscuro": dark, "Híbrido": hibrido, "OpenStreetMap": osm }, 
+    { "Mapa Oscuro Completo": mapaOscuroCompleto, "Híbrido": hibrido, "OpenStreetMap": osm }, 
     overlays, 
     { collapsed: false }
 ).addTo(map);
