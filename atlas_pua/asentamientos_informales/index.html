@@ -19,6 +19,11 @@
         body { margin:0; padding:0; font-family: 'Inter', sans-serif; background: #0f172a; overflow: hidden; }
         #map { height: 100vh; width: 100%; z-index: 1; }
 
+        /* MODIFICACIÓN: Filtro CSS para transformar OpenStreetMap en "Mapa Oscuro Completo" manteniendo detalles, calles, pasajes y sentidos */
+        .leaflet-tile-pane .osm-dark-tiles {
+            filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
+        }
+
         /* MODIFICACIÓN: Estilos personalizados para el scrollbar del menú lateral */
         .scrollbar-custom::-webkit-scrollbar {
             width: 6px;
@@ -53,25 +58,25 @@
         .adv-legal { font-size: 8px; color: #a0aec0; margin-top: 6px; border-top: 1px dashed #cbd5e0; padding-top: 4px; line-height: 1.1; }
         
         .adv-distrito{
-    position:absolute;
-    bottom:35px;
-    right:15px;
-    z-index:1000;
+            position:absolute;
+            bottom:35px;
+            right:15px;
+            z-index:1000;
 
-    background:rgba(255,255,255,0.92);
+            background:rgba(255,255,255,0.92);
 
-    border:1px solid rgba(0,0,0,0.12);
-    border-radius:10px;
+            border:1px solid rgba(0,0,0,0.12);
+            border-radius:10px;
 
-    padding:10px;
+            padding:10px;
 
-    box-shadow:0 4px 12px rgba(0,0,0,0.15);
+            box-shadow:0 4px 12px rgba(0,0,0,0.15);
 
-    font-size:9px;
-    color:#4a5568;
+            font-size:9px;
+            color:#4a5568;
 
-    pointer-events:auto;
-}
+            pointer-events:auto;
+        }
         
         .layer-legend-icon { 
             display: inline-block; 
@@ -84,81 +89,81 @@
         }
 
         .panel-info-mapa{
-    width:260px;
-    max-width:30vw;
+            width:260px;
+            max-width:30vw;
 
-    background:transparent;
-    border:none;
-    box-shadow:none;
+            background:transparent;
+            border:none;
+            box-shadow:none;
 
-    position:relative;
-    bottom:auto;
-    right:auto;
+            position:relative;
+            bottom:auto;
+            right:auto;
 
-    overflow:hidden;
-}
+            overflow:hidden;
+        }
 
-.panel-header{
-    display:flex;
-    justify-content:space-between;
-    align-items:flex-start;
+        .panel-header{
+            display:flex;
+            justify-content:space-between;
+            align-items:flex-start;
 
-    padding:12px;
-}
+            padding:12px;
+        }
 
-.panel-titulo{
-    font-size:13px;
-    font-weight:800;
-    color:#1e293b;
-    text-transform:uppercase;
-    line-height:1.2;
-    text-align:center;
-}
+        .panel-titulo{
+            font-size:13px;
+            font-weight:800;
+            color:#1e293b;
+            text-transform:uppercase;
+            line-height:1.2;
+            text-align:center;
+        }
 
-.panel-zoom{
-    margin-top:4px;
-    font-size:10px;
-    color:#64748b;
-    font-weight:600;
-}
+        .panel-zoom{
+            margin-top:4px;
+            font-size:10px;
+            color:#64748b;
+            font-weight:600;
+        }
 
-.panel-descripcion{
+        .panel-descripcion{
 
-    padding:0 12px 12px 12px;
+            padding:0 12px 12px 12px;
 
-    font-size:11px;
-    color:#475569;
+            font-size:11px;
+            color:#475569;
 
-    line-height:1.45;
+            line-height:1.45;
 
-    text-align:justify;
+            text-align:justify;
 
-    max-height:180px;
-    overflow-y:auto;
+            max-height:180px;
+            overflow-y:auto;
 
-    transition:all .3s ease;
-}
+            transition:all .3s ease;
+        }
 
-.panel-descripcion.oculto{
+        .panel-descripcion.oculto{
 
-    max-height:0;
-    padding:0 12px;
+            max-height:0;
+            padding:0 12px;
 
-    overflow:hidden;
-}
+            overflow:hidden;
+        }
 
-#btn-descripcion{
+        #btn-descripcion{
 
-    border:none;
-    background:none;
+            border:none;
+            background:none;
 
-    cursor:pointer;
+            cursor:pointer;
 
-    font-size:14px;
-    font-weight:bold;
+            font-size:14px;
+            font-weight:bold;
 
-    color:#475569;
-}
+            color:#475569;
+        }
 
         .etiqueta-manzana {
             background: rgba(255, 255, 255, 0.95) !important;
@@ -262,7 +267,8 @@
                 <div class="space-y-1.5">
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
                         <input type="radio" name="basemap" value="dark" checked onchange="cambiarBaseMap('dark')" class="bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
-                        <span>Mapa Oscuro</span>
+                        <!-- MODIFICACIÓN: Etiqueta actualizada para reflejar la capa OpenStreetMap Nocturna Completa -->
+                        <span>Mapa Oscuro Completo</span>
                     </label>
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
                         <input type="radio" name="basemap" value="hibrido" onchange="cambiarBaseMap('hibrido')" class="bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
@@ -302,29 +308,29 @@
                     </label>
                     
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
-    <input type="checkbox"
-           id="chk-asentamientos"
-           checked
-           onchange="toggleOverlay('asentamientos')"
-           class="rounded bg-slate-800 border-slate-700 text-blue-500">
+                        <input type="checkbox"
+                               id="chk-asentamientos"
+                               checked
+                               onchange="toggleOverlay('asentamientos')"
+                               class="rounded bg-slate-800 border-slate-700 text-blue-500">
 
-    <span class="flex items-center gap-2">
-        <span class="w-3.5 h-3.5 rounded border border-red-600 bg-red-500/40 inline-block"></span>
-        <span>Asentamientos Informales</span>
-    </span>
-</label>
+                        <span class="flex items-center gap-2">
+                            <span class="w-3.5 h-3.5 rounded border border-red-600 bg-red-500/40 inline-block"></span>
+                            <span>Asentamientos Informales</span>
+                        </span>
+                    </label>
 
-<label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
-    <input type="checkbox"
-           id="chk-renabap"
-           onchange="toggleOverlay('renabap')"
-           class="rounded bg-slate-800 border-slate-700 text-blue-500">
+                    <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
+                        <input type="checkbox"
+                               id="chk-renabap"
+                               onchange="toggleOverlay('renabap')"
+                               class="rounded bg-slate-800 border-slate-700 text-blue-500">
 
-    <span class="flex items-center gap-2">
-        <span class="w-3.5 h-3.5 rounded border border-yellow-500 bg-yellow-400/50 inline-block"></span>
-        <span>Barrios Populares - RENABAP</span>
-    </span>
-</label>
+                        <span class="flex items-center gap-2">
+                            <span class="w-3.5 h-3.5 rounded border border-yellow-500 bg-yellow-400/50 inline-block"></span>
+                            <span>Barrios Populares - RENABAP</span>
+                        </span>
+                    </label>
                 </div>
             </div>
         </div>
@@ -486,7 +492,14 @@ map.getPane('atlasLabelsPane').style.zIndex = 650;
 map.getPane('atlasLabelsPane').style.pointerEvents = 'none';
 
 var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 22, maxNativeZoom: 19 });
-var dark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 22, maxNativeZoom: 20 });
+
+// MODIFICACIÓN: Configuración de "Mapa Oscuro Completo" utilizando la cartografía 100% integra de OpenStreetMap con filtro nocturno dinámico
+var dark = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
+    maxZoom: 22, 
+    maxNativeZoom: 19,
+    className: 'osm-dark-tiles'
+});
+
 var sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 22, maxNativeZoom: 18 });
 var ref = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}', { maxZoom: 22, maxNativeZoom: 18 });
 var hibrido = L.layerGroup([sat, ref]);
@@ -515,7 +528,7 @@ fetchGeoJSON(BASE_URL + "calles.geojson").then(data => {
     activarEtiquetasCalles();
 });
 
-    function toggleDescripcionMapa(){
+function toggleDescripcionMapa(){
 
     const descripcion =
         document.getElementById('descripcion-mapa');
@@ -669,7 +682,7 @@ fetchGeoJSON(BASE_URL + "catastro/manzana.geojson").then(data => {
     console.error("Error al cargar la capa de manzanas:", err);
 });
 
-    fetchGeoJSON("asentamientos_informales.geojson")
+fetchGeoJSON("asentamientos_informales.geojson")
 .then(data => {
 
     L.geoJSON(data, {
@@ -708,14 +721,14 @@ fetchGeoJSON(BASE_URL + "catastro/manzana.geojson").then(data => {
                 }
 
                 L.marker(center,{
-    pane:'atlasLabelsPane',
-    icon: L.divIcon({
-        className:'etiqueta-atlas',
-        html:nombre
-    }),
-    interactive:false
-})
-                    .addTo(etiquetasAsentamientos);
+                    pane:'atlasLabelsPane',
+                    icon: L.divIcon({
+                        className:'etiqueta-atlas',
+                        html:nombre
+                    }),
+                    interactive:false
+                })
+                .addTo(etiquetasAsentamientos);
 
             } catch(e){}
 
@@ -725,7 +738,7 @@ fetchGeoJSON(BASE_URL + "catastro/manzana.geojson").then(data => {
 
 });
 
-    fetchGeoJSON("barrios_populares_renabap.geojson")
+fetchGeoJSON("barrios_populares_renabap.geojson")
 .then(data => {
 
     L.geoJSON(data, {
@@ -763,15 +776,15 @@ fetchGeoJSON(BASE_URL + "catastro/manzana.geojson").then(data => {
                     center = layer.getBounds().getCenter();
                 }
 
-               L.marker(center,{
-    pane:'atlasLabelsPane',
-    icon: L.divIcon({
-        className:'etiqueta-atlas',
-        html:nombre
-    }),
-    interactive:false
-})
-                   .addTo(etiquetasRenabap);
+                L.marker(center,{
+                    pane:'atlasLabelsPane',
+                    icon: L.divIcon({
+                        className:'etiqueta-atlas',
+                        html:nombre
+                    }),
+                    interactive:false
+                })
+                .addTo(etiquetasRenabap);
 
             } catch(e){}
 
@@ -781,7 +794,7 @@ fetchGeoJSON(BASE_URL + "catastro/manzana.geojson").then(data => {
 
 });
 
-// Capa de Parcelas (Totalmente Restituida)
+// Capa de Parcelas
 var grupoParcelas = L.layerGroup();
 var grupoAsentamientos = L.layerGroup().addTo(map);
 var grupoRenabap = L.layerGroup();
@@ -922,37 +935,26 @@ function controlarVisibilidadDinamica() {
             map.removeLayer(grupoParcelas);
         }
     }
-     // ASENTAMIENTOS INFORMALES
 
-if(document.getElementById('chk-asentamientos').checked){
+    // ASENTAMIENTOS INFORMALES
+    if(document.getElementById('chk-asentamientos').checked){
+        if(!map.hasLayer(grupoAsentamientos))
+            map.addLayer(grupoAsentamientos);
+    }else{
+        if(map.hasLayer(grupoAsentamientos))
+            map.removeLayer(grupoAsentamientos);
+    }
 
-    if(!map.hasLayer(grupoAsentamientos))
-        map.addLayer(grupoAsentamientos);
+    // RENABAP
+    if(document.getElementById('chk-renabap').checked){
+        if(!map.hasLayer(grupoRenabap))
+            map.addLayer(grupoRenabap);
+    }else{
+        if(map.hasLayer(grupoRenabap))
+            map.removeLayer(grupoRenabap);
+    }
 
-
-}else{
-
-    if(map.hasLayer(grupoAsentamientos))
-        map.removeLayer(grupoAsentamientos);
-
-}
-
-
-// RENABAP
-
-if(document.getElementById('chk-renabap').checked){
-
-    if(!map.hasLayer(grupoRenabap))
-        map.addLayer(grupoRenabap);
-
-}else{
-
-    if(map.hasLayer(grupoRenabap))
-        map.removeLayer(grupoRenabap);
-}
-
-controlarEtiquetasAtlas();
-    
+    controlarEtiquetasAtlas();
 }
 
 map.on('zoomend', controlarVisibilidadDinamica);
@@ -964,34 +966,25 @@ function controlarEtiquetasAtlas() {
     const zoom = map.getZoom();
 
     // ASENTAMIENTOS
-
     if (
         document.getElementById('chk-asentamientos').checked &&
         zoom >= 14
     ) {
-
         if (!map.hasLayer(etiquetasAsentamientos))
             map.addLayer(etiquetasAsentamientos);
-
     } else {
-
         if (map.hasLayer(etiquetasAsentamientos))
             map.removeLayer(etiquetasAsentamientos);
     }
 
-
     // RENABAP
-
     if (
         document.getElementById('chk-renabap').checked &&
         zoom >= 14
     ) {
-
         if (!map.hasLayer(etiquetasRenabap))
             map.addLayer(etiquetasRenabap);
-
     } else {
-
         if (map.hasLayer(etiquetasRenabap))
             map.removeLayer(etiquetasRenabap);
     }
