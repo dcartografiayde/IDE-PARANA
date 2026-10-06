@@ -15,6 +15,11 @@
         body { margin:0; padding:0; font-family: 'Inter', sans-serif; background: #0f172a; overflow: hidden; }
         #map { height: 100vh; width: 100%; z-index: 1; }
 
+        /* MODIFICACIÓN: Estilo CSS para renderizar OpenStreetMap en modo Mapa Oscuro Completo dinámico */
+        .leaflet-tile-pane .leaflet-layer.osm-dark-mode {
+            filter: brightness(0.6) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3) brightness(0.7);
+        }
+
         /* Barra de desplazamiento premium personalizada para el panel lateral */
         .scrollbar-custom::-webkit-scrollbar {
             width: 6px;
@@ -253,9 +258,10 @@
             <div class="space-y-2">
                 <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide">Mapa Base</span>
                 <div class="space-y-1.5">
+                    <!-- MODIFICACIÓN: Cambio de la opción de mapa oscuro de CartoDB por "Mapa Oscuro Completo" (OpenStreetMap en modo nocturno) -->
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
                         <input type="radio" name="basemap" value="dark" checked onchange="cambiarBaseMap('dark')" class="bg-slate-800 border-slate-700 text-sky-500 focus:ring-sky-500">
-                        <span>Mapa Oscuro</span>
+                        <span>Mapa Oscuro Completo</span>
                     </label>
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
                         <input type="radio" name="basemap" value="hibrido" onchange="cambiarBaseMap('hibrido')" class="bg-slate-800 border-slate-700 text-sky-500 focus:ring-sky-500">
@@ -551,11 +557,16 @@ map.createPane('atlasLabelsPane');
 map.getPane('atlasLabelsPane').style.zIndex = 650;
 map.getPane('atlasLabelsPane').style.pointerEvents = 'none';
 
-// Capas Base
-var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 22, maxNativeZoom: 19 });
-var dark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 22, maxNativeZoom: 20 });
-var sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 22, maxNativeZoom: 18 });
-var ref = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}', { maxZoom: 22, maxNativeZoom: 18 });
+// MODIFICACIÓN: Definición de Capas Base (Sustituido CartoDB por "Mapa Oscuro Completo" sobre OpenStreetMap con clase personalizada para el modo nocturno)
+var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 22, maxNativeZoom: 19, pane: 'basemapPane' });
+var dark = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
+    maxZoom: 22, 
+    maxNativeZoom: 19, 
+    pane: 'basemapPane',
+    className: 'osm-dark-mode'
+});
+var sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 22, maxNativeZoom: 18, pane: 'basemapPane' });
+var ref = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}', { maxZoom: 22, maxNativeZoom: 18, pane: 'basemapPane' });
 var hibrido = L.layerGroup([sat, ref]);
 
 dark.addTo(map);
