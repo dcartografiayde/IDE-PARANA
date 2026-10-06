@@ -16,6 +16,11 @@
         body { margin:0; padding:0; font-family: 'Inter', sans-serif; background: #0f172a; overflow: hidden; }
         #map { height: 100vh; width: 100%; z-index: 1; position: relative; }
 
+        /* MODIFICACIÓN: Filtro CSS para convertir OpenStreetMap completo en Mapa Oscuro Nocturno de alta resolución */
+        .mapa-oscuro-completo {
+            filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
+        }
+
         input[type="text"], input[type="password"] {
             color: #ffffff !important;
             background-color: #0f172a !important;
@@ -274,7 +279,7 @@
             transform: scale(1.25);
         }
 
-        /* MODIFICACIÓN: Estilos para la marca de agua, leyenda y título exportados en PDF */
+        /* Estilos para la marca de agua, leyenda y título exportados en PDF */
         #pdf-watermark {
             display: none;
             position: absolute;
@@ -493,9 +498,10 @@
             <div class="space-y-1.5">
                 <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide">Mapa Base</span>
                 <div class="space-y-1">
+                    <!-- MODIFICACIÓN: Nombre actualizado a "Mapa Oscuro Completo" -->
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
                         <input type="radio" name="basemap" value="dark" checked onchange="cambiarBaseMap('dark')" class="bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
-                        <span>Mapa Oscuro</span>
+                        <span>Mapa Oscuro Completo</span>
                     </label>
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
                         <input type="radio" name="basemap" value="hibrido" onchange="cambiarBaseMap('hibrido')" class="bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
@@ -536,7 +542,7 @@
             </div>
 
             <div class="space-y-2 pt-2 border-t border-slate-800">
-                <span class="block text-[10px] font-bold text-red-400 uppercase tracking-wide">⚠️ Capas de Riesgo Socioambiental</span>
+                <span class="block text-[10px] font-bold text-red-400 uppercase tracking-wide">⚠️️ Capas de Riesgo Socioambiental</span>
                 
                 <div class="space-y-1">
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
@@ -706,7 +712,7 @@
 </div>
 
 <div id="map">
-    <!-- MODIFICACIÓN: Elementos de apoyo para exportación en PDF (Marca de agua, Título y Leyenda) -->
+    <!-- Elementos de apoyo para exportación en PDF (Marca de agua, Título y Leyenda) -->
     <div id="pdf-watermark">MUNICIPALIDAD DE PARANÁ</div>
     <div id="pdf-title-banner">
         <div style="font-size: 13px; font-weight: 900; text-transform: uppercase;">VISOR DE GESTIÓN DEL RIESGO SOCIOAMBIENTAL</div>
@@ -894,7 +900,14 @@ map.createPane('riesgoPuntosPane').style.zIndex = 400;
 map.createPane('emergenciasPane').style.zIndex = 450;
 
 var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 22, maxNativeZoom: 19 });
-var dark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 22, maxNativeZoom: 20 });
+
+// MODIFICACIÓN: Reemplazo de CartoDB por OpenStreetMap en modo nocturno dinámico (Mapa Oscuro Completo)
+var dark = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
+    maxZoom: 22, 
+    maxNativeZoom: 19,
+    className: 'mapa-oscuro-completo'
+});
+
 var sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 22, maxNativeZoom: 18 });
 var ref = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}', { maxZoom: 22, maxNativeZoom: 18 });
 var hibrido = L.layerGroup([sat, ref]);
@@ -913,7 +926,7 @@ function togglePanelHerramientas() {
     }
 }
 
-// MODIFICACIÓN: Función para generar dinámicamente el contenido de la leyenda en el PDF
+// Función para generar dinámicamente el contenido de la leyenda en el PDF
 function generarContenidoLeyendaPDF() {
     const contenedor = document.getElementById('pdf-legend-content');
     if (!contenedor) return;
@@ -950,7 +963,7 @@ function generarContenidoLeyendaPDF() {
     });
 }
 
-// MODIFICACIÓN: Función de descarga directa a PDF agregando la marca de agua, el título y la leyenda
+// Función de descarga directa a PDF agregando la marca de agua, el título y la leyenda
 function descargarPDFDirecto(formato) {
     const element = document.getElementById('map');
     
