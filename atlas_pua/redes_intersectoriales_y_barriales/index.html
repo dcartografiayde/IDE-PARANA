@@ -280,7 +280,7 @@
                 <div class="space-y-1.5">
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
                         <input type="radio" name="basemap" value="dark" checked onchange="cambiarBaseMap('dark')" class="bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
-                        <span class="font-bold text-blue-300">Mapa Oscuro Completo (Nombres de Calle)</span>
+                        <span class="font-bold text-blue-300">Mapa Oscuro Completo</span>
                     </label>
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
                         <input type="radio" name="basemap" value="hibrido" onchange="cambiarBaseMap('hibrido')" class="bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
@@ -442,7 +442,6 @@
     <div id="panel-info-mapa" class="panel-info-mapa">
         <div class="panel-header">
             <div style="width:100%;">
-                <!-- MODIFICACIÓN: Actualización del título del mapa -->
                 <div class="panel-titulo" id="titulo-mapa">REDES INTERSECTORIALES Y BARRIALES</div>
                 <div class="panel-zoom" style="text-align:center;">
                     Zoom: <span id="zoom-indicator">12</span>
@@ -451,7 +450,6 @@
             <button onclick="toggleDescripcionMapa()" id="btn-descripcion">▼</button>
         </div>
 
-        <!-- MODIFICACIÓN: Descripción enfocada en la capa principal de Redes Intersectoriales y Barriales -->
         <div id="descripcion-mapa" class="panel-descripcion">
             Visualizador de la Municipalidad de Paraná orientado al análisis territorial de la capa de Redes intersectoriales y barriales. Permite la identificación geográfica de las diferentes redes, organizaciones comunales y equipamientos del territorio municipal, complementándose con la información catastral de parcelas, manzanas y red vial.
         </div>
@@ -596,7 +594,7 @@ map.getPane('parcelasPane').style.pointerEvents = 'auto';
 
 var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 22, maxNativeZoom: 19 });
 
-// Capa Oscura Completa (OSM Night)
+// MODIFICACIÓN: Capa de Mapa Oscuro Completo (OSM Night optimizado con cartografía completa)
 var darkOsm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
     maxZoom: 22, 
     maxNativeZoom: 19, 
