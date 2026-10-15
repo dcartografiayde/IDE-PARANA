@@ -18,6 +18,11 @@
         body { margin:0; padding:0; font-family: 'Inter', sans-serif; background: #0f172a; overflow: hidden; }
         #map { height: 100vh; width: 100%; z-index: 1; }
 
+        /* MODIFICACIÓN: Filtro CSS para convertir OpenStreetMap en una Capa Oscura de Alta Definición con Nombres de Calle completos */
+        .dark-tiles-osm {
+            filter: invert(100%) hue-rotate(180deg) brightness(88%) contrast(105%);
+        }
+
         /* Estilos personalizados para el scrollbar del menú lateral */
         .scrollbar-custom::-webkit-scrollbar {
             width: 6px;
@@ -294,9 +299,10 @@
             <div class="space-y-2">
                 <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wide">Mapa Base</span>
                 <div class="space-y-1.5">
+                    <!-- MODIFICACIÓN: Actualización de la opción de mapa oscuro -->
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
                         <input type="radio" name="basemap" value="dark" checked onchange="cambiarBaseMap('dark')" class="bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
-                        <span>Mapa Oscuro</span>
+                        <span class="font-bold text-blue-300">Mapa Oscuro Completo</span>
                     </label>
                     <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer hover:text-white transition">
                         <input type="radio" name="basemap" value="hibrido" onchange="cambiarBaseMap('hibrido')" class="bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500">
@@ -633,7 +639,15 @@ map.createPane('equipamientoPane');
 map.getPane('equipamientoPane').style.zIndex = 400;
 
 var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 22, maxNativeZoom: 19 });
-var dark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 22, maxNativeZoom: 20 });
+
+// MODIFICACIÓN: Capa de Mapa Oscuro Completo (OSM Night optimizado con cartografía completa)
+var dark = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
+    maxZoom: 22, 
+    maxNativeZoom: 19, 
+    className: 'dark-tiles-osm',
+    attribution: '&copy; OpenStreetMap contributors' 
+});
+
 var sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 22, maxNativeZoom: 18 });
 var ref = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}', { maxZoom: 22, maxNativeZoom: 18 });
 var hibrido = L.layerGroup([sat, ref]);
@@ -1091,7 +1105,6 @@ function agregarBuffersAnidados(layerGrupo, latlng, colorHex) {
 var grupoEtiquetasPuntos = L.layerGroup();
 var listaPuntosParaEtiquetar = [];
 
-// MODIFICACIÓN: Función auxiliar que extrae el atributo representativo más adecuado según las propiedades del feature
 function extraerNombrePOI(props) {
     if (!props) return "";
     let candidates = [
@@ -1130,16 +1143,11 @@ function registrarPuntoEtiqueta(grupoAsociado, latlng, nombre) {
     });
 }
 
-// Inicialización de capas de salud (Inician visibles)
 var grupoHospitales = L.layerGroup().addTo(map);
 var grupoCentrosSalud = L.layerGroup().addTo(map);
-
-// Inicialización de capas de educación (Inician apagadas)
 var grupoJardines = L.layerGroup();
 var grupoEscuelas = L.layerGroup();
 var grupoUniversidades = L.layerGroup();
-
-// Inicialización de capas deportivas (Inician apagadas)
 var grupoPolideportivos = L.layerGroup();
 var grupoClubes = L.layerGroup();
 var grupoEscuelasDeportivas = L.layerGroup();
@@ -1150,7 +1158,6 @@ fetchGeoJSON(EQUIPAMIENTO_URL + "hospitales.geojson").then(data => {
         pane: 'equipamientoPane',
         pointToLayer: (feature, latlng) => {
             agregarBuffersAnidados(grupoHospitales, latlng, '#dc2626');
-            // MODIFICACIÓN: Extracción de atributo representativo y registro de etiqueta
             let nombre = extraerNombrePOI(feature.properties);
             registrarPuntoEtiqueta(grupoHospitales, latlng, nombre);
             return L.marker(latlng, { icon: crearIconoPOI('hospital') });
@@ -1168,7 +1175,6 @@ fetchGeoJSON(EQUIPAMIENTO_URL + "centro_salud.geojson").then(data => {
         pane: 'equipamientoPane',
         pointToLayer: (feature, latlng) => {
             agregarBuffersAnidados(grupoCentrosSalud, latlng, '#10b981');
-            // MODIFICACIÓN: Extracción de atributo representativo y registro de etiqueta
             let nombre = extraerNombrePOI(feature.properties);
             registrarPuntoEtiqueta(grupoCentrosSalud, latlng, nombre);
             return L.marker(latlng, { icon: crearIconoPOI('centro_salud') });
@@ -1203,7 +1209,6 @@ fetchGeoJSON(EQUIPAMIENTO_URL + "mapa_educativo.geojson").then(data => {
         pane: 'equipamientoPane',
         pointToLayer: (feature, latlng) => {
             agregarBuffersAnidados(grupoJardines, latlng, '#f59e0b');
-            // MODIFICACIÓN: Extracción de atributo representativo y registro de etiqueta
             let nombre = extraerNombrePOI(feature.properties);
             registrarPuntoEtiqueta(grupoJardines, latlng, nombre);
             return L.marker(latlng, { icon: crearIconoPOI('jardin') });
@@ -1218,7 +1223,6 @@ fetchGeoJSON(EQUIPAMIENTO_URL + "mapa_educativo.geojson").then(data => {
         pane: 'equipamientoPane',
         pointToLayer: (feature, latlng) => {
             agregarBuffersAnidados(grupoEscuelas, latlng, '#4f46e5');
-            // MODIFICACIÓN: Extracción de atributo representativo y registro de etiqueta
             let nombre = extraerNombrePOI(feature.properties);
             registrarPuntoEtiqueta(grupoEscuelas, latlng, nombre);
             return L.marker(latlng, { icon: crearIconoPOI('escuela') });
@@ -1236,7 +1240,6 @@ fetchGeoJSON(EQUIPAMIENTO_URL + "instituciones_universitarias.geojson").then(dat
         pane: 'equipamientoPane',
         pointToLayer: (feature, latlng) => {
             agregarBuffersAnidados(grupoUniversidades, latlng, '#9333ea');
-            // MODIFICACIÓN: Extracción de atributo representativo y registro de etiqueta
             let nombre = extraerNombrePOI(feature.properties);
             registrarPuntoEtiqueta(grupoUniversidades, latlng, nombre);
             return L.marker(latlng, { icon: crearIconoPOI('universidad') });
@@ -1266,7 +1269,6 @@ Promise.all([
         pane: 'equipamientoPane',
         pointToLayer: (feature, latlng) => {
             agregarBuffersAnidados(grupoPolideportivos, latlng, '#06b6d4');
-            // MODIFICACIÓN: Extracción de atributo representativo y registro de etiqueta
             let nombre = feature._attrNombre || extraerNombrePOI(feature.properties);
             registrarPuntoEtiqueta(grupoPolideportivos, latlng, nombre);
             return L.marker(latlng, { icon: crearIconoPOI('polideportivo') });
@@ -1284,7 +1286,6 @@ fetchGeoJSON(EQUIPAMIENTO_URL + "clubes.geojson").then(data => {
         pane: 'equipamientoPane',
         pointToLayer: (feature, latlng) => {
             agregarBuffersAnidados(grupoClubes, latlng, '#f97316');
-            // MODIFICACIÓN: Extracción de atributo representativo y registro de etiqueta
             let prop = (feature.properties && (feature.properties.propietario || feature.properties.PROPIETARIO)) ? (feature.properties.propietario || feature.properties.PROPIETARIO) : extraerNombrePOI(feature.properties);
             registrarPuntoEtiqueta(grupoClubes, latlng, prop);
             return L.marker(latlng, { icon: crearIconoPOI('club') });
@@ -1308,7 +1309,6 @@ fetchGeoJSON(EQUIPAMIENTO_URL + "escuelas_deportivas.geojson").then(data => {
         pane: 'equipamientoPane',
         pointToLayer: (feature, latlng) => {
             agregarBuffersAnidados(grupoEscuelasDeportivas, latlng, '#14b8a6');
-            // MODIFICACIÓN: Extracción de atributo representativo y registro de etiqueta
             let nombre = extraerNombrePOI(feature.properties);
             registrarPuntoEtiqueta(grupoEscuelasDeportivas, latlng, nombre);
             return L.marker(latlng, { icon: crearIconoPOI('escuela_deportiva') });
