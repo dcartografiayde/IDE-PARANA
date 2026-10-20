@@ -167,7 +167,7 @@
                 <div class="text-[9px] font-bold text-slate-400 uppercase">Mapa Base:</div>
                 <div class="flex gap-3 text-[10px] font-semibold text-slate-700">
                     <label class="flex items-center gap-1 cursor-pointer hover:text-blue-600">
-                        <input type="radio" name="basemap" value="dark" checked onchange="cambiarBaseMap('dark')"> Oscuro
+                        <input type="radio" name="basemap" value="dark" checked onchange="cambiarBaseMap('dark')"> Dark OSM
                     </label>
                     <label class="flex items-center gap-1 cursor-pointer hover:text-blue-600">
                         <input type="radio" name="basemap" value="hibrido" onchange="cambiarBaseMap('hibrido')"> Híbrido
@@ -334,7 +334,7 @@
                 <h4 class="font-bold text-slate-800 text-sm mb-1">🔍 4. Búsqueda y Herramientas Adicionales</h4>
                 <ul class="list-disc pl-4 space-y-1">
                     <li><b>Buscador de Calles:</b> Ingrese el nombre de la calle y altura para centrar el mapa. Hacer clic sobre la calle abre acceso directo a <b>Google Street View</b>.</li>
-                    <li><b>Control de Capas:</b> En el panel lateral puede encender/apagar mapas base (Oscuro, Híbrido, OSM) y capas temáticas (ICV, Manzanas, Calles).</li>
+                    <li><b>Control de Capas:</b> En el panel lateral puede encender/apagar mapas base (Dark OSM, Híbrido, OSM) y capas temáticas (ICV, Manzanas, Calles).</li>
                 </ul>
             </div>
         </div>
@@ -480,7 +480,12 @@ map.getPane('manzanasPane').style.zIndex = 300;
 map.getPane('manzanasPane').style.pointerEvents = 'none';
 
 var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 22, maxNativeZoom: 19 });
-var dark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 22, maxNativeZoom: 20 });
+// Mapa Oscuro basado en datos OpenStreetMap (CartoDB Dark Matter)
+var dark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { 
+    maxZoom: 22, 
+    maxNativeZoom: 20,
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>' 
+});
 var sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 22, maxNativeZoom: 18 });
 var ref = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}', { maxZoom: 22, maxNativeZoom: 18 });
 var hibrido = L.layerGroup([sat, ref]);
@@ -718,12 +723,15 @@ function parseValue(val) {
 function getPoblacionValue(p) {
     if (!p) return 0;
     
-    // 1. Claves prioritarias explícitas para población / número de personas
+    // 1. Claves prioritarias explícitas para población del Censo 2022 e históricos
     const priorityKeys = [
+        "Poblaci¢n Total en Hogares particulares", 
+        "Población Total en Hogares particulares",
+        "POBLACION TOTAL EN HOGARES PARTICULARES",
+        "Poblacion Total en Hogares particulares",
         "PERSONAS", "PERSONA", "PERSONAS PRESENTES", "PERSONAS_TOT", "PERSONAS_TOTAL",
-        "POBLACION TOTAL EN HOGARES PARTICULARES", "POBLACION TOTAL", "POBLACION_TOTAL",
+        "POBLACION TOTAL", "POBLACION_TOTAL",
         "POBLACION", "POB_TOT", "POBTOT", "POB_TOTAL", "HABITANTES", 
-        "POBLACI0N TOTAL EN HOGARES PARTICULARES", "POBLACI¢N TOTAL EN HOGARES PARTICULARES", 
         "TOTAL_HAB", "TOTAL_PERSONAS", "TOTAL_POBLACION", "P_TOTAL", "P_TOT", "TOT_PERS", "TOT_POB"
     ];
     
@@ -735,14 +743,14 @@ function getPoblacionValue(p) {
         }
     }
     
-    // 2. Suma explícita de Varones + Mujeres si ambas o alguna están presentes
+    // 2. Suma explícita de Varones + Mujeres si están presentes
     let varones = parseValue(getPropValue(p, "VARONES") || getPropValue(p, "VARON") || getPropValue(p, "HOMBRES") || 0);
     let mujeres = parseValue(getPropValue(p, "MUJERES") || getPropValue(p, "MUJER") || 0);
     if (varones > 0 || mujeres > 0) {
         return varones + mujeres;
     }
     
-    // 3. Búsqueda secundaria por coincidencia estricta sin incluir 'hogar' ni 'vivienda'
+    // 3. Búsqueda secundaria por coincidencia estricta
     for (let k in p) {
         let kNorm = normalizarKey(k);
         if ((kNorm.includes("PERSONA") || kNorm.includes("POBLAC") || kNorm.includes("HABITAN") || kNorm.includes("POB")) && 
@@ -1338,3 +1346,9 @@ controlarVisibilidadDinamica();
 </script>
 </body>
 </html>
+```eof
+
+### Resumen de cambios:
+1. **Atributo de población Censo 2022 corregido**: Se incluyó con prioridad máxima la lectura del atributo `"Poblaci¢n Total en Hogares particulares"` (así como `"Población Total en Hogares particulares"`), corrigiendo el cálculo distorsionado de la densidad y los totales visibles/polígonos.
+2. **Mapa base Oscuro de OpenStreetMap (Dark Matter)**: Actualizado para usar la capa oscura proveedora de OpenStreetMap/CartoDB.
+3. **No Regresión**: Se conservaron intactas las capas de Manzanas, Calles, ICV CONICET, Línea de Tiempo (1970-2022), Geocodificador de Calles, Google Street View y la Herramienta Espacial de Polígono con Turf.js.
