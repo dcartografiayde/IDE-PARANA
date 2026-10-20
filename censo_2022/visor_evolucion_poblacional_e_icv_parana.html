@@ -167,7 +167,7 @@
                 <div class="text-[9px] font-bold text-slate-400 uppercase">Mapa Base:</div>
                 <div class="flex gap-3 text-[10px] font-semibold text-slate-700">
                     <label class="flex items-center gap-1 cursor-pointer hover:text-blue-600">
-                        <input type="radio" name="basemap" value="dark" checked onchange="cambiarBaseMap('dark')"> Dark OSM
+                        <input type="radio" name="basemap" value="dark" checked onchange="cambiarBaseMap('dark')"> Oscuro
                     </label>
                     <label class="flex items-center gap-1 cursor-pointer hover:text-blue-600">
                         <input type="radio" name="basemap" value="hibrido" onchange="cambiarBaseMap('hibrido')"> Híbrido
@@ -334,7 +334,7 @@
                 <h4 class="font-bold text-slate-800 text-sm mb-1">🔍 4. Búsqueda y Herramientas Adicionales</h4>
                 <ul class="list-disc pl-4 space-y-1">
                     <li><b>Buscador de Calles:</b> Ingrese el nombre de la calle y altura para centrar el mapa. Hacer clic sobre la calle abre acceso directo a <b>Google Street View</b>.</li>
-                    <li><b>Control de Capas:</b> En el panel lateral puede encender/apagar mapas base (Dark OSM, Híbrido, OSM) y capas temáticas (ICV, Manzanas, Calles).</li>
+                    <li><b>Control de Capas:</b> En el panel lateral puede encender/apagar mapas base (Oscuro, Híbrido, OSM) y capas temáticas (ICV, Manzanas, Calles).</li>
                 </ul>
             </div>
         </div>
@@ -479,13 +479,16 @@ map.createPane('manzanasPane');
 map.getPane('manzanasPane').style.zIndex = 300;
 map.getPane('manzanasPane').style.pointerEvents = 'none';
 
+// Mapas Base
 var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 22, maxNativeZoom: 19 });
-// Mapa Oscuro basado en datos OpenStreetMap (CartoDB Dark Matter)
-var dark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { 
+
+// Solución al bloqueo "API KEY REQUIRED" de Carto: Uso de ESRI Dark Gray Canvas (Gratuito y 100% estable)
+var dark = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', { 
     maxZoom: 22, 
-    maxNativeZoom: 20,
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>' 
+    maxNativeZoom: 16,
+    attribution: '&copy; Esri, DeLorme, NAVTEQ' 
 });
+
 var sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 22, maxNativeZoom: 18 });
 var ref = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}', { maxZoom: 22, maxNativeZoom: 18 });
 var hibrido = L.layerGroup([sat, ref]);
@@ -689,19 +692,11 @@ function getPropValue(properties, targetKey) {
     if (!properties) return undefined;
     const targetNorm = normalizarKey(targetKey);
     
-    // Paso 1: Coincidencia exacta de llave normalizada
     for (let k in properties) {
-        if (normalizarKey(k) === targetNorm) {
-            return properties[k];
-        }
+        if (normalizarKey(k) === targetNorm) return properties[k];
     }
-    
-    // Paso 2: Coincidencia de subcadena unidireccional (evita falsos positivos de claves más cortas)
     for (let k in properties) {
-        let kNorm = normalizarKey(k);
-        if (kNorm.includes(targetNorm)) {
-            return properties[k];
-        }
+        if (normalizarKey(k).includes(targetNorm)) return properties[k];
     }
     return undefined;
 }
@@ -723,7 +718,7 @@ function parseValue(val) {
 function getPoblacionValue(p) {
     if (!p) return 0;
     
-    // 1. Claves prioritarias explícitas para población del Censo 2022 e históricos
+    // 1. Claves prioritarias corregidas (Protocolo aplicado de Censo 2022)
     const priorityKeys = [
         "Poblaci¢n Total en Hogares particulares", 
         "Población Total en Hogares particulares",
@@ -743,14 +738,10 @@ function getPoblacionValue(p) {
         }
     }
     
-    // 2. Suma explícita de Varones + Mujeres si están presentes
     let varones = parseValue(getPropValue(p, "VARONES") || getPropValue(p, "VARON") || getPropValue(p, "HOMBRES") || 0);
     let mujeres = parseValue(getPropValue(p, "MUJERES") || getPropValue(p, "MUJER") || 0);
-    if (varones > 0 || mujeres > 0) {
-        return varones + mujeres;
-    }
+    if (varones > 0 || mujeres > 0) return varones + mujeres;
     
-    // 3. Búsqueda secundaria por coincidencia estricta
     for (let k in p) {
         let kNorm = normalizarKey(k);
         if ((kNorm.includes("PERSONA") || kNorm.includes("POBLAC") || kNorm.includes("HABITAN") || kNorm.includes("POB")) && 
@@ -764,12 +755,10 @@ function getPoblacionValue(p) {
 
 function getICVValue(p) {
     if (!p) return 0;
-
     const targetKeys = [
         'icv', 'f_icv', 'icv_conicet', 'indice', 'valor', 'score', 
         'calidad_vida', 'icv_radio', 'icv2010', 'icv_2010', 'icv2022', 
-        'icv_2022', 'f_icv_2010', 'f_icv_2022', 'icv_final', 'f_icv_final',
-        'icv_red', 'icv_escala'
+        'icv_2022', 'f_icv_2010', 'f_icv_2022', 'icv_final', 'f_icv_final', 'icv_red', 'icv_escala'
     ];
     
     for (let target of targetKeys) {
@@ -777,28 +766,18 @@ function getICVValue(p) {
             let kLow = k.toLowerCase().trim();
             if (kLow === target || kLow.includes(target)) {
                 let val = parseValue(p[k]);
-                if (!isNaN(val) && val > 0) {
-                    if (val <= 1) val = val * 10;
-                    return val;
-                }
+                if (!isNaN(val) && val > 0) { if (val <= 1) val = val * 10; return val; }
             }
         }
     }
 
-    const blacklistedKeys = [
-        'link', 'radio', 'id', 'cod', 'gid', 'objectid', 'prov', 'dep', 
-        'frac', 'mza', 'codigo', 'shape', 'area', 'length', 'perim'
-    ];
-
+    const blacklistedKeys = ['link', 'radio', 'id', 'cod', 'gid', 'objectid', 'prov', 'dep', 'frac', 'mza', 'codigo', 'shape', 'area', 'length', 'perim'];
     for (let k in p) {
         let kLow = k.toLowerCase().trim();
         let isBlacklisted = blacklistedKeys.some(b => kLow.includes(b));
         if (!isBlacklisted) {
             let val = parseValue(p[k]);
-            if (!isNaN(val) && val > 0 && val <= 10) {
-                if (val <= 1) val = val * 10;
-                return val;
-            }
+            if (!isNaN(val) && val > 0 && val <= 10) { if (val <= 1) val = val * 10; return val; }
         }
     }
     return 0;
@@ -813,8 +792,7 @@ function getColorICV(val) {
            num >= 6.5 ? '#cc181e' :
            num >= 5.5 ? '#ef3b2c' :
            num >= 4.5 ? '#fb6a4a' :
-           num >= 3.5 ? '#fc9272' :
-                        '#fee0d2';
+           num >= 3.5 ? '#fc9272' : '#fee0d2';
 }
 
 const CENSUS_YEARS = [1970, 1980, 1991, 2001, 2010, 2022];
@@ -826,9 +804,8 @@ CENSUS_YEARS.forEach(year => {
     censoLayers[year] = L.layerGroup();
     censoEtiquetasLayers[year] = L.layerGroup();
 
-    const urlGeoJSON = (year === 2010)
-        ? `${BASE_URL}censo_2022/censo_2010_gran_parana.geojson`
-        : `${BASE_URL}censo_2022/censo_${year}.geojson`;
+    // Corrección solicitada: Se asegura que el censo 2010 utilice censo_2010.geojson
+    const urlGeoJSON = `${BASE_URL}censo_2022/censo_${year}.geojson`;
 
     fetchGeoJSON(urlGeoJSON).then(data => {
         rawCensusGeoJSON[year] = data; 
@@ -1346,9 +1323,3 @@ controlarVisibilidadDinamica();
 </script>
 </body>
 </html>
-```eof
-
-### Resumen de cambios:
-1. **Atributo de población Censo 2022 corregido**: Se incluyó con prioridad máxima la lectura del atributo `"Poblaci¢n Total en Hogares particulares"` (así como `"Población Total en Hogares particulares"`), corrigiendo el cálculo distorsionado de la densidad y los totales visibles/polígonos.
-2. **Mapa base Oscuro de OpenStreetMap (Dark Matter)**: Actualizado para usar la capa oscura proveedora de OpenStreetMap/CartoDB.
-3. **No Regresión**: Se conservaron intactas las capas de Manzanas, Calles, ICV CONICET, Línea de Tiempo (1970-2022), Geocodificador de Calles, Google Street View y la Herramienta Espacial de Polígono con Turf.js.
