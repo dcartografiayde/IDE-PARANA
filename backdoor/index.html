@@ -306,6 +306,14 @@
                         </span>
                         <input type="checkbox" id="chk-barrios-iapv" onclick="toggleCapaSidebar(grupoBarriosIAPV, 'chk-barrios-iapv')" class="accent-sky-500 w-4 h-4">
                     </label>
+
+                    <label class="flex items-center justify-between text-xs cursor-pointer text-slate-300 hover:text-white py-1">
+                        <span class="flex items-center">
+                            <span class="layer-legend-icon" style="background:#ff5722"></span>
+                            Barrios Populares RENABAP
+                        </span>
+                        <input type="checkbox" id="chk-renabap" onclick="toggleCapaSidebar(grupoRenabap, 'chk-renabap')" class="accent-sky-500 w-4 h-4">
+                    </label>
                 </div>
             </div>
 
@@ -993,6 +1001,8 @@ var grupoLoteosConOrdenanzaAntiguos = L.layerGroup();
 var grupoBarriosPrivados = L.layerGroup();
 var grupoBarriosIAPV = L.layerGroup();
 
+var grupoRenabap = L.layerGroup();
+
 const setupLoteo = function(file, grupo, color, titulo) {
     fetchGeoJSON(BASE_URL + "backdoor/" + file).then(function(data) {
         if (!data || !data.features) return;
@@ -1072,7 +1082,55 @@ setupLoteo("loteos_con_ordenanza_antiguos.geojson", grupoLoteosConOrdenanzaAntig
 setupLoteo("loteos_barrios_privados.geojson", grupoBarriosPrivados, "#FF8C00", "BARRIO PRIVADO");
 setupLoteo("barrios_iapv_2026.geojson", grupoBarriosIAPV, "#00b4d8", "BARRIO IAPV");
 
-const grupoPreservacion = {
+// MODIFICACIÓN: Corrección en la función para agregar adecuadamente las geometrías GeoJSON al grupo de capas 'grupoRenabap'
+async function cargarCapaRenabap() {
+    const urlGeojson = BASE_URL + "backdoor/barrios_populares_renabap.geojson";
+    try {
+        const data = await fetchGeoJSON(urlGeojson);
+        if (!data || !data.features) return;
+
+        L.geoJSON(data, {
+            style: { color: "#ff5722", weight: 2, fillColor: "#ff5722", fillOpacity: 0.35 },
+            onEachFeature: function(f, l) {
+                l.on('click', function(e) {
+                    let latlng = e.latlng || l.getBounds().getCenter();
+                    let p = f.properties || {};
+                    let nombreBarrio = p.nombre_bar ? decodificarTexto(String(p.nombre_bar)) : "S/N";
+
+                    let c = '<div class="popup-custom">';
+                    c += '<div class="popup-header" style="color:#ff5722;">BARRIOS POPULARES RENABAP</div>';
+                    c += '<table class="table-info">';
+                    c += '<tr><td>BARRIO</td><td><b>' + nombreBarrio + '</b></td></tr>';
+                    
+                    for (let [k, v] of Object.entries(p)) {
+                        if (k.toLowerCase() !== 'nombre_bar' && v) {
+                            c += '<tr><td>' + decodificarTexto(k).toUpperCase() + '</td><td>' + decodificarTexto(String(v)) + '</td></tr>';
+                        }
+                    }
+                    c += '</table>';
+                    
+                    let parcelaEncontrada = obtenerInfoParcelaEnPunto(latlng);
+                    if (parcelaEncontrada) {
+                        c += '<hr style="margin: 6px 0; border-style: dashed; border-color: #cbd5e1;">';
+                        c += '<div class="text-[8px] text-slate-500 italic text-center mb-1">Hay una parcela catastral debajo.</div>';
+                        c += '<button onclick="mostrarInfoParcelaDesdePopup(' + latlng.lat + ', ' + latlng.lng + ')" class="w-full text-center py-1 bg-blue-600 hover:bg-blue-700 text-white rounded font-bold text-[9px] uppercase transition-colors">👉 Ver Parcela Catastral debajo</button>';
+                    } else {
+                        c += '<div class="text-[8px] text-slate-400 italic text-center mt-1">Para ver la parcela debajo, active la capa de parcelas en el panel izquierdo.</div>';
+                    }
+                    c += '</div>';
+
+                    l.bindPopup(c, { autoPanPadding: L.point(10, 110) }).openPopup(latlng);
+                });
+            }
+        }).addTo(grupoRenabap); // MODIFICACIÓN: Se añade el nivel GeoJSON generado directamente al grupo de capas
+    } catch (err) {
+        console.warn("Error cargando Barrios Populares RENABAP:", err);
+    }
+}
+
+cargarCapaRenabap();
+
+var grupoPreservacion = {
     total: L.layerGroup(),
     fachadas: L.layerGroup(),
     patrimonial: L.layerGroup(),
@@ -1449,6 +1507,7 @@ function sincronizarCheckboxLoteo(grupo) {
     if (grupo === grupoLoteosConOrdenanzaAntiguos) document.getElementById('chk-loteos-antiguos').checked = true;
     if (grupo === grupoBarriosPrivados) document.getElementById('chk-barrios-privados').checked = true;
     if (grupo === grupoBarriosIAPV) document.getElementById('chk-barrios-iapv').checked = true;
+    if (grupo === grupoRenabap) document.getElementById('chk-renabap').checked = true;
 }
 
 function configurarBuscadorOrdenanzas() {
