@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visores Planeamiento | Municipalidad de Paraná</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'muni-green': '#4C9D34',
+                        'bg-dark': '#0f172a',
+                        'card-dark': '#1e293b',
+                        'card-hover': '#26334d',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        
+        /* Animaciones para transiciones de estado */
+        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Estilos de las tarjetas (Conservados de la versión restringida anterior) */
+        .card-item-amber {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .card-item-amber:hover {
+            transform: translateY(-4px);
+            border-color: #f59e0b;
+            box-shadow: 0 12px 24px -10px rgba(245, 158, 11, 0.25);
+        }
+        .card-disabled { opacity: 0.5; filter: grayscale(0.8); pointer-events: none; }
+        
+        /* Efecto de fondo elegante para la pantalla de login */
+        .bg-glow {
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(245, 158, 11, 0.05) 0%, rgba(15, 23, 42, 0) 70%);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: -1;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body class="bg-bg-dark text-slate-200 min-h-screen flex flex-col selection:bg-amber-500 selection:text-slate-900 relative z-0 overflow-x-hidden">
+
+    <!-- Ambient Glow Background -->
+    <div class="bg-glow"></div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-12 w-full flex-grow flex flex-col">
+        
+        <!-- ENCABEZADO PRINCIPAL -->
+        <header class="mb-10 text-center space-y-6">
+            <div class="flex justify-center mb-6">
+                <img src="https://raw.githubusercontent.com/dcartografiayde/IDE-PARANA/main/catastro/PUA%20-%20Logo%20horizontal_pages-to-jpg-0001%20(1).jpg" 
+                     onerror="this.src='PUA%20-%20Logo%20horizontal_pages-to-jpg-0001%20(1).jpg'" 
+                     alt="Logo Plan Urbano Ambiental - Paraná" 
+                     class="h-20 md:h-24 w-auto object-contain bg-white/5 p-3 rounded-2xl border border-slate-700/60 shadow-xl hover:scale-105 transition-transform duration-300 backdrop-blur-sm">
+            </div>
+            
+            <div class="space-y-3">
+                <h1 class="text-2xl md:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-amber-500 tracking-tight uppercase">
+                    Mapas de Uso Exclusivo
+                </h1>
+                <h2 class="text-sm md:text-lg text-slate-300 font-medium tracking-wide uppercase max-w-3xl mx-auto">
+                    Personal de la Secretaría de Planeamiento
+                </h2>
+                <div class="w-24 h-1 bg-gradient-to-r from-amber-600 to-amber-400 mx-auto rounded-full mt-4 opacity-70"></div>
+            </div>
+        </header>
+
+        <!-- CONTENEDOR PRINCIPAL DINÁMICO (Bloqueo vs Dashboard) -->
+        <main class="flex-grow flex flex-col justify-center items-center w-full">
+            
+            <!-- PANEL DE AUTENTICACIÓN (BLOQUEO) -->
+            <div id="login-container" class="max-w-md w-full bg-slate-900/80 p-8 md:p-10 rounded-3xl border border-amber-500/30 shadow-2xl shadow-amber-900/20 backdrop-blur-md fade-in">
+                <div class="text-center space-y-3 mb-8">
+                    <div class="w-16 h-16 bg-amber-500/10 text-amber-500 rounded-2xl mx-auto flex items-center justify-center border border-amber-500/30 shadow-inner">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-white">Acceso Restringido</h3>
+                    <p class="text-xs text-amber-400/80 font-medium px-4">Esta plataforma contiene información sensible y registral. Requiere credenciales de acceso.</p>
+                </div>
+
+                <form onsubmit="handleLogin(event)" class="space-y-5">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Usuario Institucional</label>
+                        <input type="text" id="username-input" required placeholder="Ingrese usuario" class="w-full bg-slate-950/50 border border-slate-700 rounded-xl px-4 py-3.5 text-slate-100 placeholder-slate-600 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Contraseña</label>
+                        <input type="password" id="password-input" required placeholder="••••••••" class="w-full bg-slate-950/50 border border-slate-700 rounded-xl px-4 py-3.5 text-slate-100 placeholder-slate-600 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all text-sm">
+                    </div>
+
+                    <div id="login-error" class="hidden p-3 rounded-xl bg-red-950/60 border border-red-500/40 text-red-300 text-xs font-medium text-center flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        Credenciales incorrectas. Intente nuevamente.
+                    </div>
+
+                    <button type="submit" class="w-full bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-slate-950 font-extrabold py-3.5 rounded-xl transition-all shadow-lg shadow-amber-500/25 text-sm uppercase tracking-wide mt-2">
+                        Verificar Identidad
+                    </button>
+                </form>
+            </div>
+
+            <!-- CONTENIDO DE MAPAS MUNICIPALES (OCULTO POR DEFECTO) -->
+            <div id="dashboard-content" class="hidden w-full space-y-8 fade-in">
+                
+                <!-- Barra de estado de sesión -->
+                <div class="flex flex-col sm:flex-row items-center justify-between p-4 bg-slate-800/40 border border-amber-500/30 rounded-2xl backdrop-blur-sm shadow-lg gap-4">
+                    <div class="flex items-center gap-3">
+                        <span class="relative flex h-3 w-3">
+                          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                          <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                        </span>
+                        <div>
+                            <p class="text-xs font-bold text-white uppercase tracking-wider">Conexión Segura Establecida</p>
+                            <p class="text-[10px] text-amber-300/80">Secretaría de Planeamiento - Municipalidad de Paraná</p>
+                        </div>
+                    </div>
+                    <button onclick="handleLogout()" class="text-xs font-bold bg-slate-900 hover:bg-slate-700 text-slate-300 px-4 py-2 rounded-xl border border-slate-700 transition-colors flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                        Cerrar Sesión
+                    </button>
+                </div>
+
+                <!-- Grid de Mapas -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="planeamiento-grid"></div>
+                
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL DE EXPLICACIÓN (CONSERVADO Y ADAPTADO) -->
+    <div id="pua-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 z-50 hidden" onclick="closePuaModalOnOutsideClick(event)">
+        <div id="modal-container" class="bg-card-dark border border-amber-500/30 rounded-3xl max-w-xl w-full p-6 md:p-8 shadow-2xl space-y-6 transform scale-95 opacity-0 transition-all duration-300">
+            <div class="flex justify-between items-start border-b border-slate-800 pb-4">
+                <div class="flex items-center space-x-3">
+                    <div class="p-2.5 bg-amber-500/20 text-amber-500 rounded-xl border border-amber-500/20">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 id="modal-title-custom" class="text-xl font-bold text-white">Detalle del Visor</h3>
+                        <p class="text-[10px] text-amber-500 font-bold tracking-widest uppercase">Secretaría de Planeamiento</p>
+                    </div>
+                </div>
+                <button onclick="closePuaModal()" class="text-slate-400 hover:text-white transition-colors bg-slate-900 p-2 rounded-xl border border-slate-700">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <div class="space-y-6 overflow-y-auto max-h-[60vh] pr-2 text-sm leading-relaxed text-slate-300">
+                <div class="space-y-2 bg-slate-900/50 p-4 rounded-2xl border border-slate-800">
+                    <h4 class="font-bold text-amber-400 flex items-center gap-2 text-sm uppercase tracking-wide">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        Descripción Técnica
+                    </h4>
+                    <p id="modal-what" class="text-slate-300 text-sm leading-relaxed"></p>
+                </div>
+                
+                <div class="space-y-2 bg-slate-900/50 p-4 rounded-2xl border border-slate-800">
+                    <h4 class="font-bold text-amber-400 flex items-center gap-2 text-sm uppercase tracking-wide">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+                        Uso y Aplicación Interna
+                    </h4>
+                    <p id="modal-use" class="text-slate-300 text-sm leading-relaxed"></p>
+                </div>
+            </div>
+
+            <div class="border-t border-slate-800 pt-4 flex justify-end">
+                <button onclick="closePuaModal()" class="bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold py-2.5 px-6 rounded-xl text-sm transition-all shadow-lg shadow-amber-900/50">
+                    Entendido
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let isAuthenticated = false;
+
+        // MAPAS EXCLUSIVOS SECRETARÍA DE PLANEAMIENTO (Requerimiento exacto de 3 mapas)
+        const planeamientoMaps = [
+            { 
+                title: "Catastro con datos de propietarios", 
+                desc: "Consulta parcelaria integrada con la información registral de titularidad dominial.", 
+                link: "https://dcartografiayde.github.io/IDE-PARANA/catastro/catastro%20con%20propietarios.html", 
+                icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>`,
+                restricted: true,
+                warning: "Datos Sensibles - Uso estrictamente confidencial"
+            },
+            { 
+                title: "Mapa de Riesgo Ambiental", 
+                desc: "Priorización territorial para la gestión del riesgo socioambiental y sectores expuestos.", 
+                link: "https://dcartografiayde.github.io/IDE-PARANA/riesgo_ambiental/visor_urbano_y_riesgo_ambiental_paran%20(3).html", 
+                icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>`,
+                restricted: true,
+                warning: "Uso interno - Análisis Territorial"
+            },
+            { 
+                title: "Obras Privadas", 
+                desc: "Permisos de construcción y trámites habilitados.", 
+                link: "https://dcartografiayde.github.io/IDE-PARANA/obras_privadas/", 
+                icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>`,
+                restricted: true,
+                warning: "Uso interno - Inspección y Control"
+            }
+        ];
+
+        // DICCIONARIO DE EXPLICACIONES DE MAPAS (Conservado y enfocado a Planeamiento)
+        const mapExplanations = {
+            "Catastro con datos de propietarios": { 
+                what: "Visor de la subdivisión parcelaria de la ciudad de Paraná vinculado directamente a las bases registrales formales que detallan la titularidad de dominio, cuit y los datos patrimoniales de cada inmueble.", 
+                use: "Herramienta técnica reservada exclusivamente para la administración, validación dominial interna de los funcionarios municipales y verificación de titulares en expedientes de obras e inspecciones." 
+            },
+            "Mapa de Riesgo Ambiental": { 
+                what: "Representación cartográfica de sectores urbanos priorizados según su exposición a factores de riesgo socioambiental, vulnerabilidad hídrica y condiciones topográficas críticas.", 
+                use: "Herramienta técnica para la Secretaría de Planeamiento destinada a la evaluación rápida de factibilidades de loteos, planificación de obras de mitigación y diseño de políticas de ordenamiento territorial seguro." 
+            },
+            "Obras Privadas": { 
+                what: "Inventario espacializado y registro administrativo de expedientes constructivos, estados de factibilidad de obras civiles nuevas, proyectos y relevamientos de obras e infracciones.", 
+                use: "Permite al área técnica e inspectores cruzar datos en el territorio para verificar que las obras en ejecución cuenten con planos aprobados y detectar construcciones clandestinas mediante fiscalización espacial." 
+            }
+        };
+
+        // LÓGICA DE RENDERIZADO DE TARJETAS (Mantiene arquitectura original)
+        function renderCards(data, containerId) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            
+            container.innerHTML = data.map(m => {
+                const isReady = !!m.link;
+                // Como ahora todos son restringidos, forzamos el estilo ámbar premium
+                const cardHoverStyle = 'card-item-amber border-amber-500/40 bg-amber-950/10 backdrop-blur-sm';
+                const iconBgClass = 'bg-amber-500/20 text-amber-400 group-hover:bg-amber-500 group-hover:text-slate-900';
+                const linkClass = 'text-amber-400 hover:text-amber-300';
+
+                return `
+                <div class="p-6 rounded-3xl border ${cardHoverStyle} shadow-lg transition-all group flex flex-col justify-between ${!isReady ? 'card-disabled' : ''}">
+                    <div>
+                        <div class="flex items-center justify-between mb-5">
+                            <div class="w-14 h-14 ${iconBgClass} rounded-2xl flex items-center justify-center transition-colors shadow-inner border border-amber-500/20">
+                                ${m.icon}
+                            </div>
+                            <span class="px-3 py-1.5 text-[10px] font-extrabold rounded-full bg-red-950/80 text-red-400 border border-red-500/30 uppercase tracking-widest flex items-center gap-1.5 shadow-inner">
+                                <svg class="w-3.5 h-3.5 text-red-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" /></svg>
+                                Clasificado
+                            </span>
+                        </div>
+                        
+                        <h3 class="font-bold text-xl text-white mb-2 tracking-tight">${m.title}</h3>
+                        <p class="text-sm text-slate-400 mb-5 leading-relaxed">${m.desc}</p>
+                        
+                        ${m.warning ? `
+                            <div class="mb-5 p-3 rounded-xl bg-amber-950/60 border border-amber-500/40 text-amber-200 text-xs flex items-start gap-2.5 shadow-inner">
+                                <svg class="w-4 h-4 text-amber-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                <span class="font-medium leading-tight">${m.warning}</span>
+                            </div>
+                        ` : ''}
+                    </div>
+                    
+                    <div class="flex items-center justify-between mt-auto pt-5 border-t border-slate-800/80">
+                        ${isReady 
+                            ? `<a href="${m.link}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 ${linkClass} font-bold text-sm tracking-wide">Ingresar al Sistema <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg></a>`
+                            : `<span class="inline-flex items-center text-slate-500 font-bold text-sm cursor-default">En mantenimiento</span>`
+                        }
+                        <button onclick="showPuaAnalysis('${m.title}')" class="inline-flex items-center text-xs text-sky-400 hover:text-sky-300 font-bold transition-colors py-2 px-3.5 rounded-xl hover:bg-slate-800 border border-transparent hover:border-slate-700">
+                            Info. Técnica
+                        </button>
+                    </div>
+                </div>
+            `}).join('');
+        }
+
+        // Inicializar render de tarjetas
+        renderCards(planeamientoMaps, 'planeamiento-grid');
+
+        // MANEJO DE AUTENTICACIÓN (Lógica preservada, DOM ajustado)
+        function handleLogin(event) {
+            if (event) event.preventDefault();
+            const userVal = document.getElementById('username-input').value.trim();
+            const passVal = document.getElementById('password-input').value.trim();
+            const errorMsg = document.getElementById('login-error');
+
+            if (userVal === 'Cartografia' && passVal === 'Cartografia') {
+                isAuthenticated = true;
+                if (errorMsg) errorMsg.classList.add('hidden');
+                document.getElementById('username-input').value = '';
+                document.getElementById('password-input').value = '';
+                updateAuthUI();
+            } else {
+                if (errorMsg) errorMsg.classList.remove('hidden');
+            }
+        }
+
+        function handleLogout() {
+            isAuthenticated = false;
+            updateAuthUI();
+        }
+
+        function updateAuthUI() {
+            const loginContainer = document.getElementById('login-container');
+            const dashboardContent = document.getElementById('dashboard-content');
+            
+            if (isAuthenticated) {
+                if (loginContainer) loginContainer.classList.add('hidden');
+                if (dashboardContent) dashboardContent.classList.remove('hidden');
+            } else {
+                if (loginContainer) loginContainer.classList.remove('hidden');
+                if (dashboardContent) dashboardContent.classList.add('hidden');
+            }
+        }
+
+        // CONTROL DE MODAL EXPLICATIVA (Lógica preservada)
+        function showPuaAnalysis(mapTitle) {
+            const modal = document.getElementById('pua-modal');
+            const modalContainer = document.getElementById('modal-container');
+            const titleEl = document.getElementById('modal-title-custom');
+            const whatEl = document.getElementById('modal-what');
+            const useEl = document.getElementById('modal-use');
+
+            const explanation = mapExplanations[mapTitle] || {
+                what: "Información espacial detallada sobre esta variable del desarrollo urbano de la ciudad de Paraná.",
+                use: "Herramienta técnica para consulta y planificación interna."
+            };
+
+            titleEl.innerText = mapTitle;
+            whatEl.innerText = explanation.what;
+            useEl.innerText = explanation.use;
+
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modalContainer.classList.remove('scale-95', 'opacity-0');
+                modalContainer.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+
+        function closePuaModal() {
+            const modal = document.getElementById('pua-modal');
+            const modalContainer = document.getElementById('modal-container');
+            modalContainer.classList.remove('scale-100', 'opacity-100');
+            modalContainer.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => { modal.classList.add('hidden'); }, 300);
+        }
+
+        function closePuaModalOnOutsideClick(event) { if (event.target.id === 'pua-modal') closePuaModal(); }
+    </script>
+</body>
+</html>
